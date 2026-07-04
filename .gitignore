@@ -1,0 +1,14 @@
+﻿cat > .gitignore << 'EOF'
+.env
+.env.local
+.env.*.local
+bin/
+obj/
+node_modules/
+.next/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+EOF

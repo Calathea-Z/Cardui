@@ -1,0 +1,30 @@
+namespace Cardui.Api.Models;
+
+public class Transaction
+{
+    public Guid Id { get; set; }
+
+    public Guid AccountId { get; set; }
+    public Account Account { get; set; } = null!;
+
+    public required string PlaidTransactionId { get; set; }
+
+    public DateOnly Date { get; set; }
+    public DateOnly? AuthorizedDate { get; set; }
+
+    public required string Name { get; set; }
+    public string? MerchantName { get; set; }
+
+    public decimal Amount { get; set; }
+
+    public string? IsoCurrencyCode { get; set; }
+    public bool Pending { get; set; }
+
+    public Guid? CategoryId { get; set; }
+    public Category? Category { get; set; }
+
+    public string? Notes { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}

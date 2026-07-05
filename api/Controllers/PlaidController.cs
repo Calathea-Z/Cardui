@@ -29,4 +29,11 @@ public class PlaidController : ControllerBase
         var result = await _plaidService.ExchangePublicTokenAsync(dto);
         return Ok(result);
     }
+
+    [HttpPost("{plaidItemId:guid}/sync-accounts")]
+    public async Task<IActionResult> SyncAccounts(Guid plaidItemId)
+    {
+        await _plaidService.SyncAccountsAsync(plaidItemId);
+        return NoContent();
+    }
 }

@@ -3,10 +3,13 @@ using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Models;
 using CardUI.Api.Services.Interfaces;
 using Going.Plaid;
+using Going.Plaid.Accounts;
 using Going.Plaid.Entity;
 using Going.Plaid.Item;
 using Going.Plaid.Link;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Account = Cardui.Api.Models.Account;
 using Environment = Going.Plaid.Environment;
 using PlaidConfig = Cardui.Api.Options.PlaidOptions;
 
@@ -84,8 +87,9 @@ public class PlaidService : IPlaidService
         };
 
         _dbContext.PlaidItems.Add(plaidItem);
-
         await _dbContext.SaveChangesAsync();
+
+        await SyncAccountsForPlaidItemAsync(plaidItem);
 
         return new ExchangePublicTokenResponseDto
         {
@@ -93,10 +97,88 @@ public class PlaidService : IPlaidService
         };
     }
 
+    public async Task SyncAccountsAsync(Guid plaidItemId)
+    {
+        var plaidItem = await _dbContext.PlaidItems
+            .FirstOrDefaultAsync(x => x.Id == plaidItemId);
+
+        if (plaidItem is null) throw new InvalidOperationException("Plaid item was not found.");
+
+        await SyncAccountsForPlaidItemAsync(plaidItem);
+    }
+
     private static Environment GetPlaidEnvironment(string environment)
     {
         return Enum.Parse<Environment>(
             environment,
             true);
+    }
+
+    private async Task SyncAccountsForPlaidItemAsync(PlaidItem plaidItem)
+    {
+        var request = new AccountsGetRequest
+        {
+            ClientId = _plaidOptions.ClientId,
+            Secret = _plaidOptions.Secret,
+            AccessToken = plaidItem.AccessToken
+        };
+
+        var response = await _plaidClient.AccountsGetAsync(request);
+
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var plaidAccount in response.Accounts)
+        {
+            var existingAccount = await _dbContext.Accounts
+                .FirstOrDefaultAsync(x => x.PlaidAccountId == plaidAccount.AccountId);
+
+            if (existingAccount is null)
+            {
+                var account = new Account
+                {
+                    Id = Guid.NewGuid(),
+                    PlaidItemId = plaidItem.Id,
+                    PlaidAccountId = plaidAccount.AccountId,
+                    Name = plaidAccount.Name,
+                    OfficialName = plaidAccount.OfficialName,
+                    Type = plaidAccount.Type.ToString().ToLowerInvariant(),
+                    Subtype = plaidAccount.Subtype?.ToString().ToLowerInvariant(),
+                    Mask = plaidAccount.Mask,
+                    CurrentBalance = plaidAccount.Balances.Current.HasValue
+                        ? Convert.ToDecimal(plaidAccount.Balances.Current.Value)
+                        : 0m,
+                    AvailableBalance = plaidAccount.Balances.Available.HasValue
+                        ? Convert.ToDecimal(plaidAccount.Balances.Available.Value)
+                        : null,
+                    IsoCurrencyCode = plaidAccount.Balances.IsoCurrencyCode,
+                    IsActive = true,
+                    CreatedAt = now,
+                    UpdatedAt = now
+                };
+
+                _dbContext.Accounts.Add(account);
+            }
+            else
+            {
+                existingAccount.Name = plaidAccount.Name;
+                existingAccount.OfficialName = plaidAccount.OfficialName;
+                existingAccount.Type = plaidAccount.Type.ToString().ToLowerInvariant();
+                existingAccount.Subtype = plaidAccount.Subtype?.ToString().ToLowerInvariant();
+                existingAccount.Mask = plaidAccount.Mask;
+                existingAccount.CurrentBalance = plaidAccount.Balances.Current.HasValue
+                    ? Convert.ToDecimal(plaidAccount.Balances.Current.Value)
+                    : 0m;
+                existingAccount.AvailableBalance = plaidAccount.Balances.Available.HasValue
+                    ? Convert.ToDecimal(plaidAccount.Balances.Available.Value)
+                    : null;
+                existingAccount.IsoCurrencyCode = plaidAccount.Balances.IsoCurrencyCode;
+                existingAccount.IsActive = true;
+                existingAccount.UpdatedAt = now;
+            }
+        }
+
+        plaidItem.UpdatedAt = now;
+
+        await _dbContext.SaveChangesAsync();
     }
 }

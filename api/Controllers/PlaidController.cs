@@ -15,6 +15,13 @@ public class PlaidController : ControllerBase
         _plaidService = plaidService;
     }
 
+    [HttpGet("items")]
+    public async Task<ActionResult<IReadOnlyList<PlaidItemDto>>> GetPlaidItems()
+    {
+        var items = await _plaidService.GetPlaidItemsAsync();
+        return Ok(items);
+    }
+
     [HttpPost("link-token")]
     public async Task<ActionResult<CreateLinkTokenResponseDto>> CreateLinkToken()
     {
@@ -42,6 +49,14 @@ public class PlaidController : ControllerBase
         Guid plaidItemId)
     {
         var result = await _plaidService.SyncTransactionsAsync(plaidItemId);
+        return Ok(result);
+    }
+
+    [HttpPost("{plaidItemId:guid}/sync")]
+    public async Task<ActionResult<SyncPlaidItemResponseDto>> SyncPlaidItem(
+        Guid plaidItemId)
+    {
+        var result = await _plaidService.SyncPlaidItemAsync(plaidItemId);
         return Ok(result);
     }
 }

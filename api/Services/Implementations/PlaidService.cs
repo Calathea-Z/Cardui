@@ -92,6 +92,7 @@ public class PlaidService : IPlaidService
         await _dbContext.SaveChangesAsync();
 
         await SyncAccountsForPlaidItemAsync(plaidItem);
+        await SyncTransactionsForPlaidItemAsync(plaidItem);
 
         return new ExchangePublicTokenResponseDto
         {
@@ -116,66 +117,40 @@ public class PlaidService : IPlaidService
 
         if (plaidItem is null) throw new InvalidOperationException("Plaid item was not found");
 
-        var addedCount = 0;
-        var modifiedCount = 0;
-        var removedCount = 0;
-        var hasMore = true;
-        var cursor = plaidItem.TransactionsCursor;
+        return await SyncTransactionsForPlaidItemAsync(plaidItem);
+    }
 
-        while (hasMore)
+    public async Task<IReadOnlyList<PlaidItemDto>> GetPlaidItemsAsync()
+    {
+        return await _dbContext.PlaidItems
+            .AsNoTracking()
+            .OrderBy(x => x.InstitutionName)
+            .Select(x => new PlaidItemDto
+            {
+                Id = x.Id,
+                InstitutionId = x.InstitutionId,
+                InstitutionName = x.InstitutionName,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt,
+                LastTransactionsSyncedAt = x.LastTransactionsSyncedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<SyncPlaidItemResponseDto> SyncPlaidItemAsync(Guid plaidItemId)
+    {
+        var plaidItem = await _dbContext.PlaidItems
+            .FirstOrDefaultAsync(x => x.Id == plaidItemId);
+
+        if (plaidItem is null) throw new InvalidOperationException("Plaid item was not found.");
+
+        await SyncAccountsForPlaidItemAsync(plaidItem);
+        var transactionsResult = await SyncTransactionsForPlaidItemAsync(plaidItem);
+
+        return new SyncPlaidItemResponseDto
         {
-            var request = new TransactionsSyncRequest
-            {
-                ClientId = _plaidOptions.ClientId,
-                Secret = _plaidOptions.Secret,
-                AccessToken = plaidItem.AccessToken,
-                Cursor = cursor,
-                Count = 100
-            };
-
-            var response = await _plaidClient.TransactionsSyncAsync(request);
-
-            foreach (var plaidTransaction in response.Added)
-            {
-                await UpsertPlaidTransactionAsync(plaidTransaction);
-                addedCount++;
-            }
-
-            foreach (var plaidTransaction in response.Modified)
-            {
-                await UpsertPlaidTransactionAsync(plaidTransaction);
-                modifiedCount++;
-            }
-
-            foreach (var removedTransaction in response.Removed)
-            {
-                var existingTransaction = await _dbContext.Transactions
-                    .FirstOrDefaultAsync(x =>
-                        x.PlaidTransactionId == removedTransaction.TransactionId);
-
-                if (existingTransaction is not null)
-                {
-                    _dbContext.Transactions.Remove(existingTransaction);
-                    removedCount++;
-                }
-            }
-
-            cursor = response.NextCursor;
-            hasMore = response.HasMore;
-        }
-
-        plaidItem.TransactionsCursor = cursor;
-        plaidItem.LastTransactionsSyncedAt = DateTimeOffset.UtcNow;
-        plaidItem.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await _dbContext.SaveChangesAsync();
-
-        return new SyncTransactionsResponseDto
-        {
-            Added = addedCount,
-            Modified = modifiedCount,
-            Removed = removedCount,
-            NextCursor = cursor
+            PlaidItemId = plaidItem.Id,
+            Transactions = transactionsResult
         };
     }
 
@@ -310,5 +285,71 @@ public class PlaidService : IPlaidService
         existingTransaction.IsoCurrencyCode = plaidTransaction.IsoCurrencyCode;
         existingTransaction.Pending = plaidTransaction.Pending ?? false;
         existingTransaction.UpdatedAt = now;
+    }
+
+    private async Task<SyncTransactionsResponseDto> SyncTransactionsForPlaidItemAsync(
+        PlaidItem plaidItem)
+    {
+        var addedCount = 0;
+        var modifiedCount = 0;
+        var removedCount = 0;
+        var hasMore = true;
+        var cursor = plaidItem.TransactionsCursor;
+
+        while (hasMore)
+        {
+            var request = new TransactionsSyncRequest
+            {
+                ClientId = _plaidOptions.ClientId,
+                Secret = _plaidOptions.Secret,
+                AccessToken = plaidItem.AccessToken,
+                Cursor = cursor,
+                Count = 100
+            };
+
+            var response = await _plaidClient.TransactionsSyncAsync(request);
+
+            foreach (var plaidTransaction in response.Added)
+            {
+                await UpsertPlaidTransactionAsync(plaidTransaction);
+                addedCount++;
+            }
+
+            foreach (var plaidTransaction in response.Modified)
+            {
+                await UpsertPlaidTransactionAsync(plaidTransaction);
+                modifiedCount++;
+            }
+
+            foreach (var removedTransaction in response.Removed)
+            {
+                var existingTransaction = await _dbContext.Transactions
+                    .FirstOrDefaultAsync(x =>
+                        x.PlaidTransactionId == removedTransaction.TransactionId);
+
+                if (existingTransaction is not null)
+                {
+                    _dbContext.Transactions.Remove(existingTransaction);
+                    removedCount++;
+                }
+            }
+
+            cursor = response.NextCursor;
+            hasMore = response.HasMore;
+        }
+
+        plaidItem.TransactionsCursor = cursor;
+        plaidItem.LastTransactionsSyncedAt = DateTimeOffset.UtcNow;
+        plaidItem.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return new SyncTransactionsResponseDto
+        {
+            Added = addedCount,
+            Modified = modifiedCount,
+            Removed = removedCount,
+            NextCursor = cursor
+        };
     }
 }

@@ -1,4 +1,4 @@
-import { AccountsView } from "@/features/accounts/accountsView";
+import { AccountsView } from "@/features/accounts/AccountsView";
 import { getAccounts, getPlaidItems } from "@/lib/api";
 import { ConnectedInstitutionsPanel } from "@/features/plaid/ConnectedInstitutionsPanel";
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
 import { getCategories, getTransactions } from "@/lib/api";
-import { TransactionsClient } from "../../features/transactions/transactions-client";
+import { TransactionsClient } from "@/features/transactions/TransactionsClient";
 
 export const dynamic = "force-dynamic";
 

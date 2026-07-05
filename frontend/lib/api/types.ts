@@ -63,15 +63,6 @@ export type UpdateTransactionCategoryDto = {
     categoryId: string | null;
 };
 
-export type CategoryDto = {
-    id: string;
-    name: string;
-    parentCategoryId: string | null;
-    color: string | null;
-    icon: string | null;
-    isSystem: boolean;
-};
-
 export type SpendingByCategoryDto = {
     categoryId: string | null;
     categoryName: string;
@@ -88,3 +79,26 @@ export type DashboardSummaryDto = {
     recentTransactions: TransactionDto[];
     spendingByCategory: SpendingByCategoryDto[];
 };
+
+export type CategoryDto = {
+    id: string;
+    name: string;
+    parentCategoryId: string | null;
+    color: string | null;
+    icon: string | null;
+    isSystem: boolean;
+};
+
+export type CreateCategoryDto = {
+    name: string;
+    parentCategoryId?: string | null;
+    color?: string | null;
+    icon?: string | null;
+  };
+  
+  export type UpdateCategoryDto = {
+    name: string;
+    parentCategoryId?: string | null;
+    color?: string | null;
+    icon?: string | null;
+  };

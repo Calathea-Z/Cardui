@@ -1,4 +1,4 @@
-import type { AccountDto } from "@/lib/api/types";
+import type { AccountDto } from "@/lib/api";
 
 type AccountsViewProps = {
   accounts: AccountDto[];

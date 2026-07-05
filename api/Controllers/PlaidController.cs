@@ -36,4 +36,12 @@ public class PlaidController : ControllerBase
         await _plaidService.SyncAccountsAsync(plaidItemId);
         return NoContent();
     }
+
+    [HttpPost("{plaidItemId:guid}/sync-transactions")]
+    public async Task<ActionResult<SyncTransactionsResponseDto>> SyncTransactions(
+        Guid plaidItemId)
+    {
+        var result = await _plaidService.SyncTransactionsAsync(plaidItemId);
+        return Ok(result);
+    }
 }

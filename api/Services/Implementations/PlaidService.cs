@@ -7,11 +7,13 @@ using Going.Plaid.Accounts;
 using Going.Plaid.Entity;
 using Going.Plaid.Item;
 using Going.Plaid.Link;
+using Going.Plaid.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Account = Cardui.Api.Models.Account;
 using Environment = Going.Plaid.Environment;
 using PlaidConfig = Cardui.Api.Options.PlaidOptions;
+using Transaction = Cardui.Api.Models.Transaction;
 
 namespace Cardui.Api.Services.Implementations;
 
@@ -107,6 +109,76 @@ public class PlaidService : IPlaidService
         await SyncAccountsForPlaidItemAsync(plaidItem);
     }
 
+    public async Task<SyncTransactionsResponseDto> SyncTransactionsAsync(Guid plaidItemId)
+    {
+        var plaidItem = await _dbContext.PlaidItems
+            .FirstOrDefaultAsync(x => x.Id == plaidItemId);
+
+        if (plaidItem is null) throw new InvalidOperationException("Plaid item was not found");
+
+        var addedCount = 0;
+        var modifiedCount = 0;
+        var removedCount = 0;
+        var hasMore = true;
+        var cursor = plaidItem.TransactionsCursor;
+
+        while (hasMore)
+        {
+            var request = new TransactionsSyncRequest
+            {
+                ClientId = _plaidOptions.ClientId,
+                Secret = _plaidOptions.Secret,
+                AccessToken = plaidItem.AccessToken,
+                Cursor = cursor,
+                Count = 100
+            };
+
+            var response = await _plaidClient.TransactionsSyncAsync(request);
+
+            foreach (var plaidTransaction in response.Added)
+            {
+                await UpsertPlaidTransactionAsync(plaidTransaction);
+                addedCount++;
+            }
+
+            foreach (var plaidTransaction in response.Modified)
+            {
+                await UpsertPlaidTransactionAsync(plaidTransaction);
+                modifiedCount++;
+            }
+
+            foreach (var removedTransaction in response.Removed)
+            {
+                var existingTransaction = await _dbContext.Transactions
+                    .FirstOrDefaultAsync(x =>
+                        x.PlaidTransactionId == removedTransaction.TransactionId);
+
+                if (existingTransaction is not null)
+                {
+                    _dbContext.Transactions.Remove(existingTransaction);
+                    removedCount++;
+                }
+            }
+
+            cursor = response.NextCursor;
+            hasMore = response.HasMore;
+        }
+
+        plaidItem.TransactionsCursor = cursor;
+        plaidItem.LastTransactionsSyncedAt = DateTimeOffset.UtcNow;
+        plaidItem.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return new SyncTransactionsResponseDto
+        {
+            Added = addedCount,
+            Modified = modifiedCount,
+            Removed = removedCount,
+            NextCursor = cursor
+        };
+    }
+
     private static Environment GetPlaidEnvironment(string environment)
     {
         return Enum.Parse<Environment>(
@@ -180,5 +252,63 @@ public class PlaidService : IPlaidService
         plaidItem.UpdatedAt = now;
 
         await _dbContext.SaveChangesAsync();
+    }
+
+    private async Task UpsertPlaidTransactionAsync(
+        Going.Plaid.Entity.Transaction plaidTransaction)
+    {
+        if (string.IsNullOrWhiteSpace(plaidTransaction.TransactionId))
+            throw new InvalidOperationException("Plaid transaction is missing transaction id.");
+
+        if (plaidTransaction.Date is null)
+            throw new InvalidOperationException(
+                $"Plaid transaction {plaidTransaction.TransactionId} is missing date.");
+
+        var account = await _dbContext.Accounts
+            .FirstOrDefaultAsync(x => x.PlaidAccountId == plaidTransaction.AccountId);
+
+        if (account is null) return;
+
+        var existingTransaction = await _dbContext.Transactions
+            .FirstOrDefaultAsync(x =>
+                x.PlaidTransactionId == plaidTransaction.TransactionId);
+
+        var now = DateTimeOffset.UtcNow;
+        var name = plaidTransaction.MerchantName
+                   ?? "Unknown transaction";
+
+        if (existingTransaction is null)
+        {
+            var transaction = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                AccountId = account.Id,
+                PlaidTransactionId = plaidTransaction.TransactionId,
+                Date = plaidTransaction.Date.Value,
+                AuthorizedDate = plaidTransaction.AuthorizedDate,
+                Name = name,
+                MerchantName = plaidTransaction.MerchantName,
+                Amount = Convert.ToDecimal(plaidTransaction.Amount),
+                IsoCurrencyCode = plaidTransaction.IsoCurrencyCode,
+                Pending = plaidTransaction.Pending ?? false,
+                CategoryId = null,
+                Notes = null,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+
+            _dbContext.Transactions.Add(transaction);
+            return;
+        }
+
+        existingTransaction.AccountId = account.Id;
+        existingTransaction.Date = plaidTransaction.Date.Value;
+        existingTransaction.AuthorizedDate = plaidTransaction.AuthorizedDate;
+        existingTransaction.Name = name;
+        existingTransaction.MerchantName = plaidTransaction.MerchantName;
+        existingTransaction.Amount = Convert.ToDecimal(plaidTransaction.Amount);
+        existingTransaction.IsoCurrencyCode = plaidTransaction.IsoCurrencyCode;
+        existingTransaction.Pending = plaidTransaction.Pending ?? false;
+        existingTransaction.UpdatedAt = now;
     }
 }

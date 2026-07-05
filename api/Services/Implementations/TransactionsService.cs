@@ -2,6 +2,8 @@ using Cardui.Api.Data;
 using Cardui.Api.Dtos.Common;
 using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Exceptions;
+using Cardui.Api.Mapping;
+using Cardui.Api.Models;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,13 +23,84 @@ public class TransactionsService : ITransactionsService
 
     public async Task<PagedResultDto<TransactionDto>> GetTransactionsAsync(TransactionQueryDto query)
     {
+        var (page, pageSize) = NormalizePagination(query);
+
+        var transactionsQuery = ApplyFilters(
+            _dbContext.Transactions.AsNoTracking(),
+            query);
+
+        var totalCount = await transactionsQuery.CountAsync();
+
+        var items = await transactionsQuery
+            .OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(TransactionDtoMapper.Projection)
+            .ToListAsync();
+
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedResultDto<TransactionDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasNextPage = page < totalPages,
+            HasPreviousPage = page > 1 && totalPages > 0
+        };
+    }
+
+    public Task<TransactionDto> GetTransactionByIdAsync(Guid id) =>
+        ProjectTransactionByIdAsync(id);
+
+    public async Task<TransactionDto> UpdateTransactionCategoryAsync(
+        Guid transactionId,
+        UpdateTransactionCategoryDto dto)
+    {
+        var transaction = await _dbContext.Transactions
+            .FirstOrDefaultAsync(x => x.Id == transactionId);
+
+        if (transaction is null)
+        {
+            throw new NotFoundException($"Transaction '{transactionId}' was not found.");
+        }
+
+        if (dto.CategoryId.HasValue)
+        {
+            var categoryExists = await _dbContext.Categories
+                .AnyAsync(x => x.Id == dto.CategoryId.Value);
+
+            if (!categoryExists)
+            {
+                throw new BadRequestException($"Category '{dto.CategoryId}' was not found.");
+            }
+        }
+
+        transaction.CategoryId = dto.CategoryId;
+        transaction.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return await ProjectTransactionByIdAsync(transaction.Id);
+    }
+
+    #region Private Methods
+
+    private static (int Page, int PageSize) NormalizePagination(TransactionQueryDto query)
+    {
         var page = query.Page < 1 ? 1 : query.Page;
         var pageSize = query.PageSize < 1 ? DefaultPageSize : Math.Min(query.PageSize, MaxPageSize);
 
-        var transactionsQuery = _dbContext.Transactions
-            .AsNoTracking()
-            .AsQueryable();
+        return (page, pageSize);
+    }
 
+    private static IQueryable<Transaction> ApplyFilters(
+        IQueryable<Transaction> transactionsQuery,
+        TransactionQueryDto query)
+    {
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.Trim().ToLower();
@@ -63,88 +136,15 @@ public class TransactionsService : ITransactionsService
             transactionsQuery = transactionsQuery.Where(x => x.Pending == query.Pending.Value);
         }
 
-        var totalCount = await transactionsQuery.CountAsync();
-
-        var items = await transactionsQuery
-            .OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(x => new TransactionDto
-            {
-                Id = x.Id,
-                Date = x.Date,
-                AuthorizedDate = x.AuthorizedDate,
-                Name = x.Name,
-                MerchantName = x.MerchantName,
-                Amount = x.Amount,
-                IsoCurrencyCode = x.IsoCurrencyCode,
-                Pending = x.Pending,
-                Account = new TransactionAccountDto
-                {
-                    Id = x.Account.Id,
-                    Name = x.Account.Name,
-                    Type = x.Account.Type,
-                    Subtype = x.Account.Subtype
-                },
-                Category = x.Category == null
-                    ? null
-                    : new TransactionCategoryDto
-                    {
-                        Id = x.Category.Id,
-                        Name = x.Category.Name,
-                        Color = x.Category.Color,
-                        Icon = x.Category.Icon
-                    }
-            })
-            .ToListAsync();
-
-        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
-
-        return new PagedResultDto<TransactionDto>
-        {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = totalCount,
-            TotalPages = totalPages,
-            HasNextPage = page < totalPages,
-            HasPreviousPage = page > 1 && totalPages > 0
-        };
+        return transactionsQuery;
     }
 
-    public async Task<TransactionDto> GetTransactionByIdAsync(Guid id)
+    private async Task<TransactionDto> ProjectTransactionByIdAsync(Guid id)
     {
         var transaction = await _dbContext.Transactions
             .AsNoTracking()
             .Where(x => x.Id == id)
-            .Select(x => new TransactionDto
-            {
-                Id = x.Id,
-                Date = x.Date,
-                AuthorizedDate = x.AuthorizedDate,
-                Name = x.Name,
-                MerchantName = x.MerchantName,
-                Amount = x.Amount,
-                IsoCurrencyCode = x.IsoCurrencyCode,
-                Pending = x.Pending,
-                Account = new TransactionAccountDto
-                {
-                    Id = x.Account.Id,
-                    Name = x.Account.Name,
-                    Type = x.Account.Type,
-                    Subtype = x.Account.Subtype
-                },
-                Category = x.Category == null
-                    ? null
-                    : new TransactionCategoryDto
-                    {
-                        Id = x.Category.Id,
-                        Name = x.Category.Name,
-                        Color = x.Category.Color,
-                        Icon = x.Category.Icon
-                    }
-            })
+            .Select(TransactionDtoMapper.Projection)
             .FirstOrDefaultAsync();
 
         if (transaction is null)
@@ -155,34 +155,5 @@ public class TransactionsService : ITransactionsService
         return transaction;
     }
 
-    public async Task<TransactionDto> UpdateTransactionCategoryAsync(
-        Guid transactionId,
-        UpdateTransactionCategoryDto dto)
-    {
-        var transaction = await _dbContext.Transactions
-            .FirstOrDefaultAsync(x => x.Id == transactionId);
-
-        if (transaction is null)
-        {
-            throw new NotFoundException($"Transaction '{transactionId}' was not found.");
-        }
-
-        if (dto.CategoryId.HasValue)
-        {
-            var categoryExists = await _dbContext.Categories
-                .AnyAsync(x => x.Id == dto.CategoryId.Value);
-
-            if (!categoryExists)
-            {
-                throw new BadRequestException($"Category '{dto.CategoryId}' was not found.");
-            }
-        }
-
-        transaction.CategoryId = dto.CategoryId;
-        transaction.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await _dbContext.SaveChangesAsync();
-
-        return await GetTransactionByIdAsync(transaction.Id);
-    }
+    #endregion
 }

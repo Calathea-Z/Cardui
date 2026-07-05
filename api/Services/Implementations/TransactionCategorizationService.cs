@@ -26,6 +26,8 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
             .FirstOrDefaultAsync();
     }
 
+    #region Private Methods
+
     private static string GetCategoryName(PlaidTransaction transaction)
     {
         if (transaction.Amount < 0) return "Income";
@@ -61,4 +63,6 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
     {
         return keywords.Any(text.Contains);
     }
+
+    #endregion
 }

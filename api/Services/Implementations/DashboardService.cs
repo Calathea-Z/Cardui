@@ -1,10 +1,10 @@
 using Cardui.Api.Data;
 using Cardui.Api.Dtos.Dashboard;
 using Cardui.Api.Dtos.Transaction;
+using Cardui.Api.Mapping;
 using Cardui.Api.Models;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace Cardui.Api.Services.Implementations;
 
@@ -24,24 +24,34 @@ public class DashboardService : IDashboardService
 
     public async Task<DashboardSummaryDto> GetSummaryAsync()
     {
-        var currentMonth = DateRange.CurrentMonth();
+        var (monthStart, monthEnd) = GetCurrentMonthRange();
 
         var cashBalance = await GetActiveAccountBalanceAsync(DepositoryAccountType);
         var creditCardBalance = await GetActiveAccountBalanceAsync(CreditAccountType);
-        var monthlyActivity = await GetMonthlyActivityAsync(currentMonth);
+        var (monthlyIncome, monthlySpending) = await GetMonthlyActivityAsync(monthStart, monthEnd);
         var recentTransactions = await GetRecentTransactionsAsync();
-        var spendingByCategory = await GetSpendingByCategoryAsync(currentMonth);
+        var spendingByCategory = await GetSpendingByCategoryAsync(monthStart, monthEnd);
 
         return new DashboardSummaryDto
         {
             CashBalance = cashBalance,
             CreditCardBalance = creditCardBalance,
             NetWorth = cashBalance - creditCardBalance,
-            MonthlyIncome = monthlyActivity.Income,
-            MonthlySpending = monthlyActivity.Spending,
+            MonthlyIncome = monthlyIncome,
+            MonthlySpending = monthlySpending,
             RecentTransactions = recentTransactions,
             SpendingByCategory = spendingByCategory
         };
+    }
+
+    #region Private Methods
+
+    private static (DateOnly Start, DateOnly End) GetCurrentMonthRange()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var monthStart = new DateOnly(today.Year, today.Month, 1);
+
+        return (monthStart, today);
     }
 
     private async Task<decimal> GetActiveAccountBalanceAsync(string accountType)
@@ -52,9 +62,11 @@ public class DashboardService : IDashboardService
             .SumAsync(x => x.CurrentBalance);
     }
 
-    private async Task<MonthlyActivity> GetMonthlyActivityAsync(DateRange dateRange)
+    private async Task<(decimal Income, decimal Spending)> GetMonthlyActivityAsync(
+        DateOnly monthStart,
+        DateOnly monthEnd)
     {
-        var totals = await TransactionsInDateRange(dateRange)
+        var totals = await TransactionsInDateRange(monthStart, monthEnd)
             .AsNoTracking()
             .GroupBy(_ => 1)
             .Select(x => new
@@ -64,9 +76,7 @@ public class DashboardService : IDashboardService
             })
             .FirstOrDefaultAsync();
 
-        return new MonthlyActivity(
-            totals?.Income ?? 0,
-            totals?.Spending ?? 0);
+        return (totals?.Income ?? 0, totals?.Spending ?? 0);
     }
 
     private async Task<IReadOnlyList<TransactionDto>> GetRecentTransactionsAsync()
@@ -75,13 +85,15 @@ public class DashboardService : IDashboardService
             .AsNoTracking()
             .OrderByDescending(x => x.Date)
             .Take(RecentTransactionCount)
-            .Select(TransactionDtoProjection)
+            .Select(TransactionDtoMapper.Projection)
             .ToListAsync();
     }
 
-    private async Task<IReadOnlyList<SpendingByCategoryDto>> GetSpendingByCategoryAsync(DateRange dateRange)
+    private async Task<IReadOnlyList<SpendingByCategoryDto>> GetSpendingByCategoryAsync(
+        DateOnly monthStart,
+        DateOnly monthEnd)
     {
-        return await TransactionsInDateRange(dateRange)
+        return await TransactionsInDateRange(monthStart, monthEnd)
             .AsNoTracking()
             .Where(x => x.Amount > 0)
             .GroupBy(x => new
@@ -101,50 +113,11 @@ public class DashboardService : IDashboardService
             .ToListAsync();
     }
 
-    private IQueryable<Transaction> TransactionsInDateRange(DateRange dateRange)
+    private IQueryable<Transaction> TransactionsInDateRange(DateOnly start, DateOnly end)
     {
         return _dbContext.Transactions
-            .Where(x => x.Date >= dateRange.Start && x.Date <= dateRange.End);
+            .Where(x => x.Date >= start && x.Date <= end);
     }
 
-    private static readonly Expression<Func<Transaction, TransactionDto>> TransactionDtoProjection = x => new TransactionDto
-    {
-        Id = x.Id,
-        Date = x.Date,
-        AuthorizedDate = x.AuthorizedDate,
-        Name = x.Name,
-        MerchantName = x.MerchantName,
-        Amount = x.Amount,
-        IsoCurrencyCode = x.IsoCurrencyCode,
-        Pending = x.Pending,
-        Account = new TransactionAccountDto
-        {
-            Id = x.Account.Id,
-            Name = x.Account.Name,
-            Type = x.Account.Type,
-            Subtype = x.Account.Subtype
-        },
-        Category = x.Category == null
-            ? null
-            : new TransactionCategoryDto
-            {
-                Id = x.Category.Id,
-                Name = x.Category.Name,
-                Color = x.Category.Color,
-                Icon = x.Category.Icon
-            }
-    };
-
-    private sealed record MonthlyActivity(decimal Income, decimal Spending);
-
-    private sealed record DateRange(DateOnly Start, DateOnly End)
-    {
-        public static DateRange CurrentMonth()
-        {
-            var today = DateOnly.FromDateTime(DateTime.Today);
-            var monthStart = new DateOnly(today.Year, today.Month, 1);
-
-            return new DateRange(monthStart, today);
-        }
-    }
+    #endregion
 }

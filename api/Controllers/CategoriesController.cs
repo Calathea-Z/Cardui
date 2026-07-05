@@ -16,7 +16,8 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<CategoryDto>>> GetCategories()
+    [ProducesResponseType<IReadOnlyList<CategoryDto>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCategories()
     {
         var categories = await _categoriesService.GetCategoriesAsync();
         return Ok(categories);

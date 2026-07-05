@@ -1,4 +1,5 @@
-﻿using Cardui.Api.Dtos.Transaction;
+﻿using Cardui.Api.Dtos.Common;
+using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResultDto<TransactionDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetTransactions([FromQuery] TransactionQueryDto query)
     {
         var result = await _transactionsService.GetTransactionsAsync(query);
@@ -24,7 +25,7 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTransactionById(Guid id)
     {
@@ -33,7 +34,7 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/category")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTransactionCategory(

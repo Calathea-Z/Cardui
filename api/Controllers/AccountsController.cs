@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using Cardui.Api.Services.Interfaces;
 using Cardui.Api.Dtos.Account;
+using Cardui.Api.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Cardui.Api.Controllers;
 
@@ -16,7 +16,8 @@ public class AccountsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<AccountDto>>> GetAccounts()
+    [ProducesResponseType<IReadOnlyList<AccountDto>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAccounts()
     {
         var accounts = await _accountsService.GetAccountsAsync();
         return Ok(accounts);

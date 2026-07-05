@@ -16,7 +16,7 @@ public class PlaidController : ControllerBase
     }
 
     [HttpGet("items")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<IReadOnlyList<PlaidItemDto>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPlaidItems()
     {
         var items = await _plaidService.GetPlaidItemsAsync();
@@ -24,7 +24,7 @@ public class PlaidController : ControllerBase
     }
 
     [HttpPost("link-token")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<CreateLinkTokenResponseDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateLinkToken()
     {
         var result = await _plaidService.CreateLinkTokenAsync();
@@ -32,7 +32,7 @@ public class PlaidController : ControllerBase
     }
 
     [HttpPost("exchange-public-token")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ExchangePublicTokenResponseDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ExchangePublicToken(
         ExchangePublicTokenRequestDto dto)
     {
@@ -50,7 +50,7 @@ public class PlaidController : ControllerBase
     }
 
     [HttpPost("{plaidItemId:guid}/sync-transactions")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<SyncTransactionsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SyncTransactions(Guid plaidItemId)
     {
@@ -59,7 +59,7 @@ public class PlaidController : ControllerBase
     }
 
     [HttpPost("{plaidItemId:guid}/sync")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<SyncPlaidItemResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SyncPlaidItem(Guid plaidItemId)
     {

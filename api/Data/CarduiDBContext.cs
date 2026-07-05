@@ -43,6 +43,11 @@ public class CarduiDBContext : DbContext
             entity.Property(x => x.UpdatedAt)
                 .IsRequired();
 
+            entity.Property(x => x.TransactionsCursor)
+                .HasMaxLength(1000);
+
+            entity.Property(x => x.LastTransactionsSyncedAt);
+
             entity.HasIndex(x => x.PlaidItemId)
                 .IsUnique();
 

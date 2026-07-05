@@ -51,9 +51,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
-
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
 app.UseCors("Frontend");

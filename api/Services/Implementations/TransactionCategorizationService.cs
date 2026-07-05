@@ -32,9 +32,9 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
 
         var text = string.Join(" ", new[]
         {
-            transaction.Name,
-            transaction.MerchantName
-        }).ToLowerInvariant();
+            transaction.MerchantName,
+            transaction.OriginalDescription
+        }.Where(s => !string.IsNullOrWhiteSpace(s))).ToLowerInvariant();
 
         if (ContainsAny(text, "transfer", "payment", "ach", "zelle", "venmo", "cash app")) return "Transfers";
 

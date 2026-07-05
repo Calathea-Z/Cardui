@@ -1,8 +1,8 @@
 using Cardui.Api.Data;
 using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Models;
+using Cardui.Api.Exceptions;
 using Cardui.Api.Services.Interfaces;
-using CardUI.Api.Services.Interfaces;
 using Going.Plaid;
 using Going.Plaid.Accounts;
 using Going.Plaid.Entity;
@@ -109,7 +109,7 @@ public class PlaidService : IPlaidService
         var plaidItem = await _dbContext.PlaidItems
             .FirstOrDefaultAsync(x => x.Id == plaidItemId);
 
-        if (plaidItem is null) throw new InvalidOperationException("Plaid item was not found.");
+        if (plaidItem is null) throw new NotFoundException($"Plaid item '{plaidItemId}' was not found.");
 
         await SyncAccountsForPlaidItemAsync(plaidItem);
     }
@@ -119,7 +119,7 @@ public class PlaidService : IPlaidService
         var plaidItem = await _dbContext.PlaidItems
             .FirstOrDefaultAsync(x => x.Id == plaidItemId);
 
-        if (plaidItem is null) throw new InvalidOperationException("Plaid item was not found");
+        if (plaidItem is null) throw new NotFoundException($"Plaid item '{plaidItemId}' was not found.");
 
         return await SyncTransactionsForPlaidItemAsync(plaidItem);
     }
@@ -146,7 +146,7 @@ public class PlaidService : IPlaidService
         var plaidItem = await _dbContext.PlaidItems
             .FirstOrDefaultAsync(x => x.Id == plaidItemId);
 
-        if (plaidItem is null) throw new InvalidOperationException("Plaid item was not found.");
+        if (plaidItem is null) throw new NotFoundException($"Plaid item '{plaidItemId}' was not found.");
 
         await SyncAccountsForPlaidItemAsync(plaidItem);
         var transactionsResult = await SyncTransactionsForPlaidItemAsync(plaidItem);

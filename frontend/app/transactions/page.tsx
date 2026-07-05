@@ -3,16 +3,19 @@ import { TransactionsClient } from "../../features/transactions/transactions-cli
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_PAGE_SIZE = 50;
+
 export default async function TransactionsPage() {
-  const [transactions, categories] = await Promise.all([
-    getTransactions(),
+  const [transactionsPage, categories] = await Promise.all([
+    getTransactions({ page: 1, pageSize: DEFAULT_PAGE_SIZE }),
     getCategories(),
   ]);
 
   return (
     <TransactionsClient
-      initialTransactions={transactions}
+      initialTransactionsPage={transactionsPage}
       categories={categories}
+      pageSize={DEFAULT_PAGE_SIZE}
     />
   );
 }

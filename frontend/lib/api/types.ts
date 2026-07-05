@@ -45,6 +45,18 @@ export type TransactionQueryDto = {
     from?: string;
     to?: string;
     pending?: boolean;
+    page?: number;
+    pageSize?: number;
+};
+
+export type PagedResultDto<T> = {
+    items: T[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
 };
 
 export type UpdateTransactionCategoryDto = {

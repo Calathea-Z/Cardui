@@ -1,13 +1,15 @@
 using Cardui.Api.Data;
+using Cardui.Api.Middleware;
 using Cardui.Api.Options;
 using Cardui.Api.Services.Implementations;
 using Cardui.Api.Services.Interfaces;
-using CardUI.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddDbContext<CarduiDBContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -53,6 +55,7 @@ if (app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
 app.UseHttpsRedirection();
+app.UseExceptionHandler();
 app.UseCors("Frontend");
 app.MapControllers();
 app.Run();

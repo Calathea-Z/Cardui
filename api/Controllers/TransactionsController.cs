@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Services.Interfaces;
-using Cardui.Api.Dtos.Transaction;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Cardui.Api.Controllers;
 
@@ -10,42 +10,37 @@ public class TransactionsController : ControllerBase
 {
     private readonly ITransactionsService _transactionsService;
 
-    public TransactionsController(ITransactionsService transactionsService){
+    public TransactionsController(ITransactionsService transactionsService)
+    {
         _transactionsService = transactionsService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<TransactionDto>>> GetTransactions(
-        [FromQuery] TransactionQueryDto query)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTransactions([FromQuery] TransactionQueryDto query)
     {
-        var transactions = await _transactionsService.GetTransactionsAsync(query);
-        return Ok(transactions);
+        var result = await _transactionsService.GetTransactionsAsync(query);
+        return Ok(result);
     }
-    
+
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<TransactionDto>> GetTransactionById(Guid id)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTransactionById(Guid id)
     {
         var transaction = await _transactionsService.GetTransactionByIdAsync(id);
-
-        if (transaction is null)
-        {
-            return NotFound();
-        }
-
         return Ok(transaction);
     }
-    
+
     [HttpPatch("{id:guid}/category")]
-    public async Task<ActionResult<TransactionDto>> UpdateTransactionCategory(
-        Guid id, [FromBody] UpdateTransactionCategoryDto dto)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateTransactionCategory(
+        Guid id,
+        [FromBody] UpdateTransactionCategoryDto dto)
     {
         var transaction = await _transactionsService.UpdateTransactionCategoryAsync(id, dto);
-
-        if (transaction is null)
-        {
-            return NotFound();
-        }
-
         return Ok(transaction);
     }
 }

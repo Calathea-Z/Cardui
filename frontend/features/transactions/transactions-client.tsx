@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { getTransactions, updateTransactionCategory } from "@/lib/api";
-import type { CategoryDto, TransactionDto } from "@/lib/api";
+import type { CategoryDto, PagedResultDto, TransactionDto } from "@/lib/api";
 
 type TransactionsClientProps = {
-  initialTransactions: TransactionDto[];
+  initialTransactionsPage: PagedResultDto<TransactionDto>;
   categories: CategoryDto[];
+  pageSize: number;
 };
 
 function formatCurrency(value: number) {
@@ -27,32 +28,42 @@ function formatDate(value: string) {
 }
 
 export function TransactionsClient({
-  initialTransactions,
+  initialTransactionsPage,
   categories,
+  pageSize,
 }: TransactionsClientProps) {
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactionsPage, setTransactionsPage] = useState(
+    initialTransactionsPage,
+  );
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const transactions = transactionsPage.items;
 
   const categoryOptions = useMemo(
     () => categories.slice().sort((a, b) => a.name.localeCompare(b.name)),
     [categories],
   );
 
-  async function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function loadPage(page: number, searchTerm = search.trim()) {
     setIsLoading(true);
 
     try {
-      const updatedTransactions = await getTransactions({
-        search: search.trim() || undefined,
+      const result = await getTransactions({
+        search: searchTerm || undefined,
+        page,
+        pageSize,
       });
 
-      setTransactions(updatedTransactions);
+      setTransactionsPage(result);
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await loadPage(1);
   }
 
   async function handleCategoryChange(
@@ -61,10 +72,11 @@ export function TransactionsClient({
   ) {
     const nextCategoryId = categoryId === "uncategorized" ? null : categoryId;
 
-    const previousTransactions = transactions;
+    const previousTransactionsPage = transactionsPage;
 
-    setTransactions((currentTransactions) =>
-      currentTransactions.map((transaction) => {
+    setTransactionsPage((currentPage) => ({
+      ...currentPage,
+      items: currentPage.items.map((transaction) => {
         if (transaction.id !== transactionId) {
           return transaction;
         }
@@ -87,7 +99,7 @@ export function TransactionsClient({
             : null,
         };
       }),
-    );
+    }));
 
     try {
       const updatedTransaction = await updateTransactionCategory(
@@ -97,13 +109,14 @@ export function TransactionsClient({
         },
       );
 
-      setTransactions((currentTransactions) =>
-        currentTransactions.map((transaction) =>
+      setTransactionsPage((currentPage) => ({
+        ...currentPage,
+        items: currentPage.items.map((transaction) =>
           transaction.id === transactionId ? updatedTransaction : transaction,
         ),
-      );
+      }));
     } catch {
-      setTransactions(previousTransactions);
+      setTransactionsPage(previousTransactionsPage);
     }
   }
 
@@ -114,6 +127,9 @@ export function TransactionsClient({
           <div>
             <p className="text-sm text-slate-400">Money movement</p>
             <h1 className="text-3xl font-semibold">Transactions</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {transactionsPage.totalCount.toLocaleString()} total
+            </p>
           </div>
 
           <form
@@ -215,6 +231,34 @@ export function TransactionsClient({
               </div>
             ) : null}
           </div>
+
+          {transactionsPage.totalPages > 1 ? (
+            <div className="flex items-center justify-between border-t border-slate-800 px-4 py-3 text-sm text-slate-400">
+              <span>
+                Page {transactionsPage.page} of {transactionsPage.totalPages}
+              </span>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={!transactionsPage.hasPreviousPage || isLoading}
+                  onClick={() => loadPage(transactionsPage.page - 1)}
+                  className="rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <button
+                  type="button"
+                  disabled={!transactionsPage.hasNextPage || isLoading}
+                  onClick={() => loadPage(transactionsPage.page + 1)}
+                  className="rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       </section>
     </main>

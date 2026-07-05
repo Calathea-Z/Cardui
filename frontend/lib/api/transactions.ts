@@ -1,5 +1,6 @@
 ﻿import { apiClient } from "./client";
 import type {
+    PagedResultDto,
     TransactionDto,
     TransactionQueryDto,
     UpdateTransactionCategoryDto,
@@ -7,10 +8,13 @@ import type {
 
 export async function getTransactions(
     query?: TransactionQueryDto,
-): Promise<TransactionDto[]> {
-    const response = await apiClient.get<TransactionDto[]>("/api/transactions", {
-        params: query,
-    });
+): Promise<PagedResultDto<TransactionDto>> {
+    const response = await apiClient.get<PagedResultDto<TransactionDto>>(
+        "/api/transactions",
+        {
+            params: query,
+        },
+    );
 
     return response.data;
 }

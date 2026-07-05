@@ -1,5 +1,5 @@
 ﻿using Cardui.Api.Dtos.Plaid;
-using CardUI.Api.Services.Interfaces;
+using Cardui.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cardui.Api.Controllers;
@@ -16,21 +16,24 @@ public class PlaidController : ControllerBase
     }
 
     [HttpGet("items")]
-    public async Task<ActionResult<IReadOnlyList<PlaidItemDto>>> GetPlaidItems()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPlaidItems()
     {
         var items = await _plaidService.GetPlaidItemsAsync();
         return Ok(items);
     }
 
     [HttpPost("link-token")]
-    public async Task<ActionResult<CreateLinkTokenResponseDto>> CreateLinkToken()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> CreateLinkToken()
     {
         var result = await _plaidService.CreateLinkTokenAsync();
         return Ok(result);
     }
 
     [HttpPost("exchange-public-token")]
-    public async Task<ActionResult<ExchangePublicTokenResponseDto>> ExchangePublicToken(
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExchangePublicToken(
         ExchangePublicTokenRequestDto dto)
     {
         var result = await _plaidService.ExchangePublicTokenAsync(dto);
@@ -38,6 +41,8 @@ public class PlaidController : ControllerBase
     }
 
     [HttpPost("{plaidItemId:guid}/sync-accounts")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SyncAccounts(Guid plaidItemId)
     {
         await _plaidService.SyncAccountsAsync(plaidItemId);
@@ -45,16 +50,18 @@ public class PlaidController : ControllerBase
     }
 
     [HttpPost("{plaidItemId:guid}/sync-transactions")]
-    public async Task<ActionResult<SyncTransactionsResponseDto>> SyncTransactions(
-        Guid plaidItemId)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SyncTransactions(Guid plaidItemId)
     {
         var result = await _plaidService.SyncTransactionsAsync(plaidItemId);
         return Ok(result);
     }
 
     [HttpPost("{plaidItemId:guid}/sync")]
-    public async Task<ActionResult<SyncPlaidItemResponseDto>> SyncPlaidItem(
-        Guid plaidItemId)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SyncPlaidItem(Guid plaidItemId)
     {
         var result = await _plaidService.SyncPlaidItemAsync(plaidItemId);
         return Ok(result);

@@ -1,6 +1,6 @@
 ﻿using Cardui.Api.Dtos.Plaid;
 
-namespace CardUI.Api.Services.Interfaces;
+namespace Cardui.Api.Services.Interfaces;
 
 public interface IPlaidService
 {

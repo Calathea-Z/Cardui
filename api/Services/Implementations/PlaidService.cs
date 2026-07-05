@@ -1,6 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Models;
+using Cardui.Api.Services.Interfaces;
 using CardUI.Api.Services.Interfaces;
 using Going.Plaid;
 using Going.Plaid.Accounts;
@@ -22,8 +23,10 @@ public class PlaidService : IPlaidService
     private readonly CarduiDBContext _dbContext;
     private readonly PlaidClient _plaidClient;
     private readonly PlaidConfig _plaidOptions;
+    private readonly ITransactionCategorizationService _transactionCategorizationService;
 
-    public PlaidService(CarduiDBContext dbContext, IOptions<PlaidConfig> plaidOptions)
+    public PlaidService(CarduiDBContext dbContext, IOptions<PlaidConfig> plaidOptions,
+        ITransactionCategorizationService transactionCategorizationService)
     {
         _dbContext = dbContext;
         _plaidOptions = plaidOptions.Value;
@@ -31,6 +34,7 @@ public class PlaidService : IPlaidService
             GetPlaidEnvironment(_plaidOptions.Environment),
             _plaidOptions.ClientId,
             _plaidOptions.Secret);
+        _transactionCategorizationService = transactionCategorizationService;
     }
 
     public async Task<CreateLinkTokenResponseDto> CreateLinkTokenAsync()
@@ -154,6 +158,8 @@ public class PlaidService : IPlaidService
         };
     }
 
+    #region PrivateMethods
+
     private static Environment GetPlaidEnvironment(string environment)
     {
         return Enum.Parse<Environment>(
@@ -254,6 +260,9 @@ public class PlaidService : IPlaidService
 
         if (existingTransaction is null)
         {
+            var categoryId = await _transactionCategorizationService
+                .GetCategoryIdForPlaidTransactionAsync(plaidTransaction);
+
             var transaction = new Transaction
             {
                 Id = Guid.NewGuid(),
@@ -266,7 +275,7 @@ public class PlaidService : IPlaidService
                 Amount = Convert.ToDecimal(plaidTransaction.Amount),
                 IsoCurrencyCode = plaidTransaction.IsoCurrencyCode,
                 Pending = plaidTransaction.Pending ?? false,
-                CategoryId = null,
+                CategoryId = categoryId,
                 Notes = null,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -352,4 +361,6 @@ public class PlaidService : IPlaidService
             NextCursor = cursor
         };
     }
+
+    #endregion
 }

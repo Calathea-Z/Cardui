@@ -146,7 +146,7 @@ export function TransactionsClient({
             <button
               type="submit"
               disabled={isLoading}
-              className="h-10 rounded-md bg-emerald-500 px-4 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 cursor-pointer rounded-md bg-emerald-500 px-4 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoading ? "Searching" : "Search"}
             </button>
@@ -202,7 +202,7 @@ export function TransactionsClient({
                   onChange={(event) =>
                     handleCategoryChange(transaction.id, event.target.value)
                   }
-                  className="h-9 rounded-md border border-slate-700 bg-slate-950 px-2 text-sm outline-none transition focus:border-emerald-400"
+                  className="h-9 cursor-pointer rounded-md border border-slate-700 bg-slate-950 px-2 text-sm outline-none transition focus:border-emerald-400"
                 >
                   <option value="uncategorized">Uncategorized</option>
                   {categoryOptions.map((category) => (
@@ -243,7 +243,7 @@ export function TransactionsClient({
                   type="button"
                   disabled={!transactionsPage.hasPreviousPage || isLoading}
                   onClick={() => loadPage(transactionsPage.page - 1)}
-                  className="rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Previous
                 </button>
@@ -252,7 +252,7 @@ export function TransactionsClient({
                   type="button"
                   disabled={!transactionsPage.hasNextPage || isLoading}
                   onClick={() => loadPage(transactionsPage.page + 1)}
-                  className="rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next
                 </button>

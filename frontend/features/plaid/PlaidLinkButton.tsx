@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { usePlaidLink } from "react-plaid-link";
+import { usePlaidLink, type PlaidLinkOnSuccessMetadata } from "react-plaid-link";
 import {
     createPlaidLinkToken,
     exchangePlaidPublicToken,
@@ -26,15 +26,7 @@ export function PlaidLinkButton() {
     }, []);
 
     const onSuccess = useCallback(
-        async (
-            publicToken: string,
-            metadata: {
-                institution?: {
-                    institution_id?: string;
-                    name?: string;
-                };
-            },
-        ) => {
+        async (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
             setIsExchangingToken(true);
 
             try {
@@ -60,7 +52,7 @@ export function PlaidLinkButton() {
             type="button"
             disabled={!ready || isCreatingToken || isExchangingToken}
             onClick={() => open()}
-            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="cursor-pointer rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
             {isCreatingToken
                 ? "Preparing Plaid"

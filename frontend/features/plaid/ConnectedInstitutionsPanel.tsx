@@ -81,7 +81,7 @@ export function ConnectedInstitutionsPanel({initialItems,}: ConnectedInstitution
                             type="button"
                             disabled={syncingItemId === item.id}
                             onClick={() => handleSync(item.id)}
-                            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="cursor-pointer rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {syncingItemId === item.id ? "Syncing" : "Sync now"}
                         </button>

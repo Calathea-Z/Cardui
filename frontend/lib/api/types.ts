@@ -83,6 +83,7 @@ export type DashboardSummaryDto = {
 export type CategoryDto = {
     id: string;
     name: string;
+    key: string;
     parentCategoryId: string | null;
     color: string | null;
     icon: string | null;

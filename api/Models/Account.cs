@@ -2,12 +2,12 @@ namespace Cardui.Api.Models;
 
 public class Account
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
-    public Guid PlaidItemId { get; set; }
-    public PlaidItem PlaidItem { get; set; } = null!;
+    public Guid PlaidItemId { get; init; }
+    public PlaidItem PlaidItem { get; init; } = null!;
 
-    public required string PlaidAccountId { get; set; }
+    public required string PlaidAccountId { get; init; }
 
     public required string Name { get; set; }
     public string? OfficialName { get; set; }
@@ -22,8 +22,8 @@ public class Account
     public string? IsoCurrencyCode { get; set; }
     public bool IsActive { get; set; } = true;
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public ICollection<Transaction> Transactions { get; init; } = new List<Transaction>();
 }

@@ -2,12 +2,12 @@ namespace Cardui.Api.Models;
 
 public class Transaction
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
     public Guid AccountId { get; set; }
-    public Account Account { get; set; } = null!;
+    public Account Account { get; init; } = null!;
 
-    public required string PlaidTransactionId { get; set; }
+    public required string PlaidTransactionId { get; init; }
 
     public DateOnly Date { get; set; }
     public DateOnly? AuthorizedDate { get; set; }
@@ -21,10 +21,10 @@ public class Transaction
     public bool Pending { get; set; }
 
     public Guid? CategoryId { get; set; }
-    public Category? Category { get; set; }
+    public Category? Category { get; init; }
 
-    public string? Notes { get; set; }
+    public string? Notes { get; init; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; set; }
 }

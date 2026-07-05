@@ -42,7 +42,7 @@ export function AppShell({ children }: AppShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block rounded-md px-3 py-2 text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
+                className="block cursor-pointer rounded-md px-3 py-2 text-sm text-slate-300 transition hover:bg-slate-900 hover:text-white"
               >
                 {item.label}
               </Link>
@@ -64,7 +64,7 @@ export function AppShell({ children }: AppShellProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="whitespace-nowrap rounded-md border border-slate-800 px-3 py-2 text-sm text-slate-300"
+                  className="cursor-pointer whitespace-nowrap rounded-md border border-slate-800 px-3 py-2 text-sm text-slate-300"
                 >
                   {item.label}
                 </Link>

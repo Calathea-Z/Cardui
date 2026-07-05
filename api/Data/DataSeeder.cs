@@ -7,10 +7,7 @@ public static class DataSeeder
 {
     public static async Task SeedAsync(CarduiDBContext dbContext)
     {
-        if (await dbContext.Categories.AnyAsync())
-        {
-            return;
-        }
+        if (await dbContext.Categories.AnyAsync()) return;
 
         var now = DateTimeOffset.UtcNow;
 
@@ -20,6 +17,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Income",
+                Key = "income",
                 Color = "#16a34a",
                 Icon = "banknote",
                 IsSystem = true,
@@ -30,6 +28,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Groceries",
+                Key = "groceries",
                 Color = "#22c55e",
                 Icon = "shopping-basket",
                 IsSystem = true,
@@ -40,6 +39,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Dining",
+                Key = "dining",
                 Color = "#f97316",
                 Icon = "utensils",
                 IsSystem = true,
@@ -50,6 +50,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Bills",
+                Key = "bills",
                 Color = "#6366f1",
                 Icon = "receipt",
                 IsSystem = true,
@@ -60,6 +61,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Transport",
+                Key = "transport",
                 Color = "#0ea5e9",
                 Icon = "car",
                 IsSystem = true,
@@ -70,6 +72,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Shopping",
+                Key = "shopping",
                 Color = "#ec4899",
                 Icon = "shopping-bag",
                 IsSystem = true,
@@ -80,6 +83,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Entertainment",
+                Key = "entertainment",
                 Color = "#a855f7",
                 Icon = "ticket",
                 IsSystem = true,
@@ -90,6 +94,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Transfers",
+                Key = "transfers",
                 Color = "#64748b",
                 Icon = "repeat",
                 IsSystem = true,
@@ -100,6 +105,7 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Uncategorized",
+                Key = "uncategorized",
                 Color = "#71717a",
                 Icon = "circle-help",
                 IsSystem = true,

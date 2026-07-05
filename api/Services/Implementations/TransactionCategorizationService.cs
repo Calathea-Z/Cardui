@@ -17,20 +17,20 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
     public async Task<Guid?> GetCategoryIdForPlaidTransactionAsync(
         PlaidTransaction transaction)
     {
-        var categoryName = GetCategoryName(transaction);
+        var categoryKey = GetCategoryKey(transaction);
 
         return await _dbContext.Categories
             .AsNoTracking()
-            .Where(x => x.Name == categoryName)
+            .Where(x => x.Key == categoryKey)
             .Select(x => (Guid?)x.Id)
             .FirstOrDefaultAsync();
     }
 
     #region Private Methods
 
-    private static string GetCategoryName(PlaidTransaction transaction)
+    private static string GetCategoryKey(PlaidTransaction transaction)
     {
-        if (transaction.Amount < 0) return "Income";
+        if (transaction.Amount < 0) return "income";
 
         var text = string.Join(" ", new[]
         {
@@ -38,25 +38,25 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
             transaction.OriginalDescription
         }.Where(s => !string.IsNullOrWhiteSpace(s))).ToLowerInvariant();
 
-        if (ContainsAny(text, "transfer", "payment", "ach", "zelle", "venmo", "cash app")) return "Transfers";
+        if (ContainsAny(text, "transfer", "payment", "ach", "zelle", "venmo", "cash app")) return "transfers";
 
         if (ContainsAny(text, "whole foods", "trader joe", "kroger", "safeway", "grocery", "market"))
-            return "Groceries";
+            return "groceries";
 
         if (ContainsAny(text, "restaurant", "cafe", "coffee", "starbucks", "doordash", "uber eats", "chipotle"))
-            return "Dining";
+            return "dining";
 
-        if (ContainsAny(text, "shell", "chevron", "exxon", "gas", "uber", "lyft", "parking")) return "Transport";
+        if (ContainsAny(text, "shell", "chevron", "exxon", "gas", "uber", "lyft", "parking")) return "transport";
 
         if (ContainsAny(text, "netflix", "spotify", "hulu", "disney", "amc", "cinema", "ticket"))
-            return "Entertainment";
+            return "entertainment";
 
-        if (ContainsAny(text, "target", "amazon", "walmart", "costco", "best buy")) return "Shopping";
+        if (ContainsAny(text, "target", "amazon", "walmart", "costco", "best buy")) return "shopping";
 
         if (ContainsAny(text, "electric", "utility", "internet", "phone", "insurance", "rent", "mortgage"))
-            return "Bills";
+            return "bills";
 
-        return "Uncategorized";
+        return "uncategorized";
     }
 
     private static bool ContainsAny(string text, params string[] keywords)

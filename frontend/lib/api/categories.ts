@@ -18,7 +18,7 @@ export async function createCategory(createCategoryDto: CreateCategoryDto): Prom
 }
 
 export async function updateCategory(id: string, updateCategoryDto: UpdateCategoryDto): Promise<CategoryDto> {
-    const response = await apiClient.put<CategoryDto>(`/api/categories/${id}`, updateCategoryDto);
+    const response = await apiClient.patch<CategoryDto>(`/api/categories/${id}`, updateCategoryDto);
     return response.data;
 }
 

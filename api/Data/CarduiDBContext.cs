@@ -178,6 +178,13 @@ public class CarduiDBContext : DbContext
             entity.Property(x => x.UpdatedAt)
                 .IsRequired();
 
+            entity.Property(x => x.Key)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.HasIndex(x => x.Key)
+                .IsUnique();
+
             entity.HasIndex(x => x.Name)
                 .IsUnique();
 

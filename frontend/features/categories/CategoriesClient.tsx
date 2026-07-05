@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   createCategory,
   deleteCategory,
+  getApiErrorMessage,
   updateCategory,
   type CategoryDto,
 } from "@/lib/api";
@@ -74,17 +75,13 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
       setForm(emptyForm);
       setEditingId(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(getApiErrorMessage(err));
     } finally {
       setIsSaving(false);
     }
   }
 
   function startEditing(category: CategoryDto) {
-    if (category.isSystem) {
-      return;
-    }
-
     setEditingId(category.id);
     setForm({
       name: category.name,
@@ -126,7 +123,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
         cancelEditing();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(getApiErrorMessage(err));
     }
   }
 
@@ -143,8 +140,19 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
           className="rounded-lg border border-slate-800 bg-slate-900 p-5"
         >
           <h2 className="font-semibold">
-            {editingCategory ? "Edit category" : "New category"}
+            {editingCategory
+              ? editingCategory.isSystem
+                ? "Edit system category"
+                : "Edit category"
+              : "New category"}
           </h2>
+
+          {editingCategory?.isSystem ? (
+            <p className="mt-2 text-sm text-slate-400">
+              You can customize the display name, color, and icon. System
+              categories cannot be deleted.
+            </p>
+          ) : null}
 
           <div className="mt-5 space-y-4">
             <label className="block">
@@ -202,7 +210,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                className="cursor-pointer rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSaving
                   ? "Saving"
@@ -215,7 +223,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                 <button
                   type="button"
                   onClick={cancelEditing}
-                  className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
+                  className="cursor-pointer rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
                 >
                   Cancel
                 </button>
@@ -259,9 +267,8 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
-                    disabled={category.isSystem}
                     onClick={() => startEditing(category)}
-                    className="rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="cursor-pointer rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 transition hover:bg-slate-800"
                   >
                     Edit
                   </button>
@@ -270,7 +277,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                     type="button"
                     disabled={category.isSystem}
                     onClick={() => handleDelete(category)}
-                    className="rounded-md border border-rose-500/40 px-3 py-1.5 text-xs text-rose-200 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="cursor-pointer rounded-md border border-rose-500/40 px-3 py-1.5 text-xs text-rose-200 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Delete
                   </button>

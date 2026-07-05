@@ -10,19 +10,24 @@ public static class CategoryDtoMapper
     {
         Id = x.Id,
         Name = x.Name,
+        Key = x.Key,
         ParentCategoryId = x.ParentCategoryId,
         Color = x.Color,
         Icon = x.Icon,
         IsSystem = x.IsSystem
     };
 
-    public static CategoryDto MapToDto(Category category) => new()
+    public static CategoryDto MapToDto(Category category)
     {
-        Id = category.Id,
-        Name = category.Name,
-        ParentCategoryId = category.ParentCategoryId,
-        Color = category.Color,
-        Icon = category.Icon,
-        IsSystem = category.IsSystem
-    };
+        return new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Key = category.Key,
+            ParentCategoryId = category.ParentCategoryId,
+            Color = category.Color,
+            Icon = category.Icon,
+            IsSystem = category.IsSystem
+        };
+    }
 }

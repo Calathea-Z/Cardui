@@ -44,12 +44,20 @@ public class CategoriesService : ICategoriesService
 
         await ValidateParentCategoryAsync(createCategoryDto.ParentCategoryId);
 
+        var key = CreateCategoryKey(name);
+
+        var keyExists = await _dbContext.Categories
+            .AnyAsync(x => x.Key == key);
+
+        if (keyExists) throw new BadRequestException("A category with this key already exists.");
+
         var now = DateTimeOffset.UtcNow;
 
         var category = new Category
         {
             Id = Guid.NewGuid(),
             Name = name,
+            Key = key,
             ParentCategoryId = createCategoryDto.ParentCategoryId,
             Color = createCategoryDto.Color,
             Icon = createCategoryDto.Icon,
@@ -70,8 +78,6 @@ public class CategoriesService : ICategoriesService
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
-
-        if (category.IsSystem) throw new BadRequestException("System categories cannot be edited.");
 
         var name = dto.Name.Trim();
 
@@ -156,6 +162,14 @@ public class CategoriesService : ICategoriesService
         if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
 
         return category;
+    }
+
+    private static string CreateCategoryKey(string name)
+    {
+        return name
+            .Trim()
+            .ToLowerInvariant()
+            .Replace(" ", "-");
     }
 
     #endregion

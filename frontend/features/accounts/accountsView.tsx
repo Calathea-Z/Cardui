@@ -1,7 +1,8 @@
-import type { AccountDto } from "@/lib/api";
+import type { AccountSummaryDto } from "@/lib/api";
+import { AccountsBalanceChart } from "./AccountsBalanceChart";
 
 type AccountsViewProps = {
-  accounts: AccountDto[];
+  summary: AccountSummaryDto;
 };
 
 function formatCurrency(value: number | null) {
@@ -15,12 +16,39 @@ function formatCurrency(value: number | null) {
   }).format(value);
 }
 
-export function AccountsView({ accounts }: AccountsViewProps) {
+export function AccountsView({ summary }: AccountsViewProps) {
+  const accounts =
+    summary.groups.find((group) => group.key === "net-worth")?.accounts ?? [];
+  const detailGroups = summary.groups.filter((group) => group.key !== "net-worth");
+
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
+    <section className="flex flex-col gap-6">
       <div>
         <p className="text-sm text-slate-400">Balances</p>
         <h1 className="text-3xl font-semibold">Accounts</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Net worth {formatCurrency(summary.netWorth)}
+        </p>
+      </div>
+
+      <AccountsBalanceChart history={summary.history} />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {detailGroups.map((group) => (
+          <article
+            key={group.key}
+            className="rounded-lg border border-slate-800 bg-slate-900 p-4"
+          >
+            <p className="text-sm text-slate-400">{group.name}</p>
+            <p className="mt-2 text-2xl font-semibold">
+              {formatCurrency(group.total)}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {group.accounts.length}{" "}
+              {group.accounts.length === 1 ? "account" : "accounts"}
+            </p>
+          </article>
+        ))}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

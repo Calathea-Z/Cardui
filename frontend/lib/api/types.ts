@@ -103,3 +103,25 @@ export type CreateCategoryDto = {
     color?: string | null;
     icon?: string | null;
   };
+
+  export type AccountGroupDto = {
+    key: string;
+    name: string;
+    total: number;
+    accounts: AccountDto[];
+  };
+  
+  export type AccountBalanceHistoryPointDto = {
+    date: string;
+    netWorth: number;
+    cash: number;
+    investments: number;
+    creditCards: number;
+    loans: number;
+  };
+  
+  export type AccountSummaryDto = {
+    netWorth: number;
+    groups: AccountGroupDto[];
+    history: AccountBalanceHistoryPointDto[];
+  };

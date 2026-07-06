@@ -8,26 +8,15 @@ import {
   updateCategory,
   type CategoryDto,
 } from "@/lib/api";
+import { emptyCategoryForm, type CategoryFormState } from "@/lib/categoryForm";
 
 type CategoriesClientProps = {
   initialCategories: CategoryDto[];
 };
 
-type CategoryFormState = {
-  name: string;
-  color: string;
-  icon: string;
-};
-
-const emptyForm: CategoryFormState = {
-  name: "",
-  color: "#22c55e",
-  icon: "",
-};
-
 export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
   const [categories, setCategories] = useState(initialCategories);
-  const [form, setForm] = useState<CategoryFormState>(emptyForm);
+  const [form, setForm] = useState<CategoryFormState>(emptyCategoryForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -72,7 +61,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
         setCategories((current) => [...current, createdCategory]);
       }
 
-      setForm(emptyForm);
+      setForm(emptyCategoryForm);
       setEditingId(null);
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -93,7 +82,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
 
   function cancelEditing() {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm(emptyCategoryForm);
     setError(null);
   }
 

@@ -1,8 +1,14 @@
 ﻿"use client";
 
 import { useMemo, useState } from "react";
-import { getTransactions, updateTransactionCategory } from "@/lib/api";
+import {
+  getTransactions,
+  updateTransactionCategory,
+  createCategory,
+  getApiErrorMessage,
+} from "@/lib/api";
 import type { CategoryDto, PagedResultDto, TransactionDto } from "@/lib/api";
+import { emptyCategoryForm, type CategoryFormState } from "@/lib/categoryForm";
 
 type TransactionsClientProps = {
   initialTransactionsPage: PagedResultDto<TransactionDto>;
@@ -37,12 +43,20 @@ export function TransactionsClient({
   );
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [categoriesState, setCategoriesState] = useState(categories);
+  const [categoryForm, setCategoryForm] =
+    useState<CategoryFormState>(emptyCategoryForm);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
 
   const transactions = transactionsPage.items;
 
   const categoryOptions = useMemo(
-    () => categories.slice().sort((a, b) => a.name.localeCompare(b.name)),
-    [categories],
+    () =>
+      categoriesState
+        .filter((category) => category.key !== "uncategorized")
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [categoriesState],
   );
 
   async function loadPage(page: number, searchTerm = search.trim()) {
@@ -84,8 +98,9 @@ export function TransactionsClient({
         const nextCategory =
           nextCategoryId === null
             ? null
-            : (categories.find((category) => category.id === nextCategoryId) ??
-              null);
+            : (categoriesState.find(
+                (category) => category.id === nextCategoryId,
+              ) ?? null);
 
         return {
           ...transaction,
@@ -117,6 +132,29 @@ export function TransactionsClient({
       }));
     } catch {
       setTransactionsPage(previousTransactionsPage);
+    }
+  }
+
+  async function handleCreateCategory(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setCategoryError(null);
+    setIsCreatingCategory(true);
+
+    try {
+      const createdCategory = await createCategory({
+        name: categoryForm.name,
+        color: categoryForm.color || null,
+        icon: categoryForm.icon || null,
+        parentCategoryId: null,
+      });
+
+      setCategoriesState((current) => [...current, createdCategory]);
+      setCategoryForm(emptyCategoryForm);
+    } catch (err) {
+      setCategoryError(getApiErrorMessage(err));
+    } finally {
+      setIsCreatingCategory(false);
     }
   }
 
@@ -152,6 +190,61 @@ export function TransactionsClient({
             </button>
           </form>
         </div>
+
+        <form
+          onSubmit={handleCreateCategory}
+          className="grid gap-3 rounded-lg border border-slate-800 bg-slate-900 p-4 md:grid-cols-[1fr_160px_160px_auto]"
+        >
+          <input
+            value={categoryForm.name}
+            onChange={(event) =>
+              setCategoryForm((current) => ({
+                ...current,
+                name: event.target.value,
+              }))
+            }
+            placeholder="New category name"
+            className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+          />
+
+          <input
+            value={categoryForm.color}
+            onChange={(event) =>
+              setCategoryForm((current) => ({
+                ...current,
+                color: event.target.value,
+              }))
+            }
+            placeholder="#22c55e"
+            className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+          />
+
+          <input
+            value={categoryForm.icon}
+            onChange={(event) =>
+              setCategoryForm((current) => ({
+                ...current,
+                icon: event.target.value,
+              }))
+            }
+            placeholder="Icon"
+            className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+          />
+
+          <button
+            type="submit"
+            disabled={isCreatingCategory}
+            className="h-10 cursor-pointer rounded-md bg-emerald-500 px-4 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isCreatingCategory ? "Creating" : "New category"}
+          </button>
+
+          {categoryError ? (
+            <p className="text-sm text-rose-300 md:col-span-4">
+              {categoryError}
+            </p>
+          ) : null}
+        </form>
 
         <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900">
           <div className="grid grid-cols-[1fr_140px_180px] gap-4 border-b border-slate-800 px-4 py-3 text-sm font-medium text-slate-400 md:grid-cols-[140px_1fr_160px_180px_130px]">

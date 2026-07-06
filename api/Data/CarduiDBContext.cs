@@ -15,6 +15,9 @@ public class CarduiDBContext : DbContext
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<Category> Categories => Set<Category>();
 
+    public DbSet<AccountBalanceSnapshot> AccountBalanceSnapshots =>
+        Set<AccountBalanceSnapshot>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -192,6 +195,34 @@ public class CarduiDBContext : DbContext
                 .WithMany(x => x.ChildCategories)
                 .HasForeignKey(x => x.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AccountBalanceSnapshot>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Date)
+                .IsRequired();
+
+            entity.Property(x => x.CurrentBalance)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.AvailableBalance)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.IsoCurrencyCode)
+                .HasMaxLength(10);
+
+            entity.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            entity.HasIndex(x => new { x.AccountId, x.Date })
+                .IsUnique();
+
+            entity.HasOne(x => x.Account)
+                .WithMany(x => x.BalanceSnapshots)
+                .HasForeignKey(x => x.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

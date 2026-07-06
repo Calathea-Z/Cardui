@@ -1,7 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Dtos.Plaid;
-using Cardui.Api.Models;
 using Cardui.Api.Exceptions;
+using Cardui.Api.Models;
 using Cardui.Api.Services.Interfaces;
 using Going.Plaid;
 using Going.Plaid.Accounts;
@@ -210,6 +210,7 @@ public class PlaidService : IPlaidService
                 };
 
                 _dbContext.Accounts.Add(account);
+                await UpsertAccountBalanceSnapshotAsync(account);
             }
             else
             {
@@ -227,6 +228,8 @@ public class PlaidService : IPlaidService
                 existingAccount.IsoCurrencyCode = plaidAccount.Balances.IsoCurrencyCode;
                 existingAccount.IsActive = true;
                 existingAccount.UpdatedAt = now;
+
+                await UpsertAccountBalanceSnapshotAsync(existingAccount);
             }
         }
 
@@ -360,6 +363,30 @@ public class PlaidService : IPlaidService
             Removed = removedCount,
             NextCursor = cursor
         };
+    }
+
+    private async Task UpsertAccountBalanceSnapshotAsync(Account account)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var now = DateTimeOffset.UtcNow;
+
+        var existingSnapshot = await _dbContext.AccountBalanceSnapshots
+            .FirstOrDefaultAsync(x => x.AccountId == account.Id && x.Date == today);
+
+        if (existingSnapshot is not null) _dbContext.AccountBalanceSnapshots.Remove(existingSnapshot);
+
+        var snapshot = new AccountBalanceSnapshot
+        {
+            Id = Guid.NewGuid(),
+            AccountId = account.Id,
+            Date = today,
+            CurrentBalance = account.CurrentBalance,
+            AvailableBalance = account.AvailableBalance,
+            IsoCurrencyCode = account.IsoCurrencyCode,
+            CreatedAt = now
+        };
+
+        _dbContext.AccountBalanceSnapshots.Add(snapshot);
     }
 
     #endregion

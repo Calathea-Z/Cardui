@@ -26,4 +26,7 @@ public class Account
     public DateTimeOffset UpdatedAt { get; set; }
 
     public ICollection<Transaction> Transactions { get; init; } = new List<Transaction>();
+
+    public ICollection<AccountBalanceSnapshot> BalanceSnapshots { get; init; } =
+        new List<AccountBalanceSnapshot>();
 }

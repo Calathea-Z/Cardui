@@ -17,9 +17,17 @@ public class AccountsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<AccountDto>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAccounts()
+    public async Task<ActionResult<IReadOnlyList<AccountDto>>> GetAccounts()
     {
         var accounts = await _accountsService.GetAccountsAsync();
         return Ok(accounts);
+    }
+
+    [HttpGet("summary")]
+    [ProducesResponseType<AccountSummaryDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<AccountSummaryDto>> GetAccountsSummary()
+    {
+        var summary = await _accountsService.GetAccountsSummaryAsync();
+        return Ok(summary);
     }
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { getNavIcon } from "./nav-icons";
+import { NavIcon } from "./nav-icons";
 import { navItems } from "./nav-items";
 
 function isActiveRoute(pathname: string, href: string) {
@@ -25,7 +25,6 @@ export function MobileBottomNav() {
       <div className="grid grid-cols-5">
         {navItems.map((item) => {
           const isActive = isActiveRoute(pathname, item.href);
-          const Icon = getNavIcon(item.href);
 
           return (
             <Link
@@ -38,7 +37,7 @@ export function MobileBottomNav() {
                   : "text-slate-400 hover:text-slate-200",
               )}
             >
-              <Icon className="size-5 shrink-0" aria-hidden />
+              <NavIcon href={item.href} />
               <span className="truncate">{item.label}</span>
             </Link>
           );

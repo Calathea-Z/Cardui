@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { getNavIcon } from "./nav-icons";
+import { NavIcon } from "./nav-icons";
 import type { NavItem } from "./nav-items";
 
 type NavLinkProps = {
@@ -33,7 +33,6 @@ export function NavLink({
 }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = isActiveRoute(pathname, item.href);
-  const Icon = getNavIcon(item.href);
 
   return (
     <Link
@@ -44,7 +43,7 @@ export function NavLink({
         isActive ? activeClassName : inactiveClassName,
       )}
     >
-      {showIcon && <Icon className="size-5 shrink-0" aria-hidden />}
+      {showIcon && <NavIcon href={item.href} />}
       <span>{item.label}</span>
     </Link>
   );

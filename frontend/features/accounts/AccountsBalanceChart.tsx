@@ -31,9 +31,9 @@ function formatDate(value: string) {
 
 export function AccountsBalanceChart({ history }: AccountsBalanceChartProps) {
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+    <section className="app-panel p-4">
       <div className="mb-4">
-        <h2 className="font-semibold">Balance history</h2>
+        <h2 className="font-semibold text-violet-100">Balance history</h2>
       </div>
 
       <div className="h-72">
@@ -42,7 +42,7 @@ export function AccountsBalanceChart({ history }: AccountsBalanceChartProps) {
             <XAxis
               dataKey="date"
               tickFormatter={formatDate}
-              stroke="#64748b"
+              stroke="oklch(0.64 0.08 292)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -50,7 +50,7 @@ export function AccountsBalanceChart({ history }: AccountsBalanceChartProps) {
 
             <YAxis
               tickFormatter={formatCurrency}
-              stroke="#64748b"
+              stroke="oklch(0.64 0.08 292)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -61,17 +61,17 @@ export function AccountsBalanceChart({ history }: AccountsBalanceChartProps) {
               formatter={(value) => formatCurrency(Number(value))}
               labelFormatter={(value) => formatDate(String(value))}
               contentStyle={{
-                backgroundColor: "#020617",
-                border: "1px solid #1e293b",
+                backgroundColor: "oklch(0.21 0.055 292)",
+                border: "1px solid oklch(0.34 0.08 292)",
                 borderRadius: "8px",
-                color: "#f8fafc",
+                color: "oklch(0.94 0.02 292)",
               }}
             />
 
             <Line
               type="monotone"
               dataKey="netWorth"
-              stroke="#22c55e"
+              stroke="oklch(0.72 0.19 292)"
               strokeWidth={2}
               dot={false}
             />

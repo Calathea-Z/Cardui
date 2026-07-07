@@ -19,7 +19,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800 bg-slate-950 pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]"
       aria-label="Main navigation"
     >
       <div className="grid grid-cols-5">
@@ -33,8 +33,8 @@ export function MobileBottomNav() {
               className={cn(
                 "flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2 text-[10px] transition",
                 isActive
-                  ? "text-emerald-400"
-                  : "text-slate-400 hover:text-slate-200",
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <NavIcon href={item.href} />

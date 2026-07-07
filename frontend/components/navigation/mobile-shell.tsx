@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { getActiveNavItem } from "./nav-items";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { MobileDrawer } from "./mobile-drawer";
+import { MobileHeaderActionsSlot } from "./mobile-header-actions";
 
 type MobileShellProps = {
   children: React.ReactNode;
@@ -40,7 +41,7 @@ export function MobileShell({ children }: MobileShellProps) {
 
       <div
         className={cn(
-          "relative z-50 flex min-h-screen flex-col bg-slate-950 transition-transform duration-300 ease-in-out md:min-h-0 md:translate-x-0",
+          "relative z-50 flex min-h-screen flex-col bg-background transition-transform duration-300 ease-in-out md:min-h-0 md:translate-x-0",
           isDrawerOpen && "translate-x-[85vw]",
         )}
       >
@@ -53,14 +54,14 @@ export function MobileShell({ children }: MobileShellProps) {
           />
         )}
 
-        <header className="fixed top-0 inset-x-0 z-50 border-b border-slate-800 bg-slate-950 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))] md:hidden">
+        <header className="fixed top-0 inset-x-0 z-50 border-b border-border bg-background px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))] md:hidden">
           <div className="flex items-center gap-3">
             <button
               type="button"
               aria-label={isDrawerOpen ? "Close menu" : "Open menu"}
               aria-expanded={isDrawerOpen}
               onClick={() => setIsDrawerOpen((open) => !open)}
-              className="flex size-10 shrink-0 items-center justify-center rounded-md text-slate-300 transition hover:bg-slate-900 hover:text-white"
+              className="app-icon-button shrink-0"
             >
               {isDrawerOpen ? (
                 <X className="size-5" />
@@ -69,12 +70,14 @@ export function MobileShell({ children }: MobileShellProps) {
               )}
             </button>
 
-            <div className="min-w-0">
-              <p className="text-xs text-slate-400">Cardui</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-muted-foreground">Cardui</p>
               <p className="truncate font-semibold">
                 {activeItem?.label ?? "Finance"}
               </p>
             </div>
+
+            <MobileHeaderActionsSlot />
           </div>
         </header>
 

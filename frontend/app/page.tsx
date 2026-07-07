@@ -17,63 +17,63 @@ export default async function Home() {
     <>
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
         <div>
-          <p className="text-sm text-slate-400">Overview</p>
-          <h1 className="text-3xl font-semibold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Overview</p>
+          <h1 className="text-3xl font-semibold text-violet-50">Dashboard</h1>
           <PlaidLinkButton />
         </div>
 
         <div className="grid gap-4 md:grid-cols-5">
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">Net Worth</p>
+          <div className="app-panel p-4">
+            <p className="text-sm text-muted-foreground">Net Worth</p>
             <p className="mt-2 text-2xl font-semibold">
               {formatCurrency(summary.netWorth)}
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">Cash</p>
+          <div className="app-panel p-4">
+            <p className="text-sm text-muted-foreground">Cash</p>
             <p className="mt-2 text-2xl font-semibold">
               {formatCurrency(summary.cashBalance)}
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">Credit Cards</p>
+          <div className="app-panel p-4">
+            <p className="text-sm text-muted-foreground">Credit Cards</p>
             <p className="mt-2 text-2xl font-semibold">
               {formatCurrency(summary.creditCardBalance)}
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">Income</p>
-            <p className="mt-2 text-2xl font-semibold text-emerald-400">
+          <div className="app-panel p-4">
+            <p className="text-sm text-muted-foreground">Income</p>
+            <p className="mt-2 text-2xl font-semibold text-success">
               {formatCurrency(summary.monthlyIncome)}
             </p>
           </div>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">Spending</p>
-            <p className="mt-2 text-2xl font-semibold text-rose-400">
+          <div className="app-panel p-4">
+            <p className="text-sm text-muted-foreground">Spending</p>
+            <p className="mt-2 text-2xl font-semibold text-destructive">
               {formatCurrency(summary.monthlySpending)}
             </p>
           </div>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <section className="rounded-lg border border-slate-800 bg-slate-900">
-            <div className="border-b border-slate-800 p-4">
-              <h2 className="font-semibold">Recent Transactions</h2>
+          <section className="app-panel">
+            <div className="app-panel-header p-4">
+              <h2 className="app-section-title">Recent Transactions</h2>
             </div>
 
-            <div className="divide-y divide-slate-800">
+            <div className="divide-y divide-border/70">
               {summary.recentTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between gap-4 p-4"
+                  className="flex items-center justify-between gap-4 p-4 transition hover:bg-accent/20"
                 >
                   <div>
                     <p className="font-medium">{transaction.name}</p>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-muted-foreground">
                       {transaction.account.name}
                       {transaction.category
                         ? ` · ${transaction.category.name}`
@@ -89,9 +89,9 @@ export default async function Home() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-slate-800 bg-slate-900">
-            <div className="border-b border-slate-800 p-4">
-              <h2 className="font-semibold">Spending by Category</h2>
+          <section className="app-panel">
+            <div className="app-panel-header p-4">
+              <h2 className="app-section-title">Spending by Category</h2>
             </div>
 
             <div className="space-y-4 p-4">
@@ -101,9 +101,9 @@ export default async function Home() {
                     <span>{category.categoryName}</span>
                     <span>{formatCurrency(category.amount)}</span>
                   </div>
-                  <div className="mt-2 h-2 rounded-full bg-slate-800">
+                  <div className="mt-2 h-2 rounded-full bg-muted">
                     <div
-                      className="h-2 rounded-full bg-emerald-400"
+                      className="h-2 rounded-full bg-primary"
                       style={{
                         width: `${Math.min(
                           100,

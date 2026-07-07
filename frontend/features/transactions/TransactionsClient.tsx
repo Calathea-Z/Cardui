@@ -159,13 +159,13 @@ export function TransactionsClient({
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-background text-foreground">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm text-slate-400">Money movement</p>
-            <h1 className="text-3xl font-semibold">Transactions</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">Money movement</p>
+            <h1 className="text-3xl font-semibold text-violet-50">Transactions</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               {transactionsPage.totalCount.toLocaleString()} total
             </p>
           </div>
@@ -178,13 +178,13 @@ export function TransactionsClient({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search transactions"
-              className="h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 text-sm outline-none transition focus:border-emerald-400 md:w-72"
+              className="app-input h-10 w-full md:w-72"
             />
 
             <button
               type="submit"
               disabled={isLoading}
-              className="h-10 cursor-pointer rounded-md bg-emerald-500 px-4 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="app-cta-button h-10"
             >
               {isLoading ? "Searching" : "Search"}
             </button>
@@ -193,7 +193,7 @@ export function TransactionsClient({
 
         <form
           onSubmit={handleCreateCategory}
-          className="grid gap-3 rounded-lg border border-slate-800 bg-slate-900 p-4 md:grid-cols-[1fr_160px_160px_auto]"
+          className="app-panel grid gap-3 p-4 md:grid-cols-[1fr_160px_160px_auto]"
         >
           <input
             value={categoryForm.name}
@@ -204,7 +204,7 @@ export function TransactionsClient({
               }))
             }
             placeholder="New category name"
-            className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+            className="app-input h-10"
           />
 
           <input
@@ -216,7 +216,7 @@ export function TransactionsClient({
               }))
             }
             placeholder="#22c55e"
-            className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+            className="app-input h-10"
           />
 
           <input
@@ -228,26 +228,26 @@ export function TransactionsClient({
               }))
             }
             placeholder="Icon"
-            className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+            className="app-input h-10"
           />
 
           <button
             type="submit"
             disabled={isCreatingCategory}
-            className="h-10 cursor-pointer rounded-md bg-emerald-500 px-4 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="app-cta-button h-10"
           >
             {isCreatingCategory ? "Creating" : "New category"}
           </button>
 
           {categoryError ? (
-            <p className="text-sm text-rose-300 md:col-span-4">
+            <p className="text-sm text-destructive md:col-span-4">
               {categoryError}
             </p>
           ) : null}
         </form>
 
-        <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900">
-          <div className="grid grid-cols-[1fr_140px_180px] gap-4 border-b border-slate-800 px-4 py-3 text-sm font-medium text-slate-400 md:grid-cols-[140px_1fr_160px_180px_130px]">
+        <div className="app-panel overflow-hidden">
+          <div className="grid grid-cols-[1fr_140px_180px] gap-4 border-b border-border px-4 py-3 text-sm font-medium text-muted-foreground md:grid-cols-[140px_1fr_160px_180px_130px]">
             <span className="hidden md:block">Date</span>
             <span>Description</span>
             <span className="hidden md:block">Account</span>
@@ -255,13 +255,13 @@ export function TransactionsClient({
             <span className="text-right">Amount</span>
           </div>
 
-          <div className="divide-y divide-slate-800">
+          <div className="divide-y divide-border/70">
             {transactions.map((transaction) => (
               <div
                 key={transaction.id}
                 className="grid grid-cols-[1fr_140px_180px] gap-4 px-4 py-4 text-sm md:grid-cols-[140px_1fr_160px_180px_130px]"
               >
-                <div className="hidden text-slate-400 md:block">
+                <div className="hidden text-muted-foreground md:block">
                   {formatDate(transaction.date)}
                 </div>
 
@@ -275,18 +275,18 @@ export function TransactionsClient({
                     ) : null}
                   </div>
 
-                  <p className="mt-1 truncate text-slate-400 md:hidden">
+                  <p className="mt-1 truncate text-muted-foreground md:hidden">
                     {formatDate(transaction.date)} · {transaction.account.name}
                   </p>
 
                   {transaction.merchantName ? (
-                    <p className="mt-1 truncate text-slate-500">
+                    <p className="mt-1 truncate text-muted-foreground/80">
                       {transaction.merchantName}
                     </p>
                   ) : null}
                 </div>
 
-                <div className="hidden truncate text-slate-400 md:block">
+                <div className="hidden truncate text-muted-foreground md:block">
                   {transaction.account.name}
                 </div>
 
@@ -295,7 +295,7 @@ export function TransactionsClient({
                   onChange={(event) =>
                     handleCategoryChange(transaction.id, event.target.value)
                   }
-                  className="h-9 cursor-pointer rounded-md border border-slate-700 bg-slate-950 px-2 text-sm outline-none transition focus:border-emerald-400"
+                  className="app-input h-9 cursor-pointer px-2"
                 >
                   <option value="uncategorized">Uncategorized</option>
                   {categoryOptions.map((category) => (
@@ -308,8 +308,8 @@ export function TransactionsClient({
                 <div
                   className={
                     transaction.amount < 0
-                      ? "text-right font-medium text-emerald-400"
-                      : "text-right font-medium text-white"
+                      ? "text-right font-medium text-success"
+                      : "text-right font-medium text-foreground"
                   }
                 >
                   {transaction.amount < 0 ? "+" : "-"}
@@ -319,14 +319,14 @@ export function TransactionsClient({
             ))}
 
             {transactions.length === 0 ? (
-              <div className="px-4 py-12 text-center text-sm text-slate-400">
+              <div className="px-4 py-12 text-center text-sm text-muted-foreground">
                 No transactions found.
               </div>
             ) : null}
           </div>
 
           {transactionsPage.totalPages > 1 ? (
-            <div className="flex items-center justify-between border-t border-slate-800 px-4 py-3 text-sm text-slate-400">
+            <div className="flex items-center justify-between border-t border-border px-4 py-3 text-sm text-muted-foreground">
               <span>
                 Page {transactionsPage.page} of {transactionsPage.totalPages}
               </span>
@@ -336,7 +336,7 @@ export function TransactionsClient({
                   type="button"
                   disabled={!transactionsPage.hasPreviousPage || isLoading}
                   onClick={() => loadPage(transactionsPage.page - 1)}
-                  className="cursor-pointer rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer rounded-md border border-border px-3 py-1.5 transition hover:border-primary/50 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Previous
                 </button>
@@ -345,7 +345,7 @@ export function TransactionsClient({
                   type="button"
                   disabled={!transactionsPage.hasNextPage || isLoading}
                   onClick={() => loadPage(transactionsPage.page + 1)}
-                  className="cursor-pointer rounded-md border border-slate-700 px-3 py-1.5 transition hover:border-slate-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer rounded-md border border-border px-3 py-1.5 transition hover:border-primary/50 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next
                 </button>

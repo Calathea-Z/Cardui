@@ -119,14 +119,14 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <div>
-        <p className="text-sm text-slate-400">Organize spending</p>
-        <h1 className="text-3xl font-semibold">Categories</h1>
+        <p className="text-sm text-muted-foreground">Organize spending</p>
+        <h1 className="text-3xl font-semibold text-violet-50">Categories</h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <form
           onSubmit={handleSubmit}
-          className="rounded-lg border border-slate-800 bg-slate-900 p-5"
+          className="app-panel p-5"
         >
           <h2 className="font-semibold">
             {editingCategory
@@ -137,7 +137,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
           </h2>
 
           {editingCategory?.isSystem ? (
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-muted-foreground">
               You can customize the display name, color, and icon. System
               categories cannot be deleted.
             </p>
@@ -145,7 +145,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
 
           <div className="mt-5 space-y-4">
             <label className="block">
-              <span className="text-sm text-slate-400">Name</span>
+              <span className="text-sm text-muted-foreground">Name</span>
               <input
                 value={form.name}
                 onChange={(event) =>
@@ -154,13 +154,13 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                     name: event.target.value,
                   }))
                 }
-                className="mt-2 h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+                className="app-input mt-2 h-10 w-full"
                 placeholder="Pets"
               />
             </label>
 
             <label className="block">
-              <span className="text-sm text-slate-400">Color</span>
+              <span className="text-sm text-muted-foreground">Color</span>
               <input
                 value={form.color}
                 onChange={(event) =>
@@ -169,13 +169,13 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                     color: event.target.value,
                   }))
                 }
-                className="mt-2 h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+                className="app-input mt-2 h-10 w-full"
                 placeholder="#22c55e"
               />
             </label>
 
             <label className="block">
-              <span className="text-sm text-slate-400">Icon</span>
+              <span className="text-sm text-muted-foreground">Icon</span>
               <input
                 value={form.icon}
                 onChange={(event) =>
@@ -184,13 +184,13 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                     icon: event.target.value,
                   }))
                 }
-                className="mt-2 h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-sm outline-none transition focus:border-emerald-400"
+                className="app-input mt-2 h-10 w-full"
                 placeholder="tag"
               />
             </label>
 
             {error ? (
-              <p className="rounded-md border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+              <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
               </p>
             ) : null}
@@ -199,7 +199,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="cursor-pointer rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                className="app-cta-button"
               >
                 {isSaving
                   ? "Saving"
@@ -212,7 +212,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                 <button
                   type="button"
                   onClick={cancelEditing}
-                  className="cursor-pointer rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
+                  className="cursor-pointer rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition hover:bg-accent"
                 >
                   Cancel
                 </button>
@@ -221,14 +221,14 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
           </div>
         </form>
 
-        <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900">
-          <div className="grid grid-cols-[1fr_120px_160px] gap-4 border-b border-slate-800 px-4 py-3 text-sm font-medium text-slate-400">
+        <div className="app-panel overflow-hidden">
+          <div className="grid grid-cols-[1fr_120px_160px] gap-4 border-b border-border px-4 py-3 text-sm font-medium text-muted-foreground">
             <span>Name</span>
             <span>Type</span>
             <span className="text-right">Actions</span>
           </div>
 
-          <div className="divide-y divide-slate-800">
+          <div className="divide-y divide-border/70">
             {sortedCategories.map((category) => (
               <div
                 key={category.id}
@@ -242,14 +242,14 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                   <div className="min-w-0">
                     <p className="truncate font-medium">{category.name}</p>
                     {category.icon ? (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         Icon: {category.icon}
                       </p>
                     ) : null}
                   </div>
                 </div>
 
-                <span className="text-slate-400">
+                <span className="text-muted-foreground">
                   {category.isSystem ? "System" : "Custom"}
                 </span>
 
@@ -257,7 +257,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                   <button
                     type="button"
                     onClick={() => startEditing(category)}
-                    className="cursor-pointer rounded-md border border-slate-700 px-3 py-1.5 text-xs text-slate-300 transition hover:bg-slate-800"
+                    className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-accent"
                   >
                     Edit
                   </button>
@@ -266,7 +266,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                     type="button"
                     disabled={category.isSystem}
                     onClick={() => handleDelete(category)}
-                    className="cursor-pointer rounded-md border border-rose-500/40 px-3 py-1.5 text-xs text-rose-200 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="cursor-pointer rounded-md border border-destructive/40 px-3 py-1.5 text-xs text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Delete
                   </button>
@@ -275,7 +275,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
             ))}
 
             {sortedCategories.length === 0 ? (
-              <div className="px-4 py-12 text-center text-sm text-slate-400">
+              <div className="px-4 py-12 text-center text-sm text-muted-foreground">
                 No categories yet.
               </div>
             ) : null}

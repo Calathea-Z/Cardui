@@ -54,30 +54,31 @@ export function MobileShell({ children }: MobileShellProps) {
           />
         )}
 
-        <header className="fixed top-0 inset-x-0 z-50 border-b border-border bg-background px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))] md:hidden">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              aria-label={isDrawerOpen ? "Close menu" : "Open menu"}
-              aria-expanded={isDrawerOpen}
-              onClick={() => setIsDrawerOpen((open) => !open)}
-              className="app-icon-button shrink-0"
-            >
-              {isDrawerOpen ? (
-                <X className="size-5" />
-              ) : (
-                <Menu className="size-5" />
-              )}
-            </button>
-
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted-foreground">Cardui</p>
-              <p className="truncate font-semibold">
-                {activeItem?.label ?? "Finance"}
-              </p>
+        <header className="fixed top-0 inset-x-0 z-50 border-b border-border bg-background px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <div className="flex justify-start">
+              <button
+                type="button"
+                aria-label={isDrawerOpen ? "Close menu" : "Open menu"}
+                aria-expanded={isDrawerOpen}
+                onClick={() => setIsDrawerOpen((open) => !open)}
+                className="app-icon-button shrink-0"
+              >
+                {isDrawerOpen ? (
+                  <X className="size-5" />
+                ) : (
+                  <Menu className="size-5" />
+                )}
+              </button>
             </div>
 
-            <MobileHeaderActionsSlot />
+            <p className="truncate text-center font-semibold">
+              {activeItem?.label ?? "Finance"}
+            </p>
+
+            <div className="flex justify-end">
+              <MobileHeaderActionsSlot />
+            </div>
           </div>
         </header>
 

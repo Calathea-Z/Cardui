@@ -35,3 +35,7 @@ export function getActiveNavItem(pathname: string): NavItem | undefined {
     (item) => item.href !== "/" && pathname.startsWith(item.href),
   );
 }
+
+export const bottomNavItems = navItems.filter(
+  (item) => item.href !== "/categories",
+);

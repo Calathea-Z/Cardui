@@ -3,9 +3,10 @@ import { formatCurrency } from "./formatCurrency";
 
 type AccountListRowProps = {
   account: AccountDto;
+  compact?: boolean;
 };
 
-export function AccountListRow({ account }: AccountListRowProps) {
+export function AccountListRow({ account, compact = false }: AccountListRowProps) {
   const subtitle = [
     account.subtype ?? account.type,
     account.mask ? `···${account.mask}` : null,
@@ -14,7 +15,13 @@ export function AccountListRow({ account }: AccountListRowProps) {
     .join(" · ");
 
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-accent/30">
+    <div
+      className={
+        compact
+          ? "flex items-center justify-between gap-3 px-3 py-2.5 transition hover:bg-accent/30"
+          : "flex items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-accent/30"
+      }
+    >
       <div className="min-w-0">
         <p className="truncate font-medium text-foreground">{account.name}</p>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">

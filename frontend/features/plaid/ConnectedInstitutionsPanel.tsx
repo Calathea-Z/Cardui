@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getApiErrorMessage } from "@/lib/api";
 import {
   syncPlaidItem,
   type PlaidItemDto,
@@ -38,10 +39,12 @@ export function ConnectedInstitutionsPanel({
   const [syncingItemId, setSyncingItemId] = useState<string | null>(null);
   const [lastResult, setLastResult] =
     useState<SyncPlaidItemResponseDto | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   async function handleSync(plaidItemId: string) {
     setSyncingItemId(plaidItemId);
     setLastResult(null);
+    setSyncError(null);
 
     try {
       const result = await syncPlaidItem(plaidItemId);
@@ -64,6 +67,10 @@ export function ConnectedInstitutionsPanel({
       } else {
         router.refresh();
       }
+    } catch (error) {
+      setSyncError(
+        getApiErrorMessage(error, "Could not sync this institution."),
+      );
     } finally {
       setSyncingItemId(null);
     }
@@ -112,6 +119,12 @@ export function ConnectedInstitutionsPanel({
           </div>
         ) : null}
       </div>
+
+      {syncError ? (
+        <div className="border-t border-border p-4 text-sm text-destructive">
+          {syncError}
+        </div>
+      ) : null}
 
       {lastResult ? (
         <div className="border-t border-border p-4 text-sm text-muted-foreground">

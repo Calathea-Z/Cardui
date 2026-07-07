@@ -12,19 +12,27 @@ type AddAccountSheetProps = {
 export function AddAccountSheet({ open, onClose }: AddAccountSheetProps) {
   const router = useRouter();
 
-  const { open: openPlaid, isReady, isCreatingToken, isExchangingToken } =
-    usePlaidLinkFlow({
-      onSuccess: () => {
-        onClose();
-        router.refresh();
-      },
-    });
+  const {
+    open: openPlaid,
+    canAttemptConnect,
+    isCreatingToken,
+    isExchangingToken,
+    errorMessage,
+    clearError,
+  } = usePlaidLinkFlow({
+    onSuccess: () => {
+      onClose();
+      router.refresh();
+    },
+  });
 
   const buttonLabel = isCreatingToken
     ? "Preparing Plaid"
     : isExchangingToken
       ? "Connecting"
-      : "Connect with Plaid";
+      : errorMessage
+        ? "Try again"
+        : "Connect with Plaid";
 
   return (
     <BottomSheet open={open} onClose={onClose} title="Connect account">
@@ -34,9 +42,22 @@ export function AddAccountSheet({ open, onClose }: AddAccountSheetProps) {
           credentials are never stored by Cardui.
         </p>
 
+        {errorMessage ? (
+          <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {errorMessage}{" "}
+            <button
+              type="button"
+              onClick={clearError}
+              className="cursor-pointer underline underline-offset-2"
+            >
+              Dismiss
+            </button>
+          </p>
+        ) : null}
+
         <button
           type="button"
-          disabled={!isReady}
+          disabled={!canAttemptConnect}
           onClick={() => openPlaid()}
           className="app-cta-button py-3"
         >

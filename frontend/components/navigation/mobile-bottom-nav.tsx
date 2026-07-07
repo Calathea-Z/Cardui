@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NavIcon } from "./nav-icons";
-import { navItems } from "./nav-items";
+import { bottomNavItems } from "./nav-items";
 
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/") {
@@ -22,8 +22,8 @@ export function MobileBottomNav() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]"
       aria-label="Main navigation"
     >
-      <div className="grid grid-cols-5">
-        {navItems.map((item) => {
+      <div className="grid grid-cols-4">
+        {bottomNavItems.map((item) => {
           const isActive = isActiveRoute(pathname, item.href);
 
           return (

@@ -62,7 +62,7 @@ export function MobileHeaderActionsSlot() {
   }
 
   return (
-    <div className="ml-auto flex shrink-0 items-center gap-1">
+    <div className="flex shrink-0 items-center gap-1">
       {context.actions}
     </div>
   );

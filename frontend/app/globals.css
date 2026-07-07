@@ -163,4 +163,13 @@
   .app-input {
     @apply rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-primary;
   }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }

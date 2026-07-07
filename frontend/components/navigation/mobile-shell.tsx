@@ -49,7 +49,7 @@ export function MobileShell({ children }: MobileShellProps) {
           <button
             type="button"
             aria-label="Close navigation menu"
-            className="fixed inset-0 z-[45] bg-black/40 md:hidden"
+            className="fixed inset-0 z-45 bg-black/40 md:hidden"
             onClick={() => setIsDrawerOpen(false)}
           />
         )}

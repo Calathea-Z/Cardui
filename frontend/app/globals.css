@@ -141,7 +141,7 @@
   }
 
   .app-panel-header {
-    @apply border-b border-primary/25 bg-gradient-to-r from-primary/25 via-violet-500/15 to-fuchsia-500/10;
+    @apply border-b border-primary/25 bg-linear-to-r from-primary/25 via-violet-500/15 to-fuchsia-500/10;
   }
 
   .app-section-title {

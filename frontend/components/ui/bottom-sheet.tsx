@@ -54,7 +54,7 @@ export function BottomSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-[60]">
+    <div className="fixed inset-0 z-60">
       <button
         type="button"
         aria-label="Close"

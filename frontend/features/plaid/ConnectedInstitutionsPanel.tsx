@@ -37,8 +37,9 @@ export function ConnectedInstitutionsPanel({
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [syncingItemId, setSyncingItemId] = useState<string | null>(null);
-  const [lastResult, setLastResult] =
-    useState<SyncPlaidItemResponseDto | null>(null);
+  const [lastResult, setLastResult] = useState<SyncPlaidItemResponseDto | null>(
+    null,
+  );
   const [syncError, setSyncError] = useState<string | null>(null);
 
   async function handleSync(plaidItemId: string) {
@@ -84,23 +85,31 @@ export function ConnectedInstitutionsPanel({
         </div>
       ) : null}
 
-      <div
-        className={cn(
-          "divide-y divide-border/70",
-          embedded && "app-panel",
-        )}
-      >
+      <div className={cn("divide-y divide-border/70", embedded && "app-panel")}>
         {items.map((item) => (
           <div
             key={item.id}
             className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
           >
             <div>
-              <p className="font-medium">{item.institutionName ?? "Connected institution"}</p>
+              <p className="font-medium">
+                {item.institutionName ?? "Connected institution"}
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Last synced {formatSyncedAt(item.lastTransactionsSyncedAt)}
               </p>
             </div>
+
+            {item.lastSyncFailedAt ? (
+              <p className="mt-1 text-sm text-destructive">
+                Sync failed: {item.lastSyncError ?? "Unknown error"}
+              </p>
+            ) : item.lastSyncCompletedAt ? (
+              <p className="mt-1 text-sm text-success">
+                Last daily sync succeeded{" "}
+                {formatSyncedAt(item.lastSyncCompletedAt)}
+              </p>
+            ) : null}
 
             <button
               type="button"

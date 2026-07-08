@@ -1,71 +1,75 @@
 ﻿import { apiClient } from "./client";
 
 export type CreatePlaidLinkTokenResponse = {
-    linkToken: string;
+  linkToken: string;
 };
 
 export type ExchangePlaidPublicTokenRequest = {
-    publicToken: string;
-    institutionId?: string;
-    institutionName?: string;
+  publicToken: string;
+  institutionId?: string;
+  institutionName?: string;
 };
 
 export type ExchangePlaidPublicTokenResponse = {
-    plaidItemId: string;
+  plaidItemId: string;
 };
 
 export type PlaidItemDto = {
-    id: string;
-    institutionId: string | null;
-    institutionName: string | null;
-    createdAt: string;
-    updatedAt: string;
-    lastTransactionsSyncedAt: string | null;
+  id: string;
+  institutionId: string | null;
+  institutionName: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastTransactionsSyncedAt: string | null;
+  lastSyncStartedAt: string | null;
+  lastSyncCompletedAt: string | null;
+  lastSyncFailedAt: string | null;
+  lastSyncError: string | null;
 };
 
 export type SyncTransactionsResponseDto = {
-    added: number;
-    modified: number;
-    removed: number;
-    nextCursor: string | null;
+  added: number;
+  modified: number;
+  removed: number;
+  nextCursor: string | null;
 };
 
 export type SyncPlaidItemResponseDto = {
-    plaidItemId: string;
-    transactions: SyncTransactionsResponseDto;
+  plaidItemId: string;
+  transactions: SyncTransactionsResponseDto;
 };
 
 export async function getPlaidItems(): Promise<PlaidItemDto[]> {
-    const response = await apiClient.get<PlaidItemDto[]>("/api/plaid/items");
+  const response = await apiClient.get<PlaidItemDto[]>("/api/plaid/items");
 
-    return response.data;
+  return response.data;
 }
 
 export async function createPlaidLinkToken(): Promise<CreatePlaidLinkTokenResponse> {
-    const response = await apiClient.post<CreatePlaidLinkTokenResponse>(
-        "/api/plaid/link-token",
-    );
+  const response = await apiClient.post<CreatePlaidLinkTokenResponse>(
+    "/api/plaid/link-token",
+  );
 
-    return response.data;
+  return response.data;
 }
 
 export async function exchangePlaidPublicToken(
-    dto: ExchangePlaidPublicTokenRequest,
+  dto: ExchangePlaidPublicTokenRequest,
 ): Promise<ExchangePlaidPublicTokenResponse> {
-    const response = await apiClient.post<ExchangePlaidPublicTokenResponse>(
-        "/api/plaid/exchange-public-token",
-        dto,
-    );
+  const response = await apiClient.post<ExchangePlaidPublicTokenResponse>(
+    "/api/plaid/exchange-public-token",
+    dto,
+  );
 
-    return response.data;
+  return response.data;
 }
 
 export async function syncPlaidItem(
-    plaidItemId: string,
+  plaidItemId: string,
 ): Promise<SyncPlaidItemResponseDto> {
-    const response = await apiClient.post<SyncPlaidItemResponseDto>(
-        `/api/plaid/${plaidItemId}/sync`,
-    );
+  const response = await apiClient.post<SyncPlaidItemResponseDto>(
+    `/api/plaid/${plaidItemId}/sync`,
+  );
 
-    return response.data;
+  return response.data;
 }

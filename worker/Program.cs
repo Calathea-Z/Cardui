@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -15,8 +16,13 @@ builder.Services.AddDbContext<CarduiDBContext>(options =>
     options.UseNpgsql(DatabaseConnectionString.Get(builder.Configuration));
 });
 
-builder.Services.Configure<PlaidOptions>(
-    builder.Configuration.GetSection("Plaid"));
+builder.Services.AddOptions<PlaidOptions>()
+    .Bind(builder.Configuration.GetSection("Plaid"))
+    .ValidateOnStart();
+
+builder.Services.AddSingleton<IValidateOptions<PlaidOptions>, PlaidOptionsValidator>();
+builder.Services.AddCarduiPlaid();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<ITransactionCategorizationService, TransactionCategorizationService>();
@@ -48,7 +54,6 @@ var successCount = 0;
 var failureCount = 0;
 
 foreach (var plaidItemId in plaidItemIds)
-{
     try
     {
         var result = await plaidService.SyncPlaidItemAsync(plaidItemId);
@@ -67,7 +72,6 @@ foreach (var plaidItemId in plaidItemIds)
         failureCount++;
         logger.LogError(ex, "Failed to sync Plaid item {PlaidItemId}.", plaidItemId);
     }
-}
 
 logger.LogInformation(
     "Daily Plaid sync finished. Successes: {SuccessCount}. Failures: {FailureCount}.",

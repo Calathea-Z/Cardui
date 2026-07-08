@@ -99,10 +99,12 @@ export function InstitutionsPageClient({
         title="Institutions"
         description="Manage linked banks and the accounts synced from each institution."
         actions={
-          <PlaidLinkButton
-            onSuccess={() => router.refresh()}
-            className="w-full sm:w-auto"
-          />
+          items.length > 0 ? (
+            <PlaidLinkButton
+              onSuccess={() => router.refresh()}
+              className="w-full sm:w-auto"
+            />
+          ) : undefined
         }
       />
 

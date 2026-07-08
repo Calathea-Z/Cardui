@@ -26,7 +26,7 @@ export function PlaidLinkButton({
       <button
         type="button"
         disabled={!canAttemptConnect}
-        onClick={() => open()}
+        onClick={() => void open()}
         className="app-cta-button w-fit"
       >
         {isCreatingToken

@@ -10,20 +10,26 @@ import {
 
 type UsePlaidLinkFlowOptions = {
   onSuccess?: () => void;
+  enabled?: boolean;
 };
 
 export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
-  const { onSuccess: onSuccessCallback } = options;
+  const { onSuccess: onSuccessCallback, enabled = true } = options;
   const [linkToken, setLinkToken] = useState<string | null>(null);
-  const [isCreatingToken, setIsCreatingToken] = useState(true);
+  const [isCreatingToken, setIsCreatingToken] = useState(false);
   const [isExchangingToken, setIsExchangingToken] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pendingOpen, setPendingOpen] = useState(false);
 
   const clearError = useCallback(() => {
     setErrorMessage(null);
   }, []);
 
   const prepareLinkToken = useCallback(async () => {
+    if (!enabled) {
+      return false;
+    }
+
     setIsCreatingToken(true);
     clearError();
 
@@ -39,38 +45,7 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
     } finally {
       setIsCreatingToken(false);
     }
-  }, [clearError]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadInitialLinkToken() {
-      setIsCreatingToken(true);
-
-      try {
-        const response = await createPlaidLinkToken();
-        if (!cancelled) {
-          setLinkToken(response.linkToken);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setErrorMessage(
-            getApiErrorMessage(error, "Could not prepare Plaid Link."),
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsCreatingToken(false);
-        }
-      }
-    }
-
-    void loadInitialLinkToken();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }, [clearError, enabled]);
 
   const onSuccess = useCallback(
     async (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
@@ -96,29 +71,49 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
   );
 
   const { open, ready } = usePlaidLink({
-    token: linkToken,
+    token: enabled ? linkToken : null,
     onSuccess,
   });
 
-  const openPlaid = useCallback(() => {
-    clearError();
-
-    if (!linkToken) {
-      void prepareLinkToken();
+  useEffect(() => {
+    if (!pendingOpen || !linkToken || !ready) {
       return;
     }
 
+    setPendingOpen(false);
     open();
-  }, [clearError, linkToken, open, prepareLinkToken]);
+  }, [pendingOpen, linkToken, ready, open]);
+
+  const openPlaid = useCallback(async () => {
+    if (!enabled) {
+      return;
+    }
+
+    clearError();
+
+    if (!linkToken) {
+      setPendingOpen(true);
+      const prepared = await prepareLinkToken();
+      if (!prepared) {
+        setPendingOpen(false);
+      }
+      return;
+    }
+
+    if (ready) {
+      open();
+      return;
+    }
+
+    setPendingOpen(true);
+  }, [clearError, enabled, linkToken, open, prepareLinkToken, ready]);
 
   const isLoading = isCreatingToken || isExchangingToken;
-  const isReady = ready && !isLoading;
-  const canAttemptConnect = isReady || Boolean(errorMessage);
 
   return {
     open: openPlaid,
-    isReady,
-    canAttemptConnect,
+    isReady: Boolean(linkToken) && ready && !isLoading,
+    canAttemptConnect: enabled && !isLoading,
     isCreatingToken,
     isExchangingToken,
     isLoading,

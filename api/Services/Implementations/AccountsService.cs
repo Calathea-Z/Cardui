@@ -106,10 +106,12 @@ public class AccountsService : IAccountsService
 
     private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync()
     {
+        var historyStart = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-90));
+
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
             .Include(x => x.Account)
-            .Where(x => x.Account.IsActive)
+            .Where(x => x.Account.IsActive && x.Date >= historyStart)
             .OrderBy(x => x.Date)
             .ToListAsync();
 

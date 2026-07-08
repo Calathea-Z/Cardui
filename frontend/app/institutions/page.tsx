@@ -1,7 +1,7 @@
 import { InstitutionsPageClient } from "@/features/institutions/InstitutionsPageClient";
 import { getAccounts, getPlaidItems } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function InstitutionsPage() {
   const [plaidItems, accounts] = await Promise.all([

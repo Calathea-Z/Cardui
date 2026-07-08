@@ -1,7 +1,7 @@
 import { getCategories, getTransactions } from "@/lib/api";
 import { TransactionsClient } from "@/features/transactions/TransactionsClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const DEFAULT_PAGE_SIZE = 50;
 

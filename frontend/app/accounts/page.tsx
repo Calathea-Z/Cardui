@@ -1,7 +1,7 @@
 import { AccountsPageClient } from "@/features/accounts/AccountsPageClient";
 import { getAccountsSummary, getPlaidItems } from "@/lib/api";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function AccountsPage() {
   const [summary, plaidItems] = await Promise.all([

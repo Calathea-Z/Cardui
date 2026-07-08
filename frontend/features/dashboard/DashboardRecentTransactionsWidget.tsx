@@ -38,7 +38,7 @@ export function DashboardRecentTransactionsWidget({
 
         {transactions.length === 0 ? (
           <div className="p-6 text-center text-sm text-muted-foreground">
-            No recent transactions.
+            Transactions will appear here after your first account sync.
           </div>
         ) : null}
       </div>

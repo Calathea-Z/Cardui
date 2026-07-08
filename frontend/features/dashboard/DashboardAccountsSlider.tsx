@@ -2,9 +2,11 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { AccountSummaryDto } from "@/lib/api";
 import { AccountsBalanceChart } from "@/features/accounts/AccountsBalanceChart";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
+import { PlaidLinkButton } from "@/features/plaid/PlaidLinkButton";
 import { cn } from "@/lib/utils";
 import { DashboardAccountGroupsPanel } from "./DashboardAccountGroupsPanel";
 import {
@@ -24,11 +26,19 @@ const PANELS = [
   { id: "liabilities", label: "Liabilities" },
 ] as const;
 
+function hasConnectedAccounts(groups: AccountSummaryDto["groups"]) {
+  return groups
+    .filter((group) => group.key !== "net-worth")
+    .some((group) => group.accounts.length > 0);
+}
+
 export function DashboardAccountsSlider({
   summary,
 }: DashboardAccountsSliderProps) {
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const showNetWorthEmptyState = !hasConnectedAccounts(summary.groups);
 
   const assetGroups = getAccountGroups(summary.groups, ASSET_GROUP_KEYS);
   const liabilityGroups = getAccountGroups(summary.groups, LIABILITY_GROUP_KEYS);
@@ -98,11 +108,23 @@ export function DashboardAccountsSlider({
       >
         <section className="w-full shrink-0 snap-center">
           <div className="px-4 py-4">
-            <AccountsBalanceChart
-              history={summary.history}
-              compact
-              embedded
-            />
+            {showNetWorthEmptyState ? (
+              <div className="flex h-40 flex-col items-center justify-center gap-3 px-4 text-center">
+                <p className="font-medium text-foreground">
+                  No accounts connected yet
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Link a bank to start tracking your net worth.
+                </p>
+                <PlaidLinkButton onSuccess={() => router.refresh()} />
+              </div>
+            ) : (
+              <AccountsBalanceChart
+                history={summary.history}
+                compact
+                embedded
+              />
+            )}
           </div>
         </section>
 

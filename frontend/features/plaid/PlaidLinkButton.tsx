@@ -1,8 +1,17 @@
 ﻿"use client";
 
+import { cn } from "@/lib/utils";
 import { usePlaidLinkFlow } from "./usePlaidLinkFlow";
 
-export function PlaidLinkButton() {
+type PlaidLinkButtonProps = {
+  onSuccess?: () => void;
+  className?: string;
+};
+
+export function PlaidLinkButton({
+  onSuccess,
+  className,
+}: PlaidLinkButtonProps = {}) {
   const {
     open,
     canAttemptConnect,
@@ -10,10 +19,10 @@ export function PlaidLinkButton() {
     isExchangingToken,
     errorMessage,
     clearError,
-  } = usePlaidLinkFlow();
+  } = usePlaidLinkFlow({ onSuccess });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={cn("flex flex-col gap-3", className)}>
       <button
         type="button"
         disabled={!canAttemptConnect}

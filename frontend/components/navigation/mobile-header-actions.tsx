@@ -9,7 +9,9 @@ import {
 } from "react";
 
 type MobileHeaderActionsContextValue = {
+  leading: ReactNode;
   actions: ReactNode;
+  setLeading: (leading: ReactNode) => void;
   setActions: (actions: ReactNode) => void;
 };
 
@@ -21,10 +23,13 @@ export function MobileHeaderActionsProvider({
 }: {
   children: ReactNode;
 }) {
+  const [leading, setLeading] = useState<ReactNode>(null);
   const [actions, setActions] = useState<ReactNode>(null);
 
   return (
-    <MobileHeaderActionsContext.Provider value={{ actions, setActions }}>
+    <MobileHeaderActionsContext.Provider
+      value={{ leading, actions, setLeading, setActions }}
+    >
       {children}
     </MobileHeaderActionsContext.Provider>
   );
@@ -52,6 +57,32 @@ export function useSetMobileHeaderActions(actions: ReactNode) {
       setActions(null);
     };
   }, [actions, setActions]);
+}
+
+export function useSetMobileHeaderLeading(leading: ReactNode) {
+  const { setLeading } = useMobileHeaderActionsContext();
+
+  useEffect(() => {
+    setLeading(leading);
+
+    return () => {
+      setLeading(null);
+    };
+  }, [leading, setLeading]);
+}
+
+export function MobileHeaderLeadingSlot({
+  fallback,
+}: {
+  fallback: ReactNode;
+}) {
+  const context = useContext(MobileHeaderActionsContext);
+
+  if (context?.leading) {
+    return <>{context.leading}</>;
+  }
+
+  return <>{fallback}</>;
 }
 
 export function MobileHeaderActionsSlot() {

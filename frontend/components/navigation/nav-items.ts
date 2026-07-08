@@ -17,6 +17,10 @@ export const navItems: NavItem[] = [
     href: "/accounts",
   },
   {
+    label: "Institutions",
+    href: "/institutions",
+  },
+  {
     label: "Budgets",
     href: "/budgets",
   },
@@ -37,5 +41,5 @@ export function getActiveNavItem(pathname: string): NavItem | undefined {
 }
 
 export const bottomNavItems = navItems.filter(
-  (item) => item.href !== "/categories",
+  (item) => item.href !== "/categories" && item.href !== "/institutions",
 );

@@ -1,5 +1,6 @@
 ﻿export type AccountDto = {
     id: string;
+    plaidItemId: string | null;
     name: string;
     officialName: string | null;
     type: string;

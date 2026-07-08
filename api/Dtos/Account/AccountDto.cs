@@ -3,6 +3,7 @@ namespace Cardui.Api.Dtos.Account;
 public class AccountDto
 {
     public Guid Id { get; set; }
+    public Guid? PlaidItemId { get; set; }
     public required string Name { get; set; }
     public string? OfficialName { get; set; }
     public required string Type { get; set; }

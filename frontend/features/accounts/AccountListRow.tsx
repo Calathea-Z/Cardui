@@ -4,9 +4,14 @@ import { formatCurrency } from "./formatCurrency";
 type AccountListRowProps = {
   account: AccountDto;
   compact?: boolean;
+  showBalance?: boolean;
 };
 
-export function AccountListRow({ account, compact = false }: AccountListRowProps) {
+export function AccountListRow({
+  account,
+  compact = false,
+  showBalance = true,
+}: AccountListRowProps) {
   const subtitle = [
     account.subtype ?? account.type,
     account.mask ? `···${account.mask}` : null,
@@ -27,21 +32,25 @@ export function AccountListRow({ account, compact = false }: AccountListRowProps
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
           {subtitle}
         </p>
-        {account.availableBalance !== null ? (
+        {showBalance && account.availableBalance !== null ? (
           <p className="mt-1 hidden text-xs text-muted-foreground/80 sm:block">
             Available {formatCurrency(account.availableBalance)}
           </p>
         ) : null}
       </div>
 
-      <div className="shrink-0 text-right">
-        <p className="font-semibold tabular-nums text-foreground">
-          {formatCurrency(account.currentBalance)}
-        </p>
-        {!account.isActive ? (
-          <p className="mt-1 text-xs text-muted-foreground">Inactive</p>
-        ) : null}
-      </div>
+      {showBalance ? (
+        <div className="shrink-0 text-right">
+          <p className="font-semibold tabular-nums text-foreground">
+            {formatCurrency(account.currentBalance)}
+          </p>
+          {!account.isActive ? (
+            <p className="mt-1 text-xs text-muted-foreground">Inactive</p>
+          ) : null}
+        </div>
+      ) : !account.isActive ? (
+        <p className="shrink-0 text-xs text-muted-foreground">Inactive</p>
+      ) : null}
     </div>
   );
 }

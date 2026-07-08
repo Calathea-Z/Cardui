@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { getActiveNavItem } from "./nav-items";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { MobileDrawer } from "./mobile-drawer";
-import { MobileHeaderActionsSlot } from "./mobile-header-actions";
+import { MobileHeaderActionsSlot, MobileHeaderLeadingSlot } from "./mobile-header-actions";
 
 type MobileShellProps = {
   children: React.ReactNode;
@@ -57,19 +57,23 @@ export function MobileShell({ children }: MobileShellProps) {
         <header className="fixed top-0 inset-x-0 z-50 border-b border-border bg-background px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <div className="flex justify-start">
-              <button
-                type="button"
-                aria-label={isDrawerOpen ? "Close menu" : "Open menu"}
-                aria-expanded={isDrawerOpen}
-                onClick={() => setIsDrawerOpen((open) => !open)}
-                className="app-icon-button shrink-0"
-              >
-                {isDrawerOpen ? (
-                  <X className="size-5" />
-                ) : (
-                  <Menu className="size-5" />
-                )}
-              </button>
+              <MobileHeaderLeadingSlot
+                fallback={
+                  <button
+                    type="button"
+                    aria-label={isDrawerOpen ? "Close menu" : "Open menu"}
+                    aria-expanded={isDrawerOpen}
+                    onClick={() => setIsDrawerOpen((open) => !open)}
+                    className="app-icon-button shrink-0"
+                  >
+                    {isDrawerOpen ? (
+                      <X className="size-5" />
+                    ) : (
+                      <Menu className="size-5" />
+                    )}
+                  </button>
+                }
+              />
             </div>
 
             <p className="truncate text-center font-semibold">

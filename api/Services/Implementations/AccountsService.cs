@@ -21,6 +21,7 @@ public class AccountsService : IAccountsService
             .Select(x => new AccountDto
             {
                 Id = x.Id,
+                PlaidItemId = x.PlaidItemId,
                 Name = x.Name,
                 OfficialName = x.OfficialName,
                 Type = x.Type,
@@ -43,6 +44,7 @@ public class AccountsService : IAccountsService
             .Select(x => new AccountDto
             {
                 Id = x.Id,
+                PlaidItemId = x.PlaidItemId,
                 Name = x.Name,
                 OfficialName = x.OfficialName,
                 Type = x.Type,

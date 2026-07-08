@@ -1,9 +1,11 @@
+using Cardui.Api.Configuration;
 using Cardui.Api.Data;
 using Cardui.Api.Middleware;
 using Cardui.Api.Options;
 using Cardui.Api.Services.Implementations;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,10 +14,14 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddDbContext<CarduiDBContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(DatabaseConnectionString.Get(builder.Configuration)));
 
-builder.Services.Configure<PlaidOptions>(
-    builder.Configuration.GetSection("Plaid"));
+builder.Services.AddOptions<PlaidOptions>()
+    .Bind(builder.Configuration.GetSection("Plaid"))
+    .ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<PlaidOptions>, PlaidOptionsValidator>();
+builder.Services.AddCarduiPlaid();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddScoped<IAccountsService, AccountsService>();
 builder.Services.AddScoped<ITransactionsService, TransactionsService>();

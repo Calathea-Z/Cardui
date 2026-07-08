@@ -8,4 +8,8 @@ public class PlaidItemDto
     public DateTimeOffset? CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
     public DateTimeOffset? LastTransactionsSyncedAt { get; set; }
+    public DateTimeOffset? LastSyncStartedAt { get; set; }
+    public DateTimeOffset? LastSyncCompletedAt { get; set; }
+    public DateTimeOffset? LastSyncFailedAt { get; set; }
+    public string? LastSyncError { get; set; }
 }

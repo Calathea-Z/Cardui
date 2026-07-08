@@ -51,6 +51,15 @@ public class CarduiDBContext : DbContext
 
             entity.Property(x => x.LastTransactionsSyncedAt);
 
+            entity.Property(x => x.LastSyncStartedAt);
+
+            entity.Property(x => x.LastSyncCompletedAt);
+
+            entity.Property(x => x.LastSyncFailedAt);
+
+            entity.Property(x => x.LastSyncError)
+                .HasMaxLength(1000);
+
             entity.HasIndex(x => x.PlaidItemId)
                 .IsUnique();
 

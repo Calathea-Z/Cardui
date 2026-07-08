@@ -42,6 +42,15 @@ public class GlobalExceptionHandler : IExceptionHandler
                 httpContext.Request.Method,
                 httpContext.Request.Path);
         }
+        else if (exception is PlaidSyncException plaidSyncException)
+        {
+            _logger.LogWarning(exception,
+                "Plaid sync error {PlaidErrorType}/{PlaidErrorCode} processing {Method} {Path}",
+                plaidSyncException.PlaidErrorType,
+                plaidSyncException.PlaidErrorCode,
+                httpContext.Request.Method,
+                httpContext.Request.Path);
+        }
 
         var problemDetails = new ProblemDetails
         {

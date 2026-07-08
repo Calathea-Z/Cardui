@@ -431,7 +431,9 @@ public class PlaidService : IPlaidService
             plaidTransaction.TransactionId,
             out var existingTransaction);
 
-        var name = plaidTransaction.MerchantName ?? "Unknown transaction";
+        var name = plaidTransaction.MerchantName
+                   ?? plaidTransaction.OriginalDescription
+                   ?? "Unknown transaction";
 
         if (existingTransaction is null)
         {
@@ -492,7 +494,11 @@ public class PlaidService : IPlaidService
             var request = WithCredentials(new TransactionsSyncRequest
             {
                 Cursor = cursor,
-                Count = 100
+                Count = 100,
+                Options = new TransactionsSyncRequestOptions
+                {
+                    IncludeOriginalDescription = true
+                }
             }, plaidItem.AccessToken);
 
             var response = await ExecutePlaidRequestAsync(

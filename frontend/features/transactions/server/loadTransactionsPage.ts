@@ -2,6 +2,7 @@ import {
   emptyAccounts,
   emptyCategories,
   emptyPagedResult,
+  firstApiError,
   getAccounts,
   getCategories,
   getTransactions,
@@ -11,6 +12,7 @@ import {
   type PagedResultDto,
   type TransactionDto,
 } from "@/lib/api";
+import type { PageLoadState } from "@/lib/pageLoadState";
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -21,7 +23,9 @@ export type TransactionsPageData = {
   pageSize: number;
 };
 
-export async function loadTransactionsPage(): Promise<TransactionsPageData> {
+export async function loadTransactionsPage(): Promise<
+  PageLoadState<TransactionsPageData>
+> {
   const [transactionsResult, categoriesResult, accountsResult] =
     await Promise.all([
       safeApiCall(
@@ -37,9 +41,12 @@ export async function loadTransactionsPage(): Promise<TransactionsPageData> {
     ]);
 
   return {
-    initialTransactionsPage: transactionsResult.data,
-    categories: categoriesResult.data,
-    accounts: accountsResult.data,
-    pageSize: DEFAULT_PAGE_SIZE,
+    data: {
+      initialTransactionsPage: transactionsResult.data,
+      categories: categoriesResult.data,
+      accounts: accountsResult.data,
+      pageSize: DEFAULT_PAGE_SIZE,
+    },
+    error: firstApiError(transactionsResult, categoriesResult, accountsResult),
   };
 }

@@ -1,10 +1,16 @@
+import { PageApiErrorBanner } from "@/components/PageApiErrorBanner";
 import { InstitutionsPageClient } from "@/features/institutions/InstitutionsPageClient";
 import { loadInstitutionsPage } from "@/features/institutions/server/loadInstitutionsPage";
 
 export const dynamic = "force-dynamic";
 
 export default async function InstitutionsPage() {
-  const data = await loadInstitutionsPage();
+  const page = await loadInstitutionsPage();
 
-  return <InstitutionsPageClient {...data} />;
+  return (
+    <>
+      {page.error ? <PageApiErrorBanner message={page.error} /> : null}
+      <InstitutionsPageClient {...page.data} />
+    </>
+  );
 }

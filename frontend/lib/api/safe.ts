@@ -1,3 +1,4 @@
+import type { PageLoadState } from "@/lib/pageLoadState";
 import { getApiErrorMessage, type ApiError } from "./client";
 import type {
   AccountDto,
@@ -8,10 +9,7 @@ import type {
 } from "./types";
 import type { PlaidItemDto } from "./plaid";
 
-export type SafeApiResult<T> = {
-  data: T;
-  error: string | null;
-};
+export type SafeApiResult<T> = PageLoadState<T>;
 
 export async function safeApiCall<T>(
   fn: () => Promise<T>,

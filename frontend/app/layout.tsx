@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppShell } from "@/components/appShell";
-import { checkApiHealth, safeApiCall } from "@/lib/api";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Cardui",
@@ -16,17 +13,15 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const health = await safeApiCall(checkApiHealth, { status: "unavailable" });
-
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <AppShell apiError={health.error}>{children}</AppShell>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

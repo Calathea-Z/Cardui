@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Account;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +15,11 @@ public class AccountsService : IAccountsService
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<AccountDto>> GetAccountsAsync()
+    public async Task<IReadOnlyList<AccountDto>> GetAccountsAsync(
+        CancellationToken cancellationToken = default)
     {
         return await _dbContext.Accounts
+            .AsNoTracking()
             .OrderBy(x => x.Name)
             .Select(x => new AccountDto
             {
@@ -32,10 +35,11 @@ public class AccountsService : IAccountsService
                 IsoCurrencyCode = x.IsoCurrencyCode,
                 IsActive = x.IsActive
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<AccountSummaryDto> GetAccountsSummaryAsync()
+    public async Task<AccountSummaryDto> GetAccountsSummaryAsync(
+        CancellationToken cancellationToken = default)
     {
         var accounts = await _dbContext.Accounts
             .AsNoTracking()
@@ -55,22 +59,22 @@ public class AccountsService : IAccountsService
                 IsoCurrencyCode = x.IsoCurrencyCode,
                 IsActive = x.IsActive
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         var groups = new List<AccountGroupDto>
         {
-            CreateGroup("net-worth", "Net Worth", accounts),
-            CreateGroup("cash", "Cash", accounts),
-            CreateGroup("investments", "Investments", accounts),
-            CreateGroup("credit-cards", "Credit Cards", accounts),
-            CreateGroup("loans", "Loans", accounts)
+            CreateGroup(AccountGroupKeys.NetWorth, "Net Worth", accounts),
+            CreateGroup(AccountGroupKeys.Cash, "Cash", accounts),
+            CreateGroup(AccountGroupKeys.Investments, "Investments", accounts),
+            CreateGroup(AccountGroupKeys.CreditCards, "Credit Cards", accounts),
+            CreateGroup(AccountGroupKeys.Loans, "Loans", accounts)
         };
 
-        var history = await GetBalanceHistoryAsync();
+        var history = await GetBalanceHistoryAsync(cancellationToken);
 
         return new AccountSummaryDto
         {
-            NetWorth = groups.Single(x => x.Key == "net-worth").Total,
+            NetWorth = groups.Single(x => x.Key == AccountGroupKeys.NetWorth).Total,
             Groups = groups,
             History = history
         };
@@ -83,15 +87,15 @@ public class AccountsService : IAccountsService
     {
         var groupAccounts = key switch
         {
-            "net-worth" => accounts,
-            "cash" => accounts.Where(IsCashAccount).ToList(),
-            "investments" => accounts.Where(IsInvestmentAccount).ToList(),
-            "credit-cards" => accounts.Where(IsCreditCardAccount).ToList(),
-            "loans" => accounts.Where(IsLoanAccount).ToList(),
+            AccountGroupKeys.NetWorth => accounts,
+            AccountGroupKeys.Cash => accounts.Where(x => AccountTypes.IsCash(x.Type)).ToList(),
+            AccountGroupKeys.Investments => accounts.Where(x => AccountTypes.IsInvestment(x.Type)).ToList(),
+            AccountGroupKeys.CreditCards => accounts.Where(x => AccountTypes.IsCreditCard(x.Type)).ToList(),
+            AccountGroupKeys.Loans => accounts.Where(x => AccountTypes.IsLoan(x.Type)).ToList(),
             _ => []
         };
 
-        var total = key == "net-worth"
+        var total = key == AccountGroupKeys.NetWorth
             ? CalculateNetWorth(accounts)
             : groupAccounts.Sum(x => x.CurrentBalance);
 
@@ -104,33 +108,34 @@ public class AccountsService : IAccountsService
         };
     }
 
-    private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync()
+    private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync(
+        CancellationToken cancellationToken)
     {
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
             .Include(x => x.Account)
             .Where(x => x.Account.IsActive)
             .OrderBy(x => x.Date)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return snapshots
             .GroupBy(x => x.Date)
             .Select(group =>
             {
                 var cash = group
-                    .Where(x => IsCashType(x.Account.Type))
+                    .Where(x => AccountTypes.IsCash(x.Account.Type))
                     .Sum(x => x.CurrentBalance);
 
                 var investments = group
-                    .Where(x => IsInvestmentType(x.Account.Type))
+                    .Where(x => AccountTypes.IsInvestment(x.Account.Type))
                     .Sum(x => x.CurrentBalance);
 
                 var creditCards = group
-                    .Where(x => IsCreditCardType(x.Account.Type))
+                    .Where(x => AccountTypes.IsCreditCard(x.Account.Type))
                     .Sum(x => x.CurrentBalance);
 
                 var loans = group
-                    .Where(x => IsLoanType(x.Account.Type))
+                    .Where(x => AccountTypes.IsLoan(x.Account.Type))
                     .Sum(x => x.CurrentBalance);
 
                 return new AccountBalanceHistoryPointDto
@@ -149,51 +154,11 @@ public class AccountsService : IAccountsService
 
     private static decimal CalculateNetWorth(IReadOnlyList<AccountDto> accounts)
     {
-        var cash = accounts.Where(IsCashAccount).Sum(x => x.CurrentBalance);
-        var investments = accounts.Where(IsInvestmentAccount).Sum(x => x.CurrentBalance);
-        var creditCards = accounts.Where(IsCreditCardAccount).Sum(x => x.CurrentBalance);
-        var loans = accounts.Where(IsLoanAccount).Sum(x => x.CurrentBalance);
+        var cash = accounts.Where(x => AccountTypes.IsCash(x.Type)).Sum(x => x.CurrentBalance);
+        var investments = accounts.Where(x => AccountTypes.IsInvestment(x.Type)).Sum(x => x.CurrentBalance);
+        var creditCards = accounts.Where(x => AccountTypes.IsCreditCard(x.Type)).Sum(x => x.CurrentBalance);
+        var loans = accounts.Where(x => AccountTypes.IsLoan(x.Type)).Sum(x => x.CurrentBalance);
 
         return cash + investments - creditCards - loans;
-    }
-
-    private static bool IsCashAccount(AccountDto account)
-    {
-        return IsCashType(account.Type);
-    }
-
-    private static bool IsInvestmentAccount(AccountDto account)
-    {
-        return IsInvestmentType(account.Type);
-    }
-
-    private static bool IsCreditCardAccount(AccountDto account)
-    {
-        return IsCreditCardType(account.Type);
-    }
-
-    private static bool IsLoanAccount(AccountDto account)
-    {
-        return IsLoanType(account.Type);
-    }
-
-    private static bool IsCashType(string type)
-    {
-        return type.Equals("depository", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool IsInvestmentType(string type)
-    {
-        return type.Equals("investment", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool IsCreditCardType(string type)
-    {
-        return type.Equals("credit", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool IsLoanType(string type)
-    {
-        return type.Equals("loan", StringComparison.OrdinalIgnoreCase);
     }
 }

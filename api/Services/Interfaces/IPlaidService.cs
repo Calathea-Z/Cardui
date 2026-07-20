@@ -4,10 +4,23 @@ namespace Cardui.Api.Services.Interfaces;
 
 public interface IPlaidService
 {
-    Task<CreateLinkTokenResponseDto> CreateLinkTokenAsync();
-    Task<ExchangePublicTokenResponseDto> ExchangePublicTokenAsync(ExchangePublicTokenRequestDto request);
-    Task SyncAccountsAsync(Guid plaidItemId);
-    Task<SyncTransactionsResponseDto> SyncTransactionsAsync(Guid plaidItemId);
-    Task<IReadOnlyList<PlaidItemDto>> GetPlaidItemsAsync();
-    Task<SyncPlaidItemResponseDto> SyncPlaidItemAsync(Guid plaidItemId);
+    Task<CreateLinkTokenResponseDto> CreateLinkTokenAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<ExchangePublicTokenResponseDto> ExchangePublicTokenAsync(
+        ExchangePublicTokenRequestDto request,
+        CancellationToken cancellationToken = default);
+
+    Task SyncAccountsAsync(Guid plaidItemId, CancellationToken cancellationToken = default);
+
+    Task<SyncTransactionsResponseDto> SyncTransactionsAsync(
+        Guid plaidItemId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<PlaidItemDto>> GetPlaidItemsAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<SyncPlaidItemResponseDto> SyncPlaidItemAsync(
+        Guid plaidItemId,
+        CancellationToken cancellationToken = default);
 }

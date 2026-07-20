@@ -17,27 +17,36 @@ public class CategoriesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<CategoryDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<CategoryDto>>> GetCategories()
+    public async Task<ActionResult<IReadOnlyList<CategoryDto>>> GetCategories(
+        CancellationToken cancellationToken)
     {
-        var categories = await _categoriesService.GetCategoriesAsync();
+        var categories = await _categoriesService.GetCategoriesAsync(cancellationToken);
         return Ok(categories);
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType<CategoryDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CategoryDto>> GetCategoryById(Guid id)
+    public async Task<ActionResult<CategoryDto>> GetCategoryById(
+        Guid id,
+        CancellationToken cancellationToken)
     {
-        var category = await _categoriesService.GetCategoryByIdAsync(id);
+        var category = await _categoriesService.GetCategoryByIdAsync(
+            id,
+            cancellationToken);
         return Ok(category);
     }
 
     [HttpPost]
     [ProducesResponseType<CategoryDto>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CreateCategoryDto dto)
+    public async Task<ActionResult<CategoryDto>> CreateCategory(
+        [FromBody] CreateCategoryDto dto,
+        CancellationToken cancellationToken)
     {
-        var category = await _categoriesService.CreateCategoryAsync(dto);
+        var category = await _categoriesService.CreateCategoryAsync(
+            dto,
+            cancellationToken);
 
         return CreatedAtAction(
             nameof(GetCategoryById),
@@ -51,9 +60,13 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoryDto>> UpdateCategory(
         Guid id,
-        [FromBody] UpdateCategoryDto dto)
+        [FromBody] UpdateCategoryDto dto,
+        CancellationToken cancellationToken)
     {
-        var category = await _categoriesService.UpdateCategoryAsync(id, dto);
+        var category = await _categoriesService.UpdateCategoryAsync(
+            id,
+            dto,
+            cancellationToken);
         return Ok(category);
     }
 
@@ -61,9 +74,11 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteCategory(Guid id)
+    public async Task<IActionResult> DeleteCategory(
+        Guid id,
+        CancellationToken cancellationToken)
     {
-        await _categoriesService.DeleteCategoryAsync(id);
+        await _categoriesService.DeleteCategoryAsync(id, cancellationToken);
         return NoContent();
     }
 }

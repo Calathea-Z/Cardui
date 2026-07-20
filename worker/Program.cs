@@ -1,32 +1,16 @@
 using Cardui.Api.Configuration;
 using Cardui.Api.Data;
-using Cardui.Api.Options;
-using Cardui.Api.Services.Implementations;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddDbContext<CarduiDBContext>(options =>
-{
-    options.UseNpgsql(DatabaseConnectionString.Get(builder.Configuration));
-});
-
-builder.Services.AddOptions<PlaidOptions>()
-    .Bind(builder.Configuration.GetSection("Plaid"))
-    .ValidateOnStart();
-
-builder.Services.AddSingleton<IValidateOptions<PlaidOptions>, PlaidOptionsValidator>();
-builder.Services.AddCarduiPlaid();
-builder.Services.AddSingleton(TimeProvider.System);
-
-builder.Services.AddScoped<IPlaidService, PlaidService>();
-builder.Services.AddScoped<ITransactionCategorizationService, TransactionCategorizationService>();
-builder.Services.AddScoped<ITransferPairingService, TransferPairingService>();
+builder.Services.AddCarduiDatabase(builder.Configuration);
+builder.Services.AddCarduiPlaid(builder.Configuration);
+builder.Services.AddCarduiApplicationServices(builder.Configuration);
 
 using var host = builder.Build();
 using var scope = host.Services.CreateScope();
@@ -53,11 +37,12 @@ if (plaidItemIds.Count == 0)
 var plaidService = scope.ServiceProvider.GetRequiredService<IPlaidService>();
 var successCount = 0;
 var failureCount = 0;
+var cancellationToken = CancellationToken.None;
 
 foreach (var plaidItemId in plaidItemIds)
     try
     {
-        var result = await plaidService.SyncPlaidItemAsync(plaidItemId);
+        var result = await plaidService.SyncPlaidItemAsync(plaidItemId, cancellationToken);
 
         logger.LogInformation(
             "Synced Plaid item {PlaidItemId}. Added {Added}, modified {Modified}, removed {Removed}.",

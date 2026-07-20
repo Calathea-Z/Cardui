@@ -17,9 +17,10 @@ public class DashboardController : ControllerBase
 
     [HttpGet("summary")]
     [ProducesResponseType<DashboardSummaryDto>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSummary()
+    public async Task<ActionResult<DashboardSummaryDto>> GetSummary(
+        CancellationToken cancellationToken)
     {
-        var summary = await _dashboardService.GetSummaryAsync();
+        var summary = await _dashboardService.GetSummaryAsync(cancellationToken);
         return Ok(summary);
     }
 }

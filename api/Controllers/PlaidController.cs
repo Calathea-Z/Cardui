@@ -17,53 +17,66 @@ public class PlaidController : ControllerBase
 
     [HttpGet("items")]
     [ProducesResponseType<IReadOnlyList<PlaidItemDto>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPlaidItems()
+    public async Task<ActionResult<IReadOnlyList<PlaidItemDto>>> GetPlaidItems(
+        CancellationToken cancellationToken)
     {
-        var items = await _plaidService.GetPlaidItemsAsync();
+        var items = await _plaidService.GetPlaidItemsAsync(cancellationToken);
         return Ok(items);
     }
 
     [HttpPost("link-token")]
     [ProducesResponseType<CreateLinkTokenResponseDto>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> CreateLinkToken()
+    public async Task<ActionResult<CreateLinkTokenResponseDto>> CreateLinkToken(
+        CancellationToken cancellationToken)
     {
-        var result = await _plaidService.CreateLinkTokenAsync();
+        var result = await _plaidService.CreateLinkTokenAsync(cancellationToken);
         return Ok(result);
     }
 
     [HttpPost("exchange-public-token")]
     [ProducesResponseType<ExchangePublicTokenResponseDto>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> ExchangePublicToken(
-        ExchangePublicTokenRequestDto dto)
+    public async Task<ActionResult<ExchangePublicTokenResponseDto>> ExchangePublicToken(
+        ExchangePublicTokenRequestDto dto,
+        CancellationToken cancellationToken)
     {
-        var result = await _plaidService.ExchangePublicTokenAsync(dto);
+        var result = await _plaidService.ExchangePublicTokenAsync(dto, cancellationToken);
         return Ok(result);
     }
 
     [HttpPost("{plaidItemId:guid}/sync-accounts")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> SyncAccounts(Guid plaidItemId)
+    public async Task<IActionResult> SyncAccounts(
+        Guid plaidItemId,
+        CancellationToken cancellationToken)
     {
-        await _plaidService.SyncAccountsAsync(plaidItemId);
+        await _plaidService.SyncAccountsAsync(plaidItemId, cancellationToken);
         return NoContent();
     }
 
     [HttpPost("{plaidItemId:guid}/sync-transactions")]
     [ProducesResponseType<SyncTransactionsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> SyncTransactions(Guid plaidItemId)
+    public async Task<ActionResult<SyncTransactionsResponseDto>> SyncTransactions(
+        Guid plaidItemId,
+        CancellationToken cancellationToken)
     {
-        var result = await _plaidService.SyncTransactionsAsync(plaidItemId);
+        var result = await _plaidService.SyncTransactionsAsync(
+            plaidItemId,
+            cancellationToken);
         return Ok(result);
     }
 
     [HttpPost("{plaidItemId:guid}/sync")]
     [ProducesResponseType<SyncPlaidItemResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> SyncPlaidItem(Guid plaidItemId)
+    public async Task<ActionResult<SyncPlaidItemResponseDto>> SyncPlaidItem(
+        Guid plaidItemId,
+        CancellationToken cancellationToken)
     {
-        var result = await _plaidService.SyncPlaidItemAsync(plaidItemId);
+        var result = await _plaidService.SyncPlaidItemAsync(
+            plaidItemId,
+            cancellationToken);
         return Ok(result);
     }
 }

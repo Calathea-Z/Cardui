@@ -4,7 +4,9 @@ namespace Cardui.Api.Services.Interfaces;
 
 public interface ITransactionCategorizationService
 {
-    Task<Guid?> GetCategoryIdForPlaidTransactionAsync(PlaidTransaction transaction);
+    Task<Guid?> GetCategoryIdForPlaidTransactionAsync(
+        PlaidTransaction transaction,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Keyword categorization for a stored transaction (used when repairing
@@ -13,5 +15,6 @@ public interface ITransactionCategorizationService
     Task<Guid?> GetCategoryIdForStoredTransactionAsync(
         string name,
         string? merchantName,
-        decimal amount);
+        decimal amount,
+        CancellationToken cancellationToken = default);
 }

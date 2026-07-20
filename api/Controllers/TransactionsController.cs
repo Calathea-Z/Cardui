@@ -18,18 +18,24 @@ public class TransactionsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType<PagedResultDto<TransactionDto>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetTransactions([FromQuery] TransactionQueryDto query)
+    public async Task<ActionResult<PagedResultDto<TransactionDto>>> GetTransactions(
+        [FromQuery] TransactionQueryDto query,
+        CancellationToken cancellationToken)
     {
-        var result = await _transactionsService.GetTransactionsAsync(query);
+        var result = await _transactionsService.GetTransactionsAsync(query, cancellationToken);
         return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetTransactionById(Guid id)
+    public async Task<ActionResult<TransactionDto>> GetTransactionById(
+        Guid id,
+        CancellationToken cancellationToken)
     {
-        var transaction = await _transactionsService.GetTransactionByIdAsync(id);
+        var transaction = await _transactionsService.GetTransactionByIdAsync(
+            id,
+            cancellationToken);
         return Ok(transaction);
     }
 
@@ -37,11 +43,15 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateTransactionCategory(
+    public async Task<ActionResult<TransactionDto>> UpdateTransactionCategory(
         Guid id,
-        [FromBody] UpdateTransactionCategoryDto dto)
+        [FromBody] UpdateTransactionCategoryDto dto,
+        CancellationToken cancellationToken)
     {
-        var transaction = await _transactionsService.UpdateTransactionCategoryAsync(id, dto);
+        var transaction = await _transactionsService.UpdateTransactionCategoryAsync(
+            id,
+            dto,
+            cancellationToken);
         return Ok(transaction);
     }
 }

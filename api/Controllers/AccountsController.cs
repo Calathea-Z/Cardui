@@ -17,17 +17,19 @@ public class AccountsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<AccountDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<AccountDto>>> GetAccounts()
+    public async Task<ActionResult<IReadOnlyList<AccountDto>>> GetAccounts(
+        CancellationToken cancellationToken)
     {
-        var accounts = await _accountsService.GetAccountsAsync();
+        var accounts = await _accountsService.GetAccountsAsync(cancellationToken);
         return Ok(accounts);
     }
 
     [HttpGet("summary")]
     [ProducesResponseType<AccountSummaryDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<AccountSummaryDto>> GetAccountsSummary()
+    public async Task<ActionResult<AccountSummaryDto>> GetAccountsSummary(
+        CancellationToken cancellationToken)
     {
-        var summary = await _accountsService.GetAccountsSummaryAsync();
+        var summary = await _accountsService.GetAccountsSummaryAsync(cancellationToken);
         return Ok(summary);
     }
 }

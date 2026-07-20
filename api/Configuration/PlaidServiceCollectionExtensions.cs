@@ -7,8 +7,15 @@ namespace Cardui.Api.Configuration;
 
 public static class PlaidServiceCollectionExtensions
 {
-    public static IServiceCollection AddCarduiPlaid(this IServiceCollection services)
+    public static IServiceCollection AddCarduiPlaid(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        services.AddOptions<PlaidConfig>()
+            .Bind(configuration.GetSection("Plaid"))
+            .ValidateOnStart();
+
+        services.AddSingleton<IValidateOptions<PlaidConfig>, PlaidOptionsValidator>();
         services.AddPlaidHttpClient();
         services.AddSingleton<PlaidClient>(sp =>
         {

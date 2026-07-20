@@ -1,4 +1,5 @@
-﻿using Cardui.Api.Data;
+using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Category;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;
@@ -11,47 +12,56 @@ namespace Cardui.Api.Services.Implementations;
 public class CategoriesService : ICategoriesService
 {
     private readonly CarduiDBContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public CategoriesService(CarduiDBContext dbContext)
+    public CategoriesService(CarduiDBContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
     }
 
-    public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync()
+    public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync(
+        CancellationToken cancellationToken = default)
     {
         return await _dbContext.Categories
             .AsNoTracking()
             .OrderBy(x => x.Name)
             .Select(CategoryDtoMapper.Projection)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public Task<CategoryDto> GetCategoryByIdAsync(Guid id)
+    public Task<CategoryDto> GetCategoryByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
-        return ProjectCategoryByIdAsync(id);
+        return ProjectCategoryByIdAsync(id, cancellationToken);
     }
 
-    public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto)
+    public async Task<CategoryDto> CreateCategoryAsync(
+        CreateCategoryDto createCategoryDto,
+        CancellationToken cancellationToken = default)
     {
         var name = createCategoryDto.Name.Trim();
 
         if (string.IsNullOrWhiteSpace(name)) throw new BadRequestException("Category name is required.");
 
         var nameExists = await _dbContext.Categories
-            .AnyAsync(x => x.Name.ToLower() == name.ToLower());
+            .AnyAsync(x => EF.Functions.ILike(x.Name, name), cancellationToken);
 
         if (nameExists) throw new BadRequestException("A category with this name already exists.");
 
-        await ValidateParentCategoryAsync(createCategoryDto.ParentCategoryId);
+        await ValidateParentCategoryAsync(
+            createCategoryDto.ParentCategoryId,
+            cancellationToken);
 
-        var key = CreateCategoryKey(name);
+        var key = CategoryKeys.CreateFromName(name);
 
         var keyExists = await _dbContext.Categories
-            .AnyAsync(x => x.Key == key);
+            .AnyAsync(x => x.Key == key, cancellationToken);
 
         if (keyExists) throw new BadRequestException("A category with this key already exists.");
 
-        var now = DateTimeOffset.UtcNow;
+        var now = _timeProvider.GetUtcNow();
 
         var category = new Category
         {
@@ -67,15 +77,18 @@ public class CategoriesService : ICategoriesService
         };
 
         _dbContext.Categories.Add(category);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return CategoryDtoMapper.MapToDto(category);
     }
 
-    public async Task<CategoryDto> UpdateCategoryAsync(Guid id, UpdateCategoryDto dto)
+    public async Task<CategoryDto> UpdateCategoryAsync(
+        Guid id,
+        UpdateCategoryDto dto,
+        CancellationToken cancellationToken = default)
     {
         var category = await _dbContext.Categories
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
 
@@ -84,39 +97,41 @@ public class CategoriesService : ICategoriesService
         if (string.IsNullOrWhiteSpace(name)) throw new BadRequestException("Category name is required.");
 
         var nameExists = await _dbContext.Categories
-            .AnyAsync(x => x.Id != id && x.Name.ToLower() == name.ToLower());
+            .AnyAsync(x => x.Id != id && EF.Functions.ILike(x.Name, name), cancellationToken);
 
         if (nameExists) throw new BadRequestException("A category with this name already exists.");
 
         if (dto.ParentCategoryId == id) throw new BadRequestException("A category cannot be its own parent.");
 
-        await ValidateParentCategoryAsync(dto.ParentCategoryId);
+        await ValidateParentCategoryAsync(dto.ParentCategoryId, cancellationToken);
 
         category.Name = name;
         category.ParentCategoryId = dto.ParentCategoryId;
         category.Color = dto.Color;
         category.Icon = dto.Icon;
-        category.UpdatedAt = DateTimeOffset.UtcNow;
+        category.UpdatedAt = _timeProvider.GetUtcNow();
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return CategoryDtoMapper.MapToDto(category);
     }
 
-    public async Task DeleteCategoryAsync(Guid id)
+    public async Task DeleteCategoryAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
         var category = await _dbContext.Categories
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
 
         if (category.IsSystem) throw new BadRequestException("System categories cannot be deleted.");
 
-        var now = DateTimeOffset.UtcNow;
+        var now = _timeProvider.GetUtcNow();
 
         var transactions = await _dbContext.Transactions
             .Where(x => x.CategoryId == id)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         foreach (var transaction in transactions)
         {
@@ -126,7 +141,7 @@ public class CategoriesService : ICategoriesService
 
         var childCategories = await _dbContext.Categories
             .Where(x => x.ParentCategoryId == id)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         foreach (var childCategory in childCategories)
         {
@@ -136,41 +151,33 @@ public class CategoriesService : ICategoriesService
 
         _dbContext.Categories.Remove(category);
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    #region Private Methods
-
-    private async Task ValidateParentCategoryAsync(Guid? parentCategoryId)
+    private async Task ValidateParentCategoryAsync(
+        Guid? parentCategoryId,
+        CancellationToken cancellationToken)
     {
         if (!parentCategoryId.HasValue) return;
 
         var parentExists = await _dbContext.Categories
-            .AnyAsync(x => x.Id == parentCategoryId.Value);
+            .AnyAsync(x => x.Id == parentCategoryId.Value, cancellationToken);
 
         if (!parentExists) throw new BadRequestException($"Parent category '{parentCategoryId}' was not found.");
     }
 
-    private async Task<CategoryDto> ProjectCategoryByIdAsync(Guid id)
+    private async Task<CategoryDto> ProjectCategoryByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken)
     {
         var category = await _dbContext.Categories
             .AsNoTracking()
             .Where(x => x.Id == id)
             .Select(CategoryDtoMapper.Projection)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
 
         return category;
     }
-
-    private static string CreateCategoryKey(string name)
-    {
-        return name
-            .Trim()
-            .ToLowerInvariant()
-            .Replace(" ", "-");
-    }
-
-    #endregion
 }

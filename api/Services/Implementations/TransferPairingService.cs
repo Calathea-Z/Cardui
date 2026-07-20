@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Models;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -7,17 +8,8 @@ namespace Cardui.Api.Services.Implementations;
 
 public class TransferPairingService : ITransferPairingService
 {
-    private const string TransfersCategoryKey = "transfers";
-    private const string UncategorizedCategoryKey = "uncategorized";
-    private const string IncomeCategoryKey = "income";
     private const int LookbackDays = 120;
     private const int MaxDateSkewDays = 1;
-
-    private static readonly HashSet<string> EligibleAccountTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "depository",
-        "investment"
-    };
 
     private readonly CarduiDBContext _dbContext;
     private readonly ITransactionCategorizationService _categorizationService;
@@ -42,25 +34,27 @@ public class TransferPairingService : ITransferPairingService
         var categoryIdsByKey = await _dbContext.Categories
             .AsNoTracking()
             .Where(x =>
-                x.Key == TransfersCategoryKey
-                || x.Key == UncategorizedCategoryKey
-                || x.Key == IncomeCategoryKey)
+                x.Key == SystemCategoryKeys.Transfers
+                || x.Key == SystemCategoryKeys.Uncategorized
+                || x.Key == SystemCategoryKeys.Income)
             .ToDictionaryAsync(x => x.Key, x => x.Id, cancellationToken);
 
-        if (!categoryIdsByKey.TryGetValue(TransfersCategoryKey, out var transfersCategoryId))
+        if (!categoryIdsByKey.TryGetValue(SystemCategoryKeys.Transfers, out var transfersCategoryId))
         {
             _logger.LogWarning(
                 "Skipping transfer pairing because the '{CategoryKey}' category was not found",
-                TransfersCategoryKey);
+                SystemCategoryKeys.Transfers);
             return 0;
         }
 
-        categoryIdsByKey.TryGetValue(UncategorizedCategoryKey, out var uncategorizedCategoryId);
-        categoryIdsByKey.TryGetValue(IncomeCategoryKey, out var incomeCategoryId);
+        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Uncategorized, out var uncategorizedCategoryId);
+        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Income, out var incomeCategoryId);
 
         var eligibleAccountIds = await _dbContext.Accounts
             .AsNoTracking()
-            .Where(x => x.IsActive && EligibleAccountTypes.Contains(x.Type))
+            .Where(x =>
+                x.IsActive
+                && (x.Type == AccountTypes.Depository || x.Type == AccountTypes.Investment))
             .Select(x => x.Id)
             .ToListAsync(cancellationToken);
 
@@ -146,7 +140,7 @@ public class TransferPairingService : ITransferPairingService
 
         foreach (var outflow in outflows)
         {
-            if (!IsPairableCategory(
+            if (!IsTransferCandidateCategory(
                     outflow.Category,
                     uncategorizedCategoryId,
                     transfersCategoryId,
@@ -157,7 +151,7 @@ public class TransferPairingService : ITransferPairingService
 
             var match = inflows.FirstOrDefault(inflow =>
                 !usedInflowIds.Contains(inflow.Id)
-                && IsPairableCategory(
+                && IsTransferCandidateCategory(
                     inflow.Category,
                     uncategorizedCategoryId,
                     transfersCategoryId,
@@ -213,10 +207,10 @@ public class TransferPairingService : ITransferPairingService
                 continue;
             }
 
-            if (!CanPromoteToTransfer(
+            if (!IsTransferCandidateCategory(
                     transaction.Category,
-                    transfersCategoryId,
                     uncategorizedCategoryId,
+                    transfersCategoryId,
                     incomeCategoryId))
             {
                 continue;
@@ -257,7 +251,8 @@ public class TransferPairingService : ITransferPairingService
             var categoryId = await _categorizationService.GetCategoryIdForStoredTransactionAsync(
                 transaction.Name,
                 transaction.MerchantName,
-                transaction.Amount);
+                transaction.Amount,
+                cancellationToken);
 
             if (categoryId == transfersCategoryId)
             {
@@ -273,7 +268,7 @@ public class TransferPairingService : ITransferPairingService
         return repairedCount;
     }
 
-    private static bool IsPairableCategory(
+    private static bool IsTransferCandidateCategory(
         Category? category,
         Guid uncategorizedCategoryId,
         Guid transfersCategoryId,
@@ -291,32 +286,9 @@ public class TransferPairingService : ITransferPairingService
             return true;
         }
 
-        return string.Equals(category.Key, UncategorizedCategoryKey, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(category.Key, TransfersCategoryKey, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(category.Key, IncomeCategoryKey, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool CanPromoteToTransfer(
-        Category? category,
-        Guid transfersCategoryId,
-        Guid uncategorizedCategoryId,
-        Guid incomeCategoryId)
-    {
-        if (category is null)
-        {
-            return true;
-        }
-
-        if (category.Id == transfersCategoryId
-            || category.Id == uncategorizedCategoryId
-            || category.Id == incomeCategoryId)
-        {
-            return true;
-        }
-
-        return string.Equals(category.Key, UncategorizedCategoryKey, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(category.Key, TransfersCategoryKey, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(category.Key, IncomeCategoryKey, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(category.Key, SystemCategoryKeys.Uncategorized, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(category.Key, SystemCategoryKeys.Transfers, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(category.Key, SystemCategoryKeys.Income, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool HasTransferPairSignal(Transaction left, Transaction right)

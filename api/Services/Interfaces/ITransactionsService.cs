@@ -5,9 +5,16 @@ namespace Cardui.Api.Services.Interfaces;
 
 public interface ITransactionsService
 {
-    Task<PagedResultDto<TransactionDto>> GetTransactionsAsync(TransactionQueryDto query);
-    Task<TransactionDto> GetTransactionByIdAsync(Guid id);
+    Task<PagedResultDto<TransactionDto>> GetTransactionsAsync(
+        TransactionQueryDto query,
+        CancellationToken cancellationToken = default);
+
+    Task<TransactionDto> GetTransactionByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
     Task<TransactionDto> UpdateTransactionCategoryAsync(
         Guid transactionId,
-        UpdateTransactionCategoryDto dto);
+        UpdateTransactionCategoryDto dto,
+        CancellationToken cancellationToken = default);
 }

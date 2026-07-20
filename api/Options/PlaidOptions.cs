@@ -5,6 +5,6 @@ public class PlaidOptions
     public required string ClientId { get; set; }
     public required string Secret { get; set; }
     public required string Environment { get; set; }
-    public string ClientName { get; set; } = "Cardui";
+    public string ClientName { get; set; } = "Tortoise";
     public string DefaultClientUserId { get; set; } = "dev-user";
 }

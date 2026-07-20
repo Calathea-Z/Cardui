@@ -12,7 +12,7 @@ type TransactionRowProps = {
 
 function amountClassName(kind: "income" | "spend" | "transfer") {
   return cn(
-    "font-medium tabular-nums",
+    "ledger-amount",
     kind === "income" && "text-success",
     kind === "transfer" && "text-transfer",
     kind === "spend" && "text-foreground",
@@ -39,12 +39,12 @@ export function TransactionRow({ transaction }: TransactionRowProps) {
           {isTransfer || transaction.pending ? (
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               {isTransfer ? (
-                <span className="bg-transfer-soft rounded-full px-2 py-0.5 text-transfer">
+                <span className="ledger-stamp bg-transfer-soft text-transfer">
                   Transfer
                 </span>
               ) : null}
               {transaction.pending ? (
-                <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                <span className="ledger-stamp bg-muted text-muted-foreground">
                   Pending
                 </span>
               ) : null}
@@ -57,7 +57,7 @@ export function TransactionRow({ transaction }: TransactionRowProps) {
         <p className={amountClassName(amount.kind)}>{amount.label}</p>
         {isTransfer ? (
           <p className="mt-0.5 text-[11px] text-transfer">
-            Move between accounts
+            Moved between accounts
           </p>
         ) : null}
       </div>

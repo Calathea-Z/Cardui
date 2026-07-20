@@ -13,6 +13,7 @@ import {
 } from "@/features/accounts/chartTimeRange";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { PlaidLinkButton } from "@/features/plaid/PlaidLinkButton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { DashboardAccountGroupsPanel } from "./DashboardAccountGroupsPanel";
 import {
@@ -98,12 +99,12 @@ export function DashboardAccountsSlider({
   return (
     <section className="app-panel overflow-hidden">
       <div className="app-panel-header px-4 py-3.5">
-        <p className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+        <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
           {PANELS[activeIndex].label}
         </p>
         <p
           className={cn(
-            "mt-1 text-2xl font-semibold tabular-nums",
+            "ledger-amount mt-1 text-3xl",
             headerTotal.liability ? "text-destructive" : "text-foreground",
           )}
         >
@@ -128,15 +129,12 @@ export function DashboardAccountsSlider({
         <section className="w-full shrink-0 snap-center">
           <div className="px-4 py-4">
             {showNetWorthEmptyState ? (
-              <div className="flex h-40 flex-col items-center justify-center gap-3 px-4 text-center">
-                <p className="font-medium text-foreground">
-                  No accounts connected yet
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Link a bank to start tracking your net worth.
-                </p>
-                <PlaidLinkButton onSuccess={() => router.refresh()} />
-              </div>
+              <EmptyState
+                title="No accounts connected yet"
+                description="Link a bank to start tracking your net worth."
+                action={<PlaidLinkButton onSuccess={() => router.refresh()} />}
+                className="h-40 py-0"
+              />
             ) : (
               <div className="flex flex-col gap-3">
                 <AccountsBalanceChart
@@ -172,7 +170,7 @@ export function DashboardAccountsSlider({
       </div>
 
       <div className="flex items-center justify-between gap-2 border-t border-border/70 px-4 py-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {PANELS.map((panel, index) => (
             <button
               key={panel.id}
@@ -181,10 +179,10 @@ export function DashboardAccountsSlider({
               aria-current={activeIndex === index ? "true" : undefined}
               onClick={() => scrollToPanel(index)}
               className={cn(
-                "min-h-10 rounded-full px-3 text-xs font-medium transition",
+                "min-h-10 border-b-2 px-3 text-xs font-medium tracking-wide transition",
                 activeIndex === index
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:text-foreground",
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
               {panel.label}

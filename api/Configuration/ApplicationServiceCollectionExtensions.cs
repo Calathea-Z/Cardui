@@ -14,7 +14,7 @@ public static class ApplicationServiceCollectionExtensions
     {
         var dataProtectionBuilder = services
             .AddDataProtection()
-            .SetApplicationName(configuration["DataProtection:ApplicationName"] ?? "Cardui");
+            .SetApplicationName(configuration["DataProtection:ApplicationName"] ?? "Tortoise");
         var keysPath = configuration["DataProtection:KeysPath"];
 
         if (!string.IsNullOrWhiteSpace(keysPath))

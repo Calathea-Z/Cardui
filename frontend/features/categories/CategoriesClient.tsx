@@ -26,8 +26,12 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <div>
-        <p className="text-sm text-muted-foreground">Organize spending</p>
-        <h1 className="text-3xl font-semibold text-foreground">Categories</h1>
+        <p className="text-[11px] font-medium tracking-[0.18em] text-primary uppercase">
+          Organize spending
+        </p>
+        <h1 className="font-brand mt-1 text-[2.15rem] leading-none tracking-tight text-foreground">
+          <span className="ink-underline">Categories</span>
+        </h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">

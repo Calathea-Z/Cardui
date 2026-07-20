@@ -1,4 +1,5 @@
 import type { TransactionDto } from "@/lib/api/types";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getCategoryEmoji } from "@/features/categories/categoryEmoji";
 import {
   getTransactionAmountDisplay,
@@ -40,7 +41,7 @@ export function DashboardRecentTransactionsWidget({
                   <p className="truncate font-medium">{transaction.name}</p>
                   {isTransfer ? (
                     <p className="mt-0.5 text-xs text-transfer">
-                      Move between accounts
+                      Moved between accounts
                     </p>
                   ) : null}
                 </div>
@@ -49,7 +50,7 @@ export function DashboardRecentTransactionsWidget({
               <div className="shrink-0 text-right">
                 <p
                   className={cn(
-                    "font-medium tabular-nums",
+                    "ledger-amount",
                     amount.kind === "income" && "text-success",
                     amount.kind === "transfer" && "text-transfer",
                   )}
@@ -62,9 +63,11 @@ export function DashboardRecentTransactionsWidget({
         })}
 
         {transactions.length === 0 ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">
-            Transactions will appear here after your first account sync.
-          </div>
+          <EmptyState
+            title="No transactions yet"
+            description="Transactions will appear here after your first account sync."
+            className="py-8 [&_p]:text-sm [&_p]:font-normal"
+          />
         ) : null}
       </div>
     </section>

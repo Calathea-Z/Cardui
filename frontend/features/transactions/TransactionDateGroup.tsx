@@ -21,8 +21,8 @@ export function TransactionDateGroup({ group }: TransactionDateGroupProps) {
         <p
           className={
             dayTotal.kind === "income"
-              ? "shrink-0 text-sm font-semibold tabular-nums text-success"
-              : "shrink-0 text-sm font-semibold tabular-nums text-foreground"
+              ? "ledger-amount shrink-0 text-sm text-success"
+              : "ledger-amount shrink-0 text-sm text-foreground"
           }
         >
           {dayTotal.label}

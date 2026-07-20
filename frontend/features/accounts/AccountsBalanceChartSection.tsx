@@ -76,7 +76,7 @@ export function PeriodDeltaLabel({
   return (
     <p
       className={cn(
-        "inline-flex items-center gap-1 tabular-nums",
+        "ledger-amount inline-flex items-center gap-1",
         compact ? "text-xs" : "text-sm",
         isFavorable ? "text-success" : "text-destructive",
         className,
@@ -114,12 +114,12 @@ export function AccountsBalanceChartSection({
     <section className={cn("app-panel overflow-hidden", className)}>
       <div className="px-4 pt-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+          <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
             {metricOption.label}
           </p>
           <p
             className={cn(
-              "mt-1 font-semibold tabular-nums text-foreground",
+              "ledger-amount mt-1 text-foreground",
               compact ? "text-2xl" : "text-3xl",
             )}
           >

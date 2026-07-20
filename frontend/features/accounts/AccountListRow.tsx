@@ -41,7 +41,7 @@ export function AccountListRow({
 
       {showBalance ? (
         <div className="shrink-0 text-right">
-          <p className="font-semibold tabular-nums text-foreground">
+          <p className="ledger-amount text-foreground">
             {formatCurrency(account.currentBalance)}
           </p>
           {!account.isActive ? (

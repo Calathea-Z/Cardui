@@ -79,8 +79,8 @@ export function MobileShell({ children }: MobileShellProps) {
               />
             </div>
 
-            <p className="truncate text-center font-semibold">
-              {activeItem?.label ?? "Finance"}
+            <p className="truncate text-center font-semibold tracking-tight">
+              {activeItem?.label ?? "Tortoise"}
             </p>
 
             <div className="flex justify-end">

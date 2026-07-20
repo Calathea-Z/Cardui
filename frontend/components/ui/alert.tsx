@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva("rounded-md text-sm", {
+const alertVariants = cva("rounded-lg text-sm", {
   variants: {
     variant: {
       default: "app-panel p-4 text-muted-foreground",

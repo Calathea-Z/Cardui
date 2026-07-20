@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { AccountGroupDto } from "@/lib/api/types";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 
 type DashboardAccountGroupsPanelProps = {
@@ -17,12 +18,18 @@ export function DashboardAccountGroupsPanel({
 
   if (visibleGroups.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 px-4 py-8 text-center text-sm text-muted-foreground">
-        <p>{emptyMessage}</p>
-        <Link href="/accounts" className="text-primary underline underline-offset-2">
-          Go to Accounts
-        </Link>
-      </div>
+      <EmptyState
+        title={emptyMessage}
+        action={
+          <Link
+            href="/accounts"
+            className="text-sm text-primary underline underline-offset-2"
+          >
+            Go to Accounts
+          </Link>
+        }
+        className="py-8 [&_p]:text-sm [&_p]:font-normal [&_p]:text-muted-foreground"
+      />
     );
   }
 
@@ -37,8 +44,8 @@ export function DashboardAccountGroupsPanel({
           <p
             className={
               liability
-                ? "font-semibold tabular-nums text-destructive"
-                : "font-semibold tabular-nums"
+                ? "ledger-amount text-destructive"
+                : "ledger-amount text-foreground"
             }
           >
             {liability ? "-" : ""}

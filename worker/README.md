@@ -1,4 +1,4 @@
-# Cardui Daily Sync Worker
+# Tortoise Daily Sync Worker
 
 One-shot worker for scheduled Plaid account and transaction syncs.
 

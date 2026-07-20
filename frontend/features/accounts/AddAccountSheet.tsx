@@ -41,7 +41,7 @@ function AddAccountSheetContent({ onClose }: { onClose: () => void }) {
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
         Securely link a bank or investment account through Plaid. Your
-        credentials are never stored by Cardui.
+        credentials are never stored by Tortoise.
       </p>
 
       {errorMessage ? (

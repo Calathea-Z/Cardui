@@ -62,7 +62,7 @@ function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
       <p className="text-xs text-muted-foreground">
         {formatTooltipDate(pointDate)}
       </p>
-      <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
+      <p className="ledger-amount mt-0.5 text-sm text-foreground">
         {formatChartCurrency(value)}
       </p>
     </div>

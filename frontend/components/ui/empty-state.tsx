@@ -26,9 +26,11 @@ function EmptyState({
       )}
     >
       {icon}
-      <p className="text-base font-semibold text-foreground">{title}</p>
+      <p className="font-brand text-xl leading-none text-foreground">
+        <span className="ink-underline">{title}</span>
+      </p>
       {description ? (
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
       ) : null}
       {action ? <div className="mt-3">{action}</div> : null}
     </div>

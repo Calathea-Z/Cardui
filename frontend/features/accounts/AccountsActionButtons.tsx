@@ -3,6 +3,7 @@
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useRef } from "react";
 import { ActionMenu } from "@/components/ui/action-menu";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type AccountsActionButtonsProps = {
@@ -26,29 +27,29 @@ export function AccountsActionButtons({
 
   return (
     <div className="flex items-center gap-1">
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-lg"
         aria-label="Add account"
         onClick={onAdd}
-        className="app-icon-button"
       >
         <Plus className="size-5" />
-      </button>
+      </Button>
 
       <div ref={menuContainerRef} className="relative">
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-lg"
           aria-label="More options"
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onClick={() => onMenuOpenChange(!isMenuOpen)}
-          className={cn(
-            "app-icon-button",
-            isMenuOpen && "bg-accent text-foreground",
-          )}
+          className={cn(isMenuOpen && "bg-accent text-foreground")}
         >
           <MoreHorizontal className="size-5" />
-        </button>
+        </Button>
 
         <ActionMenu
           open={isMenuOpen}

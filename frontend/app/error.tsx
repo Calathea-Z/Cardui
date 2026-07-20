@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 type ErrorPageProps = {
   error: Error & { digest?: string };
@@ -28,9 +29,9 @@ export default function Error({ error, reset }: ErrorPageProps) {
           ) : null}
         </div>
 
-        <button type="button" className="app-cta-button" onClick={reset}>
+        <Button type="button" size="lg" onClick={reset}>
           Try again
-        </button>
+        </Button>
       </div>
     </section>
   );

@@ -1,4 +1,5 @@
 import type { CategoryDto } from "@/lib/api/types";
+import { Button } from "@/components/ui/button";
 
 type CategoryRowProps = {
   category: CategoryDto;
@@ -27,22 +28,24 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
       </span>
 
       <div className="flex justify-end gap-2">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="xs"
           onClick={() => onEdit(category)}
-          className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-accent"
         >
           Edit
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant="destructive"
+          size="xs"
           disabled={category.isSystem}
           onClick={() => onDelete(category)}
-          className="cursor-pointer rounded-md border border-destructive/40 px-3 py-1.5 text-xs text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Delete
-        </button>
+        </Button>
       </div>
     </div>
   );

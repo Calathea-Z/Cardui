@@ -1,5 +1,5 @@
+import { EmptyState } from "@/components/ui/empty-state";
 import type { CategoryDto } from "@/lib/api/types";
-import { CategoryEmptyState } from "./CategoryEmptyState";
 import { CategoryRow } from "./CategoryRow";
 
 type CategoryListProps = {
@@ -31,7 +31,12 @@ export function CategoryList({
           />
         ))}
 
-        {categories.length === 0 ? <CategoryEmptyState /> : null}
+        {categories.length === 0 ? (
+          <EmptyState
+            title="No categories yet."
+            className="py-12 [&_p]:text-sm [&_p]:font-normal [&_p]:text-muted-foreground"
+          />
+        ) : null}
       </div>
     </div>
   );

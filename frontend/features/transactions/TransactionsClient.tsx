@@ -1,6 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
+import { Search } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Pagination } from "@/components/ui/pagination";
 import type {
   AccountDto,
   CategoryDto,
@@ -8,10 +12,7 @@ import type {
   TransactionDto,
 } from "@/lib/api/types";
 import { TransactionDateGroup } from "./TransactionDateGroup";
-import { TransactionsEmptyState } from "./TransactionsEmptyState";
-import { TransactionsErrorBanner } from "./TransactionsErrorBanner";
 import { TransactionsFilters } from "./TransactionsFilters";
-import { TransactionsPagination } from "./TransactionsPagination";
 import { groupTransactionsByDate } from "./transactionGrouping";
 import { useTransactionsPage } from "./useTransactionsPage";
 import { useTransactionsQueryState } from "./useTransactionsQueryState";
@@ -61,7 +62,7 @@ export function TransactionsClient({
         />
 
         {errorMessage ? (
-          <TransactionsErrorBanner message={errorMessage} />
+          <Alert variant="panel">{errorMessage}</Alert>
         ) : null}
 
         <div className="app-panel overflow-hidden">
@@ -71,15 +72,22 @@ export function TransactionsClient({
             ))}
 
             {transactions.length === 0 ? (
-              <TransactionsEmptyState
-                trimmedSearch={query.trimmedSearch}
-                hasActiveFilters={query.hasActiveFilters}
+              <EmptyState
+                icon={<Search className="size-12 text-muted-foreground/70" />}
+                title="No transactions found"
+                description={
+                  query.trimmedSearch
+                    ? `We couldn't find any transactions matching your search of "${query.trimmedSearch}".`
+                    : query.hasActiveFilters
+                      ? "Try adjusting your filters."
+                      : "We couldn't find any transactions."
+                }
               />
             ) : null}
           </div>
 
           {transactionsPage.totalPages > 1 ? (
-            <TransactionsPagination
+            <Pagination
               page={transactionsPage.page}
               totalPages={transactionsPage.totalPages}
               hasPreviousPage={transactionsPage.hasPreviousPage}

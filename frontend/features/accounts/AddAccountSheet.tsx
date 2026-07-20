@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Button } from "@/components/ui/button";
 import { usePlaidLinkFlow } from "@/features/plaid/usePlaidLinkFlow";
 
 type AddAccountSheetProps = {
@@ -43,7 +45,7 @@ function AddAccountSheetContent({ onClose }: { onClose: () => void }) {
       </p>
 
       {errorMessage ? (
-        <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <Alert variant="destructive">
           {errorMessage}{" "}
           <button
             type="button"
@@ -52,17 +54,18 @@ function AddAccountSheetContent({ onClose }: { onClose: () => void }) {
           >
             Dismiss
           </button>
-        </p>
+        </Alert>
       ) : null}
 
-      <button
+      <Button
         type="button"
         disabled={!canAttemptConnect}
         onClick={() => void openPlaid()}
-        className="app-cta-button py-3"
+        size="lg"
+        className="py-3"
       >
         {buttonLabel}
-      </button>
+      </Button>
     </div>
   );
 }

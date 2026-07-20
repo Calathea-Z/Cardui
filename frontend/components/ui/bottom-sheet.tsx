@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type BottomSheetProps = {
@@ -78,14 +79,15 @@ export function BottomSheet({
           <h2 id={titleId} className="text-lg font-semibold text-foreground">
             {title}
           </h2>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-lg"
             aria-label="Close"
             onClick={onClose}
-            className="app-icon-button"
           >
             <X className="size-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>

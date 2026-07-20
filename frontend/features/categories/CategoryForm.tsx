@@ -1,8 +1,10 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert } from "@/components/ui/alert";
 import type { CategoryDto } from "@/lib/api/types";
 import type { CategoryFormState } from "@/lib/categoryForm";
-import { CategoryErrorBanner } from "./CategoryErrorBanner";
 
 type CategoryFormProps = {
   form: CategoryFormState;
@@ -43,59 +45,55 @@ export function CategoryForm({
       <div className="mt-5 space-y-4">
         <label className="block">
           <span className="text-sm text-muted-foreground">Name</span>
-          <input
+          <Input
             value={form.name}
             onChange={(event) =>
               onFormChange({ ...form, name: event.target.value })
             }
-            className="app-input mt-2 h-10 w-full"
+            className="mt-2 h-10"
             placeholder="Pets"
           />
         </label>
 
         <label className="block">
           <span className="text-sm text-muted-foreground">Color</span>
-          <input
+          <Input
             value={form.color}
             onChange={(event) =>
               onFormChange({ ...form, color: event.target.value })
             }
-            className="app-input mt-2 h-10 w-full"
+            className="mt-2 h-10"
             placeholder="#22c55e"
           />
         </label>
 
         <label className="block">
           <span className="text-sm text-muted-foreground">Icon</span>
-          <input
+          <Input
             value={form.icon}
             onChange={(event) =>
               onFormChange({ ...form, icon: event.target.value })
             }
-            className="app-input mt-2 h-10 w-full"
+            className="mt-2 h-10"
             placeholder="tag"
           />
         </label>
 
-        {error ? <CategoryErrorBanner message={error} /> : null}
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
 
         <div className="flex gap-2">
-          <button type="submit" disabled={isSaving} className="app-cta-button">
+          <Button type="submit" disabled={isSaving} size="lg">
             {isSaving
               ? "Saving"
               : editingCategory
                 ? "Save changes"
                 : "Create category"}
-          </button>
+          </Button>
 
           {editingCategory ? (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="cursor-pointer rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition hover:bg-accent"
-            >
+            <Button type="button" variant="outline" size="lg" onClick={onCancel}>
               Cancel
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>

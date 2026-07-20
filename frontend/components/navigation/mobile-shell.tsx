@@ -3,6 +3,7 @@
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getActiveNavItem } from "./nav-items";
 import { MobileBottomNav } from "./mobile-bottom-nav";
@@ -59,19 +60,21 @@ export function MobileShell({ children }: MobileShellProps) {
             <div className="flex justify-start">
               <MobileHeaderLeadingSlot
                 fallback={
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-lg"
                     aria-label={isDrawerOpen ? "Close menu" : "Open menu"}
                     aria-expanded={isDrawerOpen}
                     onClick={() => setIsDrawerOpen((open) => !open)}
-                    className="app-icon-button shrink-0"
+                    className="shrink-0"
                   >
                     {isDrawerOpen ? (
                       <X className="size-5" />
                     ) : (
                       <Menu className="size-5" />
                     )}
-                  </button>
+                  </Button>
                 }
               />
             </div>

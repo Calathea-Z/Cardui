@@ -1,4 +1,5 @@
 import type { AccountDto, PlaidItemDto } from "@/lib/api/types";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -33,14 +34,9 @@ export function InstitutionCard({
           Last synced {formatSyncedAt(item.lastTransactionsSyncedAt)}
         </CardDescription>
         <CardAction>
-          <button
-            type="button"
-            disabled={isSyncing}
-            onClick={onSync}
-            className="app-cta-button"
-          >
+          <Button type="button" disabled={isSyncing} size="lg" onClick={onSync}>
             {isSyncing ? "Syncing" : "Sync now"}
-          </button>
+          </Button>
         </CardAction>
       </CardHeader>
 

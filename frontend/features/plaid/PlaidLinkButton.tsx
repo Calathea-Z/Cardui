@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { usePlaidLinkFlow } from "./usePlaidLinkFlow";
 
@@ -23,11 +25,12 @@ export function PlaidLinkButton({
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <button
+      <Button
         type="button"
         disabled={!canAttemptConnect}
         onClick={() => void open()}
-        className="app-cta-button w-fit"
+        size="lg"
+        className="w-fit"
       >
         {isCreatingToken
           ? "Preparing Plaid"
@@ -36,10 +39,10 @@ export function PlaidLinkButton({
             : errorMessage
               ? "Try again"
               : "Connect account"}
-      </button>
+      </Button>
 
       {errorMessage ? (
-        <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <Alert variant="destructive">
           {errorMessage}{" "}
           <button
             type="button"
@@ -48,7 +51,7 @@ export function PlaidLinkButton({
           >
             Dismiss
           </button>
-        </p>
+        </Alert>
       ) : null}
     </div>
   );

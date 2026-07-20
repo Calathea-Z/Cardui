@@ -3,6 +3,7 @@
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type BackButtonProps = {
@@ -28,13 +29,15 @@ export function BackButton({
   }, [fallbackHref, router]);
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon-lg"
       aria-label={ariaLabel}
       onClick={handleBack}
-      className={cn("app-icon-button shrink-0 cursor-pointer", className)}
+      className={cn("shrink-0", className)}
     >
       <ArrowLeft className="size-5" />
-    </button>
+    </Button>
   );
 }

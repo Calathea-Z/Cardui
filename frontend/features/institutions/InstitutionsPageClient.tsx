@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { BackButton } from "@/components/navigation/back-button";
 import { PageHeader } from "@/components/navigation/page-header";
 import { useSetMobileHeaderLeading } from "@/components/navigation/mobile-header-actions";
+import { Alert } from "@/components/ui/alert";
+import { EmptyState } from "@/components/ui/empty-state";
 import { syncPlaidItem } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
@@ -108,18 +110,14 @@ export function InstitutionsPageClient({
         }
       />
 
-      {syncError ? (
-        <div className="app-panel border-destructive/40 p-4 text-sm text-destructive">
-          {syncError}
-        </div>
-      ) : null}
+      {syncError ? <Alert variant="panel">{syncError}</Alert> : null}
 
       {lastResult ? (
-        <div className="app-panel p-4 text-sm text-muted-foreground">
+        <Alert>
           Last sync added {lastResult.transactions.added}, modified{" "}
           {lastResult.transactions.modified}, removed{" "}
           {lastResult.transactions.removed}.
-        </div>
+        </Alert>
       ) : null}
 
       {items.length > 0 ? (
@@ -135,17 +133,12 @@ export function InstitutionsPageClient({
           ))}
         </div>
       ) : (
-        <div className="app-panel bg-card/50 px-6 py-12 text-center">
-          <p className="text-lg font-medium text-foreground">
-            No institutions connected yet
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Link a bank to start syncing accounts and transactions.
-          </p>
-          <div className="mt-6 flex justify-center">
-            <PlaidLinkButton onSuccess={() => router.refresh()} />
-          </div>
-        </div>
+        <EmptyState
+          title="No institutions connected yet"
+          description="Link a bank to start syncing accounts and transactions."
+          action={<PlaidLinkButton onSuccess={() => router.refresh()} />}
+          className="app-panel bg-card/50 gap-2 px-6 py-12 [&_p:first-of-type]:text-lg [&_p:first-of-type]:font-medium"
+        />
       )}
     </section>
   );

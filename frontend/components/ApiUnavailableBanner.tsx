@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type ApiUnavailableBannerProps = {
@@ -34,9 +35,10 @@ export function ApiUnavailableBanner({
         </p>
       </div>
 
-      <button
+      <Button
         type="button"
-        className="app-cta-button shrink-0"
+        size="lg"
+        className="shrink-0"
         disabled={isPending}
         onClick={() => {
           startTransition(() => {
@@ -45,7 +47,7 @@ export function ApiUnavailableBanner({
         }}
       >
         {isPending ? "Retrying…" : "Retry"}
-      </button>
+      </Button>
     </div>
   );
 }

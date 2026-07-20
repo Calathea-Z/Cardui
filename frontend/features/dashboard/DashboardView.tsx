@@ -1,4 +1,4 @@
-import type { AccountSummaryDto, DashboardSummaryDto } from "@/lib/api";
+import type { AccountSummaryDto, DashboardSummaryDto } from "@/lib/api/types";
 import { dashboardWidgets } from "./dashboard-widgets";
 
 type DashboardViewProps = {

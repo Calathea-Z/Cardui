@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo } from "react";
 import type {
@@ -6,7 +6,7 @@ import type {
   CategoryDto,
   PagedResultDto,
   TransactionDto,
-} from "@/lib/api";
+} from "@/lib/api/types";
 import { TransactionDateGroup } from "./TransactionDateGroup";
 import { TransactionsEmptyState } from "./TransactionsEmptyState";
 import { TransactionsErrorBanner } from "./TransactionsErrorBanner";

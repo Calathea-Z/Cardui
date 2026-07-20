@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { AccountSummaryDto } from "@/lib/api";
+import type { AccountSummaryDto } from "@/lib/api/types";
 import { AccountsBalanceChart } from "@/features/accounts/AccountsBalanceChart";
 import { ChartTimeRangeSelector } from "@/features/accounts/ChartTimeRangeSelector";
 import { PeriodDeltaLabel } from "@/features/accounts/AccountsBalanceChartSection";

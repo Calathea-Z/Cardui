@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleX } from "lucide-react";
-import type { AccountDto, CategoryDto } from "@/lib/api";
+import type { AccountDto, CategoryDto } from "@/lib/api/types";
 import {
   STATUS_OPTIONS,
   type PendingFilter,

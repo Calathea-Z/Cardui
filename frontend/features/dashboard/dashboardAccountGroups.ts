@@ -1,4 +1,4 @@
-import type { AccountGroupDto } from "@/lib/api";
+import type { AccountGroupDto } from "@/lib/api/types";
 
 export const ASSET_GROUP_KEYS = ["cash", "investments"] as const;
 export const LIABILITY_GROUP_KEYS = ["credit-cards", "loans"] as const;

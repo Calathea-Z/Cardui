@@ -7,11 +7,13 @@ import {
   getCategories,
   getTransactions,
   safeApiCall,
-  type AccountDto,
-  type CategoryDto,
-  type PagedResultDto,
-  type TransactionDto,
-} from "@/lib/api";
+} from "@/lib/api/server";
+import type {
+  AccountDto,
+  CategoryDto,
+  PagedResultDto,
+  TransactionDto,
+} from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
 const DEFAULT_PAGE_SIZE = 50;

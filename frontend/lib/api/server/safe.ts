@@ -1,13 +1,13 @@
 import type { PageLoadState } from "@/lib/pageLoadState";
-import { getApiErrorMessage, type ApiError } from "./client";
+import { getApiErrorMessage } from "../errors";
 import type {
   AccountDto,
   AccountSummaryDto,
   CategoryDto,
   DashboardSummaryDto,
   PagedResultDto,
-} from "./types";
-import type { PlaidItemDto } from "./plaid";
+  PlaidItemDto,
+} from "../types";
 
 export type SafeApiResult<T> = PageLoadState<T>;
 
@@ -89,14 +89,4 @@ export function emptyPagedResult<T>(
     hasNextPage: false,
     hasPreviousPage: false,
   };
-}
-
-/** Narrow unknown rejection into ApiError shape when useful for callers. */
-export function isApiError(error: unknown): error is ApiError {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "message" in error &&
-    typeof (error as ApiError).message === "string"
-  );
 }

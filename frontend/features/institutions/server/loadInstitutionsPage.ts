@@ -5,9 +5,8 @@ import {
   getAccounts,
   getPlaidItems,
   safeApiCall,
-  type AccountDto,
-  type PlaidItemDto,
-} from "@/lib/api";
+} from "@/lib/api/server";
+import type { AccountDto, PlaidItemDto } from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
 export type InstitutionsPageData = {

@@ -1,4 +1,4 @@
-import type { AccountDto, PlaidItemDto } from "@/lib/api";
+import type { AccountDto, PlaidItemDto } from "@/lib/api/types";
 import {
   Card,
   CardAction,

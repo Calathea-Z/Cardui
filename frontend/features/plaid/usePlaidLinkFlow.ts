@@ -5,8 +5,8 @@ import { usePlaidLink, type PlaidLinkOnSuccessMetadata } from "react-plaid-link"
 import {
   createPlaidLinkToken,
   exchangePlaidPublicToken,
-  getApiErrorMessage,
-} from "@/lib/api";
+} from "@/lib/api/browser";
+import { getApiErrorMessage } from "@/lib/api/errors";
 
 type UsePlaidLinkFlowOptions = {
   onSuccess?: () => void;

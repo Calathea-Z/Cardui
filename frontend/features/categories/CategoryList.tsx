@@ -1,4 +1,4 @@
-import type { CategoryDto } from "@/lib/api";
+import type { CategoryDto } from "@/lib/api/types";
 import { CategoryEmptyState } from "./CategoryEmptyState";
 import { CategoryRow } from "./CategoryRow";
 

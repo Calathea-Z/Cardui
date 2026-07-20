@@ -1,11 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  getApiErrorMessage,
-  getTransactions,
-} from "@/lib/api";
-import type { PagedResultDto, TransactionDto } from "@/lib/api";
+import { getTransactions } from "@/lib/api/browser";
+import { getApiErrorMessage } from "@/lib/api/errors";
+import type { PagedResultDto, TransactionDto } from "@/lib/api/types";
 import {
   toPendingQueryValue,
   type PendingFilter,

@@ -1,4 +1,4 @@
-import type { AccountGroupDto } from "@/lib/api";
+import type { AccountGroupDto } from "@/lib/api/types";
 import { AccountListRow } from "./AccountListRow";
 import { formatCurrency } from "./formatCurrency";
 

@@ -1,4 +1,4 @@
-import type { AccountBalanceHistoryPointDto, AccountGroupDto } from "@/lib/api";
+import type { AccountBalanceHistoryPointDto, AccountGroupDto } from "@/lib/api/types";
 
 export type AccountChartMetric =
   | "net-worth"

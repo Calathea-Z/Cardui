@@ -1,4 +1,4 @@
-import type { AccountDto } from "@/lib/api";
+import type { AccountDto } from "@/lib/api/types";
 import { formatCurrency } from "./formatCurrency";
 
 type AccountListRowProps = {

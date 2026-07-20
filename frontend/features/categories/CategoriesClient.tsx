@@ -1,6 +1,6 @@
 "use client";
 
-import type { CategoryDto } from "@/lib/api";
+import type { CategoryDto } from "@/lib/api/types";
 import { CategoryForm } from "./CategoryForm";
 import { CategoryList } from "./CategoryList";
 import { useCategoriesManager } from "./useCategoriesManager";

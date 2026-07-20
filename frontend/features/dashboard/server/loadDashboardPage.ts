@@ -5,9 +5,11 @@ import {
   getAccountsSummary,
   getDashboardSummary,
   safeApiCall,
-  type AccountSummaryDto,
-  type DashboardSummaryDto,
-} from "@/lib/api";
+} from "@/lib/api/server";
+import type {
+  AccountSummaryDto,
+  DashboardSummaryDto,
+} from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
 export type DashboardPageData = {

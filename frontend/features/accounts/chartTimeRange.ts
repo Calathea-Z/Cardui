@@ -1,4 +1,4 @@
-import type { AccountBalanceHistoryPointDto } from "@/lib/api";
+import type { AccountBalanceHistoryPointDto } from "@/lib/api/types";
 
 export type ChartTimeRange = "1W" | "1M" | "3M" | "6M" | "1Y" | "ALL";
 

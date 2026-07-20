@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { AccountSummaryDto } from "@/lib/api";
+import type { AccountSummaryDto } from "@/lib/api/types";
 import {
   DEFAULT_ACCOUNT_CHART_METRIC,
   type AccountChartMetric,

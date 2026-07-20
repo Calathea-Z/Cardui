@@ -1,4 +1,4 @@
-import type { TransactionCategoryDto } from "@/lib/api";
+import type { TransactionCategoryDto } from "@/lib/api/types";
 
 /** Default emojis for system category keys. */
 const CATEGORY_KEY_EMOJIS: Record<string, string> = {

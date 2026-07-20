@@ -1,9 +1,9 @@
-export * from "./account";
+import "server-only";
+
+export * from "./accounts";
 export * from "./categories";
-export * from "./client";
 export * from "./dashboard";
 export * from "./health";
 export * from "./plaid";
 export * from "./safe";
 export * from "./transactions";
-export * from "./types";

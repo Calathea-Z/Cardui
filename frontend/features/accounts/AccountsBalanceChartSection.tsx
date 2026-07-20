@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type {
   AccountBalanceHistoryPointDto,
   AccountGroupDto,
-} from "@/lib/api";
+} from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_ACCOUNT_CHART_METRIC,

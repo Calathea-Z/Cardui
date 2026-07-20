@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AccountGroupDto } from "@/lib/api";
+import type { AccountGroupDto } from "@/lib/api/types";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 
 type DashboardAccountGroupsPanelProps = {

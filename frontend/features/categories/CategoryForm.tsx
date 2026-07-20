@@ -1,6 +1,6 @@
 "use client";
 
-import type { CategoryDto } from "@/lib/api";
+import type { CategoryDto } from "@/lib/api/types";
 import type { CategoryFormState } from "@/lib/categoryForm";
 import { CategoryErrorBanner } from "./CategoryErrorBanner";
 

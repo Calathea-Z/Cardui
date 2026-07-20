@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { AccountBalanceHistoryPointDto } from "@/lib/api";
+import type { AccountBalanceHistoryPointDto } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_ACCOUNT_CHART_METRIC,

@@ -4,10 +4,10 @@ import { useMemo, useState } from "react";
 import {
   createCategory,
   deleteCategory,
-  getApiErrorMessage,
   updateCategory,
-  type CategoryDto,
-} from "@/lib/api";
+} from "@/lib/api/browser";
+import { getApiErrorMessage } from "@/lib/api/errors";
+import type { CategoryDto } from "@/lib/api/types";
 import { emptyCategoryForm, type CategoryFormState } from "@/lib/categoryForm";
 import { sortCategoriesByName } from "./categorySort";
 

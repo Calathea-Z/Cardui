@@ -1,4 +1,4 @@
-import type { TransactionDto } from "@/lib/api";
+import type { TransactionDto } from "@/lib/api/types";
 import { getCategoryEmoji } from "@/features/categories/categoryEmoji";
 import {
   getTransactionAmountDisplay,

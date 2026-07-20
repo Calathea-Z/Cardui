@@ -3,8 +3,8 @@ import {
   firstApiError,
   getCategories,
   safeApiCall,
-  type CategoryDto,
-} from "@/lib/api";
+} from "@/lib/api/server";
+import type { CategoryDto } from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
 export type CategoriesPageData = {

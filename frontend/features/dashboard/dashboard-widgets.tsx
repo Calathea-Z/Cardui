@@ -1,4 +1,4 @@
-import type { AccountSummaryDto, DashboardSummaryDto } from "@/lib/api";
+import type { AccountSummaryDto, DashboardSummaryDto } from "@/lib/api/types";
 import { DashboardAccountsSlider } from "./DashboardAccountsSlider";
 import { DashboardRecentTransactionsWidget } from "./DashboardRecentTransactionsWidget";
 

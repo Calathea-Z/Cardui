@@ -3,11 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useSetMobileHeaderActions } from "@/components/navigation/mobile-header-actions";
-import {
-  syncPlaidItem,
-  type AccountSummaryDto,
-  type PlaidItemDto,
-} from "@/lib/api";
+import { syncPlaidItem } from "@/lib/api/browser";
+import type { AccountSummaryDto, PlaidItemDto } from "@/lib/api/types";
 import { AccountsActionButtons } from "./AccountsActionButtons";
 import { AccountsView } from "./AccountsView";
 import { AddAccountSheet } from "./AddAccountSheet";

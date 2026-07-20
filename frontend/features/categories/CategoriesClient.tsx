@@ -120,7 +120,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <div>
         <p className="text-sm text-muted-foreground">Organize spending</p>
-        <h1 className="text-3xl font-semibold text-violet-50">Categories</h1>
+        <h1 className="text-3xl font-semibold text-foreground">Categories</h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">

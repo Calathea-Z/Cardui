@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePlaidLink, type PlaidLinkOnSuccessMetadata } from "react-plaid-link";
 import { getApiErrorMessage } from "@/lib/api";
 import {
@@ -19,7 +19,7 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
   const [isCreatingToken, setIsCreatingToken] = useState(false);
   const [isExchangingToken, setIsExchangingToken] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [pendingOpen, setPendingOpen] = useState(false);
+  const pendingOpenRef = useRef(false);
 
   const clearError = useCallback(() => {
     setErrorMessage(null);
@@ -76,13 +76,18 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
   });
 
   useEffect(() => {
-    if (!pendingOpen || !linkToken || !ready) {
+    if (!enabled) {
+      pendingOpenRef.current = false;
       return;
     }
 
-    setPendingOpen(false);
+    if (!pendingOpenRef.current || !linkToken || !ready) {
+      return;
+    }
+
+    pendingOpenRef.current = false;
     open();
-  }, [pendingOpen, linkToken, ready, open]);
+  }, [enabled, linkToken, ready, open]);
 
   const openPlaid = useCallback(async () => {
     if (!enabled) {
@@ -92,10 +97,10 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
     clearError();
 
     if (!linkToken) {
-      setPendingOpen(true);
+      pendingOpenRef.current = true;
       const prepared = await prepareLinkToken();
       if (!prepared) {
-        setPendingOpen(false);
+        pendingOpenRef.current = false;
       }
       return;
     }
@@ -105,7 +110,7 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
       return;
     }
 
-    setPendingOpen(true);
+    pendingOpenRef.current = true;
   }, [clearError, enabled, linkToken, open, prepareLinkToken, ready]);
 
   const isLoading = isCreatingToken || isExchangingToken;

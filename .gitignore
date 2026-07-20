@@ -26,6 +26,8 @@ Plan.md
 
 # testing
 /coverage
+.tmp-tests/
+frontend/.tmp-tests/
 
 # next.js
 /.next/

@@ -5,6 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AccountSummaryDto } from "@/lib/api";
 import { AccountsBalanceChart } from "@/features/accounts/AccountsBalanceChart";
+import { ChartTimeRangeSelector } from "@/features/accounts/ChartTimeRangeSelector";
+import { PeriodDeltaLabel } from "@/features/accounts/AccountsBalanceChartSection";
+import {
+  DEFAULT_CHART_TIME_RANGE,
+  type ChartTimeRange,
+} from "@/features/accounts/chartTimeRange";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { PlaidLinkButton } from "@/features/plaid/PlaidLinkButton";
 import { cn } from "@/lib/utils";
@@ -38,6 +44,9 @@ export function DashboardAccountsSlider({
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [chartRange, setChartRange] = useState<ChartTimeRange>(
+    DEFAULT_CHART_TIME_RANGE,
+  );
   const showNetWorthEmptyState = !hasConnectedAccounts(summary.groups);
 
   const assetGroups = getAccountGroups(summary.groups, ASSET_GROUP_KEYS);
@@ -88,17 +97,27 @@ export function DashboardAccountsSlider({
 
   return (
     <section className="app-panel overflow-hidden">
-      <div className="app-panel-header flex items-center justify-between gap-4 px-4 py-3.5">
-        <h2 className="app-section-title">{PANELS[activeIndex].label}</h2>
+      <div className="app-panel-header px-4 py-3.5">
+        <p className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+          {PANELS[activeIndex].label}
+        </p>
         <p
           className={cn(
-            "text-xl font-bold tabular-nums",
-            headerTotal.liability ? "text-destructive" : "text-violet-50",
+            "mt-1 text-2xl font-semibold tabular-nums",
+            headerTotal.liability ? "text-destructive" : "text-foreground",
           )}
         >
           {headerTotal.liability ? "-" : ""}
           {formatCurrency(headerTotal.value)}
         </p>
+        {activeIndex === 0 && !showNetWorthEmptyState ? (
+          <PeriodDeltaLabel
+            history={summary.history}
+            range={chartRange}
+            compact
+            className="mt-1"
+          />
+        ) : null}
       </div>
 
       <div
@@ -119,11 +138,19 @@ export function DashboardAccountsSlider({
                 <PlaidLinkButton onSuccess={() => router.refresh()} />
               </div>
             ) : (
-              <AccountsBalanceChart
-                history={summary.history}
-                compact
-                embedded
-              />
+              <div className="flex flex-col gap-3">
+                <AccountsBalanceChart
+                  history={summary.history}
+                  range={chartRange}
+                  compact
+                  embedded
+                />
+                <ChartTimeRangeSelector
+                  value={chartRange}
+                  onChange={setChartRange}
+                  compact
+                />
+              </div>
             )}
           </div>
         </section>

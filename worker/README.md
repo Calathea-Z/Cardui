@@ -11,13 +11,15 @@ The worker:
 
 ## Local Run
 
-Set the same environment variables used by the API, then run:
+The worker uses its own user secrets (`UserSecretsId` in `worker.csproj`).
+`Properties/launchSettings.json` sets the environment to Development so those
+secrets are loaded on `dotnet run`.
 
 ```powershell
 dotnet run --project worker
 ```
 
-Required configuration:
+Required configuration (worker user secrets, env vars, or `DATABASE_URL`):
 
 - `ConnectionStrings__DefaultConnection` or `DATABASE_URL`
 - `Plaid__ClientId`

@@ -18,7 +18,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     >
       <div className="mb-8">
         <p className="text-sm text-muted-foreground">Cardui</p>
-        <h1 className="text-xl font-semibold text-violet-100">Finance</h1>
+        <h1 className="text-xl font-semibold text-foreground">Finance</h1>
       </div>
 
       <nav className="space-y-1">

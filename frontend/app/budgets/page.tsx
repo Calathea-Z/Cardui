@@ -3,7 +3,7 @@ export default function BudgetsPage() {
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <div>
         <p className="text-sm text-muted-foreground">Planning</p>
-        <h1 className="text-2xl font-semibold text-violet-50">Budgets</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Budgets</h1>
       </div>
 
       <div className="app-panel bg-card/50 px-6 py-12 text-center">

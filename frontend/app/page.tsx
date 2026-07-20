@@ -1,7 +1,7 @@
 import { getAccountsSummary, getDashboardSummary } from "@/lib/api";
 import { DashboardView } from "@/features/dashboard/DashboardView";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [dashboardSummary, accountsSummary] = await Promise.all([

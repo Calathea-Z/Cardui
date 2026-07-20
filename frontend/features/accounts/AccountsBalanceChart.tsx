@@ -1,8 +1,10 @@
 "use client";
 
+import { useId, useMemo } from "react";
 import {
-  Line,
-  LineChart,
+  Area,
+  AreaChart,
+  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -10,88 +12,230 @@ import {
 } from "recharts";
 import type { AccountBalanceHistoryPointDto } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import {
+  type ChartHistoryPoint,
+  type ChartTimeRange,
+  filterHistoryByRange,
+  formatChartAxisCurrency,
+  formatChartCurrency,
+  formatTooltipDate,
+  getChartTimeWindow,
+  getDateTickFormatter,
+  getRangeTicks,
+  toChartHistoryPoints,
+} from "./chartTimeRange";
 
 type AccountsBalanceChartProps = {
   history: AccountBalanceHistoryPointDto[];
+  range: ChartTimeRange;
   compact?: boolean;
   embedded?: boolean;
 };
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
+type ChartTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ value: number; payload: ChartHistoryPoint }>;
+  label?: string | number;
+};
+
+function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
+  if (!active || !payload?.length || label === undefined || label === null) {
+    return null;
+  }
+
+  const value = payload[0]?.value;
+  const pointDate = payload[0]?.payload.date ?? label;
+
+  if (typeof value !== "number") {
+    return null;
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
+      <p className="text-xs text-muted-foreground">
+        {formatTooltipDate(pointDate)}
+      </p>
+      <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
+        {formatChartCurrency(value)}
+      </p>
+    </div>
+  );
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(new Date(value));
+function computeYDomain(history: AccountBalanceHistoryPointDto[]) {
+  if (history.length === 0) {
+    return [0, 0] as [number, number];
+  }
+
+  const values = history.map((point) => point.netWorth);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = Math.max(max - min, Math.abs(max) * 0.01, 100);
+  const padding = span * 0.12;
+
+  return [min - padding, max + padding] as [number, number];
 }
 
 export function AccountsBalanceChart({
   history,
+  range,
   compact = false,
   embedded = false,
 }: AccountsBalanceChartProps) {
-  const chart = (
-    <div className={compact ? "h-40" : "h-72"}>
+  const gradientId = useId().replace(/:/g, "");
+  const filteredHistory = useMemo(
+    () => filterHistoryByRange(history, range),
+    [history, range],
+  );
+
+  const chartPoints = useMemo(
+    () => toChartHistoryPoints(filteredHistory),
+    [filteredHistory],
+  );
+
+  const timeWindow = useMemo(
+    () => getChartTimeWindow(history, range),
+    [history, range],
+  );
+
+  const yDomain = useMemo(
+    () => computeYDomain(filteredHistory),
+    [filteredHistory],
+  );
+
+  const dateTickFormatter = useMemo(
+    () => getDateTickFormatter(range),
+    [range],
+  );
+
+  const xTicks = useMemo(
+    () => getRangeTicks(timeWindow, compact ? 4 : 6),
+    [timeWindow, compact],
+  );
+
+  const hasEnoughData = chartPoints.length >= 2;
+
+  const chartContent = !hasEnoughData ? (
+    <div
+      className={cn(
+        "flex items-center justify-center text-center",
+        compact ? "h-40" : "h-72",
+      )}
+    >
+      <p className="max-w-xs text-sm text-muted-foreground">
+        Not enough data for this time range.
+      </p>
+    </div>
+  ) : (
+    <div
+      className={compact ? "h-44" : "h-80"}
+      role="img"
+      aria-label="Net worth balance history chart"
+    >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={history}>
+        <AreaChart
+          data={chartPoints}
+          margin={{
+            top: 8,
+            right: 4,
+            left: 0,
+            bottom: 0,
+          }}
+        >
+          <defs>
+            <linearGradient
+              id={`netWorthFill-${gradientId}`}
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
+              <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.28} />
+              <stop
+                offset="55%"
+                stopColor="var(--chart-1)"
+                stopOpacity={0.1}
+              />
+              <stop
+                offset="100%"
+                stopColor="var(--chart-1)"
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
+
+          <CartesianGrid
+            vertical={false}
+            stroke="var(--muted-foreground)"
+            strokeOpacity={0.18}
+            strokeDasharray="0"
+          />
+
           <XAxis
-            dataKey="date"
-            tickFormatter={formatDate}
-            stroke="oklch(0.64 0.08 292)"
-            fontSize={compact ? 10 : 12}
+            type="number"
+            dataKey="timestamp"
+            domain={[timeWindow.startMs, timeWindow.endMs]}
+            ticks={xTicks}
+            tickFormatter={dateTickFormatter}
+            tick={{ fill: "var(--muted-foreground)" }}
+            fontSize={compact ? 11 : 12}
             tickLine={false}
             axisLine={false}
+            dy={8}
           />
 
           <YAxis
-            tickFormatter={formatCurrency}
-            stroke="oklch(0.64 0.08 292)"
-            fontSize={compact ? 10 : 12}
+            domain={yDomain}
+            tickFormatter={formatChartAxisCurrency}
+            tick={{ fill: "var(--muted-foreground)" }}
+            fontSize={compact ? 11 : 12}
             tickLine={false}
             axisLine={false}
-            width={compact ? 64 : 80}
+            width={compact ? 52 : 60}
+            tickCount={compact ? 5 : 6}
+            dx={-4}
           />
 
           <Tooltip
-            formatter={(value) => formatCurrency(Number(value))}
-            labelFormatter={(value) => formatDate(String(value))}
-            contentStyle={{
-              backgroundColor: "oklch(0.21 0.055 292)",
-              border: "1px solid oklch(0.34 0.08 292)",
-              borderRadius: "8px",
-              color: "oklch(0.94 0.02 292)",
+            content={<ChartTooltip />}
+            cursor={{
+              stroke: "var(--chart-1)",
+              strokeWidth: 1,
+              strokeOpacity: 0.45,
             }}
           />
 
-          <Line
-            type="monotone"
+          <Area
+            type="linear"
             dataKey="netWorth"
-            stroke="oklch(0.72 0.19 292)"
-            strokeWidth={2}
+            stroke="var(--chart-1)"
+            strokeWidth={2.25}
+            fill={`url(#netWorthFill-${gradientId})`}
             dot={false}
+            activeDot={{
+              r: compact ? 4 : 5,
+              fill: "var(--chart-1)",
+              stroke: "var(--card)",
+              strokeWidth: 2,
+            }}
+            isAnimationActive
+            animationDuration={450}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
 
   if (embedded) {
-    return chart;
+    return chartContent;
   }
 
   return (
     <section className={cn("app-panel p-4", compact && "p-3")}>
       <div className={compact ? "mb-2" : "mb-4"}>
-        <h2 className="font-semibold text-violet-100">Balance history</h2>
+        <h2 className="font-semibold text-foreground">Balance history</h2>
       </div>
-      {chart}
+      {chartContent}
     </section>
   );
 }

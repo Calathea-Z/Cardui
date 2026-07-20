@@ -31,7 +31,7 @@ export function AccountsSectionList({ groups }: AccountsSectionListProps) {
                 {group.accounts.length === 1 ? "account" : "accounts"}
               </p>
             </div>
-            <p className="shrink-0 text-xl font-bold tabular-nums text-violet-50">
+            <p className="shrink-0 text-xl font-bold tabular-nums text-foreground">
               {formatCurrency(group.total)}
             </p>
           </div>

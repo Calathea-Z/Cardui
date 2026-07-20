@@ -75,7 +75,7 @@ export function BottomSheet({
         )}
       >
         <div className="app-panel-header flex items-center justify-between gap-4 px-4 py-4">
-          <h2 id={titleId} className="text-lg font-semibold text-violet-100">
+          <h2 id={titleId} className="text-lg font-semibold text-foreground">
             {title}
           </h2>
           <button

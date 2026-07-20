@@ -13,6 +13,12 @@ import {
 import type { AccountBalanceHistoryPointDto } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import {
+  DEFAULT_ACCOUNT_CHART_METRIC,
+  getAccountChartMetricOption,
+  getHistoryValue,
+  type AccountChartMetric,
+} from "./accountChartMetric";
+import {
   type ChartHistoryPoint,
   type ChartTimeRange,
   filterHistoryByRange,
@@ -28,6 +34,7 @@ import {
 type AccountsBalanceChartProps = {
   history: AccountBalanceHistoryPointDto[];
   range: ChartTimeRange;
+  metric?: AccountChartMetric;
   compact?: boolean;
   embedded?: boolean;
 };
@@ -62,12 +69,15 @@ function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   );
 }
 
-function computeYDomain(history: AccountBalanceHistoryPointDto[]) {
+function computeYDomain(
+  history: AccountBalanceHistoryPointDto[],
+  metric: AccountChartMetric,
+) {
   if (history.length === 0) {
     return [0, 0] as [number, number];
   }
 
-  const values = history.map((point) => point.netWorth);
+  const values = history.map((point) => getHistoryValue(point, metric));
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = Math.max(max - min, Math.abs(max) * 0.01, 100);
@@ -79,10 +89,13 @@ function computeYDomain(history: AccountBalanceHistoryPointDto[]) {
 export function AccountsBalanceChart({
   history,
   range,
+  metric = DEFAULT_ACCOUNT_CHART_METRIC,
   compact = false,
   embedded = false,
 }: AccountsBalanceChartProps) {
   const gradientId = useId().replace(/:/g, "");
+  const metricOption = getAccountChartMetricOption(metric);
+
   const filteredHistory = useMemo(
     () => filterHistoryByRange(history, range),
     [history, range],
@@ -99,8 +112,8 @@ export function AccountsBalanceChart({
   );
 
   const yDomain = useMemo(
-    () => computeYDomain(filteredHistory),
-    [filteredHistory],
+    () => computeYDomain(filteredHistory, metric),
+    [filteredHistory, metric],
   );
 
   const dateTickFormatter = useMemo(
@@ -130,7 +143,7 @@ export function AccountsBalanceChart({
     <div
       className={compact ? "h-44" : "h-80"}
       role="img"
-      aria-label="Net worth balance history chart"
+      aria-label={`${metricOption.label} balance history chart`}
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
@@ -144,7 +157,7 @@ export function AccountsBalanceChart({
         >
           <defs>
             <linearGradient
-              id={`netWorthFill-${gradientId}`}
+              id={`balanceFill-${gradientId}`}
               x1="0"
               y1="0"
               x2="0"
@@ -207,10 +220,11 @@ export function AccountsBalanceChart({
 
           <Area
             type="linear"
-            dataKey="netWorth"
+            dataKey={metricOption.historyKey}
             stroke="var(--chart-1)"
             strokeWidth={2.25}
-            fill={`url(#netWorthFill-${gradientId})`}
+            fill={`url(#balanceFill-${gradientId})`}
+            baseValue={yDomain[0]}
             dot={false}
             activeDot={{
               r: compact ? 4 : 5,
@@ -220,8 +234,7 @@ export function AccountsBalanceChart({
             }}
             isAnimationActive
             animationDuration={450}
-          />
-        </AreaChart>
+          />        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

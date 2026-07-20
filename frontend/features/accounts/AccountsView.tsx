@@ -1,7 +1,14 @@
+"use client";
+
+import { useState } from "react";
 import type { AccountSummaryDto } from "@/lib/api";
+import {
+  DEFAULT_ACCOUNT_CHART_METRIC,
+  type AccountChartMetric,
+} from "./accountChartMetric";
+import { AccountChartMetricSelector } from "./AccountChartMetricSelector";
 import { AccountsBalanceChartSection } from "./AccountsBalanceChartSection";
 import { AccountsSectionList } from "./AccountsSectionList";
-import { formatCurrency } from "./formatCurrency";
 
 type AccountsViewProps = {
   summary: AccountSummaryDto;
@@ -9,33 +16,22 @@ type AccountsViewProps = {
 };
 
 export function AccountsView({ summary, actions }: AccountsViewProps) {
+  const [metric, setMetric] = useState<AccountChartMetric>(
+    DEFAULT_ACCOUNT_CHART_METRIC,
+  );
+
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="hidden text-sm text-muted-foreground md:block">
-            Balances
-          </p>
-          <h1 className="hidden text-3xl font-semibold text-foreground md:block">
-            Accounts
-          </h1>
-          <p className="text-sm text-muted-foreground md:mt-1 md:hidden">
-            Net worth{" "}
-            <span className="text-lg font-semibold text-foreground">
-              {formatCurrency(summary.netWorth)}
-            </span>
-          </p>
-        </div>
+      {actions ? (
+        <div className="hidden justify-end md:flex">{actions}</div>
+      ) : null}
 
-        {actions ? (
-          <div className="hidden shrink-0 items-center gap-1 md:flex">
-            {actions}
-          </div>
-        ) : null}
-      </div>
+      <AccountChartMetricSelector value={metric} onChange={setMetric} />
 
       <AccountsBalanceChartSection
         history={summary.history}
+        groups={summary.groups}
+        metric={metric}
         netWorth={summary.netWorth}
         showPeriodDelta
         embedded

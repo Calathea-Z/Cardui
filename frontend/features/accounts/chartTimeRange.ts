@@ -131,13 +131,15 @@ export function getRangeTicks(
 
 export function computePeriodChange(
   history: AccountBalanceHistoryPointDto[],
+  getValue: (point: AccountBalanceHistoryPointDto) => number = (point) =>
+    point.netWorth,
 ): PeriodChange | null {
   if (history.length < 2) {
     return null;
   }
 
-  const startValue = history[0].netWorth;
-  const endValue = history[history.length - 1].netWorth;
+  const startValue = getValue(history[0]);
+  const endValue = getValue(history[history.length - 1]);
   const delta = endValue - startValue;
   const deltaPercent =
     startValue !== 0 ? (delta / Math.abs(startValue)) * 100 : null;

@@ -1,4 +1,4 @@
-import { TransactionsClient } from "@/features/transactions/TransactionsClient";
+import { TransactionsClient } from "@/features/transactions";
 import {
   emptyAccounts,
   emptyCategories,

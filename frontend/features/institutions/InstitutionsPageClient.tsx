@@ -5,13 +5,13 @@ import { useMemo, useState } from "react";
 import { BackButton } from "@/components/navigation/back-button";
 import { PageHeader } from "@/components/navigation/page-header";
 import { useSetMobileHeaderLeading } from "@/components/navigation/mobile-header-actions";
-import type { AccountDto } from "@/lib/api";
-import { getApiErrorMessage } from "@/lib/api";
 import {
+  getApiErrorMessage,
   syncPlaidItem,
+  type AccountDto,
   type PlaidItemDto,
   type SyncPlaidItemResponseDto,
-} from "@/lib/api/plaid";
+} from "@/lib/api";
 import { PlaidLinkButton } from "@/features/plaid/PlaidLinkButton";
 import { InstitutionCard } from "./InstitutionCard";
 

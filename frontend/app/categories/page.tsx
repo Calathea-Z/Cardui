@@ -1,4 +1,4 @@
-import { CategoriesClient } from "@/features/categories/CategoriesClient";
+import { CategoriesClient } from "@/features/categories";
 import { emptyCategories, getCategories, safeApiCall } from "@/lib/api";
 
 export const dynamic = "force-dynamic";

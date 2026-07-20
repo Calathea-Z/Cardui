@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePlaidLink, type PlaidLinkOnSuccessMetadata } from "react-plaid-link";
-import { getApiErrorMessage } from "@/lib/api";
 import {
   createPlaidLinkToken,
   exchangePlaidPublicToken,
-} from "@/lib/api/plaid";
+  getApiErrorMessage,
+} from "@/lib/api";
 
 type UsePlaidLinkFlowOptions = {
   onSuccess?: () => void;

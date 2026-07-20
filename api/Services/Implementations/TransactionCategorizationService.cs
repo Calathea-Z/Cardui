@@ -14,11 +14,28 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
         _dbContext = dbContext;
     }
 
-    public async Task<Guid?> GetCategoryIdForPlaidTransactionAsync(
+    public Task<Guid?> GetCategoryIdForPlaidTransactionAsync(
         PlaidTransaction transaction)
     {
-        var categoryKey = GetCategoryKey(transaction);
+        var categoryKey = GetCategoryKey(
+            transaction.MerchantName,
+            transaction.OriginalDescription,
+            transaction.Amount);
 
+        return ResolveCategoryIdAsync(categoryKey);
+    }
+
+    public Task<Guid?> GetCategoryIdForStoredTransactionAsync(
+        string name,
+        string? merchantName,
+        decimal amount)
+    {
+        var categoryKey = GetCategoryKey(merchantName, name, amount);
+        return ResolveCategoryIdAsync(categoryKey);
+    }
+
+    private async Task<Guid?> ResolveCategoryIdAsync(string categoryKey)
+    {
         return await _dbContext.Categories
             .AsNoTracking()
             .Where(x => x.Key == categoryKey)
@@ -28,18 +45,24 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
 
     #region Private Methods
 
-    private static string GetCategoryKey(PlaidTransaction transaction)
+    private static string GetCategoryKey(
+        string? merchantName,
+        string? description,
+        decimal? amount)
     {
-        // Transfers are assigned by owned-account pairing after sync, not by keywords.
-        // Venmo/Zelle/etc. stay income or spend until (or unless) a matching opposite
-        // leg exists on another account the user owns.
-        var text = string.Join(" ", new[]
-        {
-            transaction.MerchantName,
-            transaction.OriginalDescription
-        }.Where(s => !string.IsNullOrWhiteSpace(s))).ToLowerInvariant();
+        var text = TransferTextClassifier.BuildText(merchantName, description);
 
-        if (transaction.Amount < 0)
+        // Bank "ONLINE TRANSFER FROM/TO …" rows are transfers even without a
+        // paired opposite leg. Check before income so credits aren't treated
+        // as positive spending power.
+        if (TransferTextClassifier.LooksLikeBankTransfer(merchantName, description))
+        {
+            return "transfers";
+        }
+
+        // Venmo/Zelle/etc. stay income or spend until (or unless) a matching
+        // opposite leg exists on another account the user owns.
+        if (amount < 0)
         {
             return "income";
         }
@@ -69,7 +92,7 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
             return "shopping";
         }
 
-        if (ContainsAny(text, "electric", "utility", "internet", "phone", "insurance", "rent", "mortgage"))
+        if (ContainsAny(text, "electric", "utility", "internet", "phone", "insurance", "rent", "mortgage", "t-mobile", "tmobile", "verizon", "at&t", "att "))
         {
             return "bills";
         }

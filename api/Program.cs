@@ -60,5 +60,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
 app.UseCors("Frontend");
+app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 app.MapControllers();
 app.Run();

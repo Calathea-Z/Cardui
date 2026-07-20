@@ -2,6 +2,8 @@ export * from "./account";
 export * from "./categories";
 export * from "./client";
 export * from "./dashboard";
+export * from "./health";
 export * from "./plaid";
+export * from "./safe";
 export * from "./transactions";
 export * from "./types";

@@ -5,7 +5,6 @@ import { CircleX, Search } from "lucide-react";
 import {
   getApiErrorMessage,
   getTransactions,
-  updateTransactionCategory,
 } from "@/lib/api";
 import type {
   AccountDto,
@@ -13,6 +12,13 @@ import type {
   PagedResultDto,
   TransactionDto,
 } from "@/lib/api";
+import {
+  getDayTotalDisplay,
+  getTransactionAmountDisplay,
+  isTransferTransaction,
+} from "./transactionAmountDisplay";
+import { getCategoryEmoji } from "@/features/categories/categoryEmoji";
+import { cn } from "@/lib/utils";
 
 type TransactionsClientProps = {
   initialTransactionsPage: PagedResultDto<TransactionDto>;
@@ -29,13 +35,13 @@ const STATUS_OPTIONS: { value: PendingFilter; label: string }[] = [
   { value: "pending", label: "Pending" },
 ];
 
-function formatCurrency(value: number) {
-  const isIncome = value < 0;
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(isIncome ? Math.abs(value) : value);
+function amountClassName(kind: "income" | "spend" | "transfer") {
+  return cn(
+    "font-medium tabular-nums",
+    kind === "income" && "text-success",
+    kind === "transfer" && "text-transfer",
+    kind === "spend" && "text-foreground",
+  );
 }
 
 function toDateKey(value: string) {
@@ -120,9 +126,6 @@ export function TransactionsClient({
   const [categoryId, setCategoryId] = useState("");
   const [pendingFilter, setPendingFilter] = useState<PendingFilter>("all");
   const [isLoading, setIsLoading] = useState(false);
-  const [updatingTransactionId, setUpdatingTransactionId] = useState<
-    string | null
-  >(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isFirstFilterRender = useRef(true);
 
@@ -188,38 +191,6 @@ export function TransactionsClient({
     setAccountId("");
     setCategoryId("");
     setPendingFilter("all");
-  }
-
-  async function handleCategoryChange(
-    transactionId: string,
-    nextCategoryId: string,
-  ) {
-    setUpdatingTransactionId(transactionId);
-    setErrorMessage(null);
-
-    try {
-      const updatedTransaction = await updateTransactionCategory(
-        transactionId,
-        {
-          categoryId: nextCategoryId || null,
-        },
-      );
-
-      setTransactionsPage((current) => ({
-        ...current,
-        items: current.items.map((transaction) =>
-          transaction.id === updatedTransaction.id
-            ? updatedTransaction
-            : transaction,
-        ),
-      }));
-    } catch (error) {
-      setErrorMessage(
-        getApiErrorMessage(error, "Could not update this transaction."),
-      );
-    } finally {
-      setUpdatingTransactionId(null);
-    }
   }
 
   return (
@@ -309,71 +280,81 @@ export function TransactionsClient({
 
         <div className="app-panel overflow-hidden">
           <div>
-            {transactionsByDate.map((group) => (
-              <section key={group.date}>
-                <div className="border-y border-border/70 bg-muted/20 px-4 py-2.5">
-                  <h2 className="text-sm font-semibold text-foreground/90">
+            {transactionsByDate.map((group) => {
+              const dayTotal = getDayTotalDisplay(group.transactions);
+
+              return (
+              <section key={group.date} className="border-b border-border/80 last:border-b-0">
+                <div className="sticky top-[calc(4.5rem+env(safe-area-inset-top))] z-10 flex items-center justify-between gap-4 border-y border-primary/20 bg-panel-header px-4 py-3 md:top-0">
+                  <h2 className="text-sm font-semibold tracking-wide text-foreground">
                     {formatDateSectionHeader(group.date)}
                   </h2>
+                  <p
+                    className={
+                      dayTotal.kind === "income"
+                        ? "shrink-0 text-sm font-semibold tabular-nums text-success"
+                        : "shrink-0 text-sm font-semibold tabular-nums text-foreground"
+                    }
+                  >
+                    {dayTotal.label}
+                  </p>
                 </div>
 
-                <div className="divide-y divide-border/70">
-                  {group.transactions.map((transaction) => (
+                <div className="divide-y divide-border/70 bg-background/30">
+                  {group.transactions.map((transaction) => {
+                    const amount = getTransactionAmountDisplay(transaction);
+                    const isTransfer = isTransferTransaction(transaction);
+
+                    return (
                     <div
                       key={transaction.id}
-                      className="grid gap-3 px-4 py-4 text-sm md:grid-cols-[minmax(0,1fr)_190px_120px] md:items-center"
+                      className="flex items-start justify-between gap-4 px-4 py-4 text-sm"
                     >
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-foreground">
-                          {transaction.name}
-                        </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                          <span className="truncate">
-                            {transaction.account.name}
-                          </span>
-                          {transaction.pending ? (
-                            <span className="rounded-full bg-muted px-2 py-0.5">
-                              Pending
-                            </span>
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span
+                          className="mt-0.5 shrink-0 text-base leading-none"
+                          aria-hidden="true"
+                        >
+                          {getCategoryEmoji(transaction.category)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">
+                            {transaction.name}
+                          </p>
+                          {isTransfer || transaction.pending ? (
+                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                              {isTransfer ? (
+                                <span className="bg-transfer-soft rounded-full px-2 py-0.5 text-transfer">
+                                  Transfer
+                                </span>
+                              ) : null}
+                              {transaction.pending ? (
+                                <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                                  Pending
+                                </span>
+                              ) : null}
+                            </div>
                           ) : null}
                         </div>
                       </div>
 
-                      <select
-                        value={transaction.category?.id ?? ""}
-                        disabled={updatingTransactionId === transaction.id}
-                        onChange={(event) =>
-                          void handleCategoryChange(
-                            transaction.id,
-                            event.target.value,
-                          )
-                        }
-                        className="app-input h-9 w-full text-xs"
-                        aria-label={`Set category for ${transaction.name}`}
-                      >
-                        <option value="">Uncategorized</option>
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      <p
-                        className={
-                          transaction.amount < 0
-                            ? "font-medium tabular-nums text-success md:text-right"
-                            : "font-medium tabular-nums text-foreground md:text-right"
-                        }
-                      >
-                        {transaction.amount < 0 ? "+" : "-"}
-                        {formatCurrency(transaction.amount)}
-                      </p>
+                      <div className="shrink-0 text-right">
+                        <p className={amountClassName(amount.kind)}>
+                          {amount.label}
+                        </p>
+                        {isTransfer ? (
+                          <p className="mt-0.5 text-[11px] text-transfer">
+                            Move between accounts
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
-            ))}
+              );
+            })}
 
             {transactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-3 px-4 py-14 text-center">

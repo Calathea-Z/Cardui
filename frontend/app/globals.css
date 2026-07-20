@@ -40,6 +40,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-success: var(--success);
+  --color-transfer: var(--transfer);
   --color-panel-header: var(--panel-header);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -51,77 +52,81 @@
 }
 
 :root {
-  /* Washed alt-techno: dusty orange + sand on warm charcoal */
-  --background: oklch(0.17 0.018 70);
-  --foreground: oklch(0.93 0.025 85);
-  --card: oklch(0.21 0.022 68);
-  --card-foreground: oklch(0.93 0.025 85);
-  --panel-header: oklch(0.26 0.035 62);
-  --popover: oklch(0.23 0.024 68);
-  --popover-foreground: oklch(0.93 0.025 85);
-  --primary: oklch(0.74 0.11 58);
-  --primary-foreground: oklch(0.2 0.03 55);
-  --secondary: oklch(0.26 0.028 72);
-  --secondary-foreground: oklch(0.9 0.03 85);
-  --muted: oklch(0.25 0.022 72);
-  --muted-foreground: oklch(0.68 0.035 78);
-  --accent: oklch(0.3 0.04 60);
-  --accent-foreground: oklch(0.93 0.025 85);
+  /* Nature & vitality: dark forest + muted moss + soft off-white */
+  --background: oklch(0.207 0.025 152);
+  --foreground: oklch(0.96 0.008 154);
+  --card: oklch(0.266 0.031 152);
+  --card-foreground: oklch(0.96 0.008 154);
+  --panel-header: oklch(0.304 0.035 152);
+  --popover: oklch(0.28 0.03 152);
+  --popover-foreground: oklch(0.96 0.008 154);
+  --primary: oklch(0.655 0.073 152);
+  --primary-foreground: oklch(0.207 0.025 152);
+  --secondary: oklch(0.3 0.03 152);
+  --secondary-foreground: oklch(0.92 0.015 154);
+  --muted: oklch(0.29 0.028 152);
+  --muted-foreground: oklch(0.72 0.035 154);
+  --accent: oklch(0.34 0.04 152);
+  --accent-foreground: oklch(0.96 0.008 154);
   --success: oklch(0.74 0.09 155);
-  --destructive: oklch(0.68 0.13 28);
-  --border: oklch(0.34 0.03 68);
-  --input: oklch(0.28 0.025 68);
-  --ring: oklch(0.68 0.1 58);
-  --chart-1: oklch(0.74 0.12 58);
-  --chart-2: oklch(0.78 0.07 85);
-  --chart-3: oklch(0.7 0.07 210);
-  --chart-4: oklch(0.7 0.1 35);
-  --chart-5: oklch(0.72 0.08 150);
+  /* Distinct sky blue — clearly not moss/income green */
+  --transfer: oklch(0.78 0.14 245);
+  --destructive: oklch(0.7 0.12 25);
+  --border: oklch(0.36 0.03 152);
+  --input: oklch(0.3 0.028 152);
+  --ring: oklch(0.655 0.073 152);
+  --chart-1: oklch(0.655 0.073 152);
+  --chart-2: oklch(0.744 0.062 153);
+  --chart-3: oklch(0.78 0.05 120);
+  --chart-4: oklch(0.72 0.08 85);
+  --chart-5: oklch(0.7 0.06 200);
   --radius: 0.75rem;
-  --sidebar: oklch(0.15 0.016 70);
-  --sidebar-foreground: oklch(0.9 0.025 85);
-  --sidebar-primary: oklch(0.74 0.11 58);
-  --sidebar-primary-foreground: oklch(0.2 0.03 55);
-  --sidebar-accent: oklch(0.25 0.03 65);
-  --sidebar-accent-foreground: oklch(0.93 0.025 85);
-  --sidebar-border: oklch(0.3 0.028 68);
-  --sidebar-ring: oklch(0.68 0.1 58);
+  --sidebar: oklch(0.18 0.022 152);
+  --sidebar-foreground: oklch(0.94 0.01 154);
+  --sidebar-primary: oklch(0.655 0.073 152);
+  --sidebar-primary-foreground: oklch(0.207 0.025 152);
+  --sidebar-accent: oklch(0.28 0.032 152);
+  --sidebar-accent-foreground: oklch(0.96 0.008 154);
+  --sidebar-border: oklch(0.32 0.028 152);
+  --sidebar-ring: oklch(0.655 0.073 152);
 }
 
 .dark {
-  --background: oklch(0.17 0.018 70);
-  --foreground: oklch(0.93 0.025 85);
-  --card: oklch(0.21 0.022 68);
-  --card-foreground: oklch(0.93 0.025 85);
-  --panel-header: oklch(0.26 0.035 62);
-  --popover: oklch(0.23 0.024 68);
-  --popover-foreground: oklch(0.93 0.025 85);
-  --primary: oklch(0.74 0.11 58);
-  --primary-foreground: oklch(0.2 0.03 55);
-  --secondary: oklch(0.26 0.028 72);
-  --secondary-foreground: oklch(0.9 0.03 85);
-  --muted: oklch(0.25 0.022 72);
-  --muted-foreground: oklch(0.68 0.035 78);
-  --accent: oklch(0.3 0.04 60);
-  --accent-foreground: oklch(0.93 0.025 85);
+  --background: oklch(0.207 0.025 152);
+  --foreground: oklch(0.96 0.008 154);
+  --card: oklch(0.266 0.031 152);
+  --card-foreground: oklch(0.96 0.008 154);
+  --panel-header: oklch(0.304 0.035 152);
+  --popover: oklch(0.28 0.03 152);
+  --popover-foreground: oklch(0.96 0.008 154);
+  --primary: oklch(0.655 0.073 152);
+  --primary-foreground: oklch(0.207 0.025 152);
+  --secondary: oklch(0.3 0.03 152);
+  --secondary-foreground: oklch(0.92 0.015 154);
+  --muted: oklch(0.29 0.028 152);
+  --muted-foreground: oklch(0.72 0.035 154);
+  --accent: oklch(0.34 0.04 152);
+  --accent-foreground: oklch(0.96 0.008 154);
   --success: oklch(0.74 0.09 155);
-  --destructive: oklch(0.68 0.13 28);
-  --border: oklch(0.34 0.03 68);
-  --input: oklch(0.28 0.025 68);
-  --ring: oklch(0.68 0.1 58);
-  --chart-1: oklch(0.74 0.12 58);
-  --chart-2: oklch(0.78 0.07 85);
-  --chart-3: oklch(0.7 0.07 210);
-  --chart-4: oklch(0.7 0.1 35);
-  --chart-5: oklch(0.72 0.08 150);
-  --sidebar: oklch(0.15 0.016 70);
-  --sidebar-foreground: oklch(0.9 0.025 85);
-  --sidebar-primary: oklch(0.74 0.11 58);
-  --sidebar-primary-foreground: oklch(0.2 0.03 55);
-  --sidebar-accent: oklch(0.25 0.03 65);
-  --sidebar-accent-foreground: oklch(0.93 0.025 85);
-  --sidebar-border: oklch(0.3 0.028 68);
-  --sidebar-ring: oklch(0.68 0.1 58);
+  /* Distinct sky blue — clearly not moss/income green */
+  --transfer: oklch(0.78 0.14 245);
+  --destructive: oklch(0.7 0.12 25);
+  --border: oklch(0.36 0.03 152);
+  --input: oklch(0.3 0.028 152);
+  --ring: oklch(0.655 0.073 152);
+  --chart-1: oklch(0.655 0.073 152);
+  --chart-2: oklch(0.744 0.062 153);
+  --chart-3: oklch(0.78 0.05 120);
+  --chart-4: oklch(0.72 0.08 85);
+  --chart-5: oklch(0.7 0.06 200);
+  --sidebar: oklch(0.18 0.022 152);
+  --sidebar-foreground: oklch(0.94 0.01 154);
+  --sidebar-primary: oklch(0.655 0.073 152);
+  --sidebar-primary-foreground: oklch(0.207 0.025 152);
+  --sidebar-accent: oklch(0.28 0.032 152);
+  --sidebar-accent-foreground: oklch(0.96 0.008 154);
+  --sidebar-border: oklch(0.32 0.028 152);
+  --sidebar-ring: oklch(0.655 0.073 152);
 }
 
 @layer base {
@@ -178,6 +183,14 @@
 
   .app-input {
     @apply rounded-md border border-border bg-background px-3 text-sm outline-none transition focus:border-primary;
+  }
+
+  .text-transfer {
+    color: var(--transfer);
+  }
+
+  .bg-transfer-soft {
+    background-color: color-mix(in oklch, var(--transfer) 18%, transparent);
   }
 
   .scrollbar-none {

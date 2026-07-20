@@ -13,6 +13,7 @@ public class DashboardService : IDashboardService
     private const string DepositoryAccountType = "depository";
     private const string CreditAccountType = "credit";
     private const string UncategorizedCategoryName = "Uncategorized";
+    private const string TransfersCategoryKey = "transfers";
     private const int RecentTransactionCount = 8;
 
     private readonly CarduiDBContext _dbContext;
@@ -68,6 +69,7 @@ public class DashboardService : IDashboardService
     {
         var totals = await TransactionsInDateRange(monthStart, monthEnd)
             .AsNoTracking()
+            .Where(t => t.Category == null || t.Category.Key != TransfersCategoryKey)
             .GroupBy(_ => 1)
             .Select(x => new
             {
@@ -96,6 +98,7 @@ public class DashboardService : IDashboardService
         return await TransactionsInDateRange(monthStart, monthEnd)
             .AsNoTracking()
             .Where(x => x.Amount > 0)
+            .Where(x => x.Category == null || x.Category.Key != TransfersCategoryKey)
             .GroupBy(x => new
             {
                 x.CategoryId,

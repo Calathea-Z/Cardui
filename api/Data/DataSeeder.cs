@@ -19,7 +19,7 @@ public static class DataSeeder
                 Name = "Income",
                 Key = "income",
                 Color = "#16a34a",
-                Icon = "banknote",
+                Icon = "💰",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -30,7 +30,7 @@ public static class DataSeeder
                 Name = "Groceries",
                 Key = "groceries",
                 Color = "#22c55e",
-                Icon = "shopping-basket",
+                Icon = "🛒",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -41,7 +41,7 @@ public static class DataSeeder
                 Name = "Dining",
                 Key = "dining",
                 Color = "#f97316",
-                Icon = "utensils",
+                Icon = "🍽️",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -52,7 +52,7 @@ public static class DataSeeder
                 Name = "Bills",
                 Key = "bills",
                 Color = "#6366f1",
-                Icon = "receipt",
+                Icon = "🧾",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -63,7 +63,7 @@ public static class DataSeeder
                 Name = "Transport",
                 Key = "transport",
                 Color = "#0ea5e9",
-                Icon = "car",
+                Icon = "🚗",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -74,7 +74,7 @@ public static class DataSeeder
                 Name = "Shopping",
                 Key = "shopping",
                 Color = "#ec4899",
-                Icon = "shopping-bag",
+                Icon = "🛍️",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -85,7 +85,7 @@ public static class DataSeeder
                 Name = "Entertainment",
                 Key = "entertainment",
                 Color = "#a855f7",
-                Icon = "ticket",
+                Icon = "🎬",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -96,7 +96,7 @@ public static class DataSeeder
                 Name = "Transfers",
                 Key = "transfers",
                 Color = "#64748b",
-                Icon = "repeat",
+                Icon = "↔️",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -107,7 +107,7 @@ public static class DataSeeder
                 Name = "Uncategorized",
                 Key = "uncategorized",
                 Color = "#71717a",
-                Icon = "circle-help",
+                Icon = "❔",
                 IsSystem = true,
                 CreatedAt = now,
                 UpdatedAt = now

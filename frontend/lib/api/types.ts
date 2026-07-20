@@ -20,10 +20,11 @@ export type TransactionAccountDto = {
 };
 
 export type TransactionCategoryDto = {
-    id: string;
-    name: string;
-    color: string | null;
-    icon: string | null;
+  id: string;
+  name: string;
+  key: string | null;
+  color: string | null;
+  icon: string | null;
 };
 
 export type TransactionDto = {

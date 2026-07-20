@@ -30,31 +30,49 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
 
     private static string GetCategoryKey(PlaidTransaction transaction)
     {
-        if (transaction.Amount < 0) return "income";
-
+        // Transfers are assigned by owned-account pairing after sync, not by keywords.
+        // Venmo/Zelle/etc. stay income or spend until (or unless) a matching opposite
+        // leg exists on another account the user owns.
         var text = string.Join(" ", new[]
         {
             transaction.MerchantName,
             transaction.OriginalDescription
         }.Where(s => !string.IsNullOrWhiteSpace(s))).ToLowerInvariant();
 
-        if (ContainsAny(text, "transfer", "payment", "ach", "zelle", "venmo", "cash app")) return "transfers";
+        if (transaction.Amount < 0)
+        {
+            return "income";
+        }
 
         if (ContainsAny(text, "whole foods", "trader joe", "kroger", "safeway", "grocery", "market"))
+        {
             return "groceries";
+        }
 
         if (ContainsAny(text, "restaurant", "cafe", "coffee", "starbucks", "doordash", "uber eats", "chipotle"))
+        {
             return "dining";
+        }
 
-        if (ContainsAny(text, "shell", "chevron", "exxon", "gas", "uber", "lyft", "parking")) return "transport";
+        if (ContainsAny(text, "shell", "chevron", "exxon", "gas", "uber", "lyft", "parking"))
+        {
+            return "transport";
+        }
 
         if (ContainsAny(text, "netflix", "spotify", "hulu", "disney", "amc", "cinema", "ticket"))
+        {
             return "entertainment";
+        }
 
-        if (ContainsAny(text, "target", "amazon", "walmart", "costco", "best buy")) return "shopping";
+        if (ContainsAny(text, "target", "amazon", "walmart", "costco", "best buy"))
+        {
+            return "shopping";
+        }
 
         if (ContainsAny(text, "electric", "utility", "internet", "phone", "insurance", "rent", "mortgage"))
+        {
             return "bills";
+        }
 
         return "uncategorized";
     }

@@ -26,6 +26,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<ITransactionCategorizationService, TransactionCategorizationService>();
+builder.Services.AddScoped<ITransferPairingService, TransferPairingService>();
 
 using var host = builder.Build();
 using var scope = host.Services.CreateScope();

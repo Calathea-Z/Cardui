@@ -31,6 +31,7 @@ public class PlaidService : IPlaidService
     private readonly PlaidClient _plaidClient;
     private readonly PlaidConfig _plaidOptions;
     private readonly ITransactionCategorizationService _transactionCategorizationService;
+    private readonly ITransferPairingService _transferPairingService;
     private readonly ILogger<PlaidService> _logger;
     private readonly TimeProvider _timeProvider;
 
@@ -39,6 +40,7 @@ public class PlaidService : IPlaidService
         PlaidClient plaidClient,
         IOptions<PlaidConfig> plaidOptions,
         ITransactionCategorizationService transactionCategorizationService,
+        ITransferPairingService transferPairingService,
         ILogger<PlaidService> logger,
         TimeProvider timeProvider)
     {
@@ -46,6 +48,7 @@ public class PlaidService : IPlaidService
         _plaidClient = plaidClient;
         _plaidOptions = plaidOptions.Value;
         _transactionCategorizationService = transactionCategorizationService;
+        _transferPairingService = transferPairingService;
         _logger = logger;
         _timeProvider = timeProvider;
     }
@@ -590,6 +593,8 @@ public class PlaidService : IPlaidService
         plaidItem.UpdatedAt = _timeProvider.GetUtcNow();
 
         await _dbContext.SaveChangesAsync();
+
+        await _transferPairingService.PairOwnedAccountTransfersAsync();
 
         return new SyncTransactionsResponseDto
         {

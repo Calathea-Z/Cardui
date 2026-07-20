@@ -29,6 +29,7 @@ public static class TransactionDtoMapper
             {
                 Id = x.Category.Id,
                 Name = x.Category.Name,
+                Key = x.Category.Key,
                 Color = x.Category.Color,
                 Icon = x.Category.Icon
             }

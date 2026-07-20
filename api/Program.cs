@@ -29,6 +29,7 @@ builder.Services.AddScoped<ICategoriesService, CategoriesService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IPlaidService, PlaidService>();
 builder.Services.AddScoped<ITransactionCategorizationService, TransactionCategorizationService>();
+builder.Services.AddScoped<ITransferPairingService, TransferPairingService>();
 
 builder.Services.AddControllers();
 

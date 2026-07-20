@@ -1,10 +1,10 @@
 import { CategoriesClient } from "@/features/categories";
-import { emptyCategories, getCategories, safeApiCall } from "@/lib/api";
+import { loadCategoriesPage } from "@/features/categories/server/loadCategoriesPage";
 
 export const dynamic = "force-dynamic";
 
 export default async function CategoriesPage() {
-  const categoriesResult = await safeApiCall(getCategories, emptyCategories());
+  const data = await loadCategoriesPage();
 
-  return <CategoriesClient initialCategories={categoriesResult.data} />;
+  return <CategoriesClient {...data} />;
 }

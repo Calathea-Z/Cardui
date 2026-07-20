@@ -1,24 +1,10 @@
 import { DashboardView } from "@/features/dashboard/DashboardView";
-import {
-  emptyAccountSummary,
-  emptyDashboardSummary,
-  getAccountsSummary,
-  getDashboardSummary,
-  safeApiCall,
-} from "@/lib/api";
+import { loadDashboardPage } from "@/features/dashboard/server/loadDashboardPage";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [dashboardResult, accountsResult] = await Promise.all([
-    safeApiCall(getDashboardSummary, emptyDashboardSummary()),
-    safeApiCall(getAccountsSummary, emptyAccountSummary()),
-  ]);
+  const data = await loadDashboardPage();
 
-  return (
-    <DashboardView
-      dashboardSummary={dashboardResult.data}
-      accountsSummary={accountsResult.data}
-    />
-  );
+  return <DashboardView {...data} />;
 }

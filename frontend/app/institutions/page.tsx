@@ -1,24 +1,10 @@
 import { InstitutionsPageClient } from "@/features/institutions/InstitutionsPageClient";
-import {
-  emptyAccounts,
-  emptyPlaidItems,
-  getAccounts,
-  getPlaidItems,
-  safeApiCall,
-} from "@/lib/api";
+import { loadInstitutionsPage } from "@/features/institutions/server/loadInstitutionsPage";
 
 export const dynamic = "force-dynamic";
 
 export default async function InstitutionsPage() {
-  const [plaidItemsResult, accountsResult] = await Promise.all([
-    safeApiCall(getPlaidItems, emptyPlaidItems()),
-    safeApiCall(getAccounts, emptyAccounts()),
-  ]);
+  const data = await loadInstitutionsPage();
 
-  return (
-    <InstitutionsPageClient
-      initialItems={plaidItemsResult.data}
-      accounts={accountsResult.data}
-    />
-  );
+  return <InstitutionsPageClient {...data} />;
 }

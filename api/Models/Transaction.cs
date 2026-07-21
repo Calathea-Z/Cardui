@@ -23,7 +23,7 @@ public class Transaction
     public Guid? CategoryId { get; set; }
     public Category? Category { get; init; }
 
-    public string? Notes { get; init; }
+    public string? Notes { get; set; }
 
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; set; }

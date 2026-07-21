@@ -73,11 +73,23 @@ export function useTransactionsPage({
     return () => window.clearTimeout(timeoutId);
   }, [loadPage]);
 
+  const patchTransaction = useCallback((updated: TransactionDto) => {
+    setTransactionsPage((page) => ({
+      ...page,
+      items: page.items
+        .map((transaction) =>
+          transaction.id === updated.id ? updated : transaction,
+        )
+        .sort((left, right) => right.date.localeCompare(left.date)),
+    }));
+  }, []);
+
   return {
     transactionsPage,
     transactions: transactionsPage.items,
     isLoading,
     errorMessage,
     loadPage,
+    patchTransaction,
   };
 }

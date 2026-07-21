@@ -48,6 +48,7 @@ public class TransactionDtoMapperTests
                 CreatedAt = now,
                 UpdatedAt = now
             },
+            Notes = "Bought oat milk latte",
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -63,6 +64,42 @@ public class TransactionDtoMapperTests
         Assert.Equal(categoryId, dto.Category?.Id);
         Assert.Equal("Dining", dto.Category?.Name);
         Assert.Equal("#f97316", dto.Category?.Color);
+        Assert.Equal("Bought oat milk latte", dto.Notes);
+    }
+
+    [Fact]
+    public void Projection_MapsNullNotes()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var accountId = Guid.NewGuid();
+
+        var transaction = new Transaction
+        {
+            Id = Guid.NewGuid(),
+            AccountId = accountId,
+            Account = new Account
+            {
+                Id = accountId,
+                PlaidItemId = Guid.NewGuid(),
+                PlaidAccountId = "plaid-account-notes",
+                Name = "Checking",
+                Type = "depository",
+                CreatedAt = now,
+                UpdatedAt = now
+            },
+            PlaidTransactionId = "plaid-transaction-notes",
+            Date = new DateOnly(2026, 7, 15),
+            Name = "No Notes Purchase",
+            Amount = 10m,
+            Pending = false,
+            Notes = null,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        var dto = TransactionDtoMapper.Projection.Compile()(transaction);
+
+        Assert.Null(dto.Notes);
     }
 
     [Fact]

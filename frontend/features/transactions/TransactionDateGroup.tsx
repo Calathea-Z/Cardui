@@ -1,3 +1,4 @@
+import type { TransactionDto } from "@/lib/api/types";
 import { getDayTotalDisplay } from "./transactionAmountDisplay";
 import {
   formatDateSectionHeader,
@@ -7,9 +8,13 @@ import { TransactionRow } from "./TransactionRow";
 
 type TransactionDateGroupProps = {
   group: TransactionDateGroupModel;
+  onSelectTransaction?: (transaction: TransactionDto) => void;
 };
 
-export function TransactionDateGroup({ group }: TransactionDateGroupProps) {
+export function TransactionDateGroup({
+  group,
+  onSelectTransaction,
+}: TransactionDateGroupProps) {
   const dayTotal = getDayTotalDisplay(group.transactions);
 
   return (
@@ -31,7 +36,11 @@ export function TransactionDateGroup({ group }: TransactionDateGroupProps) {
 
       <div className="divide-y divide-border/70 bg-background/30">
         {group.transactions.map((transaction) => (
-          <TransactionRow key={transaction.id} transaction={transaction} />
+          <TransactionRow
+            key={transaction.id}
+            transaction={transaction}
+            onSelect={onSelectTransaction}
+          />
         ))}
       </div>
     </section>

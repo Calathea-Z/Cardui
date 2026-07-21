@@ -94,6 +94,40 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    public async Task<TransactionDto> UpdateTransactionDetailsAsync(
+        Guid transactionId,
+        UpdateTransactionDetailsDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var transaction = await _dbContext.Transactions
+            .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
+
+        if (transaction is null)
+        {
+            throw new NotFoundException($"Transaction '{transactionId}' was not found.");
+        }
+
+        if (dto.CategoryId.HasValue)
+        {
+            var categoryExists = await _dbContext.Categories
+                .AnyAsync(x => x.Id == dto.CategoryId.Value, cancellationToken);
+
+            if (!categoryExists)
+            {
+                throw new BadRequestException($"Category '{dto.CategoryId}' was not found.");
+            }
+        }
+
+        transaction.Date = dto.Date;
+        transaction.CategoryId = dto.CategoryId;
+        transaction.Notes = dto.Notes;
+        transaction.UpdatedAt = _timeProvider.GetUtcNow();
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
+    }
+
     private static (int Page, int PageSize) NormalizePagination(TransactionQueryDto query)
     {
         var page = query.Page < 1 ? 1 : query.Page;

@@ -17,4 +17,9 @@ public interface ITransactionsService
         Guid transactionId,
         UpdateTransactionCategoryDto dto,
         CancellationToken cancellationToken = default);
+
+    Task<TransactionDto> UpdateTransactionDetailsAsync(
+        Guid transactionId,
+        UpdateTransactionDetailsDto dto,
+        CancellationToken cancellationToken = default);
 }

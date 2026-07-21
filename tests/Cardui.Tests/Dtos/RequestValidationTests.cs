@@ -31,6 +31,18 @@ public class RequestValidationTests
     }
 
     [Fact]
+    public void UpdateTransactionDetailsDto_RejectsNotesAboveMaxLength()
+    {
+        var dto = new UpdateTransactionDetailsDto
+        {
+            Date = new DateOnly(2026, 7, 15),
+            Notes = new string('x', 1001)
+        };
+
+        Assert.False(IsValid(dto));
+    }
+
+    [Fact]
     public void ExchangePublicTokenRequestDto_RejectsBlankPublicToken()
     {
         var dto = new ExchangePublicTokenRequestDto

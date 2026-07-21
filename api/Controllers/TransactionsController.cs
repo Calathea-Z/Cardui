@@ -39,6 +39,22 @@ public class TransactionsController : ControllerBase
         return Ok(transaction);
     }
 
+    [HttpPatch("{id:guid}")]
+    [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TransactionDto>> UpdateTransactionDetails(
+        Guid id,
+        [FromBody] UpdateTransactionDetailsDto dto,
+        CancellationToken cancellationToken)
+    {
+        var transaction = await _transactionsService.UpdateTransactionDetailsAsync(
+            id,
+            dto,
+            cancellationToken);
+        return Ok(transaction);
+    }
+
     [HttpPatch("{id:guid}/category")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

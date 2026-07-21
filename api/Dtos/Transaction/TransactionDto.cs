@@ -11,4 +11,5 @@ public class TransactionDto
     public bool Pending { get; set; }
     public required TransactionAccountDto Account { get; set; }
     public TransactionCategoryDto? Category { get; set; }
+    public string? Notes { get; set; }
 }

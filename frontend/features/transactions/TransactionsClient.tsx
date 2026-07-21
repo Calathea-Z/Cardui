@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,6 +12,7 @@ import type {
   TransactionDto,
 } from "@/lib/api/types";
 import { TransactionDateGroup } from "./TransactionDateGroup";
+import { TransactionDetailDrawer } from "./TransactionDetailDrawer";
 import { TransactionsFilters } from "./TransactionsFilters";
 import { groupTransactionsByDate } from "./transactionGrouping";
 import { useTransactionsPage } from "./useTransactionsPage";
@@ -26,7 +27,7 @@ type TransactionsClientProps = {
 
 export function TransactionsClient({
   initialTransactionsPage,
-  categories,
+  categories: initialCategories,
   accounts,
   pageSize,
 }: TransactionsClientProps) {
@@ -37,6 +38,7 @@ export function TransactionsClient({
     isLoading,
     errorMessage,
     loadPage,
+    patchTransaction,
   } = useTransactionsPage({
     initialTransactionsPage,
     pageSize,
@@ -46,10 +48,29 @@ export function TransactionsClient({
     pendingFilter: query.pendingFilter,
   });
 
+  const [categories, setCategories] = useState(initialCategories);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<TransactionDto | null>(null);
+
   const transactionsByDate = useMemo(
     () => groupTransactionsByDate(transactions),
     [transactions],
   );
+
+  function handleCategoryCreated(category: CategoryDto) {
+    setCategories((current) => {
+      if (current.some((item) => item.id === category.id)) {
+        return current;
+      }
+
+      return [...current, category];
+    });
+  }
+
+  function handleSaved(updated: TransactionDto) {
+    patchTransaction(updated);
+    setSelectedTransaction(updated);
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -68,7 +89,11 @@ export function TransactionsClient({
         <div className="app-panel overflow-hidden">
           <div>
             {transactionsByDate.map((group) => (
-              <TransactionDateGroup key={group.date} group={group} />
+              <TransactionDateGroup
+                key={group.date}
+                group={group}
+                onSelectTransaction={setSelectedTransaction}
+              />
             ))}
 
             {transactions.length === 0 ? (
@@ -99,6 +124,14 @@ export function TransactionsClient({
           ) : null}
         </div>
       </section>
+
+      <TransactionDetailDrawer
+        transaction={selectedTransaction}
+        categories={categories}
+        onClose={() => setSelectedTransaction(null)}
+        onSaved={handleSaved}
+        onCategoryCreated={handleCategoryCreated}
+      />
     </main>
   );
 }

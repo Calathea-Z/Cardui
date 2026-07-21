@@ -4,6 +4,7 @@ import type {
   TransactionDto,
   TransactionQueryDto,
   UpdateTransactionCategoryDto,
+  UpdateTransactionDetailsDto,
 } from "../types";
 
 export async function getTransactions(
@@ -33,6 +34,18 @@ export async function updateTransactionCategory(
 ): Promise<TransactionDto> {
   const response = await serverClient.patch<TransactionDto>(
     `/api/transactions/${id}/category`,
+    dto,
+  );
+
+  return response.data;
+}
+
+export async function updateTransactionDetails(
+  id: string,
+  dto: UpdateTransactionDetailsDto,
+): Promise<TransactionDto> {
+  const response = await serverClient.patch<TransactionDto>(
+    `/api/transactions/${id}`,
     dto,
   );
 

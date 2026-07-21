@@ -8,6 +8,7 @@ import {
 
 type TransactionRowProps = {
   transaction: TransactionDto;
+  onSelect?: (transaction: TransactionDto) => void;
 };
 
 function amountClassName(kind: "income" | "spend" | "transfer") {
@@ -19,12 +20,12 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
   );
 }
 
-export function TransactionRow({ transaction }: TransactionRowProps) {
+export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
   const amount = getTransactionAmountDisplay(transaction);
   const isTransfer = isTransferTransaction(transaction);
 
-  return (
-    <div className="flex items-start justify-between gap-4 px-4 py-4 text-sm">
+  const content = (
+    <>
       <div className="flex min-w-0 items-start gap-3">
         <span
           className="mt-0.5 shrink-0 text-base leading-none"
@@ -32,7 +33,7 @@ export function TransactionRow({ transaction }: TransactionRowProps) {
         >
           {getCategoryEmoji(transaction.category)}
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 text-left">
           <p className="truncate font-medium text-foreground">
             {transaction.name}
           </p>
@@ -61,6 +62,24 @@ export function TransactionRow({ transaction }: TransactionRowProps) {
           </p>
         ) : null}
       </div>
+    </>
+  );
+
+  if (onSelect) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelect(transaction)}
+        className="flex w-full cursor-pointer items-start justify-between gap-4 px-4 py-4 text-sm transition-colors hover:bg-accent/20"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-4 px-4 py-4 text-sm">
+      {content}
     </div>
   );
 }

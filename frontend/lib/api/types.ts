@@ -38,6 +38,7 @@ export type TransactionDto = {
   pending: boolean;
   account: TransactionAccountDto;
   category: TransactionCategoryDto | null;
+  notes: string | null;
 };
 
 export type TransactionQueryDto = {
@@ -63,6 +64,12 @@ export type PagedResultDto<T> = {
 
 export type UpdateTransactionCategoryDto = {
   categoryId: string | null;
+};
+
+export type UpdateTransactionDetailsDto = {
+  date: string;
+  categoryId: string | null;
+  notes: string | null;
 };
 
 export type SpendingByCategoryDto = {

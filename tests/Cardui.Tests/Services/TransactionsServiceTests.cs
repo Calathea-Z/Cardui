@@ -1,0 +1,152 @@
+using Cardui.Api.Data;
+using Cardui.Api.Dtos.Transaction;
+using Cardui.Api.Exceptions;
+using Cardui.Api.Models;
+using Cardui.Api.Services.Implementations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
+using Xunit;
+
+namespace Cardui.Tests.Services;
+
+public class TransactionsServiceTests
+{
+    private static readonly DateTimeOffset SeededAt =
+        new(2026, 7, 1, 12, 0, 0, TimeSpan.Zero);
+
+    private static readonly DateTimeOffset UpdatedAt =
+        new(2026, 7, 20, 18, 30, 0, TimeSpan.Zero);
+
+    [Fact]
+    public async Task UpdateTransactionDetails_UpdatesDateCategoryAndNotes()
+    {
+        await using var dbContext = CreateDbContext();
+        var (transactionId, categoryId) = await SeedTransactionAsync(dbContext);
+
+        var timeProvider = new FakeTimeProvider(UpdatedAt);
+        var service = new TransactionsService(dbContext, timeProvider);
+
+        var result = await service.UpdateTransactionDetailsAsync(
+            transactionId,
+            new UpdateTransactionDetailsDto
+            {
+                Date = new DateOnly(2026, 7, 18),
+                CategoryId = categoryId,
+                Notes = "Updated note"
+            });
+
+        Assert.Equal(new DateOnly(2026, 7, 18), result.Date);
+        Assert.Equal(categoryId, result.Category?.Id);
+        Assert.Equal("Updated note", result.Notes);
+        Assert.Equal(UpdatedAt, (await dbContext.Transactions.SingleAsync()).UpdatedAt);
+    }
+
+    [Fact]
+    public async Task UpdateTransactionDetails_RejectsMissingTransaction()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            service.UpdateTransactionDetailsAsync(
+                Guid.NewGuid(),
+                new UpdateTransactionDetailsDto
+                {
+                    Date = new DateOnly(2026, 7, 18),
+                    Notes = "Missing"
+                }));
+    }
+
+    [Fact]
+    public async Task UpdateTransactionDetails_RejectsUnknownCategory()
+    {
+        await using var dbContext = CreateDbContext();
+        var (transactionId, _) = await SeedTransactionAsync(dbContext, includeCategory: false);
+        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+
+        await Assert.ThrowsAsync<BadRequestException>(() =>
+            service.UpdateTransactionDetailsAsync(
+                transactionId,
+                new UpdateTransactionDetailsDto
+                {
+                    Date = new DateOnly(2026, 7, 18),
+                    CategoryId = Guid.NewGuid(),
+                    Notes = "Bad category"
+                }));
+    }
+
+    private static CarduiDBContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<CarduiDBContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        return new CarduiDBContext(options);
+    }
+
+    private static async Task<(Guid TransactionId, Guid CategoryId)> SeedTransactionAsync(
+        CarduiDBContext dbContext,
+        bool includeCategory = true)
+    {
+        var plaidItemId = Guid.NewGuid();
+        var accountId = Guid.NewGuid();
+        var transactionId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+
+        dbContext.PlaidItems.Add(new PlaidItem
+        {
+            Id = plaidItemId,
+            PlaidItemId = "item-1",
+            AccessToken = "access-token",
+            CreatedAt = SeededAt,
+            UpdatedAt = SeededAt
+        });
+
+        dbContext.Accounts.Add(new Account
+        {
+            Id = accountId,
+            PlaidItemId = plaidItemId,
+            PlaidAccountId = "account-1",
+            Name = "Checking",
+            Type = "depository",
+            Subtype = "checking",
+            CreatedAt = SeededAt,
+            UpdatedAt = SeededAt
+        });
+
+        if (includeCategory)
+        {
+            dbContext.Categories.Add(new Category
+            {
+                Id = categoryId,
+                Key = "dining",
+                Name = "Dining",
+                Color = "#f97316",
+                IsSystem = true,
+                CreatedAt = SeededAt,
+                UpdatedAt = SeededAt
+            });
+        }
+
+        dbContext.Transactions.Add(new Transaction
+        {
+            Id = transactionId,
+            AccountId = accountId,
+            PlaidTransactionId = "txn-1",
+            Date = new DateOnly(2026, 7, 10),
+            Name = "Coffee Shop",
+            MerchantName = "Coffee Shop",
+            Amount = 5.25m,
+            IsoCurrencyCode = "USD",
+            Pending = false,
+            CategoryId = includeCategory ? categoryId : null,
+            Notes = "Original note",
+            CreatedAt = SeededAt,
+            UpdatedAt = SeededAt
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        return (transactionId, categoryId);
+    }
+}

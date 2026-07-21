@@ -4,23 +4,21 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cardui.Api.Data.Configurations;
 
-public class CategoryConfiguration : IEntityTypeConfiguration<Category>
+public class GroupConfiguration : IEntityTypeConfiguration<Group>
 {
-    public void Configure(EntityTypeBuilder<Category> entity)
+    public void Configure(EntityTypeBuilder<Group> entity)
     {
         entity.HasKey(x => x.Id);
+
+        entity.Property(x => x.Key)
+            .IsRequired()
+            .HasMaxLength(100);
 
         entity.Property(x => x.Name)
             .IsRequired()
             .HasMaxLength(100);
 
-        entity.Property(x => x.Color)
-            .HasMaxLength(20);
-
-        entity.Property(x => x.Icon)
-            .HasMaxLength(100);
-
-        entity.Property(x => x.IsSystem)
+        entity.Property(x => x.SortOrder)
             .IsRequired();
 
         entity.Property(x => x.CreatedAt)
@@ -29,19 +27,10 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         entity.Property(x => x.UpdatedAt)
             .IsRequired();
 
-        entity.Property(x => x.Key)
-            .IsRequired()
-            .HasMaxLength(100);
-
         entity.HasIndex(x => x.Key)
             .IsUnique();
 
         entity.HasIndex(x => x.Name)
             .IsUnique();
-
-        entity.HasOne(x => x.SubGroup)
-            .WithMany(x => x.Categories)
-            .HasForeignKey(x => x.SubGroupId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

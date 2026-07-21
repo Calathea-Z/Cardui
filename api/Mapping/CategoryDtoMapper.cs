@@ -11,7 +11,7 @@ public static class CategoryDtoMapper
         Id = x.Id,
         Name = x.Name,
         Key = x.Key,
-        ParentCategoryId = x.ParentCategoryId,
+        SubGroupId = x.SubGroupId,
         Color = x.Color,
         Icon = x.Icon,
         IsSystem = x.IsSystem
@@ -24,7 +24,7 @@ public static class CategoryDtoMapper
             Id = category.Id,
             Name = category.Name,
             Key = category.Key,
-            ParentCategoryId = category.ParentCategoryId,
+            SubGroupId = category.SubGroupId,
             Color = category.Color,
             Icon = category.Icon,
             IsSystem = category.IsSystem

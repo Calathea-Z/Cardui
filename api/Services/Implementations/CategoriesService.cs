@@ -43,23 +43,30 @@ public class CategoriesService : ICategoriesService
     {
         var name = createCategoryDto.Name.Trim();
 
-        if (string.IsNullOrWhiteSpace(name)) throw new BadRequestException("Category name is required.");
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new BadRequestException("Category name is required.");
+        }
 
         var nameExists = await _dbContext.Categories
             .AnyAsync(x => EF.Functions.ILike(x.Name, name), cancellationToken);
 
-        if (nameExists) throw new BadRequestException("A category with this name already exists.");
+        if (nameExists)
+        {
+            throw new BadRequestException("A category with this name already exists.");
+        }
 
-        await ValidateParentCategoryAsync(
-            createCategoryDto.ParentCategoryId,
-            cancellationToken);
+        await ValidateSubGroupAsync(createCategoryDto.SubGroupId, cancellationToken);
 
         var key = CategoryKeys.CreateFromName(name);
 
         var keyExists = await _dbContext.Categories
             .AnyAsync(x => x.Key == key, cancellationToken);
 
-        if (keyExists) throw new BadRequestException("A category with this key already exists.");
+        if (keyExists)
+        {
+            throw new BadRequestException("A category with this key already exists.");
+        }
 
         var now = _timeProvider.GetUtcNow();
 
@@ -68,7 +75,7 @@ public class CategoriesService : ICategoriesService
             Id = Guid.NewGuid(),
             Name = name,
             Key = key,
-            ParentCategoryId = createCategoryDto.ParentCategoryId,
+            SubGroupId = createCategoryDto.SubGroupId,
             Color = createCategoryDto.Color,
             Icon = createCategoryDto.Icon,
             IsSystem = false,
@@ -90,23 +97,30 @@ public class CategoriesService : ICategoriesService
         var category = await _dbContext.Categories
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
+        if (category is null)
+        {
+            throw new NotFoundException($"Category '{id}' was not found.");
+        }
 
         var name = dto.Name.Trim();
 
-        if (string.IsNullOrWhiteSpace(name)) throw new BadRequestException("Category name is required.");
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new BadRequestException("Category name is required.");
+        }
 
         var nameExists = await _dbContext.Categories
             .AnyAsync(x => x.Id != id && EF.Functions.ILike(x.Name, name), cancellationToken);
 
-        if (nameExists) throw new BadRequestException("A category with this name already exists.");
+        if (nameExists)
+        {
+            throw new BadRequestException("A category with this name already exists.");
+        }
 
-        if (dto.ParentCategoryId == id) throw new BadRequestException("A category cannot be its own parent.");
-
-        await ValidateParentCategoryAsync(dto.ParentCategoryId, cancellationToken);
+        await ValidateSubGroupAsync(dto.SubGroupId, cancellationToken);
 
         category.Name = name;
-        category.ParentCategoryId = dto.ParentCategoryId;
+        category.SubGroupId = dto.SubGroupId;
         category.Color = dto.Color;
         category.Icon = dto.Icon;
         category.UpdatedAt = _timeProvider.GetUtcNow();
@@ -123,9 +137,15 @@ public class CategoriesService : ICategoriesService
         var category = await _dbContext.Categories
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
+        if (category is null)
+        {
+            throw new NotFoundException($"Category '{id}' was not found.");
+        }
 
-        if (category.IsSystem) throw new BadRequestException("System categories cannot be deleted.");
+        if (category.IsSystem)
+        {
+            throw new BadRequestException("System categories cannot be deleted.");
+        }
 
         var now = _timeProvider.GetUtcNow();
 
@@ -139,31 +159,22 @@ public class CategoriesService : ICategoriesService
             transaction.UpdatedAt = now;
         }
 
-        var childCategories = await _dbContext.Categories
-            .Where(x => x.ParentCategoryId == id)
-            .ToListAsync(cancellationToken);
-
-        foreach (var childCategory in childCategories)
-        {
-            childCategory.ParentCategoryId = null;
-            childCategory.UpdatedAt = now;
-        }
-
         _dbContext.Categories.Remove(category);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task ValidateParentCategoryAsync(
-        Guid? parentCategoryId,
+    private async Task ValidateSubGroupAsync(
+        Guid subGroupId,
         CancellationToken cancellationToken)
     {
-        if (!parentCategoryId.HasValue) return;
+        var subGroupExists = await _dbContext.SubGroups
+            .AnyAsync(x => x.Id == subGroupId, cancellationToken);
 
-        var parentExists = await _dbContext.Categories
-            .AnyAsync(x => x.Id == parentCategoryId.Value, cancellationToken);
-
-        if (!parentExists) throw new BadRequestException($"Parent category '{parentCategoryId}' was not found.");
+        if (!subGroupExists)
+        {
+            throw new BadRequestException($"Sub-group '{subGroupId}' was not found.");
+        }
     }
 
     private async Task<CategoryDto> ProjectCategoryByIdAsync(
@@ -176,7 +187,10 @@ public class CategoriesService : ICategoriesService
             .Select(CategoryDtoMapper.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (category is null) throw new NotFoundException($"Category '{id}' was not found.");
+        if (category is null)
+        {
+            throw new NotFoundException($"Category '{id}' was not found.");
+        }
 
         return category;
     }

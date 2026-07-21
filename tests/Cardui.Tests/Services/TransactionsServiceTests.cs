@@ -116,11 +116,37 @@ public class TransactionsServiceTests
 
         if (includeCategory)
         {
+            var groupId = Guid.NewGuid();
+            var subGroupId = Guid.NewGuid();
+
+            dbContext.Groups.Add(new Group
+            {
+                Id = groupId,
+                Key = "expenses",
+                Name = "Expenses",
+                SortOrder = 1,
+                CreatedAt = SeededAt,
+                UpdatedAt = SeededAt
+            });
+
+            dbContext.SubGroups.Add(new SubGroup
+            {
+                Id = subGroupId,
+                GroupId = groupId,
+                Key = "food-dining",
+                Name = "Food & Dining",
+                IsSystem = true,
+                SortOrder = 0,
+                CreatedAt = SeededAt,
+                UpdatedAt = SeededAt
+            });
+
             dbContext.Categories.Add(new Category
             {
                 Id = categoryId,
-                Key = "dining",
-                Name = "Dining",
+                SubGroupId = subGroupId,
+                Key = "food-dining",
+                Name = "Food & Dining",
                 Color = "#f97316",
                 IsSystem = true,
                 CreatedAt = SeededAt,

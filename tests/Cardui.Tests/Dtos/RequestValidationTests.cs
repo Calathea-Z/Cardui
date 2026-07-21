@@ -13,7 +13,8 @@ public class RequestValidationTests
     {
         var dto = new CreateCategoryDto
         {
-            Name = new string('x', 101)
+            Name = new string('x', 101),
+            SubGroupId = Guid.NewGuid()
         };
 
         Assert.False(IsValid(dto));

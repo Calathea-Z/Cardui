@@ -40,6 +40,7 @@ public class TransactionDtoMapperTests
             Category = new Category
             {
                 Id = categoryId,
+                SubGroupId = Guid.NewGuid(),
                 Key = "dining",
                 Name = "Dining",
                 Color = "#f97316",

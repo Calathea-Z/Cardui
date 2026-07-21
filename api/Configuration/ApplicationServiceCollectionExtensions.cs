@@ -27,6 +27,8 @@ public static class ApplicationServiceCollectionExtensions
 
         services.AddScoped<IAccountsService, AccountsService>();
         services.AddScoped<ITransactionsService, TransactionsService>();
+        services.AddScoped<IGroupsService, GroupsService>();
+        services.AddScoped<ISubGroupsService, SubGroupsService>();
         services.AddScoped<ICategoriesService, CategoriesService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IPlaidService, PlaidService>();

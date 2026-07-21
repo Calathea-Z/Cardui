@@ -13,6 +13,8 @@ public class CarduiDBContext : DbContext
     public DbSet<PlaidItem> PlaidItems => Set<PlaidItem>();
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<Group> Groups => Set<Group>();
+    public DbSet<SubGroup> SubGroups => Set<SubGroup>();
     public DbSet<Category> Categories => Set<Category>();
 
     public DbSet<AccountBalanceSnapshot> AccountBalanceSnapshots =>

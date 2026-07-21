@@ -39,7 +39,7 @@ export function useCategoriesManager(initialCategories: CategoryDto[]) {
           name: form.name,
           color: form.color || null,
           icon: form.icon || null,
-          parentCategoryId: null,
+          subGroupId: form.subGroupId || editingCategory?.subGroupId || "",
         });
 
         setCategories((current) =>
@@ -52,7 +52,7 @@ export function useCategoriesManager(initialCategories: CategoryDto[]) {
           name: form.name,
           color: form.color || null,
           icon: form.icon || null,
-          parentCategoryId: null,
+          subGroupId: form.subGroupId,
         });
 
         setCategories((current) => [...current, createdCategory]);
@@ -73,6 +73,7 @@ export function useCategoriesManager(initialCategories: CategoryDto[]) {
       name: category.name,
       color: category.color ?? "#22c55e",
       icon: category.icon ?? "",
+      subGroupId: category.subGroupId,
     });
     setError(null);
   }

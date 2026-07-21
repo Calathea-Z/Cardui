@@ -9,6 +9,8 @@ public class CategoryKeysTests
     [InlineData("Dining", "dining")]
     [InlineData("Home Improvement", "home-improvement")]
     [InlineData("  Multiple   Spaces  ", "multiple-spaces")]
+    [InlineData("Food & Dining", "food-dining")]
+    [InlineData("Bills & Utilities", "bills-utilities")]
     public void CreateFromName_NormalizesDisplayNameToKey(
         string name,
         string expectedKey)

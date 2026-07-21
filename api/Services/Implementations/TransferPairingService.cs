@@ -35,7 +35,7 @@ public class TransferPairingService : ITransferPairingService
             .AsNoTracking()
             .Where(x =>
                 x.Key == SystemCategoryKeys.Transfers
-                || x.Key == SystemCategoryKeys.Uncategorized
+                || x.Key == SystemCategoryKeys.Other
                 || x.Key == SystemCategoryKeys.Income)
             .ToDictionaryAsync(x => x.Key, x => x.Id, cancellationToken);
 
@@ -47,7 +47,7 @@ public class TransferPairingService : ITransferPairingService
             return 0;
         }
 
-        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Uncategorized, out var uncategorizedCategoryId);
+        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Other, out var uncategorizedCategoryId);
         categoryIdsByKey.TryGetValue(SystemCategoryKeys.Income, out var incomeCategoryId);
 
         var eligibleAccountIds = await _dbContext.Accounts
@@ -286,7 +286,7 @@ public class TransferPairingService : ITransferPairingService
             return true;
         }
 
-        return string.Equals(category.Key, SystemCategoryKeys.Uncategorized, StringComparison.OrdinalIgnoreCase)
+        return string.Equals(category.Key, SystemCategoryKeys.Other, StringComparison.OrdinalIgnoreCase)
             || string.Equals(category.Key, SystemCategoryKeys.Transfers, StringComparison.OrdinalIgnoreCase)
             || string.Equals(category.Key, SystemCategoryKeys.Income, StringComparison.OrdinalIgnoreCase);
     }

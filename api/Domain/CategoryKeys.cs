@@ -1,13 +1,26 @@
+using System.Text;
+
 namespace Cardui.Api.Domain;
 
 public static class CategoryKeys
 {
     public static string CreateFromName(string name)
     {
+        var builder = new StringBuilder(name.Length);
+        foreach (var ch in name.Trim().ToLowerInvariant())
+        {
+            if (char.IsLetterOrDigit(ch))
+            {
+                builder.Append(ch);
+            }
+            else if (char.IsWhiteSpace(ch) || ch is '-' or '&')
+            {
+                builder.Append(' ');
+            }
+        }
+
         return string.Join(
             "-",
-            name.Trim()
-                .ToLowerInvariant()
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            builder.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 }

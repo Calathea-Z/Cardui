@@ -67,22 +67,22 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
 
         if (ContainsAny(text, "whole foods", "trader joe", "kroger", "safeway", "grocery", "market"))
         {
-            return SystemCategoryKeys.Groceries;
+            return SystemCategoryKeys.FoodDining;
         }
 
         if (ContainsAny(text, "restaurant", "cafe", "coffee", "starbucks", "doordash", "uber eats", "chipotle"))
         {
-            return SystemCategoryKeys.Dining;
+            return SystemCategoryKeys.FoodDining;
         }
 
         if (ContainsAny(text, "shell", "chevron", "exxon", "gas", "uber", "lyft", "parking"))
         {
-            return SystemCategoryKeys.Transport;
+            return SystemCategoryKeys.AutoTransport;
         }
 
         if (ContainsAny(text, "netflix", "spotify", "hulu", "disney", "amc", "cinema", "ticket"))
         {
-            return SystemCategoryKeys.Entertainment;
+            return SystemCategoryKeys.TravelLifestyle;
         }
 
         if (ContainsAny(text, "target", "amazon", "walmart", "costco", "best buy"))
@@ -92,10 +92,10 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
 
         if (ContainsAny(text, "electric", "utility", "internet", "phone", "insurance", "rent", "mortgage", "t-mobile", "tmobile", "verizon", "at&t", "att "))
         {
-            return SystemCategoryKeys.Bills;
+            return SystemCategoryKeys.BillsUtilities;
         }
 
-        return SystemCategoryKeys.Uncategorized;
+        return SystemCategoryKeys.Other;
     }
 
     private static bool ContainsAny(string text, params string[] keywords)

@@ -93,7 +93,7 @@ export type CategoryDto = {
   id: string;
   name: string;
   key: string;
-  parentCategoryId: string | null;
+  subGroupId: string;
   color: string | null;
   icon: string | null;
   isSystem: boolean;
@@ -101,16 +101,45 @@ export type CategoryDto = {
 
 export type CreateCategoryDto = {
   name: string;
-  parentCategoryId?: string | null;
+  subGroupId: string;
   color?: string | null;
   icon?: string | null;
 };
 
 export type UpdateCategoryDto = {
   name: string;
-  parentCategoryId?: string | null;
+  subGroupId: string;
   color?: string | null;
   icon?: string | null;
+};
+
+export type GroupDto = {
+  id: string;
+  key: string;
+  name: string;
+  sortOrder: number;
+};
+
+export type SubGroupDto = {
+  id: string;
+  groupId: string;
+  key: string;
+  name: string;
+  isSystem: boolean;
+  sortOrder: number;
+};
+
+export type GroupDetailDto = GroupDto & {
+  subGroups: SubGroupDto[];
+};
+
+export type CreateSubGroupDto = {
+  groupId: string;
+  name: string;
+};
+
+export type UpdateSubGroupDto = {
+  name: string;
 };
 
 export type AccountGroupDto = {

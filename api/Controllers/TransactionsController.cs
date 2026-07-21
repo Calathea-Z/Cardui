@@ -39,6 +39,21 @@ public class TransactionsController : ControllerBase
         return Ok(transaction);
     }
 
+    [HttpGet("{id:guid}/merchant-history")]
+    [ProducesResponseType<MerchantHistoryDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<MerchantHistoryDto>> GetMerchantHistory(
+        Guid id,
+        [FromQuery] string granularity = "monthly",
+        CancellationToken cancellationToken = default)
+    {
+        var history = await _transactionsService.GetMerchantHistoryAsync(
+            id,
+            granularity,
+            cancellationToken);
+        return Ok(history);
+    }
+
     [HttpPatch("{id:guid}")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

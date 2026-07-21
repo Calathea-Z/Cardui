@@ -72,6 +72,25 @@ export type UpdateTransactionDetailsDto = {
   notes: string | null;
 };
 
+export type MerchantHistoryGranularity = "monthly" | "quarterly" | "yearly";
+
+export type MerchantHistoryPeriodDto = {
+  key: string;
+  label: string;
+  shortLabel: string;
+  totalAmount: number;
+  transactionCount: number;
+};
+
+export type MerchantHistoryDto = {
+  displayName: string;
+  totalTransactionCount: number;
+  granularity: MerchantHistoryGranularity;
+  selectedPeriodKey: string;
+  periods: MerchantHistoryPeriodDto[];
+  transactions: TransactionDto[];
+};
+
 export type SpendingByCategoryDto = {
   categoryId: string | null;
   categoryName: string;

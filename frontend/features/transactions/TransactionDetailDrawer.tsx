@@ -15,9 +15,12 @@ import {
   isTransferTransaction,
 } from "./transactionAmountDisplay";
 import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
+import { TransactionAccountField } from "./TransactionAccountField";
 import { TransactionCategorySelect } from "./TransactionCategorySelect";
 import { TransactionDateField } from "./TransactionDateField";
+import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
+import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
 import { useTransactionDetails } from "./useTransactionDetails";
 
 type TransactionDetailDrawerProps = {
@@ -28,6 +31,7 @@ type TransactionDetailDrawerProps = {
   onClose: () => void;
   onSaved: (transaction: TransactionDto) => void;
   onCategoryCreated: (category: CategoryDto) => void;
+  onSelectTransaction?: (transaction: TransactionDto) => void;
 };
 
 function amountClassName(kind: "income" | "spend" | "transfer") {
@@ -46,7 +50,8 @@ function TransactionDetailDrawerContent({
   subGroups,
   onSaved,
   onCategoryCreated,
-  onCategoryPickerOpenChange,
+  onSelectTransaction,
+  onNestedOpenChange,
 }: {
   transaction: TransactionDto;
   categories: CategoryDto[];
@@ -54,7 +59,8 @@ function TransactionDetailDrawerContent({
   subGroups: SubGroupDto[];
   onSaved: (transaction: TransactionDto) => void;
   onCategoryCreated: (category: CategoryDto) => void;
-  onCategoryPickerOpenChange: (open: boolean) => void;
+  onSelectTransaction?: (transaction: TransactionDto) => void;
+  onNestedOpenChange: (open: boolean) => void;
 }) {
   const {
     form,
@@ -95,9 +101,6 @@ function TransactionDetailDrawerContent({
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-1 text-center">
         <p className={amountClassName(amount.kind)}>{amount.label}</p>
-        <p className="text-sm text-muted-foreground">
-          {transaction.account.name}
-        </p>
         {isTransfer || transaction.pending ? (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
             {isTransfer ? (
@@ -115,6 +118,16 @@ function TransactionDetailDrawerContent({
       </div>
 
       <div className="divide-y divide-border/70 border-y border-border/70">
+        <TransactionAccountField accountName={transaction.account.name} />
+
+        <TransactionOriginalStatementField statement={transaction.name} />
+
+        <TransactionHistoryField
+          transactionId={transaction.id}
+          onOpenChange={onNestedOpenChange}
+          onSelectTransaction={onSelectTransaction}
+        />
+
         <TransactionCategorySelect
           categories={categories}
           groups={groups}
@@ -122,7 +135,7 @@ function TransactionDetailDrawerContent({
           categoryId={form.categoryId}
           onCategoryIdChange={setCategoryId}
           onCategoryCreated={handleCategoryCreated}
-          onOpenChange={onCategoryPickerOpenChange}
+          onOpenChange={onNestedOpenChange}
         />
 
         <TransactionDateField value={form.date} onChange={setDate} />
@@ -154,8 +167,9 @@ export function TransactionDetailDrawer({
   onClose,
   onSaved,
   onCategoryCreated,
+  onSelectTransaction,
 }: TransactionDetailDrawerProps) {
-  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
+  const [isNestedOpen, setIsNestedOpen] = useState(false);
   const [displayedTransaction, setDisplayedTransaction] = useState(transaction);
 
   if (transaction !== null && transaction !== displayedTransaction) {
@@ -164,11 +178,11 @@ export function TransactionDetailDrawer({
 
   const activeTransaction = transaction ?? displayedTransaction;
   const title = activeTransaction
-    ? activeTransaction.merchantName || activeTransaction.name
+    ? activeTransaction.merchantName?.trim() || activeTransaction.name
     : "Transaction";
 
   function handleClose() {
-    setIsCategoryPickerOpen(false);
+    setIsNestedOpen(false);
     onClose();
   }
 
@@ -178,7 +192,7 @@ export function TransactionDetailDrawer({
       onClose={handleClose}
       title={title}
       headerAction="back"
-      closeOnEscape={!isCategoryPickerOpen}
+      closeOnEscape={!isNestedOpen}
       className={FULL_SCREEN_SHEET_CLASSNAME}
     >
       {activeTransaction ? (
@@ -190,7 +204,8 @@ export function TransactionDetailDrawer({
           subGroups={subGroups}
           onSaved={onSaved}
           onCategoryCreated={onCategoryCreated}
-          onCategoryPickerOpenChange={setIsCategoryPickerOpen}
+          onSelectTransaction={onSelectTransaction}
+          onNestedOpenChange={setIsNestedOpen}
         />
       ) : null}
     </BottomSheet>

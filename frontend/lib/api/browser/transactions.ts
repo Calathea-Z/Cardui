@@ -1,5 +1,7 @@
 import { browserClient } from "../browser-client";
 import type {
+  MerchantHistoryDto,
+  MerchantHistoryGranularity,
   PagedResultDto,
   TransactionDto,
   TransactionQueryDto,
@@ -22,6 +24,22 @@ export async function getTransactions(
 export async function getTransactionById(id: string): Promise<TransactionDto> {
   const response = await browserClient.get<TransactionDto>(
     `/api/transactions/${id}`,
+  );
+
+  return response.data;
+}
+
+export async function getMerchantHistory(
+  id: string,
+  query?: {
+    granularity?: MerchantHistoryGranularity | string;
+  },
+): Promise<MerchantHistoryDto> {
+  const response = await browserClient.get<MerchantHistoryDto>(
+    `/api/transactions/${id}/merchant-history`,
+    {
+      params: query,
+    },
   );
 
   return response.data;

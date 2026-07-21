@@ -203,8 +203,8 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
             plaidTransaction.TransactionId,
             out var existingTransaction);
 
-        var name = plaidTransaction.MerchantName
-                   ?? plaidTransaction.OriginalDescription
+        var name = plaidTransaction.OriginalDescription
+                   ?? plaidTransaction.MerchantName
                    ?? "Unknown transaction";
 
         if (existingTransaction is null)

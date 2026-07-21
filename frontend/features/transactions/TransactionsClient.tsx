@@ -94,7 +94,7 @@ export function TransactionsClient({
           <Alert variant="panel">{errorMessage}</Alert>
         ) : null}
 
-        <div className="app-panel !overflow-visible">
+        <div className="app-panel overflow-visible!">
           <div>
             {transactionsByDate.map((group) => (
               <TransactionDateGroup
@@ -141,6 +141,7 @@ export function TransactionsClient({
         onClose={() => setSelectedTransaction(null)}
         onSaved={handleSaved}
         onCategoryCreated={handleCategoryCreated}
+        onSelectTransaction={setSelectedTransaction}
       />
     </main>
   );

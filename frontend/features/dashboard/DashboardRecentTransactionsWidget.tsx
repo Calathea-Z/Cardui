@@ -83,6 +83,7 @@ export function DashboardRecentTransactionsWidget({
         onClose={() => setSelectedTransaction(null)}
         onSaved={handleSaved}
         onCategoryCreated={handleCategoryCreated}
+        onSelectTransaction={setSelectedTransaction}
       />
     </>
   );

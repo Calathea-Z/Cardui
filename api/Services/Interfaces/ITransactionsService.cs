@@ -13,6 +13,11 @@ public interface ITransactionsService
         Guid id,
         CancellationToken cancellationToken = default);
 
+    Task<MerchantHistoryDto> GetMerchantHistoryAsync(
+        Guid transactionId,
+        string granularity = "monthly",
+        CancellationToken cancellationToken = default);
+
     Task<TransactionDto> UpdateTransactionCategoryAsync(
         Guid transactionId,
         UpdateTransactionCategoryDto dto,

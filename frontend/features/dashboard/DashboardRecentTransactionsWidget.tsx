@@ -1,75 +1,89 @@
-import type { TransactionDto } from "@/lib/api/types";
+"use client";
+
+import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getCategoryEmoji } from "@/features/categories/categoryEmoji";
-import {
-  getTransactionAmountDisplay,
-  isTransferTransaction,
-} from "@/features/transactions/transactionAmountDisplay";
-import { cn } from "@/lib/utils";
+import { TransactionDetailDrawer } from "@/features/transactions/TransactionDetailDrawer";
+import { TransactionRow } from "@/features/transactions/TransactionRow";
+import type {
+  CategoryDto,
+  GroupDto,
+  SubGroupDto,
+  TransactionDto,
+} from "@/lib/api/types";
 
 type DashboardRecentTransactionsWidgetProps = {
   transactions: TransactionDto[];
+  categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
 };
 
 export function DashboardRecentTransactionsWidget({
-  transactions,
+  transactions: initialTransactions,
+  categories: initialCategories,
+  groups,
+  subGroups: initialSubGroups,
 }: DashboardRecentTransactionsWidgetProps) {
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const [categories, setCategories] = useState(initialCategories);
+  const [subGroups] = useState(initialSubGroups);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<TransactionDto | null>(null);
+
+  function handleCategoryCreated(category: CategoryDto) {
+    setCategories((current) => {
+      if (current.some((item) => item.id === category.id)) {
+        return current;
+      }
+
+      return [...current, category];
+    });
+  }
+
+  function handleSaved(updated: TransactionDto) {
+    setTransactions((current) =>
+      current.map((transaction) =>
+        transaction.id === updated.id ? updated : transaction,
+      ),
+    );
+    setSelectedTransaction(updated);
+  }
+
   return (
-    <section className="app-panel">
-      <div className="app-panel-header p-4">
-        <h2 className="app-section-title">Recent Transactions</h2>
-      </div>
+    <>
+      <section className="app-panel">
+        <div className="app-panel-header p-4">
+          <h2 className="app-section-title">Recent Transactions</h2>
+        </div>
 
-      <div className="divide-y divide-border/70">
-        {transactions.map((transaction) => {
-          const amount = getTransactionAmountDisplay(transaction);
-          const isTransfer = isTransferTransaction(transaction);
-
-          return (
-            <div
+        <div className="divide-y divide-border/70">
+          {transactions.map((transaction) => (
+            <TransactionRow
               key={transaction.id}
-              className="flex items-center justify-between gap-4 p-4 transition hover:bg-accent/20"
-            >
-              <div className="flex min-w-0 items-start gap-3">
-                <span
-                  className="mt-0.5 shrink-0 text-base leading-none"
-                  aria-hidden="true"
-                >
-                  {getCategoryEmoji(transaction.category)}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{transaction.name}</p>
-                  {isTransfer ? (
-                    <p className="mt-0.5 text-xs text-transfer">
-                      Moved between accounts
-                    </p>
-                  ) : null}
-                </div>
-              </div>
+              transaction={transaction}
+              onSelect={setSelectedTransaction}
+            />
+          ))}
 
-              <div className="shrink-0 text-right">
-                <p
-                  className={cn(
-                    "ledger-amount",
-                    amount.kind === "income" && "text-success",
-                    amount.kind === "transfer" && "text-transfer",
-                  )}
-                >
-                  {amount.label}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+          {transactions.length === 0 ? (
+            <EmptyState
+              title="No transactions yet"
+              description="Transactions will appear here after your first account sync."
+              className="py-8 [&_p]:text-sm [&_p]:font-normal"
+            />
+          ) : null}
+        </div>
+      </section>
 
-        {transactions.length === 0 ? (
-          <EmptyState
-            title="No transactions yet"
-            description="Transactions will appear here after your first account sync."
-            className="py-8 [&_p]:text-sm [&_p]:font-normal"
-          />
-        ) : null}
-      </div>
-    </section>
+      <TransactionDetailDrawer
+        transaction={selectedTransaction}
+        categories={categories}
+        groups={groups}
+        subGroups={subGroups}
+        onClose={() => setSelectedTransaction(null)}
+        onSaved={handleSaved}
+        onCategoryCreated={handleCategoryCreated}
+      />
+    </>
   );
 }

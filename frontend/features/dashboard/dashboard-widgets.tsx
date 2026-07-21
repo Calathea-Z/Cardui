@@ -1,10 +1,19 @@
-import type { AccountSummaryDto, DashboardSummaryDto } from "@/lib/api/types";
+import type {
+  AccountSummaryDto,
+  CategoryDto,
+  DashboardSummaryDto,
+  GroupDto,
+  SubGroupDto,
+} from "@/lib/api/types";
 import { DashboardAccountsSlider } from "./DashboardAccountsSlider";
 import { DashboardRecentTransactionsWidget } from "./DashboardRecentTransactionsWidget";
 
 export type DashboardWidgetProps = {
   dashboardSummary: DashboardSummaryDto;
   accountsSummary: AccountSummaryDto;
+  categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
 };
 
 export type DashboardWidgetDefinition = {
@@ -21,9 +30,12 @@ export const dashboardWidgets: DashboardWidgetDefinition[] = [
   },
   {
     id: "recent-transactions",
-    render: ({ dashboardSummary }) => (
+    render: ({ dashboardSummary, categories, groups, subGroups }) => (
       <DashboardRecentTransactionsWidget
         transactions={dashboardSummary.recentTransactions}
+        categories={categories}
+        groups={groups}
+        subGroups={subGroups}
       />
     ),
   },

@@ -3,13 +3,16 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
-import type { CategoryDto } from "@/lib/api/types";
+import { SheetSelect } from "@/components/ui/sheet-select";
+import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import type { CategoryFormState } from "@/lib/categoryForm";
 
 type CategoryFormProps = {
   form: CategoryFormState;
   onFormChange: (form: CategoryFormState) => void;
   editingCategory: CategoryDto | null;
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
   error: string | null;
   isSaving: boolean;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
@@ -20,11 +23,37 @@ export function CategoryForm({
   form,
   onFormChange,
   editingCategory,
+  groups,
+  subGroups,
   error,
   isSaving,
   onSubmit,
   onCancel,
 }: CategoryFormProps) {
+  const sortedGroups = groups
+    .slice()
+    .sort(
+      (left, right) =>
+        left.sortOrder - right.sortOrder || left.name.localeCompare(right.name),
+    );
+
+  const selectedSubGroup = subGroups.find(
+    (subGroup) => subGroup.id === form.subGroupId,
+  );
+  const selectedGroupId = selectedSubGroup?.groupId ?? "";
+
+  const visibleSubGroups = subGroups
+    .filter((subGroup) =>
+      selectedGroupId ? subGroup.groupId === selectedGroupId : false,
+    )
+    .slice()
+    .sort(
+      (left, right) =>
+        left.sortOrder - right.sortOrder || left.name.localeCompare(right.name),
+    );
+
+  const lockHierarchy = isSaving || Boolean(editingCategory?.isSystem);
+
   return (
     <form onSubmit={onSubmit} className="app-panel p-5">
       <h2 className="font-semibold">
@@ -43,6 +72,51 @@ export function CategoryForm({
       ) : null}
 
       <div className="mt-5 space-y-4">
+        <div className="block">
+          <span className="text-sm text-muted-foreground">Group</span>
+          <SheetSelect
+            title="Group"
+            value={selectedGroupId}
+            disabled={lockHierarchy}
+            placeholder="Select a group"
+            className="mt-2"
+            onChange={(groupId) => {
+              const firstSubGroup = subGroups
+                .filter((subGroup) => subGroup.groupId === groupId)
+                .sort(
+                  (left, right) =>
+                    left.sortOrder - right.sortOrder ||
+                    left.name.localeCompare(right.name),
+                )[0];
+
+              onFormChange({
+                ...form,
+                subGroupId: firstSubGroup?.id ?? "",
+              });
+            }}
+            options={sortedGroups.map((group) => ({
+              value: group.id,
+              label: group.name,
+            }))}
+          />
+        </div>
+
+        <div className="block">
+          <span className="text-sm text-muted-foreground">Sub-group</span>
+          <SheetSelect
+            title="Sub-group"
+            value={form.subGroupId}
+            disabled={lockHierarchy || !selectedGroupId}
+            placeholder="Select a sub-group"
+            className="mt-2"
+            onChange={(subGroupId) => onFormChange({ ...form, subGroupId })}
+            options={visibleSubGroups.map((subGroup) => ({
+              value: subGroup.id,
+              label: subGroup.name,
+            }))}
+          />
+        </div>
+
         <label className="block">
           <span className="text-sm text-muted-foreground">Name</span>
           <Input
@@ -82,7 +156,11 @@ export function CategoryForm({
         {error ? <Alert variant="destructive">{error}</Alert> : null}
 
         <div className="flex gap-2">
-          <Button type="submit" disabled={isSaving} size="lg">
+          <Button
+            type="submit"
+            disabled={isSaving || !form.subGroupId || !form.name.trim()}
+            size="lg"
+          >
             {isSaving
               ? "Saving"
               : editingCategory

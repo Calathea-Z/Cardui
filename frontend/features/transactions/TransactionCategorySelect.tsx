@@ -3,12 +3,14 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { sortCategoriesByName } from "@/features/categories/categorySort";
-import type { CategoryDto } from "@/lib/api/types";
+import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { ChangeCategoryDrawer } from "./ChangeCategoryDrawer";
 
 type TransactionCategorySelectProps = {
   categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
   categoryId: string;
   onCategoryIdChange: (categoryId: string) => void;
   onCategoryCreated: (category: CategoryDto) => void;
@@ -18,6 +20,8 @@ type TransactionCategorySelectProps = {
 
 export function TransactionCategorySelect({
   categories,
+  groups,
+  subGroups,
   categoryId,
   onCategoryIdChange,
   onCategoryCreated,
@@ -25,6 +29,7 @@ export function TransactionCategorySelect({
   onOpenChange,
 }: TransactionCategorySelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [drawerSession, setDrawerSession] = useState(0);
   const sortedCategories = sortCategoriesByName(categories);
   const selectedCategory = sortedCategories.find(
     (category) => category.id === categoryId,
@@ -32,6 +37,9 @@ export function TransactionCategorySelect({
   const displayValue = selectedCategory?.name ?? "None";
 
   function setOpen(open: boolean) {
+    if (open) {
+      setDrawerSession((current) => current + 1);
+    }
     setIsOpen(open);
     onOpenChange?.(open);
   }
@@ -57,8 +65,11 @@ export function TransactionCategorySelect({
       </button>
 
       <ChangeCategoryDrawer
+        key={drawerSession}
         open={isOpen}
         categories={categories}
+        groups={groups}
+        subGroups={subGroups}
         categoryId={categoryId}
         onClose={() => setOpen(false)}
         onSelect={onCategoryIdChange}

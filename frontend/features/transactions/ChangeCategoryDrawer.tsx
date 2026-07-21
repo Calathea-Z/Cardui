@@ -6,66 +6,104 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Input } from "@/components/ui/input";
 import { getCategoryEmoji } from "@/features/categories/categoryEmoji";
 import { sortCategoriesByName } from "@/features/categories/categorySort";
-import type { CategoryDto } from "@/lib/api/types";
+import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import { AddCategoryDrawer } from "./AddCategoryDrawer";
 import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 
 type ChangeCategoryDrawerProps = {
   open: boolean;
   categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
   categoryId: string;
   onClose: () => void;
   onSelect: (categoryId: string) => void;
   onCategoryCreated: (category: CategoryDto) => void;
 };
 
+type CategorySection = {
+  subGroup: SubGroupDto;
+  categories: CategoryDto[];
+};
+
+function sortSubGroups(subGroups: SubGroupDto[]) {
+  return subGroups
+    .slice()
+    .sort(
+      (left, right) =>
+        left.sortOrder - right.sortOrder || left.name.localeCompare(right.name),
+    );
+}
+
+function sortGroups(groups: GroupDto[]) {
+  return groups
+    .slice()
+    .sort(
+      (left, right) =>
+        left.sortOrder - right.sortOrder || left.name.localeCompare(right.name),
+    );
+}
+
 export function ChangeCategoryDrawer({
   open,
   categories,
+  groups,
+  subGroups,
   categoryId,
   onClose,
   onSelect,
   onCategoryCreated,
 }: ChangeCategoryDrawerProps) {
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
   function handleClose() {
-    setIsAddOpen(false);
+    setIsAddCategoryOpen(false);
     onClose();
+  }
+
+  function handleSheetClose() {
+    if (isAddCategoryOpen) {
+      setIsAddCategoryOpen(false);
+      return;
+    }
+
+    handleClose();
   }
 
   return (
     <>
       <BottomSheet
         open={open}
-        onClose={handleClose}
+        onClose={handleSheetClose}
         title="Change Category"
         headerAction="close"
-        closeOnEscape={!isAddOpen}
+        closeOnEscape={!isAddCategoryOpen}
         overlayClassName="z-70"
         className={FULL_SCREEN_SHEET_CLASSNAME}
       >
-        {open ? (
-          <ChangeCategoryDrawerContent
-            categories={categories}
-            categoryId={categoryId}
-            onSelect={(id) => {
-              onSelect(id);
-              handleClose();
-            }}
-            onNewCategory={() => setIsAddOpen(true)}
-          />
-        ) : null}
+        <ChangeCategoryDrawerContent
+          categories={categories}
+          groups={groups}
+          subGroups={subGroups}
+          categoryId={categoryId}
+          onSelect={(id) => {
+            onSelect(id);
+            handleClose();
+          }}
+          onNewCategory={() => setIsAddCategoryOpen(true)}
+        />
       </BottomSheet>
 
       <AddCategoryDrawer
-        open={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
+        open={isAddCategoryOpen}
+        groups={groups}
+        subGroups={subGroups}
+        onClose={() => setIsAddCategoryOpen(false)}
         onCreated={(category) => {
           onCategoryCreated(category);
           onSelect(category.id);
-          setIsAddOpen(false);
-          onClose();
+          setIsAddCategoryOpen(false);
+          handleClose();
         }}
       />
     </>
@@ -74,31 +112,61 @@ export function ChangeCategoryDrawer({
 
 function ChangeCategoryDrawerContent({
   categories,
+  groups,
+  subGroups,
   categoryId,
   onSelect,
   onNewCategory,
 }: {
   categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
   categoryId: string;
   onSelect: (categoryId: string) => void;
   onNewCategory: () => void;
 }) {
   const [search, setSearch] = useState("");
-  const sortedCategories = useMemo(
-    () => sortCategoriesByName(categories),
-    [categories],
-  );
+  const query = search.trim().toLowerCase();
 
-  const filteredCategories = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) {
-      return sortedCategories;
+  const sections = useMemo(() => {
+    const sortedGroups = sortGroups(groups);
+    const result: CategorySection[] = [];
+
+    for (const group of sortedGroups) {
+      const groupSubGroups = sortSubGroups(
+        subGroups.filter((subGroup) => subGroup.groupId === group.id),
+      );
+
+      for (const subGroup of groupSubGroups) {
+        const sectionCategories = sortCategoriesByName(
+          categories.filter((category) => {
+            if (category.subGroupId !== subGroup.id) {
+              return false;
+            }
+
+            if (!query) {
+              return true;
+            }
+
+            return (
+              category.name.toLowerCase().includes(query) ||
+              subGroup.name.toLowerCase().includes(query) ||
+              group.name.toLowerCase().includes(query)
+            );
+          }),
+        );
+
+        if (sectionCategories.length > 0) {
+          result.push({
+            subGroup,
+            categories: sectionCategories,
+          });
+        }
+      }
     }
 
-    return sortedCategories.filter((category) =>
-      category.name.toLowerCase().includes(query),
-    );
-  }, [search, sortedCategories]);
+    return result;
+  }, [categories, groups, query, subGroups]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -110,7 +178,7 @@ function ChangeCategoryDrawerContent({
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search"
+          placeholder="Search categories"
           className="h-10 pl-9"
           autoFocus
         />
@@ -122,56 +190,64 @@ function ChangeCategoryDrawerContent({
         className="flex min-h-12 w-full items-center gap-3 text-left text-sm font-medium text-transfer"
       >
         <Plus className="size-4 shrink-0" aria-hidden="true" />
-        New Category
+        Add Category
       </button>
 
-      <div className="divide-y divide-border/70 border-y border-border/70">
-        <button
-          type="button"
-          onClick={() => onSelect("")}
-          className="flex min-h-12 w-full items-center gap-3 py-3 text-left"
-        >
-          <span className="text-base" aria-hidden="true">
-            {getCategoryEmoji(null)}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">
-            None
-          </span>
-          {!categoryId ? (
-            <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
-          ) : null}
-        </button>
-
-        {filteredCategories.map((category) => {
-          const isSelected = category.id === categoryId;
-
-          return (
-            <button
-              key={category.id}
-              type="button"
-              onClick={() => onSelect(category.id)}
-              className="flex min-h-12 w-full items-center gap-3 py-3 text-left"
-            >
-              <span className="text-base" aria-hidden="true">
-                {getCategoryEmoji(category)}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                {category.name}
-              </span>
-              {isSelected ? (
-                <Check
-                  className="size-4 shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-
-      {filteredCategories.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No categories match.</p>
-      ) : null}
+      {sections.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {query ? "No categories match." : "No categories yet."}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {sections.map((section) => (
+            <section key={section.subGroup.id}>
+              <h3 className="px-0.5 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                {section.subGroup.name}
+              </h3>
+              <div className="mt-2 divide-y divide-border/70 border-y border-border/70">
+                {section.categories.map((category) => (
+                  <CategoryRow
+                    key={category.id}
+                    category={category}
+                    categoryId={categoryId}
+                    onSelect={onSelect}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
+  );
+}
+
+function CategoryRow({
+  category,
+  categoryId,
+  onSelect,
+}: {
+  category: CategoryDto;
+  categoryId: string;
+  onSelect: (categoryId: string) => void;
+}) {
+  const isSelected = category.id === categoryId;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(category.id)}
+      className="flex min-h-12 w-full items-center gap-3 py-3 text-left"
+    >
+      <span className="text-base" aria-hidden="true">
+        {getCategoryEmoji(category)}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+        {category.name}
+      </span>
+      {isSelected ? (
+        <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
+      ) : null}
+    </button>
   );
 }

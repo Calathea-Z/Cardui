@@ -94,12 +94,13 @@ export function useTransactionDetails({
   const categoriesRef = useRef(categories);
   const onSavedRef = useRef(onSaved);
 
-  formRef.current = form;
-  onSavedRef.current = onSaved;
-
   useEffect(() => {
     categoriesRef.current = categories;
   }, [categories]);
+
+  useEffect(() => {
+    onSavedRef.current = onSaved;
+  }, [onSaved]);
 
   useEffect(() => {
     return () => {

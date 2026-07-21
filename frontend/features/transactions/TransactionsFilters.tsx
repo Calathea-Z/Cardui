@@ -3,7 +3,7 @@
 import { CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { SheetSelect } from "@/components/ui/sheet-select";
 import type { AccountDto, CategoryDto } from "@/lib/api/types";
 import {
   STATUS_OPTIONS,
@@ -49,48 +49,43 @@ export function TransactionsFilters({
         ) : null}
       </div>
 
-      <Select
+      <SheetSelect
+        title="Account"
         value={query.accountId}
-        onChange={(event) => query.setAccountId(event.target.value)}
-        className="h-10 w-full"
-        aria-label="Filter by account"
-      >
-        <option value="">All accounts</option>
-        {accounts.map((account) => (
-          <option key={account.id} value={account.id}>
-            {account.name}
-          </option>
-        ))}
-      </Select>
+        onChange={query.setAccountId}
+        placeholder="All accounts"
+        options={[
+          { value: "", label: "All accounts" },
+          ...accounts.map((account) => ({
+            value: account.id,
+            label: account.name,
+          })),
+        ]}
+      />
 
-      <Select
+      <SheetSelect
+        title="Category"
         value={query.categoryId}
-        onChange={(event) => query.setCategoryId(event.target.value)}
-        className="h-10 w-full"
-        aria-label="Filter by category"
-      >
-        <option value="">All categories</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </Select>
+        onChange={query.setCategoryId}
+        placeholder="All categories"
+        options={[
+          { value: "", label: "All categories" },
+          ...categories.map((category) => ({
+            value: category.id,
+            label: category.name,
+          })),
+        ]}
+      />
 
-      <Select
+      <SheetSelect
+        title="Status"
         value={query.pendingFilter}
-        onChange={(event) =>
-          query.setPendingFilter(event.target.value as PendingFilter)
-        }
-        className="h-10 w-full"
-        aria-label="Filter by status"
-      >
-        {STATUS_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </Select>
+        onChange={(value) => query.setPendingFilter(value as PendingFilter)}
+        options={STATUS_OPTIONS.map((option) => ({
+          value: option.value,
+          label: option.label,
+        }))}
+      />
 
       {query.hasActiveFilters ? (
         <Button

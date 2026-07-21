@@ -5,8 +5,10 @@ import type {
   AccountSummaryDto,
   CategoryDto,
   DashboardSummaryDto,
+  GroupDto,
   PagedResultDto,
   PlaidItemDto,
+  SubGroupDto,
 } from "../types";
 
 export type SafeApiResult<T> = PageLoadState<T>;
@@ -69,6 +71,14 @@ export function emptyAccounts(): AccountDto[] {
 }
 
 export function emptyCategories(): CategoryDto[] {
+  return [];
+}
+
+export function emptyGroups(): GroupDto[] {
+  return [];
+}
+
+export function emptySubGroups(): SubGroupDto[] {
   return [];
 }
 

@@ -155,6 +155,8 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        await CategorizeUncategorizedForPlaidItemAsync(plaidItem.Id, cancellationToken);
+
         await _transferPairingService.PairOwnedAccountTransfersAsync(cancellationToken);
 
         return new SyncTransactionsResponseDto
@@ -245,7 +247,51 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         existingTransaction.Pending = plaidTransaction.Pending ?? false;
         existingTransaction.UpdatedAt = now;
 
+        if (existingTransaction.CategoryId is null)
+        {
+            existingTransaction.CategoryId = await _transactionCategorizationService
+                .GetCategoryIdForPlaidTransactionAsync(
+                    plaidTransaction,
+                    cancellationToken);
+        }
+
         return TransactionUpsertResult.Modified;
+    }
+
+    private async Task CategorizeUncategorizedForPlaidItemAsync(
+        Guid plaidItemId,
+        CancellationToken cancellationToken)
+    {
+        var uncategorized = await _dbContext.Transactions
+            .Where(x => x.CategoryId == null && x.Account.PlaidItemId == plaidItemId)
+            .ToListAsync(cancellationToken);
+
+        if (uncategorized.Count == 0)
+        {
+            return;
+        }
+
+        var now = _timeProvider.GetUtcNow();
+
+        foreach (var transaction in uncategorized)
+        {
+            var categoryId = await _transactionCategorizationService
+                .GetCategoryIdForStoredTransactionAsync(
+                    transaction.Name,
+                    transaction.MerchantName,
+                    transaction.Amount,
+                    cancellationToken);
+
+            if (!categoryId.HasValue)
+            {
+                continue;
+            }
+
+            transaction.CategoryId = categoryId;
+            transaction.UpdatedAt = now;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static void CountUpsert(

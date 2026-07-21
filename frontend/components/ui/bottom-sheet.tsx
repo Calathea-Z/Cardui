@@ -1,9 +1,25 @@
 "use client";
 
 import { ArrowLeft, X } from "lucide-react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+const SHEET_TRANSITION_MS = 320;
+
+let bodyScrollLockCount = 0;
+
+function lockBodyScroll() {
+  bodyScrollLockCount += 1;
+  document.body.style.overflow = "hidden";
+}
+
+function unlockBodyScroll() {
+  bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
+  if (bodyScrollLockCount === 0) {
+    document.body.style.overflow = "";
+  }
+}
 
 type BottomSheetProps = {
   open: boolean;
@@ -14,8 +30,13 @@ type BottomSheetProps = {
   overlayClassName?: string;
   /** When false, Escape does not close this sheet (use for sheets under a stacked sheet). */
   closeOnEscape?: boolean;
-  /** `back` shows a left arrow and centered title; `close` shows an X on the right. */
-  headerAction?: "close" | "back";
+  /**
+   * `back` — left arrow, centered title.
+   * `close` — title left, X right.
+   * `close-leading` — X left, centered title, optional trailing action.
+   */
+  headerAction?: "close" | "back" | "close-leading";
+  headerTrailing?: React.ReactNode;
 };
 
 export function BottomSheet({
@@ -27,19 +48,37 @@ export function BottomSheet({
   overlayClassName,
   closeOnEscape = true,
   headerAction = "close",
+  headerTrailing,
 }: BottomSheetProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [present, setPresent] = useState(open);
+
+  if (open && !present) {
+    setPresent(true);
+  }
 
   useEffect(() => {
-    if (!open) {
+    if (open || !present) {
       return;
     }
 
-    document.body.style.overflow = "hidden";
+    const timeout = window.setTimeout(() => {
+      setPresent(false);
+    }, SHEET_TRANSITION_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [open, present]);
+
+  useEffect(() => {
+    if (!present) {
+      return;
+    }
+
+    lockBodyScroll();
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && closeOnEscape) {
+      if (event.key === "Escape" && closeOnEscape && open) {
         onClose();
       }
     }
@@ -47,18 +86,18 @@ export function BottomSheet({
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = "";
+      unlockBodyScroll();
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onClose, closeOnEscape]);
+  }, [present, open, onClose, closeOnEscape]);
 
   useEffect(() => {
-    if (open) {
+    if (open && present) {
       panelRef.current?.focus();
     }
-  }, [open]);
+  }, [open, present]);
 
-  if (!open) {
+  if (!present) {
     return null;
   }
 
@@ -67,7 +106,11 @@ export function BottomSheet({
       <button
         type="button"
         aria-label="Close"
-        className="absolute inset-0 bg-black/50"
+        tabIndex={open ? 0 : -1}
+        className={cn(
+          "absolute inset-0 bg-black/50 motion-reduce:animate-none",
+          open ? "animate-sheet-overlay-in" : "animate-sheet-overlay-out",
+        )}
         onClick={onClose}
       />
 
@@ -80,6 +123,8 @@ export function BottomSheet({
         className={cn(
           "absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-2xl border border-border bg-background shadow-2xl outline-none",
           "pb-[max(1rem,env(safe-area-inset-bottom))]",
+          "motion-reduce:animate-none",
+          open ? "animate-sheet-in" : "animate-sheet-out",
           className,
         )}
       >
@@ -102,6 +147,26 @@ export function BottomSheet({
               {title}
             </h2>
             <span aria-hidden="true" />
+          </div>
+        ) : headerAction === "close-leading" ? (
+          <div className="app-panel-header grid grid-cols-[minmax(4.5rem,auto)_1fr_minmax(4.5rem,auto)] items-center gap-2 px-2 py-3 sm:px-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              aria-label="Close"
+              onClick={onClose}
+              className="justify-self-start"
+            >
+              <X className="size-5" />
+            </Button>
+            <h2
+              id={titleId}
+              className="truncate text-center text-lg font-semibold text-foreground"
+            >
+              {title}
+            </h2>
+            <div className="flex justify-end">{headerTrailing}</div>
           </div>
         ) : (
           <div className="app-panel-header flex items-center justify-between gap-4 px-4 py-4">

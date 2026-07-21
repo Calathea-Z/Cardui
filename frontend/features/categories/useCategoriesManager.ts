@@ -7,12 +7,16 @@ import {
   updateCategory,
 } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
-import type { CategoryDto } from "@/lib/api/types";
+import type { CategoryDto, SubGroupDto } from "@/lib/api/types";
 import { emptyCategoryForm, type CategoryFormState } from "@/lib/categoryForm";
 import { sortCategoriesByName } from "./categorySort";
 
-export function useCategoriesManager(initialCategories: CategoryDto[]) {
+export function useCategoriesManager(
+  initialCategories: CategoryDto[],
+  initialSubGroups: SubGroupDto[],
+) {
   const [categories, setCategories] = useState(initialCategories);
+  const [subGroups] = useState(initialSubGroups);
   const [form, setForm] = useState<CategoryFormState>(emptyCategoryForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +34,11 @@ export function useCategoriesManager(initialCategories: CategoryDto[]) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (!form.subGroupId || !form.name.trim()) {
+      setError("Name and sub-group are required.");
+      return;
+    }
+
     setError(null);
     setIsSaving(true);
 
@@ -39,7 +48,7 @@ export function useCategoriesManager(initialCategories: CategoryDto[]) {
           name: form.name,
           color: form.color || null,
           icon: form.icon || null,
-          subGroupId: form.subGroupId || editingCategory?.subGroupId || "",
+          subGroupId: form.subGroupId,
         });
 
         setCategories((current) =>
@@ -118,6 +127,7 @@ export function useCategoriesManager(initialCategories: CategoryDto[]) {
     form,
     setForm,
     sortedCategories,
+    subGroups,
     editingCategory,
     error,
     isSaving,

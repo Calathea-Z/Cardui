@@ -1,22 +1,29 @@
 import { EmptyState } from "@/components/ui/empty-state";
-import type { CategoryDto } from "@/lib/api/types";
+import type { CategoryDto, SubGroupDto } from "@/lib/api/types";
 import { CategoryRow } from "./CategoryRow";
 
 type CategoryListProps = {
   categories: CategoryDto[];
+  subGroups: SubGroupDto[];
   onEdit: (category: CategoryDto) => void;
   onDelete: (category: CategoryDto) => void;
 };
 
 export function CategoryList({
   categories,
+  subGroups,
   onEdit,
   onDelete,
 }: CategoryListProps) {
+  const subGroupNameById = new Map(
+    subGroups.map((subGroup) => [subGroup.id, subGroup.name]),
+  );
+
   return (
     <div className="app-panel overflow-hidden">
-      <div className="grid grid-cols-[1fr_120px_160px] gap-4 border-b border-border px-4 py-3 text-sm font-medium text-muted-foreground">
+      <div className="grid grid-cols-[1fr_140px_120px_160px] gap-4 border-b border-border px-4 py-3 text-sm font-medium text-muted-foreground">
         <span>Name</span>
+        <span>Sub-group</span>
         <span>Type</span>
         <span className="text-right">Actions</span>
       </div>
@@ -26,6 +33,7 @@ export function CategoryList({
           <CategoryRow
             key={category.id}
             category={category}
+            subGroupName={subGroupNameById.get(category.subGroupId) ?? "—"}
             onEdit={onEdit}
             onDelete={onDelete}
           />

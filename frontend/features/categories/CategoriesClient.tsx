@@ -1,19 +1,26 @@
 "use client";
 
-import type { CategoryDto } from "@/lib/api/types";
+import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import { CategoryForm } from "./CategoryForm";
 import { CategoryList } from "./CategoryList";
 import { useCategoriesManager } from "./useCategoriesManager";
 
 type CategoriesClientProps = {
   initialCategories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
 };
 
-export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
+export function CategoriesClient({
+  initialCategories,
+  groups,
+  subGroups: initialSubGroups,
+}: CategoriesClientProps) {
   const {
     form,
     setForm,
     sortedCategories,
+    subGroups,
     editingCategory,
     error,
     isSaving,
@@ -21,7 +28,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
     startEditing,
     cancelEditing,
     handleDelete,
-  } = useCategoriesManager(initialCategories);
+  } = useCategoriesManager(initialCategories, initialSubGroups);
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
@@ -39,6 +46,8 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
           form={form}
           onFormChange={setForm}
           editingCategory={editingCategory}
+          groups={groups}
+          subGroups={subGroups}
           error={error}
           isSaving={isSaving}
           onSubmit={handleSubmit}
@@ -47,6 +56,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
 
         <CategoryList
           categories={sortedCategories}
+          subGroups={subGroups}
           onEdit={startEditing}
           onDelete={handleDelete}
         />

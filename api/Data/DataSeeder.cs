@@ -52,7 +52,7 @@ public static class DataSeeder
             [SystemCategoryKeys.BillsUtilities] = ("#6366f1", "🧾"),
             [SystemCategoryKeys.Shopping] = ("#ec4899", "🛍️"),
             [SystemCategoryKeys.TravelLifestyle] = ("#a855f7", "🎬"),
-            [SystemCategoryKeys.Other] = ("#71717a", "❔"),
+            [SystemCategoryKeys.Other] = ("#71717a", "📦"),
         };
 
         foreach (var (group, name, sortOrder) in subGroupDefs)

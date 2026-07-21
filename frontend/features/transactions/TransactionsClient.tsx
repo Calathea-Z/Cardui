@@ -8,7 +8,9 @@ import { Pagination } from "@/components/ui/pagination";
 import type {
   AccountDto,
   CategoryDto,
+  GroupDto,
   PagedResultDto,
+  SubGroupDto,
   TransactionDto,
 } from "@/lib/api/types";
 import { TransactionDateGroup } from "./TransactionDateGroup";
@@ -21,6 +23,8 @@ import { useTransactionsQueryState } from "./useTransactionsQueryState";
 type TransactionsClientProps = {
   initialTransactionsPage: PagedResultDto<TransactionDto>;
   categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
   accounts: AccountDto[];
   pageSize: number;
 };
@@ -28,6 +32,8 @@ type TransactionsClientProps = {
 export function TransactionsClient({
   initialTransactionsPage,
   categories: initialCategories,
+  groups: initialGroups,
+  subGroups: initialSubGroups,
   accounts,
   pageSize,
 }: TransactionsClientProps) {
@@ -49,6 +55,8 @@ export function TransactionsClient({
   });
 
   const [categories, setCategories] = useState(initialCategories);
+  const [groups] = useState(initialGroups);
+  const [subGroups] = useState(initialSubGroups);
   const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionDto | null>(null);
 
@@ -86,7 +94,7 @@ export function TransactionsClient({
           <Alert variant="panel">{errorMessage}</Alert>
         ) : null}
 
-        <div className="app-panel overflow-hidden">
+        <div className="app-panel !overflow-visible">
           <div>
             {transactionsByDate.map((group) => (
               <TransactionDateGroup
@@ -128,6 +136,8 @@ export function TransactionsClient({
       <TransactionDetailDrawer
         transaction={selectedTransaction}
         categories={categories}
+        groups={groups}
+        subGroups={subGroups}
         onClose={() => setSelectedTransaction(null)}
         onSaved={handleSaved}
         onCategoryCreated={handleCategoryCreated}

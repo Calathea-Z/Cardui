@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import type { CategoryDto, TransactionDto } from "@/lib/api/types";
+import type {
+  CategoryDto,
+  GroupDto,
+  SubGroupDto,
+  TransactionDto,
+} from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import {
   getTransactionAmountDisplay,
@@ -18,6 +23,8 @@ import { useTransactionDetails } from "./useTransactionDetails";
 type TransactionDetailDrawerProps = {
   transaction: TransactionDto | null;
   categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
   onClose: () => void;
   onSaved: (transaction: TransactionDto) => void;
   onCategoryCreated: (category: CategoryDto) => void;
@@ -35,12 +42,16 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
 function TransactionDetailDrawerContent({
   transaction,
   categories,
+  groups,
+  subGroups,
   onSaved,
   onCategoryCreated,
   onCategoryPickerOpenChange,
 }: {
   transaction: TransactionDto;
   categories: CategoryDto[];
+  groups: GroupDto[];
+  subGroups: SubGroupDto[];
   onSaved: (transaction: TransactionDto) => void;
   onCategoryCreated: (category: CategoryDto) => void;
   onCategoryPickerOpenChange: (open: boolean) => void;
@@ -61,7 +72,10 @@ function TransactionDetailDrawerContent({
   });
 
   const flushPendingSaveRef = useRef(flushPendingSave);
-  flushPendingSaveRef.current = flushPendingSave;
+
+  useEffect(() => {
+    flushPendingSaveRef.current = flushPendingSave;
+  }, [flushPendingSave]);
 
   useEffect(() => {
     return () => {
@@ -103,6 +117,8 @@ function TransactionDetailDrawerContent({
       <div className="divide-y divide-border/70 border-y border-border/70">
         <TransactionCategorySelect
           categories={categories}
+          groups={groups}
+          subGroups={subGroups}
           categoryId={form.categoryId}
           onCategoryIdChange={setCategoryId}
           onCategoryCreated={handleCategoryCreated}
@@ -133,34 +149,45 @@ function TransactionDetailDrawerContent({
 export function TransactionDetailDrawer({
   transaction,
   categories,
+  groups,
+  subGroups,
   onClose,
   onSaved,
   onCategoryCreated,
 }: TransactionDetailDrawerProps) {
   const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
-  const title = transaction
-    ? transaction.merchantName || transaction.name
+  const [displayedTransaction, setDisplayedTransaction] = useState(transaction);
+
+  if (transaction !== null && transaction !== displayedTransaction) {
+    setDisplayedTransaction(transaction);
+  }
+
+  const activeTransaction = transaction ?? displayedTransaction;
+  const title = activeTransaction
+    ? activeTransaction.merchantName || activeTransaction.name
     : "Transaction";
 
-  useEffect(() => {
-    if (transaction === null) {
-      setIsCategoryPickerOpen(false);
-    }
-  }, [transaction]);
+  function handleClose() {
+    setIsCategoryPickerOpen(false);
+    onClose();
+  }
 
   return (
     <BottomSheet
       open={transaction !== null}
-      onClose={onClose}
+      onClose={handleClose}
       title={title}
       headerAction="back"
       closeOnEscape={!isCategoryPickerOpen}
       className={FULL_SCREEN_SHEET_CLASSNAME}
     >
-      {transaction ? (
+      {activeTransaction ? (
         <TransactionDetailDrawerContent
-          transaction={transaction}
+          key={activeTransaction.id}
+          transaction={activeTransaction}
           categories={categories}
+          groups={groups}
+          subGroups={subGroups}
           onSaved={onSaved}
           onCategoryCreated={onCategoryCreated}
           onCategoryPickerOpenChange={setIsCategoryPickerOpen}

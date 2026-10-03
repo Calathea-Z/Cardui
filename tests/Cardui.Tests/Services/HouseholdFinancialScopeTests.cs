@@ -74,6 +74,74 @@ public class HouseholdFinancialScopeTests
     }
 
     [Fact]
+    public async Task FinancialReads_LinkedAccountsFollowThePlaidItem()
+    {
+        await using var dbContext = CreateDbContext();
+        var itemId = Guid.NewGuid();
+        var accountId = Guid.NewGuid();
+        dbContext.PlaidItems.Add(CreateItem(itemId, HouseholdA, "item-a"));
+        var account = CreateAccount(accountId, itemId, "checking", 40m);
+        account.HouseholdId = HouseholdB;
+        dbContext.Accounts.Add(account);
+        await dbContext.SaveChangesAsync();
+
+        var listed = await new AccountsService(
+            dbContext,
+            TimeProvider.System,
+            Bind(HouseholdA)).GetAccountsAsync();
+        var other = await new AccountsService(
+            dbContext,
+            TimeProvider.System,
+            Bind(HouseholdB)).GetAccountsAsync();
+
+        Assert.Equal(accountId, Assert.Single(listed).Id);
+        Assert.Empty(other);
+    }
+
+    [Fact]
+    public async Task FinancialReads_IncludeAccountsWithNoPlaidLink()
+    {
+        await using var dbContext = CreateDbContext();
+        var accountA = Guid.NewGuid();
+        var accountB = Guid.NewGuid();
+        var looseAccountId = Guid.NewGuid();
+        var transactionA = Guid.NewGuid();
+
+        dbContext.Accounts.AddRange(
+            CreateUnlinkedAccount(accountA, HouseholdA, "Cash"),
+            CreateUnlinkedAccount(accountB, HouseholdB, "Other cash"),
+            CreateUnlinkedAccount(looseAccountId, null, "Loose cash"));
+        dbContext.Transactions.Add(new Transaction
+        {
+            Id = transactionA,
+            AccountId = accountA,
+            PlaidTransactionId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.ManualEntry,
+            Date = new DateOnly(2026, 10, 2),
+            Name = "Cash deposit",
+            Amount = 20m,
+            Pending = false,
+            CreatedAt = Now,
+            UpdatedAt = Now
+        });
+        await dbContext.SaveChangesAsync();
+
+        var scope = Bind(HouseholdA);
+        var accounts = new AccountsService(dbContext, TimeProvider.System, scope);
+        var transactions = new TransactionsService(dbContext, TimeProvider.System, scope);
+
+        var listed = await accounts.GetAccountsAsync();
+        var transaction = await transactions.GetTransactionByIdAsync(transactionA);
+
+        Assert.Equal(accountA, Assert.Single(listed).Id);
+        Assert.Equal(transactionA, transaction.Id);
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            new TransactionsService(dbContext, TimeProvider.System, Bind(HouseholdB))
+                .GetTransactionByIdAsync(transactionA));
+    }
+
+    [Fact]
     public async Task GetPlaidItems_HidesOtherHouseholdsAndUnassignedItems()
     {
         await using var dbContext = CreateDbContext();
@@ -315,6 +383,25 @@ public class HouseholdFinancialScopeTests
             HouseholdId = householdId,
             PlaidItemId = plaidItemId,
             AccessToken = "not-a-real-token",
+            CreatedAt = Now,
+            UpdatedAt = Now
+        };
+    }
+
+    private static Account CreateUnlinkedAccount(Guid id, Guid? householdId, string name)
+    {
+        return new Account
+        {
+            Id = id,
+            HouseholdId = householdId,
+            PlaidItemId = null,
+            PlaidAccountId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.ManualEntry,
+            Name = name,
+            Type = AccountTypes.Depository,
+            CurrentBalance = 20m,
+            IsActive = true,
             CreatedAt = Now,
             UpdatedAt = Now
         };

@@ -4,10 +4,16 @@ public class Account
 {
     public Guid Id { get; init; }
 
-    public Guid PlaidItemId { get; init; }
-    public PlaidItem PlaidItem { get; init; } = null!;
+    public Guid? HouseholdId { get; set; }
 
-    public required string PlaidAccountId { get; init; }
+    public Guid? PlaidItemId { get; set; }
+    public PlaidItem? PlaidItem { get; set; }
+
+    public string? PlaidAccountId { get; set; }
+
+    public string Source { get; set; } = FinancialRecordSource.Plaid;
+
+    public string Provenance { get; set; } = FinancialRecordProvenance.PlaidSync;
 
     public required string Name { get; set; }
     public string? OfficialName { get; set; }

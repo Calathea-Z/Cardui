@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-03 — Accounts and transactions independent of Plaid](2026-10-03-011-independent-financial-records.md)
 - [2026-10-03 — Assign existing rows to the household](2026-10-03-010-assign-household-rows.md)
 - [2026-10-03 — Household scope for API reads and writes](2026-10-03-009-household-scope.md)
 - [2026-10-03 — Clerk sign-in and household owner](2026-10-03-008-clerk-household-owner.md)

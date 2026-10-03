@@ -57,6 +57,7 @@ public class PlaidItemConfiguration : IEntityTypeConfiguration<PlaidItem>
         entity.HasMany(x => x.Accounts)
             .WithOne(x => x.PlaidItem)
             .HasForeignKey(x => x.PlaidItemId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

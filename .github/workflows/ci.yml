@@ -30,8 +30,24 @@ jobs:
       - name: Test
         run: dotnet test ./Cardui.sln --configuration Release
 
+  worker:
+    name: Worker build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build ./worker/worker.csproj --configuration Release
+
   frontend:
-    name: Frontend tests and lint
+    name: Frontend tests, lint, and build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -61,3 +77,10 @@ jobs:
       - name: Lint
         working-directory: frontend
         run: pnpm lint
+
+      - name: Build
+        working-directory: frontend
+        env:
+          API_BASE_URL: http://localhost:5235
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:5235
+        run: pnpm build

@@ -128,6 +128,7 @@ deployment scheduling notes.
 
 ```powershell
 dotnet test .\Cardui.sln --no-restore
+dotnet build .\worker\worker.csproj --configuration Release
 ```
 
 ```powershell
@@ -148,10 +149,14 @@ the .NET SDK pinned in `global.json`, Node.js 22, and the pnpm version pinned in
 `frontend/package.json`.
 
 - API tests: `dotnet test ./Cardui.sln --configuration Release`
-- Frontend: `pnpm test` and `pnpm lint` from `frontend/` after
+- Worker build: `dotnet build ./worker/worker.csproj --configuration Release`
+- Frontend: `pnpm test`, `pnpm lint`, and `pnpm build` from `frontend/` after
   `pnpm install --frozen-lockfile`
 
-The workflow does not start PostgreSQL, apply migrations, or run `pnpm build`.
+The frontend production build sets `API_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL`
+to `http://localhost:5235`. Those are the same non-sensitive local URLs used in
+development, so the server API client can compile. This workflow does not deploy
+that build. It does not start PostgreSQL or apply migrations.
 
 ## Stop local services
 

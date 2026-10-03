@@ -28,19 +28,14 @@ remain later work.
 - `pnpm lint` in `frontend/`: completed with no reported problems.
 - `git diff --check`: passed.
 
-These commands ran on the local Windows machine. GitHub has not executed the
-workflow, because this branch is still local and uncommitted.
+These commands ran on the local Windows machine. The branch was then pushed to
+`origin/feature/ci-tests-and-lint`.
 
 ## Manual verification
 
-Awaiting Zach. No application or database data changed.
-
-- [ ] Read `.github/workflows/ci.yml` and the Continuous integration section in
-      `README.md`.
-- [ ] Confirm the workflow should stay limited to API tests, frontend tests,
-      and frontend lint.
-- [ ] After this branch is pushed, confirm both GitHub Actions jobs pass on
-      Ubuntu.
+Zach reported on October 3, 2026 that the GitHub Actions tests ran and
+succeeded. He approved this increment. No application or database data changed.
+This session did not read the Actions logs.
 
 ## Remaining considerations
 

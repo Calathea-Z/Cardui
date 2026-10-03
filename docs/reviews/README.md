@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-03 — Assign existing rows to the household](2026-10-03-010-assign-household-rows.md)
 - [2026-10-03 — Household scope for API reads and writes](2026-10-03-009-household-scope.md)
 - [2026-10-03 — Clerk sign-in and household owner](2026-10-03-008-clerk-household-owner.md)
 - [2026-10-03 — Phase 1 sign-in decision](2026-10-03-007-phase-1-sign-in-decision.md)

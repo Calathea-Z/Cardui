@@ -121,7 +121,7 @@ Key implementation anchors:
 
 **Exit:** two test households cannot access each other's records through any ID or aggregate endpoint; existing data remains intact; a new person can use the app without connecting a bank.
 
-**Status (October 3, 2026):** Sign-in is locked to Clerk Hobby. The frontend requires a signed-in Clerk user, and the API can verify that session token and create one household per owner. Contributors remain household facts, without partner invitations. Existing financial endpoints are still unscoped, and existing rows are not assigned to an owner. `AddHouseholdOwner` is in the API project. Multifactor authentication, passkeys, a configurable session lifetime, and removal of Clerk branding wait until a Pro upgrade. See `docs/reviews/2026-10-03-007-phase-1-sign-in-decision.md` and `docs/reviews/2026-10-03-008-clerk-household-owner.md`.
+**Status (October 3, 2026):** Sign-in is locked to Clerk Hobby. The frontend requires a signed-in Clerk user, and the API verifies that session token, creates one household per owner, and scopes financial reads and writes to that household. Contributors remain household facts, without partner invitations. Existing financial rows are still unassigned, so they are hidden until the backfill. `AddHouseholdOwner` and `ScopeHouseholdData` are in the API project. Multifactor authentication, passkeys, a configurable session lifetime, and removal of Clerk branding wait until a Pro upgrade. See `docs/reviews/2026-10-03-007-phase-1-sign-in-decision.md`, `docs/reviews/2026-10-03-008-clerk-household-owner.md`, and `docs/reviews/2026-10-03-009-household-scope.md`.
 
 ### Phase 2 — Financial inventory and real budgeting
 

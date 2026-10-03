@@ -1,6 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,17 +15,20 @@ public class TransferPairingService : ITransferPairingService
     private readonly CarduiDBContext _dbContext;
     private readonly ITransactionCategorizationService _categorizationService;
     private readonly TimeProvider _timeProvider;
+    private readonly HouseholdScope _householdScope;
     private readonly ILogger<TransferPairingService> _logger;
 
     public TransferPairingService(
         CarduiDBContext dbContext,
         ITransactionCategorizationService categorizationService,
         TimeProvider timeProvider,
+        HouseholdScope householdScope,
         ILogger<TransferPairingService> logger)
     {
         _dbContext = dbContext;
         _categorizationService = categorizationService;
         _timeProvider = timeProvider;
+        _householdScope = householdScope;
         _logger = logger;
     }
 
@@ -52,6 +56,7 @@ public class TransferPairingService : ITransferPairingService
 
         var eligibleAccountIds = await _dbContext.Accounts
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .Where(x =>
                 x.IsActive
                 && (x.Type == AccountTypes.Depository || x.Type == AccountTypes.Investment))
@@ -67,6 +72,7 @@ public class TransferPairingService : ITransferPairingService
         var windowStart = today.AddDays(-LookbackDays);
 
         var candidates = await _dbContext.Transactions
+            .InHousehold(_householdScope)
             .Include(x => x.Category)
             .Where(x =>
                 eligibleAccountIds.Contains(x.AccountId)

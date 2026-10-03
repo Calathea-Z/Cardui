@@ -4,6 +4,7 @@ using Cardui.Api.Dtos.Category;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,16 @@ public class CategoriesService : ICategoriesService
 {
     private readonly CarduiDBContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly HouseholdScope _householdScope;
 
-    public CategoriesService(CarduiDBContext dbContext, TimeProvider timeProvider)
+    public CategoriesService(
+        CarduiDBContext dbContext,
+        TimeProvider timeProvider,
+        HouseholdScope householdScope)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _householdScope = householdScope;
     }
 
     public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync(
@@ -25,6 +31,7 @@ public class CategoriesService : ICategoriesService
     {
         return await _dbContext.Categories
             .AsNoTracking()
+            .VisibleToHousehold(_householdScope)
             .OrderBy(x => x.Name)
             .Select(CategoryDtoMapper.Projection)
             .ToListAsync(cancellationToken);
@@ -79,6 +86,7 @@ public class CategoriesService : ICategoriesService
             Color = createCategoryDto.Color,
             Icon = createCategoryDto.Icon,
             IsSystem = false,
+            HouseholdId = _householdScope.RequireHouseholdId(),
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -95,6 +103,7 @@ public class CategoriesService : ICategoriesService
         CancellationToken cancellationToken = default)
     {
         var category = await _dbContext.Categories
+            .VisibleToHousehold(_householdScope)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (category is null)
@@ -135,6 +144,7 @@ public class CategoriesService : ICategoriesService
         CancellationToken cancellationToken = default)
     {
         var category = await _dbContext.Categories
+            .VisibleToHousehold(_householdScope)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (category is null)
@@ -150,6 +160,7 @@ public class CategoriesService : ICategoriesService
         var now = _timeProvider.GetUtcNow();
 
         var transactions = await _dbContext.Transactions
+            .InHousehold(_householdScope)
             .Where(x => x.CategoryId == id)
             .ToListAsync(cancellationToken);
 
@@ -169,6 +180,7 @@ public class CategoriesService : ICategoriesService
         CancellationToken cancellationToken)
     {
         var subGroupExists = await _dbContext.SubGroups
+            .VisibleToHousehold(_householdScope)
             .AnyAsync(x => x.Id == subGroupId, cancellationToken);
 
         if (!subGroupExists)
@@ -183,6 +195,7 @@ public class CategoriesService : ICategoriesService
     {
         var category = await _dbContext.Categories
             .AsNoTracking()
+            .VisibleToHousehold(_householdScope)
             .Where(x => x.Id == id)
             .Select(CategoryDtoMapper.Projection)
             .FirstOrDefaultAsync(cancellationToken);

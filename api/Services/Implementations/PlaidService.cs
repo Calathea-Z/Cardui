@@ -24,6 +24,7 @@ public class PlaidService : IPlaidService
     private readonly IPlaidAccountSyncService _accountSyncService;
     private readonly IPlaidTransactionSyncService _transactionSyncService;
     private readonly IPlaidAccessTokenProtector _accessTokenProtector;
+    private readonly HouseholdScope _householdScope;
     private readonly ILogger<PlaidService> _logger;
     private readonly TimeProvider _timeProvider;
 
@@ -35,6 +36,7 @@ public class PlaidService : IPlaidService
         IPlaidAccountSyncService accountSyncService,
         IPlaidTransactionSyncService transactionSyncService,
         IPlaidAccessTokenProtector accessTokenProtector,
+        HouseholdScope householdScope,
         ILogger<PlaidService> logger,
         TimeProvider timeProvider)
     {
@@ -45,6 +47,7 @@ public class PlaidService : IPlaidService
         _accountSyncService = accountSyncService;
         _transactionSyncService = transactionSyncService;
         _accessTokenProtector = accessTokenProtector;
+        _householdScope = householdScope;
         _logger = logger;
         _timeProvider = timeProvider;
     }
@@ -68,7 +71,7 @@ public class PlaidService : IPlaidService
             },
             User = new LinkTokenCreateRequestUser
             {
-                ClientUserId = _plaidOptions.DefaultClientUserId
+                ClientUserId = _householdScope.RequireHouseholdId().ToString("D")
             }
         });
 
@@ -100,6 +103,7 @@ public class PlaidService : IPlaidService
         var plaidItem = new PlaidItem
         {
             Id = Guid.NewGuid(),
+            HouseholdId = _householdScope.RequireHouseholdId(),
             PlaidItemId = response.ItemId,
             AccessToken = _accessTokenProtector.Protect(response.AccessToken),
             InstitutionId = dto.InstitutionId,
@@ -159,6 +163,7 @@ public class PlaidService : IPlaidService
     {
         return await _dbContext.PlaidItems
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .OrderBy(x => x.InstitutionName)
             .Select(x => new PlaidItemDto
             {
@@ -236,6 +241,7 @@ public class PlaidService : IPlaidService
         CancellationToken cancellationToken = default)
     {
         var plaidItem = await _dbContext.PlaidItems
+            .InHousehold(_householdScope)
             .FirstOrDefaultAsync(x => x.Id == plaidItemId, cancellationToken);
 
         return plaidItem ?? throw new NotFoundException($"Plaid item '{plaidItemId}' was not found.");

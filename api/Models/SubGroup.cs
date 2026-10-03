@@ -4,6 +4,8 @@ public class SubGroup
 {
     public Guid Id { get; init; }
 
+    public Guid? HouseholdId { get; init; }
+
     public Guid GroupId { get; set; }
     public Group Group { get; init; } = null!;
 

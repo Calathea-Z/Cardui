@@ -1,5 +1,6 @@
 using Cardui.Api.Options;
 using Cardui.Api.Security;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Cardui.Api.Configuration;
 
@@ -22,7 +23,12 @@ public static class ClerkAuthenticationExtensions
             .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, ClerkAuthenticationHandler>(
                 ClerkAuthenticationDefaults.Scheme,
                 _ => { });
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
 
         return services;
     }

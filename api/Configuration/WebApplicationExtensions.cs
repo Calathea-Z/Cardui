@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Middleware;
 
 namespace Cardui.Api.Configuration;
 
@@ -13,7 +14,7 @@ public static class WebApplicationExtensions
             var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
             await DataSeeder.SeedAsync(dbContext, timeProvider);
 
-            app.MapOpenApi();
+            app.MapOpenApi().AllowAnonymous();
         }
 
         app.UseHttpsRedirection();
@@ -21,7 +22,9 @@ public static class WebApplicationExtensions
         app.UseCors(CorsPolicyNames.Frontend);
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
+        app.UseMiddleware<HouseholdScopeMiddleware>();
+        app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }))
+            .AllowAnonymous();
         app.MapControllers();
     }
 }

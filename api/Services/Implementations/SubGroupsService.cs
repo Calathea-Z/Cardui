@@ -4,6 +4,7 @@ using Cardui.Api.Dtos.SubGroup;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,18 +14,25 @@ public class SubGroupsService : ISubGroupsService
 {
     private readonly CarduiDBContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly HouseholdScope _householdScope;
 
-    public SubGroupsService(CarduiDBContext dbContext, TimeProvider timeProvider)
+    public SubGroupsService(
+        CarduiDBContext dbContext,
+        TimeProvider timeProvider,
+        HouseholdScope householdScope)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _householdScope = householdScope;
     }
 
     public async Task<IReadOnlyList<SubGroupDto>> GetSubGroupsAsync(
         Guid? groupId = null,
         CancellationToken cancellationToken = default)
     {
-        var query = _dbContext.SubGroups.AsNoTracking();
+        var query = _dbContext.SubGroups
+            .AsNoTracking()
+            .VisibleToHousehold(_householdScope);
 
         if (groupId.HasValue)
         {
@@ -93,6 +101,7 @@ public class SubGroupsService : ISubGroupsService
             Key = key,
             Name = name,
             IsSystem = false,
+            HouseholdId = _householdScope.RequireHouseholdId(),
             SortOrder = maxSortOrder + 1,
             CreatedAt = now,
             UpdatedAt = now
@@ -110,6 +119,7 @@ public class SubGroupsService : ISubGroupsService
         CancellationToken cancellationToken = default)
     {
         var subGroup = await _dbContext.SubGroups
+            .VisibleToHousehold(_householdScope)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (subGroup is null)
@@ -153,6 +163,7 @@ public class SubGroupsService : ISubGroupsService
         CancellationToken cancellationToken = default)
     {
         var subGroup = await _dbContext.SubGroups
+            .VisibleToHousehold(_householdScope)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (subGroup is null)
@@ -184,6 +195,7 @@ public class SubGroupsService : ISubGroupsService
     {
         var subGroup = await _dbContext.SubGroups
             .AsNoTracking()
+            .VisibleToHousehold(_householdScope)
             .Where(x => x.Id == id)
             .Select(SubGroupDtoMapper.Projection)
             .FirstOrDefaultAsync(cancellationToken);

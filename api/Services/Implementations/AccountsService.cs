@@ -1,6 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Account;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,11 +11,16 @@ public class AccountsService : IAccountsService
 {
     private readonly CarduiDBContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly HouseholdScope _householdScope;
 
-    public AccountsService(CarduiDBContext dbContext, TimeProvider timeProvider)
+    public AccountsService(
+        CarduiDBContext dbContext,
+        TimeProvider timeProvider,
+        HouseholdScope householdScope)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _householdScope = householdScope;
     }
 
     public async Task<IReadOnlyList<AccountDto>> GetAccountsAsync(
@@ -22,6 +28,7 @@ public class AccountsService : IAccountsService
     {
         return await _dbContext.Accounts
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .OrderBy(x => x.Name)
             .Select(x => new AccountDto
             {
@@ -45,6 +52,7 @@ public class AccountsService : IAccountsService
     {
         var accounts = await _dbContext.Accounts
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .Where(x => x.IsActive)
             .OrderBy(x => x.Name)
             .Select(x => new AccountDto
@@ -126,6 +134,7 @@ public class AccountsService : IAccountsService
         var today = FinancialDate.Today(_timeProvider);
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .Include(x => x.Account)
             .Where(x => x.Account.IsActive && x.Date <= today)
             .OrderBy(x => x.Date)

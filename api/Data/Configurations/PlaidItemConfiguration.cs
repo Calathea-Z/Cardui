@@ -47,6 +47,13 @@ public class PlaidItemConfiguration : IEntityTypeConfiguration<PlaidItem>
         entity.HasIndex(x => x.PlaidItemId)
             .IsUnique();
 
+        entity.HasIndex(x => x.HouseholdId);
+
+        entity.HasOne<Household>()
+            .WithMany()
+            .HasForeignKey(x => x.HouseholdId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         entity.HasMany(x => x.Accounts)
             .WithOne(x => x.PlaidItem)
             .HasForeignKey(x => x.PlaidItemId)

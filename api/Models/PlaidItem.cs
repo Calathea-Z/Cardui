@@ -4,6 +4,8 @@ public class PlaidItem
 {
     public Guid Id { get; init; }
 
+    public Guid? HouseholdId { get; init; }
+
     public required string PlaidItemId { get; init; }
     public required string AccessToken { get; init; }
 

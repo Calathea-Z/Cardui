@@ -1,5 +1,6 @@
 using Cardui.Api.Configuration;
 using Cardui.Api.Data;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,16 +20,17 @@ var logger = scope.ServiceProvider
     .GetRequiredService<ILoggerFactory>()
     .CreateLogger("PlaidDailySyncWorker");
 var dbContext = scope.ServiceProvider.GetRequiredService<CarduiDBContext>();
+var householdScope = scope.ServiceProvider.GetRequiredService<HouseholdScope>();
 
-var plaidItemIds = await dbContext.PlaidItems
+var plaidItems = await dbContext.PlaidItems
     .AsNoTracking()
     .OrderBy(x => x.InstitutionName)
-    .Select(x => x.Id)
+    .Select(x => new { x.Id, x.HouseholdId })
     .ToListAsync();
 
-logger.LogInformation("Starting daily Plaid sync for {Count} item(s).", plaidItemIds.Count);
+logger.LogInformation("Starting daily Plaid sync for {Count} item(s).", plaidItems.Count);
 
-if (plaidItemIds.Count == 0)
+if (plaidItems.Count == 0)
 {
     logger.LogInformation("No connected Plaid items found. Daily sync finished.");
     return;
@@ -39,10 +41,20 @@ var successCount = 0;
 var failureCount = 0;
 var cancellationToken = CancellationToken.None;
 
-foreach (var plaidItemId in plaidItemIds)
+foreach (var plaidItem in plaidItems)
+{
+    if (plaidItem.HouseholdId is Guid householdId)
+    {
+        householdScope.Bind(householdId);
+    }
+    else
+    {
+        householdScope.BindUnassigned();
+    }
+
     try
     {
-        var result = await plaidService.SyncPlaidItemAsync(plaidItemId, cancellationToken);
+        var result = await plaidService.SyncPlaidItemAsync(plaidItem.Id, cancellationToken);
 
         logger.LogInformation(
             "Synced Plaid item {PlaidItemId}. Added {Added}, modified {Modified}, removed {Removed}.",
@@ -56,8 +68,9 @@ foreach (var plaidItemId in plaidItemIds)
     catch (Exception ex)
     {
         failureCount++;
-        logger.LogError(ex, "Failed to sync Plaid item {PlaidItemId}.", plaidItemId);
+        logger.LogError(ex, "Failed to sync Plaid item {PlaidItemId}.", plaidItem.Id);
     }
+}
 
 logger.LogInformation(
     "Daily Plaid sync finished. Successes: {SuccessCount}. Failures: {FailureCount}.",

@@ -2,6 +2,7 @@ using Cardui.Api.Data;
 using Cardui.Api.Dtos.SubGroup;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
@@ -17,12 +18,15 @@ public class SubGroupsServiceTests
     private static readonly DateTimeOffset UpdatedAt =
         new(2026, 7, 20, 18, 30, 0, TimeSpan.Zero);
 
+    private static readonly Guid TestHouseholdId =
+        Guid.Parse("33333333-3333-3333-3333-333333333333");
+
     [Fact]
     public async Task CreateSubGroup_CreatesUnderGroup()
     {
         await using var dbContext = CreateDbContext();
         var groupId = await SeedGroupAsync(dbContext);
-        var service = new SubGroupsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext);
 
         var result = await service.CreateSubGroupAsync(new CreateSubGroupDto
         {
@@ -41,7 +45,7 @@ public class SubGroupsServiceTests
     {
         await using var dbContext = CreateDbContext();
         var (_, subGroupId) = await SeedSystemSubGroupAsync(dbContext);
-        var service = new SubGroupsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext);
 
         await Assert.ThrowsAsync<BadRequestException>(() =>
             service.DeleteSubGroupAsync(subGroupId));
@@ -61,6 +65,7 @@ public class SubGroupsServiceTests
             Key = "temporary",
             Name = "Temporary",
             IsSystem = false,
+            HouseholdId = TestHouseholdId,
             SortOrder = 1,
             CreatedAt = SeededAt,
             UpdatedAt = SeededAt
@@ -78,7 +83,7 @@ public class SubGroupsServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var service = new SubGroupsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext);
 
         await Assert.ThrowsAsync<BadRequestException>(() =>
             service.DeleteSubGroupAsync(customSubGroupId));
@@ -91,6 +96,13 @@ public class SubGroupsServiceTests
             .Options;
 
         return new CarduiDBContext(options);
+    }
+
+    private static SubGroupsService CreateService(CarduiDBContext dbContext)
+    {
+        var scope = new HouseholdScope();
+        scope.Bind(TestHouseholdId);
+        return new SubGroupsService(dbContext, new FakeTimeProvider(UpdatedAt), scope);
     }
 
     private static async Task<Guid> SeedGroupAsync(CarduiDBContext dbContext)

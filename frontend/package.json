@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node ./scripts/run-chart-time-range-tests.mjs && node ./scripts/run-transaction-grouping-tests.mjs && node ./scripts/run-category-sort-tests.mjs"
+    "test": "node ./scripts/run-chart-time-range-tests.mjs && node ./scripts/run-transaction-grouping-tests.mjs && node ./scripts/run-category-sort-tests.mjs && node ./scripts/run-dashboard-monthly-activity-tests.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

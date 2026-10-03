@@ -27,6 +27,7 @@ import {
   formatTooltipDate,
   getChartTimeWindow,
   getDateTickFormatter,
+  getInsufficientHistoryMessage,
   getRangeTicks,
   toChartHistoryPoints,
 } from "./chartTimeRange";
@@ -136,7 +137,7 @@ export function AccountsBalanceChart({
       )}
     >
       <p className="max-w-xs text-sm text-muted-foreground">
-        Not enough data for this time range.
+        {getInsufficientHistoryMessage(chartPoints.length, range)}
       </p>
     </div>
   ) : (

@@ -99,6 +99,8 @@ export type SpendingByCategoryDto = {
 };
 
 export type DashboardSummaryDto = {
+  periodStart: string;
+  periodEnd: string;
   cashBalance: number;
   creditCardBalance: number;
   netWorth: number;

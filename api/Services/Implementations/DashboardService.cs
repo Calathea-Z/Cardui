@@ -27,69 +27,75 @@ public class DashboardService : IDashboardService
     {
         var (monthStart, monthEnd) = GetCurrentMonthRange();
 
-        var cashBalance = await GetActiveAccountBalanceAsync(
-            AccountTypes.Depository,
-            cancellationToken);
-        var creditCardBalance = await GetActiveAccountBalanceAsync(
-            AccountTypes.Credit,
-            cancellationToken);
-        var (monthlyIncome, monthlySpending) = await GetMonthlyActivityAsync(
+        var accountTotals = await GetActiveAccountTotalsAsync(cancellationToken);
+        var monthlyActivity = await GetMonthlyActivityAsync(
             monthStart,
             monthEnd,
             cancellationToken);
         var recentTransactions = await GetRecentTransactionsAsync(cancellationToken);
-        var spendingByCategory = await GetSpendingByCategoryAsync(
-            monthStart,
-            monthEnd,
-            cancellationToken);
 
         return new DashboardSummaryDto
         {
-            CashBalance = cashBalance,
-            CreditCardBalance = creditCardBalance,
-            NetWorth = cashBalance - creditCardBalance,
-            MonthlyIncome = monthlyIncome,
-            MonthlySpending = monthlySpending,
+            PeriodStart = monthStart,
+            PeriodEnd = monthEnd,
+            CashBalance = accountTotals.Cash,
+            CreditCardBalance = accountTotals.CreditCards,
+            NetWorth = accountTotals.NetWorth,
+            MonthlyIncome = monthlyActivity.Income,
+            MonthlySpending = monthlyActivity.Spending,
             RecentTransactions = recentTransactions,
-            SpendingByCategory = spendingByCategory
+            SpendingByCategory = monthlyActivity.SpendingByCategory
+                .Select(x => new SpendingByCategoryDto
+                {
+                    CategoryId = x.CategoryId,
+                    CategoryName = x.CategoryName,
+                    Color = x.CategoryColor,
+                    Amount = x.Amount
+                })
+                .ToList()
         };
     }
 
     private (DateOnly Start, DateOnly End) GetCurrentMonthRange()
     {
-        var today = DateOnly.FromDateTime(_timeProvider.GetLocalNow().DateTime);
+        var today = FinancialDate.Today(_timeProvider);
         var monthStart = new DateOnly(today.Year, today.Month, 1);
 
         return (monthStart, today);
     }
 
-    private async Task<decimal> GetActiveAccountBalanceAsync(
-        string accountType,
+    private async Task<AccountTotals> GetActiveAccountTotalsAsync(
         CancellationToken cancellationToken)
     {
-        return await _dbContext.Accounts
+        var balances = await _dbContext.Accounts
             .AsNoTracking()
-            .Where(x => x.IsActive && x.Type == accountType)
-            .SumAsync(x => x.CurrentBalance, cancellationToken);
+            .Where(x => x.IsActive)
+            .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance))
+            .ToListAsync(cancellationToken);
+
+        return AccountTotalsCalculator.Calculate(balances);
     }
 
-    private async Task<(decimal Income, decimal Spending)> GetMonthlyActivityAsync(
+    private async Task<TransactionActivityTotals> GetMonthlyActivityAsync(
         DateOnly monthStart,
         DateOnly monthEnd,
         CancellationToken cancellationToken)
     {
-        var totals = await TransactionsInDateRange(monthStart, monthEnd)
+        var transactions = await TransactionsInDateRange(monthStart, monthEnd)
             .AsNoTracking()
-            .Where(t => t.Category == null || t.Category.Key != SystemCategoryKeys.Transfers)
-            .GroupBy(_ => 1)
-            .Select(x => new
-            {
-                Income = x.Where(t => t.Amount < 0).Sum(t => -t.Amount),
-                Spending = x.Where(t => t.Amount > 0).Sum(t => t.Amount)
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+            .Select(x => new TransactionActivityValue(
+                x.Amount,
+                x.Pending,
+                x.CategoryId,
+                x.Category == null
+                    ? SystemCategoryNames.Uncategorized
+                    : x.Category.Name,
+                x.Category == null ? null : x.Category.Color,
+                x.Category == null ? null : x.Category.Key,
+                x.Category == null ? null : x.Category.SubGroup.Group.Key))
+            .ToListAsync(cancellationToken);
 
-        return (totals?.Income ?? 0, totals?.Spending ?? 0);
+        return TransactionActivityCalculator.Calculate(transactions);
     }
 
     private async Task<IReadOnlyList<TransactionDto>> GetRecentTransactionsAsync(
@@ -100,32 +106,6 @@ public class DashboardService : IDashboardService
             .OrderByDescending(x => x.Date)
             .Take(RecentTransactionCount)
             .Select(TransactionDtoMapper.Projection)
-            .ToListAsync(cancellationToken);
-    }
-
-    private async Task<IReadOnlyList<SpendingByCategoryDto>> GetSpendingByCategoryAsync(
-        DateOnly monthStart,
-        DateOnly monthEnd,
-        CancellationToken cancellationToken)
-    {
-        return await TransactionsInDateRange(monthStart, monthEnd)
-            .AsNoTracking()
-            .Where(x => x.Amount > 0)
-            .Where(x => x.Category == null || x.Category.Key != SystemCategoryKeys.Transfers)
-            .GroupBy(x => new
-            {
-                x.CategoryId,
-                CategoryName = x.Category == null ? SystemCategoryNames.Uncategorized : x.Category.Name,
-                Color = x.Category == null ? null : x.Category.Color
-            })
-            .Select(x => new SpendingByCategoryDto
-            {
-                CategoryId = x.Key.CategoryId,
-                CategoryName = x.Key.CategoryName,
-                Color = x.Key.Color,
-                Amount = x.Sum(t => t.Amount)
-            })
-            .OrderByDescending(x => x.Amount)
             .ToListAsync(cancellationToken);
     }
 

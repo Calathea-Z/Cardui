@@ -156,6 +156,19 @@ export function getRangeLabel(range: ChartTimeRange) {
   return RANGE_LABELS[range];
 }
 
+export function getInsufficientHistoryMessage(
+  pointCount: number,
+  range: ChartTimeRange,
+) {
+  const rangeLabel = getRangeLabel(range);
+
+  if (pointCount === 0) {
+    return `No balance snapshots were recorded in the ${rangeLabel}. Balance history is captured during account sync.`;
+  }
+
+  return `Only one day of balance history was recorded in the ${rangeLabel}. At least two days are needed to show a trend.`;
+}
+
 function resolveDate(value: string | number) {
   if (typeof value === "number") {
     return new Date(value);

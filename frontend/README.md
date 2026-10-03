@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cardui frontend
 
-## Getting Started
+Next.js 16 / React 19 frontend for Cardui.
 
-First, run the development server:
+Follow the repository root [`README.md`](../README.md) for prerequisites, local
+database and API setup, and the complete startup sequence.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Local configuration
+
+Create `frontend/.env.local`:
+
+```text
+API_BASE_URL=http://localhost:5235
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5235
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+These local URLs are not secrets. Do not put credentials or private financial data in
+frontend environment variables; values prefixed with `NEXT_PUBLIC_` are exposed to the
+browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run these commands from `frontend/`:
 
-## Learn More
+```powershell
+pnpm install --frozen-lockfile
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+The application is available at `http://localhost:3000` and expects the local API at
+`http://localhost:5235`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Verification:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+pnpm test
+pnpm lint
+pnpm build
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Before changing Next.js behavior, read `AGENTS.md` and the relevant version-matched
+guidance under `node_modules/next/dist/docs/`.

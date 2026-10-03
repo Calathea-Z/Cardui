@@ -6,6 +6,7 @@ import type {
   SubGroupDto,
 } from "@/lib/api/types";
 import { DashboardAccountsSlider } from "./DashboardAccountsSlider";
+import { DashboardMonthlyActivityWidget } from "./DashboardMonthlyActivityWidget";
 import { DashboardRecentTransactionsWidget } from "./DashboardRecentTransactionsWidget";
 
 export type DashboardWidgetProps = {
@@ -26,6 +27,12 @@ export const dashboardWidgets: DashboardWidgetDefinition[] = [
     id: "accounts-slider",
     render: ({ accountsSummary }) => (
       <DashboardAccountsSlider summary={accountsSummary} />
+    ),
+  },
+  {
+    id: "monthly-activity",
+    render: ({ dashboardSummary }) => (
+      <DashboardMonthlyActivityWidget summary={dashboardSummary} />
     ),
   },
   {

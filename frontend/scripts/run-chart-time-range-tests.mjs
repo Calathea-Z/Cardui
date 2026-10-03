@@ -63,3 +63,14 @@ test("getRangeTicks returns evenly spaced numeric ticks", () => {
     [1000, 3000, 5000],
   );
 });
+
+test("getInsufficientHistoryMessage explains missing snapshots", () => {
+  assert.equal(
+    chartTimeRange.getInsufficientHistoryMessage(0, "1W"),
+    "No balance snapshots were recorded in the past week. Balance history is captured during account sync.",
+  );
+  assert.equal(
+    chartTimeRange.getInsufficientHistoryMessage(1, "1M"),
+    "Only one day of balance history was recorded in the past month. At least two days are needed to show a trend.",
+  );
+});

@@ -4,6 +4,8 @@ namespace Cardui.Api.Dtos.Dashboard;
 
 public class DashboardSummaryDto
 {
+    public DateOnly PeriodStart { get; set; }
+    public DateOnly PeriodEnd { get; set; }
     public decimal CashBalance { get; set; }
     public decimal CreditCardBalance { get; set; }
     public decimal NetWorth { get; set; }

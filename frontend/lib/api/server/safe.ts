@@ -56,6 +56,8 @@ export function emptyAccountSummary(): AccountSummaryDto {
 
 export function emptyDashboardSummary(): DashboardSummaryDto {
   return {
+    periodStart: "",
+    periodEnd: "",
     cashBalance: 0,
     creditCardBalance: 0,
     netWorth: 0,

@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Models;
 using Cardui.Api.Security;
 using Going.Plaid;
@@ -50,7 +51,7 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
             () => _plaidClient.AccountsGetAsync(request));
 
         var now = _timeProvider.GetUtcNow();
-        var today = DateOnly.FromDateTime(now.UtcDateTime);
+        var today = FinancialDate.Today(_timeProvider);
 
         var responseAccountIds = response.Accounts
             .Select(x => x.AccountId)

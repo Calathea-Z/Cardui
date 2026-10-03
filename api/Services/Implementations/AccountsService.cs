@@ -9,10 +9,12 @@ namespace Cardui.Api.Services.Implementations;
 public class AccountsService : IAccountsService
 {
     private readonly CarduiDBContext _dbContext;
+    private readonly TimeProvider _timeProvider;
 
-    public AccountsService(CarduiDBContext dbContext)
+    public AccountsService(CarduiDBContext dbContext, TimeProvider timeProvider)
     {
         _dbContext = dbContext;
+        _timeProvider = timeProvider;
     }
 
     public async Task<IReadOnlyList<AccountDto>> GetAccountsAsync(
@@ -61,13 +63,26 @@ public class AccountsService : IAccountsService
             })
             .ToListAsync(cancellationToken);
 
+        var accountTotals = CalculateAccountTotals(accounts);
         var groups = new List<AccountGroupDto>
         {
-            CreateGroup(AccountGroupKeys.NetWorth, "Net Worth", accounts),
-            CreateGroup(AccountGroupKeys.Cash, "Cash", accounts),
-            CreateGroup(AccountGroupKeys.Investments, "Investments", accounts),
-            CreateGroup(AccountGroupKeys.CreditCards, "Credit Cards", accounts),
-            CreateGroup(AccountGroupKeys.Loans, "Loans", accounts)
+            CreateGroup(
+                AccountGroupKeys.NetWorth,
+                "Net Worth",
+                accounts,
+                accountTotals.NetWorth),
+            CreateGroup(AccountGroupKeys.Cash, "Cash", accounts, accountTotals.Cash),
+            CreateGroup(
+                AccountGroupKeys.Investments,
+                "Investments",
+                accounts,
+                accountTotals.Investments),
+            CreateGroup(
+                AccountGroupKeys.CreditCards,
+                "Credit Cards",
+                accounts,
+                accountTotals.CreditCards),
+            CreateGroup(AccountGroupKeys.Loans, "Loans", accounts, accountTotals.Loans)
         };
 
         var history = await GetBalanceHistoryAsync(cancellationToken);
@@ -83,7 +98,8 @@ public class AccountsService : IAccountsService
     private static AccountGroupDto CreateGroup(
         string key,
         string name,
-        IReadOnlyList<AccountDto> accounts)
+        IReadOnlyList<AccountDto> accounts,
+        decimal? totalOverride = null)
     {
         var groupAccounts = key switch
         {
@@ -95,15 +111,11 @@ public class AccountsService : IAccountsService
             _ => []
         };
 
-        var total = key == AccountGroupKeys.NetWorth
-            ? CalculateNetWorth(accounts)
-            : groupAccounts.Sum(x => x.CurrentBalance);
-
         return new AccountGroupDto
         {
             Key = key,
             Name = name,
-            Total = total,
+            Total = totalOverride ?? groupAccounts.Sum(x => x.CurrentBalance),
             Accounts = groupAccounts
         };
     }
@@ -111,10 +123,11 @@ public class AccountsService : IAccountsService
     private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync(
         CancellationToken cancellationToken)
     {
+        var today = FinancialDate.Today(_timeProvider);
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
             .Include(x => x.Account)
-            .Where(x => x.Account.IsActive)
+            .Where(x => x.Account.IsActive && x.Date <= today)
             .OrderBy(x => x.Date)
             .ToListAsync(cancellationToken);
 
@@ -122,43 +135,28 @@ public class AccountsService : IAccountsService
             .GroupBy(x => x.Date)
             .Select(group =>
             {
-                var cash = group
-                    .Where(x => AccountTypes.IsCash(x.Account.Type))
-                    .Sum(x => x.CurrentBalance);
-
-                var investments = group
-                    .Where(x => AccountTypes.IsInvestment(x.Account.Type))
-                    .Sum(x => x.CurrentBalance);
-
-                var creditCards = group
-                    .Where(x => AccountTypes.IsCreditCard(x.Account.Type))
-                    .Sum(x => x.CurrentBalance);
-
-                var loans = group
-                    .Where(x => AccountTypes.IsLoan(x.Account.Type))
-                    .Sum(x => x.CurrentBalance);
+                var totals = AccountTotalsCalculator.Calculate(
+                    group.Select(x => new AccountBalanceValue(
+                        x.Account.Type,
+                        x.CurrentBalance)));
 
                 return new AccountBalanceHistoryPointDto
                 {
                     Date = group.Key,
-                    Cash = cash,
-                    Investments = investments,
-                    CreditCards = creditCards,
-                    Loans = loans,
-                    NetWorth = cash + investments - creditCards - loans
+                    Cash = totals.Cash,
+                    Investments = totals.Investments,
+                    CreditCards = totals.CreditCards,
+                    Loans = totals.Loans,
+                    NetWorth = totals.NetWorth
                 };
             })
             .OrderBy(x => x.Date)
             .ToList();
     }
 
-    private static decimal CalculateNetWorth(IReadOnlyList<AccountDto> accounts)
+    private static AccountTotals CalculateAccountTotals(IReadOnlyList<AccountDto> accounts)
     {
-        var cash = accounts.Where(x => AccountTypes.IsCash(x.Type)).Sum(x => x.CurrentBalance);
-        var investments = accounts.Where(x => AccountTypes.IsInvestment(x.Type)).Sum(x => x.CurrentBalance);
-        var creditCards = accounts.Where(x => AccountTypes.IsCreditCard(x.Type)).Sum(x => x.CurrentBalance);
-        var loans = accounts.Where(x => AccountTypes.IsLoan(x.Type)).Sum(x => x.CurrentBalance);
-
-        return cash + investments - creditCards - loans;
+        return AccountTotalsCalculator.Calculate(
+            accounts.Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)));
     }
 }

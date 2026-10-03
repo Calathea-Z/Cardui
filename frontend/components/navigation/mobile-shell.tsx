@@ -3,6 +3,7 @@
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AccountButton } from "@/components/auth/account-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getActiveNavItem } from "./nav-items";
@@ -20,13 +21,12 @@ export function MobileShell({ children }: MobileShellProps) {
   const activeItem = getActiveNavItem(pathname);
 
   useEffect(() => {
-    if (isDrawerOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    const overflow = isDrawerOpen ? "hidden" : "";
+    document.documentElement.style.overflow = overflow;
+    document.body.style.overflow = overflow;
 
     return () => {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
   }, [isDrawerOpen]);
@@ -40,22 +40,8 @@ export function MobileShell({ children }: MobileShellProps) {
         />
       </div>
 
-      <div
-        className={cn(
-          "relative z-50 flex min-h-screen flex-col bg-background transition-transform duration-300 ease-in-out md:min-h-0 md:translate-x-0",
-          isDrawerOpen && "translate-x-[85vw]",
-        )}
-      >
-        {isDrawerOpen && (
-          <button
-            type="button"
-            aria-label="Close navigation menu"
-            className="fixed inset-0 z-45 bg-black/40 md:hidden"
-            onClick={() => setIsDrawerOpen(false)}
-          />
-        )}
-
-        <header className="fixed top-0 inset-x-0 z-50 border-b border-border bg-background px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden">
+      <div className="flex min-h-screen flex-col bg-background md:min-h-0">
+        <header className="fixed top-0 inset-x-0 z-[80] border-b border-border bg-background px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <div className="flex justify-start">
               <MobileHeaderLeadingSlot
@@ -83,8 +69,9 @@ export function MobileShell({ children }: MobileShellProps) {
               {activeItem?.label ?? "Tortoise"}
             </p>
 
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end gap-1">
               <MobileHeaderActionsSlot />
+              <AccountButton />
             </div>
           </div>
         </header>

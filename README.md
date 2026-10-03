@@ -44,7 +44,14 @@ dotnet user-secrets set "Plaid:ClientId" "<Plaid sandbox client ID>" --project .
 dotnet user-secrets set "Plaid:Secret" "<Plaid sandbox secret>" --project .\api
 dotnet user-secrets set "Plaid:Environment" "sandbox" --project .\api
 dotnet user-secrets set "Plaid:ClientName" "Cardui" --project .\api
+dotnet user-secrets set "Clerk:Issuer" "<Clerk Frontend API origin, such as https://your-instance.clerk.accounts.dev>" --project .\api
 ```
+
+`Clerk:Issuer` is the https origin of the Clerk Frontend API. The API uses it to
+download Clerk's public signing keys and check session tokens. Do not put the
+Clerk secret key in the API configuration. An optional `Clerk:JwtPublicKey`
+User Secret can hold Clerk's PEM public key when the API should verify tokens
+without calling Clerk.
 
 Use the local database values defined by `docker-compose.yml` when constructing the
 connection string. Do not paste the resulting connection string into source files,
@@ -57,19 +64,30 @@ dotnet restore .\Cardui.sln
 dotnet ef database update --project .\api --startup-project .\api
 ```
 
-Migration generation is intentionally not part of setup. Model changes and new
-migrations are handled as separate reviewed work.
+Setup applies the checked-in migrations. New migrations are generated from
+model changes after Zach approves the `dotnet ef` command.
 
 ### 3. Configure the frontend
 
-Create `frontend/.env.local` with non-sensitive local URLs:
+Create `frontend/.env.local` with the local API URLs and the Clerk keys for this
+application. Keep the Clerk secret out of source control. The publishable key
+is public, but it still belongs in the local env file rather than the
+repository.
 
 ```powershell
 @"
 API_BASE_URL=http://localhost:5235
 NEXT_PUBLIC_API_BASE_URL=http://localhost:5235
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<Clerk publishable key>
+CLERK_SECRET_KEY=<Clerk secret key>
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 "@ | Set-Content .\frontend\.env.local
 ```
+
+This machine may already have a Clerk development application from `clerk init`.
+Those values stay in the gitignored env file. Claim that application later, if
+you want it on your Clerk account, from `frontend/` with `pnpm dlx clerk@latest auth login`.
 
 Install the locked frontend dependencies:
 
@@ -154,9 +172,9 @@ the .NET SDK pinned in `global.json`, Node.js 22, and the pnpm version pinned in
   `pnpm install --frozen-lockfile`
 
 The frontend production build sets `API_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL`
-to `http://localhost:5235`. Those are the same non-sensitive local URLs used in
-development, so the server API client can compile. This workflow does not deploy
-that build. It does not start PostgreSQL or apply migrations.
+to `http://localhost:5235`. It also sets placeholder Clerk keys so the sign-in
+shell can compile. Those placeholders are not a Clerk application. This workflow
+does not deploy that build. It does not start PostgreSQL or apply migrations.
 
 ## Stop local services
 

@@ -19,6 +19,8 @@ public static class WebApplicationExtensions
         app.UseHttpsRedirection();
         app.UseExceptionHandler();
         app.UseCors(CorsPolicyNames.Frontend);
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
         app.MapControllers();
     }

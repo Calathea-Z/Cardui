@@ -106,7 +106,7 @@ Key implementation anchors:
 
 **Exit:** dashboard and account totals agree for the same data; original Phase 1 has a documented acceptance walkthrough; repeated imports do not duplicate activity or lose user edits. Record remaining live-environment limitations explicitly.
 
-**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/Original-MVP-Acceptance-Checklist.md`. Phase 1 has not started.
+**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/Original-MVP-Acceptance-Checklist.md`. Phase 1 sign-in was chosen afterward; implementation has not started.
 
 ### Phase 1 — Ownership, manual data, and durable financial facts
 
@@ -120,6 +120,8 @@ Key implementation anchors:
 8. Make manual use work without configured Plaid credentials; current startup validates Plaid configuration unconditionally.
 
 **Exit:** two test households cannot access each other's records through any ID or aggregate endpoint; existing data remains intact; a new person can use the app without connecting a bank.
+
+**Status (October 3, 2026):** Sign-in is locked to Clerk Hobby. The frontend requires a signed-in Clerk user, and the API can verify that session token and create one household per owner. Contributors remain household facts, without partner invitations. Existing financial endpoints are still unscoped, and existing rows are not assigned to an owner. `AddHouseholdOwner` is in the API project. Multifactor authentication, passkeys, a configurable session lifetime, and removal of Clerk branding wait until a Pro upgrade. See `docs/reviews/2026-10-03-007-phase-1-sign-in-decision.md` and `docs/reviews/2026-10-03-008-clerk-household-owner.md`.
 
 ### Phase 2 — Financial inventory and real budgeting
 

@@ -227,3 +227,9 @@ export type SyncPlaidItemResponseDto = {
 export type ApiHealthDto = {
   status: string;
 };
+
+export type HouseholdDto = {
+  id: string;
+  displayName: string;
+  createdAt: string;
+};

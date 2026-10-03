@@ -12,6 +12,7 @@ builder.Services.AddCarduiPlaid(builder.Configuration);
 builder.Services.AddCarduiApplicationServices(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddCarduiCors(builder.Configuration);
+builder.Services.AddCarduiClerkAuthentication(builder.Configuration);
 
 var app = builder.Build();
 

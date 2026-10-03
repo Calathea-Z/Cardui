@@ -1,0 +1,21 @@
+---
+description: Generate and apply EF Core migrations only after Zach approves
+alwaysApply: true
+---
+
+# Database migrations
+
+Update models, the DbContext, and entity configurations first.
+
+Ask before generating or applying a migration. Say which command you will
+run and what the migration will add or change. After Zach approves, run it
+from the repository in PowerShell:
+
+```powershell
+dotnet ef migrations add <Name> --project .\api --startup-project .\api
+dotnet ef database update --project .\api --startup-project .\api
+```
+
+Do not use `--force`, drop a database, or wipe a volume unless Zach
+approves that separately. Raw SQL migrations need an explained exception
+and the same explicit approval.

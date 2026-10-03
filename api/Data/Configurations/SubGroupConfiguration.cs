@@ -33,6 +33,13 @@ public class SubGroupConfiguration : IEntityTypeConfiguration<SubGroup>
         entity.HasIndex(x => x.Key)
             .IsUnique();
 
+        entity.HasIndex(x => x.HouseholdId);
+
+        entity.HasOne<Household>()
+            .WithMany()
+            .HasForeignKey(x => x.HouseholdId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         entity.HasIndex(x => new { x.GroupId, x.Name })
             .IsUnique();
 

@@ -4,6 +4,7 @@ using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,11 +17,16 @@ public class TransactionsService : ITransactionsService
 
     private readonly CarduiDBContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly HouseholdScope _householdScope;
 
-    public TransactionsService(CarduiDBContext dbContext, TimeProvider timeProvider)
+    public TransactionsService(
+        CarduiDBContext dbContext,
+        TimeProvider timeProvider,
+        HouseholdScope householdScope)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _householdScope = householdScope;
     }
 
     public async Task<PagedResultDto<TransactionDto>> GetTransactionsAsync(
@@ -30,7 +36,7 @@ public class TransactionsService : ITransactionsService
         var (page, pageSize) = NormalizePagination(query);
 
         var transactionsQuery = ApplyFilters(
-            _dbContext.Transactions.AsNoTracking(),
+            _dbContext.Transactions.AsNoTracking().InHousehold(_householdScope),
             query);
 
         var totalCount = await transactionsQuery.CountAsync(cancellationToken);
@@ -69,6 +75,7 @@ public class TransactionsService : ITransactionsService
     {
         var source = await _dbContext.Transactions
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .Where(x => x.Id == transactionId)
             .Select(x => new { x.Name, x.MerchantName })
             .FirstOrDefaultAsync(cancellationToken);
@@ -85,7 +92,9 @@ public class TransactionsService : ITransactionsService
             : source.Name.Trim();
         var matchKeyLower = matchKey.ToLowerInvariant();
 
-        var historyQuery = _dbContext.Transactions.AsNoTracking();
+        var historyQuery = _dbContext.Transactions
+            .AsNoTracking()
+            .InHousehold(_householdScope);
 
         if (hasMerchantName)
         {
@@ -280,6 +289,7 @@ public class TransactionsService : ITransactionsService
         CancellationToken cancellationToken = default)
     {
         var transaction = await _dbContext.Transactions
+            .InHousehold(_householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)
@@ -289,8 +299,9 @@ public class TransactionsService : ITransactionsService
 
         if (dto.CategoryId.HasValue)
         {
-            var categoryExists = await _dbContext.Categories
-                .AnyAsync(x => x.Id == dto.CategoryId.Value, cancellationToken);
+            var categoryExists = await CategoryIsVisibleAsync(
+                dto.CategoryId.Value,
+                cancellationToken);
 
             if (!categoryExists)
             {
@@ -313,6 +324,7 @@ public class TransactionsService : ITransactionsService
         CancellationToken cancellationToken = default)
     {
         var transaction = await _dbContext.Transactions
+            .InHousehold(_householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)
@@ -322,8 +334,9 @@ public class TransactionsService : ITransactionsService
 
         if (dto.CategoryId.HasValue)
         {
-            var categoryExists = await _dbContext.Categories
-                .AnyAsync(x => x.Id == dto.CategoryId.Value, cancellationToken);
+            var categoryExists = await CategoryIsVisibleAsync(
+                dto.CategoryId.Value,
+                cancellationToken);
 
             if (!categoryExists)
             {
@@ -399,6 +412,7 @@ public class TransactionsService : ITransactionsService
     {
         var transaction = await _dbContext.Transactions
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .Where(x => x.Id == id)
             .Select(TransactionDtoMapper.Projection)
             .FirstOrDefaultAsync(cancellationToken);
@@ -409,5 +423,14 @@ public class TransactionsService : ITransactionsService
         }
 
         return transaction;
+    }
+
+    private Task<bool> CategoryIsVisibleAsync(
+        Guid categoryId,
+        CancellationToken cancellationToken)
+    {
+        return _dbContext.Categories
+            .VisibleToHousehold(_householdScope)
+            .AnyAsync(x => x.Id == categoryId, cancellationToken);
     }
 }

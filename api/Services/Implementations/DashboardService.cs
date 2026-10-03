@@ -4,6 +4,7 @@ using Cardui.Api.Dtos.Dashboard;
 using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Mapping;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +16,16 @@ public class DashboardService : IDashboardService
 
     private readonly CarduiDBContext _dbContext;
     private readonly TimeProvider _timeProvider;
+    private readonly HouseholdScope _householdScope;
 
-    public DashboardService(CarduiDBContext dbContext, TimeProvider timeProvider)
+    public DashboardService(
+        CarduiDBContext dbContext,
+        TimeProvider timeProvider,
+        HouseholdScope householdScope)
     {
         _dbContext = dbContext;
         _timeProvider = timeProvider;
+        _householdScope = householdScope;
     }
 
     public async Task<DashboardSummaryDto> GetSummaryAsync(
@@ -69,6 +75,7 @@ public class DashboardService : IDashboardService
     {
         var balances = await _dbContext.Accounts
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .Where(x => x.IsActive)
             .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance))
             .ToListAsync(cancellationToken);
@@ -103,6 +110,7 @@ public class DashboardService : IDashboardService
     {
         return await _dbContext.Transactions
             .AsNoTracking()
+            .InHousehold(_householdScope)
             .OrderByDescending(x => x.Date)
             .Take(RecentTransactionCount)
             .Select(TransactionDtoMapper.Projection)
@@ -112,6 +120,7 @@ public class DashboardService : IDashboardService
     private IQueryable<Transaction> TransactionsInDateRange(DateOnly start, DateOnly end)
     {
         return _dbContext.Transactions
+            .InHousehold(_householdScope)
             .Where(x => x.Date >= start && x.Date <= end);
     }
 }

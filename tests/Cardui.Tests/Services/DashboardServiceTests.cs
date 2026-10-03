@@ -1,6 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
@@ -12,6 +13,9 @@ public class DashboardServiceTests
 {
     private static readonly DateTimeOffset Now =
         new(2026, 10, 2, 12, 0, 0, TimeSpan.Zero);
+
+    private static readonly Guid TestHouseholdId =
+        Guid.Parse("22222222-2222-2222-2222-222222222222");
 
     [Fact]
     public async Task GetSummary_UsesCurrentPeriodAndMatchesAccountsNetWorth()
@@ -51,13 +55,17 @@ public class DashboardServiceTests
             CreateTransaction(checkingId, "last-month", new DateOnly(2026, 9, 30), 100m));
         await dbContext.SaveChangesAsync();
 
+        var scope = new HouseholdScope();
+        scope.Bind(TestHouseholdId);
         var timeProvider = new FakeTimeProvider(Now);
         var dashboard = await new DashboardService(
             dbContext,
-            timeProvider).GetSummaryAsync();
+            timeProvider,
+            scope).GetSummaryAsync();
         var accounts = await new AccountsService(
             dbContext,
-            timeProvider).GetAccountsSummaryAsync();
+            timeProvider,
+            scope).GetAccountsSummaryAsync();
 
         Assert.Equal(new DateOnly(2026, 10, 1), dashboard.PeriodStart);
         Assert.Equal(new DateOnly(2026, 10, 2), dashboard.PeriodEnd);
@@ -99,6 +107,7 @@ public class DashboardServiceTests
         dbContext.PlaidItems.Add(new PlaidItem
         {
             Id = plaidItemId,
+            HouseholdId = TestHouseholdId,
             PlaidItemId = "item-1",
             AccessToken = "not-a-real-token",
             CreatedAt = Now,

@@ -2,6 +2,7 @@ using Cardui.Api.Data;
 using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;
+using Cardui.Api.Security;
 using Cardui.Api.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
@@ -17,6 +18,9 @@ public class TransactionsServiceTests
     private static readonly DateTimeOffset UpdatedAt =
         new(2026, 7, 20, 18, 30, 0, TimeSpan.Zero);
 
+    private static readonly Guid TestHouseholdId =
+        Guid.Parse("11111111-1111-1111-1111-111111111111");
+
     [Fact]
     public async Task UpdateTransactionDetails_UpdatesDateCategoryAndNotes()
     {
@@ -24,7 +28,7 @@ public class TransactionsServiceTests
         var (transactionId, categoryId) = await SeedTransactionAsync(dbContext);
 
         var timeProvider = new FakeTimeProvider(UpdatedAt);
-        var service = new TransactionsService(dbContext, timeProvider);
+        var service = CreateService(dbContext, timeProvider);
 
         var result = await service.UpdateTransactionDetailsAsync(
             transactionId,
@@ -48,7 +52,7 @@ public class TransactionsServiceTests
     public async Task UpdateTransactionDetails_RejectsMissingTransaction()
     {
         await using var dbContext = CreateDbContext();
-        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext, new FakeTimeProvider(UpdatedAt));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             service.UpdateTransactionDetailsAsync(
@@ -65,7 +69,7 @@ public class TransactionsServiceTests
     {
         await using var dbContext = CreateDbContext();
         var (transactionId, _) = await SeedTransactionAsync(dbContext);
-        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext, new FakeTimeProvider(UpdatedAt));
 
         await service.UpdateTransactionCategoryAsync(
             transactionId,
@@ -81,7 +85,7 @@ public class TransactionsServiceTests
     {
         await using var dbContext = CreateDbContext();
         var (transactionId, _) = await SeedTransactionAsync(dbContext, includeCategory: false);
-        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext, new FakeTimeProvider(UpdatedAt));
 
         await Assert.ThrowsAsync<BadRequestException>(() =>
             service.UpdateTransactionDetailsAsync(
@@ -127,7 +131,7 @@ public class TransactionsServiceTests
             merchantName: "Starbucks",
             amount: 8m);
 
-        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext, new FakeTimeProvider(UpdatedAt));
 
         var history = await service.GetMerchantHistoryAsync(currentId, "monthly");
 
@@ -161,7 +165,7 @@ public class TransactionsServiceTests
             name: "ach debit paypal",
             merchantName: null);
 
-        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext, new FakeTimeProvider(UpdatedAt));
 
         var history = await service.GetMerchantHistoryAsync(currentId);
 
@@ -185,7 +189,7 @@ public class TransactionsServiceTests
             merchantName: "Target",
             amount: 15m);
 
-        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+        var service = CreateService(dbContext, new FakeTimeProvider(UpdatedAt));
 
         var history = await service.GetMerchantHistoryAsync(currentId, "monthly");
 
@@ -204,6 +208,15 @@ public class TransactionsServiceTests
         return new CarduiDBContext(options);
     }
 
+    private static TransactionsService CreateService(
+        CarduiDBContext dbContext,
+        TimeProvider timeProvider)
+    {
+        var scope = new HouseholdScope();
+        scope.Bind(TestHouseholdId);
+        return new TransactionsService(dbContext, timeProvider, scope);
+    }
+
     private static async Task<Guid> SeedAccountAsync(CarduiDBContext dbContext)
     {
         var plaidItemId = Guid.NewGuid();
@@ -212,6 +225,7 @@ public class TransactionsServiceTests
         dbContext.PlaidItems.Add(new PlaidItem
         {
             Id = plaidItemId,
+            HouseholdId = TestHouseholdId,
             PlaidItemId = "item-1",
             AccessToken = "access-token",
             CreatedAt = SeededAt,
@@ -278,6 +292,7 @@ public class TransactionsServiceTests
         dbContext.PlaidItems.Add(new PlaidItem
         {
             Id = plaidItemId,
+            HouseholdId = TestHouseholdId,
             PlaidItemId = "item-1",
             AccessToken = "access-token",
             CreatedAt = SeededAt,

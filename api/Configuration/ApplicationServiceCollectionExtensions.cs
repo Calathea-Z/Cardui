@@ -22,6 +22,7 @@ public static class ApplicationServiceCollectionExtensions
             dataProtectionBuilder.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
         }
 
+        services.AddScoped<HouseholdScope>();
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IPlaidAccessTokenProtector, DataProtectionPlaidAccessTokenProtector>();
 

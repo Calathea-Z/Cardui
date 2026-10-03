@@ -51,7 +51,9 @@ dotnet user-secrets set "Clerk:Issuer" "<Clerk Frontend API origin, such as http
 download Clerk's public signing keys and check session tokens. Do not put the
 Clerk secret key in the API configuration. An optional `Clerk:JwtPublicKey`
 User Secret can hold Clerk's PEM public key when the API should verify tokens
-without calling Clerk.
+without calling Clerk. API routes other than `/api/health` require that
+session. Financial reads and writes use the household id resolved on the
+server for the signed-in owner.
 
 Use the local database values defined by `docker-compose.yml` when constructing the
 connection string. Do not paste the resulting connection string into source files,

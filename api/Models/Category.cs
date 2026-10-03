@@ -3,6 +3,9 @@ namespace Cardui.Api.Models;
 public class Category
 {
     public Guid Id { get; init; }
+
+    public Guid? HouseholdId { get; init; }
+
     public required string Key { get; init; }
     public required string Name { get; set; }
 

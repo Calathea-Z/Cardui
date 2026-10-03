@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-03 — CI for API tests, frontend tests, and lint](2026-10-03-004-ci-tests-and-lint.md)
 - [2026-10-03 — Balance history carries the last known balance](2026-10-03-003-balance-history-carry-forward.md)
 - [2026-10-03 — Preserve transaction user edits during Plaid sync](2026-10-03-002-preserve-transaction-user-edits.md)
 - [2026-10-03 — Plaid transaction-page retrieval boundary](2026-10-03-001-plaid-transaction-page-boundary.md)

@@ -141,6 +141,18 @@ Pop-Location
 The original-MVP manual walkthrough is in
 [`docs/Original-MVP-Acceptance-Checklist.md`](docs/Original-MVP-Acceptance-Checklist.md).
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on pull requests and on pushes to `main`. It uses
+the .NET SDK pinned in `global.json`, Node.js 22, and the pnpm version pinned in
+`frontend/package.json`.
+
+- API tests: `dotnet test ./Cardui.sln --configuration Release`
+- Frontend: `pnpm test` and `pnpm lint` from `frontend/` after
+  `pnpm install --frozen-lockfile`
+
+The workflow does not start PostgreSQL, apply migrations, or run `pnpm build`.
+
 ## Stop local services
 
 ```powershell

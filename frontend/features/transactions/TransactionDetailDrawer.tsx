@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  archiveTransaction,
+  restoreTransaction,
+} from "@/lib/api/browser";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
   CategoryDto,
   GroupDto,
@@ -12,6 +19,7 @@ import type {
 import { cn } from "@/lib/utils";
 import {
   getTransactionAmountDisplay,
+  isBalanceReconciliation,
   isTransferTransaction,
 } from "./transactionAmountDisplay";
 import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
@@ -21,7 +29,10 @@ import { TransactionDateField } from "./TransactionDateField";
 import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
 import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
-import { useTransactionDetails } from "./useTransactionDetails";
+import {
+  isManualEntry,
+  useTransactionDetails,
+} from "./useTransactionDetails";
 
 type TransactionDetailDrawerProps = {
   transaction: TransactionDto | null;
@@ -32,6 +43,8 @@ type TransactionDetailDrawerProps = {
   onSaved: (transaction: TransactionDto) => void;
   onCategoryCreated: (category: CategoryDto) => void;
   onSelectTransaction?: (transaction: TransactionDto) => void;
+  onArchived: (transactionId: string) => void;
+  onRestored: () => void;
 };
 
 function amountClassName(kind: "income" | "spend" | "transfer") {
@@ -52,6 +65,8 @@ function TransactionDetailDrawerContent({
   onCategoryCreated,
   onSelectTransaction,
   onNestedOpenChange,
+  onArchived,
+  onRestored,
 }: {
   transaction: TransactionDto;
   categories: CategoryDto[];
@@ -61,6 +76,8 @@ function TransactionDetailDrawerContent({
   onCategoryCreated: (category: CategoryDto) => void;
   onSelectTransaction?: (transaction: TransactionDto) => void;
   onNestedOpenChange: (open: boolean) => void;
+  onArchived: (transactionId: string) => void;
+  onRestored: () => void;
 }) {
   const {
     form,
@@ -69,6 +86,9 @@ function TransactionDetailDrawerContent({
     setDate,
     setCategoryId,
     setNotes,
+    setName,
+    setAmount,
+    setDirection,
     registerCategory,
     flushPendingSave,
   } = useTransactionDetails({
@@ -89,8 +109,35 @@ function TransactionDetailDrawerContent({
     };
   }, []);
 
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const amount = getTransactionAmountDisplay(transaction);
   const isTransfer = isTransferTransaction(transaction);
+  const isAdjustment = isBalanceReconciliation(transaction);
+  const canEditEntry = isManualEntry(transaction);
+
+  async function handleArchive() {
+    setIsArchiving(true);
+    setArchiveError(null);
+    try {
+      if (transaction.archivedAt) {
+        await restoreTransaction(transaction.id);
+        onRestored();
+        return;
+      }
+
+      await archiveTransaction(transaction.id);
+      onArchived(transaction.id);
+    } catch (error) {
+      setArchiveError(
+        getApiErrorMessage(error, "Could not update this transaction."),
+      );
+    } finally {
+      setIsArchiving(false);
+      setConfirmArchive(false);
+    }
+  }
 
   function handleCategoryCreated(category: CategoryDto) {
     registerCategory(category);
@@ -101,11 +148,16 @@ function TransactionDetailDrawerContent({
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-1 text-center">
         <p className={amountClassName(amount.kind)}>{amount.label}</p>
-        {isTransfer || transaction.pending ? (
+        {isTransfer || transaction.pending || isAdjustment ? (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
             {isTransfer ? (
               <span className="ledger-stamp bg-transfer-soft text-transfer">
                 Transfer
+              </span>
+            ) : null}
+            {isAdjustment ? (
+              <span className="ledger-stamp bg-transfer-soft text-transfer">
+                Adjustment
               </span>
             ) : null}
             {transaction.pending ? (
@@ -120,7 +172,67 @@ function TransactionDetailDrawerContent({
       <div className="divide-y divide-border/70 border-y border-border/70">
         <TransactionAccountField accountName={transaction.account.name} />
 
-        <TransactionOriginalStatementField statement={transaction.name} />
+        {canEditEntry ? (
+          <label className="flex min-h-12 items-center gap-3 py-3">
+            <span className="shrink-0 text-sm font-medium text-foreground">
+              Name
+            </span>
+            <Input
+              value={form.name}
+              onChange={(event) => setName(event.target.value)}
+              aria-label="Name"
+              className="h-8 border-0 bg-transparent text-right shadow-none"
+            />
+          </label>
+        ) : (
+          <TransactionOriginalStatementField statement={transaction.name} />
+        )}
+
+        {canEditEntry ? (
+          <div className="flex flex-col gap-3 py-3">
+            <label className="flex min-h-12 items-center gap-3">
+              <span className="shrink-0 text-sm font-medium text-foreground">
+                Amount
+              </span>
+              <Input
+                value={form.amount}
+                onChange={(event) => setAmount(event.target.value)}
+                inputMode="decimal"
+                aria-label="Amount"
+                className="h-8 border-0 bg-transparent text-right shadow-none"
+              />
+            </label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={form.direction === "out" ? "default" : "outline"}
+                className="flex-1"
+                onClick={() => setDirection("out")}
+              >
+                Money out
+              </Button>
+              <Button
+                type="button"
+                variant={form.direction === "in" ? "default" : "outline"}
+                className="flex-1"
+                onClick={() => setDirection("in")}
+              >
+                Money in
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Money in counts as income only when you assign the Income
+              category. An opening balance belongs on the account.
+            </p>
+          </div>
+        ) : null}
+
+        {isAdjustment ? (
+          <p className="py-3 text-sm text-muted-foreground">
+            This adjustment makes the account match a statement. It is not
+            income or spending.
+          </p>
+        ) : null}
 
         <TransactionHistoryField
           transactionId={transaction.id}
@@ -128,6 +240,7 @@ function TransactionDetailDrawerContent({
           onSelectTransaction={onSelectTransaction}
         />
 
+        {isAdjustment ? null : (
         <TransactionCategorySelect
           categories={categories}
           groups={groups}
@@ -137,6 +250,7 @@ function TransactionDetailDrawerContent({
           onCategoryCreated={handleCategoryCreated}
           onOpenChange={onNestedOpenChange}
         />
+        )}
 
         <TransactionDateField value={form.date} onChange={setDate} />
 
@@ -155,6 +269,51 @@ function TransactionDetailDrawerContent({
           </button>
         </Alert>
       ) : null}
+
+      {archiveError ? <Alert variant="destructive">{archiveError}</Alert> : null}
+
+      {confirmArchive ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">
+            Archiving removes this transaction from activity and from a manual
+            account balance. You can restore it from the Archived filter.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setConfirmArchive(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="flex-1"
+              disabled={isArchiving}
+              onClick={() => void handleArchive()}
+            >
+              {isArchiving ? "Archiving" : "Archive"}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          variant={transaction.archivedAt ? "outline" : "destructive"}
+          disabled={isArchiving}
+          onClick={() => {
+            if (transaction.archivedAt) {
+              void handleArchive();
+              return;
+            }
+            setConfirmArchive(true);
+          }}
+        >
+          {transaction.archivedAt ? "Restore transaction" : "Archive transaction"}
+        </Button>
+      )}
     </div>
   );
 }
@@ -168,6 +327,8 @@ export function TransactionDetailDrawer({
   onSaved,
   onCategoryCreated,
   onSelectTransaction,
+  onArchived,
+  onRestored,
 }: TransactionDetailDrawerProps) {
   const [isNestedOpen, setIsNestedOpen] = useState(false);
   const [displayedTransaction, setDisplayedTransaction] = useState(transaction);
@@ -206,6 +367,8 @@ export function TransactionDetailDrawer({
           onCategoryCreated={onCategoryCreated}
           onSelectTransaction={onSelectTransaction}
           onNestedOpenChange={setIsNestedOpen}
+          onArchived={onArchived}
+          onRestored={onRestored}
         />
       ) : null}
     </BottomSheet>

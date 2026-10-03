@@ -43,7 +43,11 @@ export function useTransactionsPage({
           search: search.trim() || undefined,
           accountId: accountId || undefined,
           categoryId: categoryId || undefined,
-          pending: toPendingQueryValue(pendingFilter),
+          pending:
+            pendingFilter === "archived"
+              ? undefined
+              : toPendingQueryValue(pendingFilter),
+          archived: pendingFilter === "archived" ? true : undefined,
           page,
           pageSize,
         });
@@ -73,6 +77,14 @@ export function useTransactionsPage({
     return () => window.clearTimeout(timeoutId);
   }, [loadPage]);
 
+  const removeTransaction = useCallback((id: string) => {
+    setTransactionsPage((page) => ({
+      ...page,
+      items: page.items.filter((transaction) => transaction.id !== id),
+      totalCount: Math.max(0, page.totalCount - 1),
+    }));
+  }, []);
+
   const patchTransaction = useCallback((updated: TransactionDto) => {
     setTransactionsPage((page) => ({
       ...page,
@@ -91,5 +103,6 @@ export function useTransactionsPage({
     errorMessage,
     loadPage,
     patchTransaction,
+    removeTransaction,
   };
 }

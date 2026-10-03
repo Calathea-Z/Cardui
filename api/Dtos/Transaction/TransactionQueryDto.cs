@@ -13,6 +13,8 @@ public class TransactionQueryDto
     public DateOnly? To { get; set; }
     public bool? Pending { get; set; }
 
+    public bool? Archived { get; set; }
+
     [Range(1, int.MaxValue)]
     public int Page { get; set; } = 1;
 

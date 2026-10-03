@@ -85,4 +85,44 @@ public class TransactionsController : ControllerBase
             cancellationToken);
         return Ok(transaction);
     }
+
+    [HttpPost]
+    [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TransactionDto>> CreateManualTransaction(
+        [FromBody] CreateManualTransactionDto dto,
+        CancellationToken cancellationToken)
+    {
+        var transaction = await _transactionsService.CreateManualTransactionAsync(
+            dto,
+            cancellationToken);
+        return Ok(transaction);
+    }
+
+    [HttpPost("{id:guid}/archive")]
+    [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TransactionDto>> ArchiveTransaction(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var transaction = await _transactionsService.ArchiveTransactionAsync(
+            id,
+            cancellationToken);
+        return Ok(transaction);
+    }
+
+    [HttpPost("{id:guid}/restore")]
+    [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TransactionDto>> RestoreTransaction(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var transaction = await _transactionsService.RestoreTransactionAsync(
+            id,
+            cancellationToken);
+        return Ok(transaction);
+    }
 }

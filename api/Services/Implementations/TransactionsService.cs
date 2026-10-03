@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Common;
 using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Exceptions;
@@ -94,7 +95,8 @@ public class TransactionsService : ITransactionsService
 
         var historyQuery = _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope);
+            .InHousehold(_householdScope)
+            .Where(x => x.ArchivedAt == null);
 
         if (hasMerchantName)
         {
@@ -344,13 +346,159 @@ public class TransactionsService : ITransactionsService
             }
         }
 
+        var today = FinancialDate.Today(_timeProvider);
+        if (dto.Date > today)
+        {
+            throw new BadRequestException("The transaction date cannot be in the future.");
+        }
+
+        var account = await LoadAccountAsync(transaction.AccountId, cancellationToken);
+        if (ManualAccountBalance.UsesLedger(account)
+            && account.OpeningBalanceDate is DateOnly openingDate
+            && dto.Date < openingDate)
+        {
+            throw new BadRequestException(
+                "The transaction date cannot be before the account opening date.");
+        }
+
+        var manualEntry = IsManualEntry(transaction);
+        if (manualEntry)
+        {
+            if (dto.Name is not null)
+            {
+                transaction.Name = RequireName(dto.Name);
+                transaction.MerchantName = transaction.Name;
+            }
+
+            if (dto.Amount is decimal amount)
+            {
+                transaction.Amount = AccountLedger.Round(amount);
+            }
+
+            if (dto.Pending is bool pending)
+            {
+                transaction.Pending = pending;
+            }
+        }
+
         transaction.Date = dto.Date;
         transaction.IsDateUserEdited = true;
         transaction.CategoryId = dto.CategoryId;
         transaction.IsCategoryUserEdited = true;
-        transaction.Notes = dto.Notes;
+        transaction.Notes = EmptyToNull(dto.Notes);
         transaction.UpdatedAt = _timeProvider.GetUtcNow();
 
+        if (ManualAccountBalance.UsesLedger(account))
+        {
+            await ManualAccountBalance.RefreshAsync(
+                _dbContext,
+                account,
+                today,
+                transaction.UpdatedAt,
+                cancellationToken);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
+    }
+
+    public async Task<TransactionDto> CreateManualTransactionAsync(
+        CreateManualTransactionDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var account = await LoadAccountAsync(dto.AccountId, cancellationToken);
+        if (account.ArchivedAt is not null)
+        {
+            throw new BadRequestException("Restore this account before adding a transaction.");
+        }
+
+        var today = FinancialDate.Today(_timeProvider);
+        if (dto.Date > today)
+        {
+            throw new BadRequestException("The transaction date cannot be in the future.");
+        }
+
+        if (ManualAccountBalance.UsesLedger(account)
+            && account.OpeningBalanceDate is DateOnly openingDate
+            && dto.Date < openingDate)
+        {
+            throw new BadRequestException(
+                "The transaction date cannot be before the account opening date.");
+        }
+
+        if (dto.CategoryId is Guid categoryId)
+        {
+            var categoryExists = await CategoryIsVisibleAsync(categoryId, cancellationToken);
+            if (!categoryExists)
+            {
+                throw new BadRequestException($"Category '{dto.CategoryId}' was not found.");
+            }
+        }
+
+        var now = _timeProvider.GetUtcNow();
+        var name = RequireName(dto.Name);
+        var transaction = new Transaction
+        {
+            Id = Guid.NewGuid(),
+            AccountId = account.Id,
+            PlaidTransactionId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.ManualEntry,
+            Date = dto.Date,
+            IsDateUserEdited = true,
+            Name = name,
+            MerchantName = name,
+            Amount = AccountLedger.Round(dto.Amount),
+            IsoCurrencyCode = account.IsoCurrencyCode,
+            Pending = dto.Pending,
+            CategoryId = dto.CategoryId,
+            IsCategoryUserEdited = dto.CategoryId.HasValue,
+            Notes = EmptyToNull(dto.Notes),
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        _dbContext.Transactions.Add(transaction);
+
+        if (ManualAccountBalance.UsesLedger(account))
+        {
+            await ManualAccountBalance.RefreshAsync(
+                _dbContext,
+                account,
+                today,
+                now,
+                cancellationToken);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
+    }
+
+    public async Task<TransactionDto> ArchiveTransactionAsync(
+        Guid transactionId,
+        CancellationToken cancellationToken = default)
+    {
+        var transaction = await FindTransactionAsync(transactionId, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+        transaction.ArchivedAt ??= now;
+        transaction.UpdatedAt = now;
+        await RefreshAccountBalanceAsync(transaction.AccountId, now, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
+    }
+
+    public async Task<TransactionDto> RestoreTransactionAsync(
+        Guid transactionId,
+        CancellationToken cancellationToken = default)
+    {
+        var transaction = await FindTransactionAsync(transactionId, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+        transaction.ArchivedAt = null;
+        transaction.UpdatedAt = now;
+        await RefreshAccountBalanceAsync(transaction.AccountId, now, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
@@ -403,6 +551,10 @@ public class TransactionsService : ITransactionsService
             transactionsQuery = transactionsQuery.Where(x => x.Pending == query.Pending.Value);
         }
 
+        transactionsQuery = query.Archived == true
+            ? transactionsQuery.Where(x => x.ArchivedAt != null)
+            : transactionsQuery.Where(x => x.ArchivedAt == null);
+
         return transactionsQuery;
     }
 
@@ -423,6 +575,81 @@ public class TransactionsService : ITransactionsService
         }
 
         return transaction;
+    }
+
+    private async Task<Account> LoadAccountAsync(
+        Guid accountId,
+        CancellationToken cancellationToken)
+    {
+        var account = await _dbContext.Accounts
+            .InHousehold(_householdScope)
+            .FirstOrDefaultAsync(x => x.Id == accountId, cancellationToken);
+
+        if (account is null)
+        {
+            throw new NotFoundException($"Account '{accountId}' was not found.");
+        }
+
+        return account;
+    }
+
+    private async Task<Transaction> FindTransactionAsync(
+        Guid transactionId,
+        CancellationToken cancellationToken)
+    {
+        var transaction = await _dbContext.Transactions
+            .InHousehold(_householdScope)
+            .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
+
+        if (transaction is null)
+        {
+            throw new NotFoundException($"Transaction '{transactionId}' was not found.");
+        }
+
+        return transaction;
+    }
+
+    private async Task RefreshAccountBalanceAsync(
+        Guid accountId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var account = await _dbContext.Accounts
+            .InHousehold(_householdScope)
+            .FirstOrDefaultAsync(x => x.Id == accountId, cancellationToken);
+
+        if (account is null || !ManualAccountBalance.UsesLedger(account))
+        {
+            return;
+        }
+
+        await ManualAccountBalance.RefreshAsync(
+            _dbContext,
+            account,
+            FinancialDate.Today(_timeProvider),
+            now,
+            cancellationToken);
+    }
+
+    private static bool IsManualEntry(Transaction transaction) =>
+        transaction.Source == FinancialRecordSource.Manual
+        && transaction.Provenance == FinancialRecordProvenance.ManualEntry;
+
+    private static string RequireName(string name)
+    {
+        var trimmed = name.Trim();
+        if (trimmed.Length == 0 || trimmed.Length > 300)
+        {
+            throw new BadRequestException("A name is required.");
+        }
+
+        return trimmed;
+    }
+
+    private static string? EmptyToNull(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
     private Task<bool> CategoryIsVisibleAsync(

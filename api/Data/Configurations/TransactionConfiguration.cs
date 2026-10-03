@@ -46,6 +46,8 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         entity.Property(x => x.Notes)
             .HasMaxLength(1000);
 
+        entity.HasIndex(x => x.ArchivedAt);
+
         entity.Property(x => x.CreatedAt)
             .IsRequired();
 

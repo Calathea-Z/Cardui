@@ -27,4 +27,16 @@ public interface ITransactionsService
         Guid transactionId,
         UpdateTransactionDetailsDto dto,
         CancellationToken cancellationToken = default);
+
+    Task<TransactionDto> CreateManualTransactionAsync(
+        CreateManualTransactionDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<TransactionDto> ArchiveTransactionAsync(
+        Guid transactionId,
+        CancellationToken cancellationToken = default);
+
+    Task<TransactionDto> RestoreTransactionAsync(
+        Guid transactionId,
+        CancellationToken cancellationToken = default);
 }

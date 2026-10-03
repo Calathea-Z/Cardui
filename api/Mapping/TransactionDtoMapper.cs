@@ -33,6 +33,9 @@ public static class TransactionDtoMapper
                 Color = x.Category.Color,
                 Icon = x.Category.Icon
             },
-        Notes = x.Notes
+        Notes = x.Notes,
+        Source = x.Source,
+        Provenance = x.Provenance,
+        ArchivedAt = x.ArchivedAt
     };
 }

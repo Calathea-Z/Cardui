@@ -1,3 +1,5 @@
+using Cardui.Api.Models;
+
 namespace Cardui.Api.Domain;
 
 public sealed record TransactionActivityValue(
@@ -7,7 +9,8 @@ public sealed record TransactionActivityValue(
     string CategoryName,
     string? CategoryColor,
     string? CategoryKey,
-    string? GroupKey);
+    string? GroupKey,
+    string? Provenance = null);
 
 public sealed record TransactionActivityCategoryTotal(
     Guid? CategoryId,
@@ -30,7 +33,9 @@ public static class TransactionActivityCalculator
 
         foreach (var transaction in transactions)
         {
-            if (transaction.Pending || IsTransfer(transaction))
+            if (transaction.Pending
+                || IsTransfer(transaction)
+                || IsBalanceReconciliation(transaction))
             {
                 continue;
             }
@@ -71,6 +76,14 @@ public static class TransactionActivityCalculator
     {
         return HasKey(transaction.GroupKey, SystemGroupKeys.Transfers)
             || HasKey(transaction.CategoryKey, SystemCategoryKeys.Transfers);
+    }
+
+    private static bool IsBalanceReconciliation(TransactionActivityValue transaction)
+    {
+        return string.Equals(
+            transaction.Provenance,
+            FinancialRecordProvenance.BalanceReconciliation,
+            StringComparison.Ordinal);
     }
 
     private static bool IsIncome(TransactionActivityValue transaction)

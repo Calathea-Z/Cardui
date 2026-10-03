@@ -26,6 +26,13 @@ public class Account
     public decimal? AvailableBalance { get; set; }
 
     public string? IsoCurrencyCode { get; set; }
+
+    public decimal OpeningBalance { get; set; }
+
+    public DateOnly? OpeningBalanceDate { get; set; }
+
+    public DateTimeOffset? ArchivedAt { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public DateTimeOffset CreatedAt { get; init; }

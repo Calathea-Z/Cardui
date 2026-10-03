@@ -47,6 +47,10 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         entity.Property(x => x.IsoCurrencyCode)
             .HasMaxLength(10);
 
+        entity.Property(x => x.OpeningBalance)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
         entity.Property(x => x.IsActive)
             .IsRequired();
 
@@ -60,6 +64,8 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .IsUnique();
 
         entity.HasIndex(x => x.HouseholdId);
+
+        entity.HasIndex(x => x.ArchivedAt);
 
         entity.HasOne<Household>()
             .WithMany()

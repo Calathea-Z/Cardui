@@ -3,6 +3,7 @@ import { getCategoryEmoji } from "@/features/categories/categoryEmoji";
 import { cn } from "@/lib/utils";
 import {
   getTransactionAmountDisplay,
+  isBalanceReconciliation,
   isTransferTransaction,
 } from "./transactionAmountDisplay";
 
@@ -23,6 +24,7 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
 export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
   const amount = getTransactionAmountDisplay(transaction);
   const isTransfer = isTransferTransaction(transaction);
+  const isAdjustment = isBalanceReconciliation(transaction);
 
   const content = (
     <>
@@ -37,11 +39,16 @@ export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
           <p className="truncate font-medium text-foreground">
             {transaction.name}
           </p>
-          {isTransfer || transaction.pending ? (
+          {isTransfer || transaction.pending || isAdjustment ? (
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               {isTransfer ? (
                 <span className="ledger-stamp bg-transfer-soft text-transfer">
                   Transfer
+                </span>
+              ) : null}
+              {isAdjustment ? (
+                <span className="ledger-stamp bg-transfer-soft text-transfer">
+                  Adjustment
                 </span>
               ) : null}
               {transaction.pending ? (
@@ -59,6 +66,10 @@ export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
         {isTransfer ? (
           <p className="mt-0.5 text-[11px] text-transfer">
             Moved between accounts
+          </p>
+        ) : isAdjustment ? (
+          <p className="mt-0.5 text-[11px] text-transfer">
+            Not income or spending
           </p>
         ) : null}
       </div>

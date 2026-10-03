@@ -5,12 +5,14 @@ type AccountListRowProps = {
   account: AccountDto;
   compact?: boolean;
   showBalance?: boolean;
+  onSelect?: (account: AccountDto) => void;
 };
 
 export function AccountListRow({
   account,
   compact = false,
   showBalance = true,
+  onSelect,
 }: AccountListRowProps) {
   const subtitle = [
     account.subtype ?? account.type,
@@ -19,14 +21,12 @@ export function AccountListRow({
     .filter(Boolean)
     .join(" · ");
 
-  return (
-    <div
-      className={
-        compact
-          ? "flex items-center justify-between gap-3 px-3 py-2.5 transition hover:bg-accent/30"
-          : "flex items-center justify-between gap-4 px-4 py-3.5 transition hover:bg-accent/30"
-      }
-    >
+  const className = compact
+    ? "flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition hover:bg-accent/30"
+    : "flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left transition hover:bg-accent/30";
+
+  const content = (
+    <>
       <div className="min-w-0">
         <p className="truncate font-medium text-foreground">{account.name}</p>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -51,6 +51,20 @@ export function AccountListRow({
       ) : !account.isActive ? (
         <p className="shrink-0 text-xs text-muted-foreground">Inactive</p>
       ) : null}
-    </div>
+    </>
+  );
+
+  if (!onSelect) {
+    return <div className={className}>{content}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      className={`${className} cursor-pointer`}
+      onClick={() => onSelect(account)}
+    >
+      {content}
+    </button>
   );
 }

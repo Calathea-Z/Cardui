@@ -76,7 +76,7 @@ public class DashboardService : IDashboardService
         var balances = await _dbContext.Accounts
             .AsNoTracking()
             .InHousehold(_householdScope)
-            .Where(x => x.IsActive)
+            .Where(x => x.IsActive && x.ArchivedAt == null)
             .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance))
             .ToListAsync(cancellationToken);
 
@@ -90,6 +90,7 @@ public class DashboardService : IDashboardService
     {
         var transactions = await TransactionsInDateRange(monthStart, monthEnd)
             .AsNoTracking()
+            .Where(x => x.ArchivedAt == null)
             .Select(x => new TransactionActivityValue(
                 x.Amount,
                 x.Pending,
@@ -99,7 +100,8 @@ public class DashboardService : IDashboardService
                     : x.Category.Name,
                 x.Category == null ? null : x.Category.Color,
                 x.Category == null ? null : x.Category.Key,
-                x.Category == null ? null : x.Category.SubGroup.Group.Key))
+                x.Category == null ? null : x.Category.SubGroup.Group.Key,
+                x.Provenance))
             .ToListAsync(cancellationToken);
 
         return TransactionActivityCalculator.Calculate(transactions);
@@ -111,6 +113,7 @@ public class DashboardService : IDashboardService
         return await _dbContext.Transactions
             .AsNoTracking()
             .InHousehold(_householdScope)
+            .Where(x => x.ArchivedAt == null)
             .OrderByDescending(x => x.Date)
             .Take(RecentTransactionCount)
             .Select(TransactionDtoMapper.Projection)

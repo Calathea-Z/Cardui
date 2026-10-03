@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TransactionDetailDrawer } from "@/features/transactions/TransactionDetailDrawer";
@@ -24,6 +25,7 @@ export function DashboardRecentTransactionsWidget({
   groups,
   subGroups: initialSubGroups,
 }: DashboardRecentTransactionsWidgetProps) {
+  const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions);
   const [categories, setCategories] = useState(initialCategories);
   const [subGroups] = useState(initialSubGroups);
@@ -68,7 +70,7 @@ export function DashboardRecentTransactionsWidget({
           {transactions.length === 0 ? (
             <EmptyState
               title="No transactions yet"
-              description="Transactions will appear here after your first account sync."
+              description="Transactions will appear here after you add one or connect an account."
               className="py-8 [&_p]:text-sm [&_p]:font-normal"
             />
           ) : null}
@@ -84,6 +86,17 @@ export function DashboardRecentTransactionsWidget({
         onSaved={handleSaved}
         onCategoryCreated={handleCategoryCreated}
         onSelectTransaction={setSelectedTransaction}
+        onArchived={(transactionId) => {
+          setTransactions((current) =>
+            current.filter((transaction) => transaction.id !== transactionId),
+          );
+          setSelectedTransaction(null);
+          router.refresh();
+        }}
+        onRestored={() => {
+          setSelectedTransaction(null);
+          router.refresh();
+        }}
       />
     </>
   );

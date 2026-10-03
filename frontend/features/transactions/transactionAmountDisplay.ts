@@ -2,6 +2,10 @@ import type { TransactionDto } from "@/lib/api/types";
 
 const TRANSFERS_CATEGORY_KEY = "transfers";
 
+export function isBalanceReconciliation(transaction: TransactionDto) {
+  return transaction.provenance === "BalanceReconciliation";
+}
+
 export function isTransferTransaction(transaction: TransactionDto) {
   const key = transaction.category?.key?.toLowerCase();
   if (key === TRANSFERS_CATEGORY_KEY) {
@@ -29,7 +33,7 @@ export type TransactionAmountDisplay = {
 export function getTransactionAmountDisplay(
   transaction: TransactionDto,
 ): TransactionAmountDisplay {
-  if (isTransferTransaction(transaction)) {
+  if (isTransferTransaction(transaction) || isBalanceReconciliation(transaction)) {
     return {
       kind: "transfer",
       label: formatAbsoluteCurrency(transaction.amount),
@@ -51,7 +55,11 @@ export function getTransactionAmountDisplay(
 
 export function sumNonTransferAmounts(transactions: TransactionDto[]) {
   return transactions
-    .filter((transaction) => !isTransferTransaction(transaction))
+    .filter(
+      (transaction) =>
+        !isTransferTransaction(transaction) &&
+        !isBalanceReconciliation(transaction),
+    )
     .reduce((total, transaction) => total + transaction.amount, 0);
 }
 

@@ -10,4 +10,11 @@ public class UpdateTransactionDetailsDto
 
     [StringLength(1000)]
     public string? Notes { get; set; }
+
+    [StringLength(300)]
+    public string? Name { get; set; }
+
+    public decimal? Amount { get; set; }
+
+    public bool? Pending { get; set; }
 }

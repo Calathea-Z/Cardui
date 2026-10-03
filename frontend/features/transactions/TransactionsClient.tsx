@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Pagination } from "@/components/ui/pagination";
 import type {
@@ -13,6 +14,7 @@ import type {
   SubGroupDto,
   TransactionDto,
 } from "@/lib/api/types";
+import { AddTransactionSheet } from "./AddTransactionSheet";
 import { TransactionDateGroup } from "./TransactionDateGroup";
 import { TransactionDetailDrawer } from "./TransactionDetailDrawer";
 import { TransactionsFilters } from "./TransactionsFilters";
@@ -45,6 +47,7 @@ export function TransactionsClient({
     errorMessage,
     loadPage,
     patchTransaction,
+    removeTransaction,
   } = useTransactionsPage({
     initialTransactionsPage,
     pageSize,
@@ -59,6 +62,7 @@ export function TransactionsClient({
   const [subGroups] = useState(initialSubGroups);
   const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionDto | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   const transactionsByDate = useMemo(
     () => groupTransactionsByDate(transactions),
@@ -83,6 +87,12 @@ export function TransactionsClient({
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8">
+        <div className="flex justify-end">
+          <Button type="button" onClick={() => setIsAddOpen(true)}>
+            Add transaction
+          </Button>
+        </div>
+
         <TransactionsFilters
           query={query}
           accounts={accounts}
@@ -142,6 +152,22 @@ export function TransactionsClient({
         onSaved={handleSaved}
         onCategoryCreated={handleCategoryCreated}
         onSelectTransaction={setSelectedTransaction}
+        onArchived={(transactionId) => {
+          removeTransaction(transactionId);
+          setSelectedTransaction(null);
+        }}
+        onRestored={() => {
+          setSelectedTransaction(null);
+          void loadPage(1);
+        }}
+      />
+
+      <AddTransactionSheet
+        open={isAddOpen}
+        accounts={accounts}
+        categories={categories}
+        onClose={() => setIsAddOpen(false)}
+        onCreated={() => void loadPage(1)}
       />
     </main>
   );

@@ -31,6 +31,8 @@ public class Transaction
 
     public string? Notes { get; set; }
 
+    public DateTimeOffset? ArchivedAt { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; set; }
 }

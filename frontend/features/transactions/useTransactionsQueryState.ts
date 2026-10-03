@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 
-export type PendingFilter = "all" | "pending" | "posted";
+export type PendingFilter = "all" | "pending" | "posted" | "archived";
 
 export const STATUS_OPTIONS: { value: PendingFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
   { value: "posted", label: "Posted" },
   { value: "pending", label: "Pending" },
+  { value: "archived", label: "Archived" },
 ];
 
 export function toPendingQueryValue(filter: PendingFilter) {

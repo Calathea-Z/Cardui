@@ -1,6 +1,9 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Account;
+using Cardui.Api.Exceptions;
+using Cardui.Api.Mapping;
+using Cardui.Api.Models;
 using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -24,26 +27,21 @@ public class AccountsService : IAccountsService
     }
 
     public async Task<IReadOnlyList<AccountDto>> GetAccountsAsync(
+        bool includeArchived = false,
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Accounts
+        var accounts = _dbContext.Accounts
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_householdScope);
+
+        if (!includeArchived)
+        {
+            accounts = accounts.Where(x => x.ArchivedAt == null);
+        }
+
+        return await accounts
             .OrderBy(x => x.Name)
-            .Select(x => new AccountDto
-            {
-                Id = x.Id,
-                PlaidItemId = x.PlaidItemId,
-                Name = x.Name,
-                OfficialName = x.OfficialName,
-                Type = x.Type,
-                Subtype = x.Subtype,
-                Mask = x.Mask,
-                CurrentBalance = x.CurrentBalance,
-                AvailableBalance = x.AvailableBalance,
-                IsoCurrencyCode = x.IsoCurrencyCode,
-                IsActive = x.IsActive
-            })
+            .Select(AccountDtoMapper.Projection)
             .ToListAsync(cancellationToken);
     }
 
@@ -53,22 +51,17 @@ public class AccountsService : IAccountsService
         var accounts = await _dbContext.Accounts
             .AsNoTracking()
             .InHousehold(_householdScope)
-            .Where(x => x.IsActive)
+            .Where(x => x.IsActive && x.ArchivedAt == null)
             .OrderBy(x => x.Name)
-            .Select(x => new AccountDto
-            {
-                Id = x.Id,
-                PlaidItemId = x.PlaidItemId,
-                Name = x.Name,
-                OfficialName = x.OfficialName,
-                Type = x.Type,
-                Subtype = x.Subtype,
-                Mask = x.Mask,
-                CurrentBalance = x.CurrentBalance,
-                AvailableBalance = x.AvailableBalance,
-                IsoCurrencyCode = x.IsoCurrencyCode,
-                IsActive = x.IsActive
-            })
+            .Select(AccountDtoMapper.Projection)
+            .ToListAsync(cancellationToken);
+
+        var archivedAccounts = await _dbContext.Accounts
+            .AsNoTracking()
+            .InHousehold(_householdScope)
+            .Where(x => x.ArchivedAt != null)
+            .OrderBy(x => x.Name)
+            .Select(AccountDtoMapper.Projection)
             .ToListAsync(cancellationToken);
 
         var accountTotals = CalculateAccountTotals(accounts);
@@ -99,7 +92,204 @@ public class AccountsService : IAccountsService
         {
             NetWorth = groups.Single(x => x.Key == AccountGroupKeys.NetWorth).Total,
             Groups = groups,
-            History = history
+            History = history,
+            ArchivedAccounts = archivedAccounts
+        };
+    }
+
+    public async Task<AccountDto> CreateManualAccountAsync(
+        CreateManualAccountDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        var today = FinancialDate.Today(_timeProvider);
+        var now = _timeProvider.GetUtcNow();
+        var openingDate = RequireOpeningDate(dto.OpeningBalanceDate, today);
+
+        var account = new Account
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = householdId,
+            PlaidItemId = null,
+            PlaidAccountId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.ManualEntry,
+            Name = RequireName(dto.Name, 200),
+            Type = RequireAccountType(dto.Type),
+            Subtype = EmptyToNull(dto.Subtype),
+            Mask = EmptyToNull(dto.Mask),
+            CurrentBalance = AccountLedger.Round(dto.OpeningBalance),
+            AvailableBalance = null,
+            IsoCurrencyCode = NormalizeCurrency(dto.IsoCurrencyCode),
+            OpeningBalance = AccountLedger.Round(dto.OpeningBalance),
+            OpeningBalanceDate = openingDate,
+            IsActive = true,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        _dbContext.Accounts.Add(account);
+        await ManualAccountBalance.UpsertSnapshotAsync(
+            _dbContext,
+            account,
+            today,
+            now,
+            cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectAccountAsync(account.Id, cancellationToken);
+    }
+
+    public async Task<AccountDto> UpdateManualAccountAsync(
+        Guid accountId,
+        UpdateManualAccountDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var account = await FindAccountAsync(accountId, cancellationToken);
+        if (account.PlaidItemId is not null)
+        {
+            throw new BadRequestException(
+                "Linked accounts keep their name, type, and balance from the bank. You can archive the account.");
+        }
+
+        var today = FinancialDate.Today(_timeProvider);
+        var openingDate = RequireOpeningDate(dto.OpeningBalanceDate, today);
+        await RequireOpeningDateCoversTransactionsAsync(
+            account.Id,
+            openingDate,
+            cancellationToken);
+
+        account.Name = RequireName(dto.Name, 200);
+        account.Type = RequireAccountType(dto.Type);
+        account.Subtype = EmptyToNull(dto.Subtype);
+        account.Mask = EmptyToNull(dto.Mask);
+        account.IsoCurrencyCode = NormalizeCurrency(dto.IsoCurrencyCode);
+        account.OpeningBalance = AccountLedger.Round(dto.OpeningBalance);
+        account.OpeningBalanceDate = openingDate;
+        account.Source = FinancialRecordSource.Manual;
+        account.Provenance = FinancialRecordProvenance.ManualEntry;
+
+        await ManualAccountBalance.RefreshAsync(
+            _dbContext,
+            account,
+            today,
+            _timeProvider.GetUtcNow(),
+            cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectAccountAsync(account.Id, cancellationToken);
+    }
+
+    public async Task<AccountDto> ArchiveAccountAsync(
+        Guid accountId,
+        CancellationToken cancellationToken = default)
+    {
+        var account = await FindAccountAsync(accountId, cancellationToken);
+        account.ArchivedAt ??= _timeProvider.GetUtcNow();
+        account.UpdatedAt = _timeProvider.GetUtcNow();
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectAccountAsync(account.Id, cancellationToken);
+    }
+
+    public async Task<AccountDto> RestoreAccountAsync(
+        Guid accountId,
+        CancellationToken cancellationToken = default)
+    {
+        var account = await FindAccountAsync(accountId, cancellationToken);
+        account.ArchivedAt = null;
+        account.UpdatedAt = _timeProvider.GetUtcNow();
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await ProjectAccountAsync(account.Id, cancellationToken);
+    }
+
+    public async Task<BalanceReconciliationResultDto> ReconcileBalanceAsync(
+        Guid accountId,
+        ReconcileAccountBalanceDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var account = await FindAccountAsync(accountId, cancellationToken);
+        if (!ManualAccountBalance.UsesLedger(account)
+            || account.OpeningBalanceDate is not DateOnly openingDate)
+        {
+            throw new BadRequestException(
+                "Balance reconciliation is for accounts you enter yourself. Linked balances come from the bank.");
+        }
+
+        if (account.ArchivedAt is not null)
+        {
+            throw new BadRequestException("Restore this account before reconciling its balance.");
+        }
+
+        var today = FinancialDate.Today(_timeProvider);
+        if (dto.AsOfDate < openingDate || dto.AsOfDate > today)
+        {
+            throw new BadRequestException(
+                "The statement date must be on or after the opening date, and not in the future.");
+        }
+
+        var now = _timeProvider.GetUtcNow();
+        var transactions = await _dbContext.Transactions
+            .AsNoTracking()
+            .Where(x => x.AccountId == account.Id)
+            .Select(x => new LedgerTransaction(
+                x.Date,
+                x.Amount,
+                x.Pending,
+                x.ArchivedAt != null))
+            .ToListAsync(cancellationToken);
+
+        var calculated = AccountLedger.BalanceAsOf(
+            account.Type,
+            account.OpeningBalance,
+            openingDate,
+            transactions,
+            dto.AsOfDate);
+        var statementBalance = AccountLedger.Round(dto.StatementBalance);
+        var adjustment = AccountLedger.Round(statementBalance - calculated);
+        Guid? adjustmentTransactionId = null;
+
+        if (adjustment != 0)
+        {
+            var transaction = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                AccountId = account.Id,
+                PlaidTransactionId = null,
+                Source = FinancialRecordSource.Manual,
+                Provenance = FinancialRecordProvenance.BalanceReconciliation,
+                Date = dto.AsOfDate,
+                Name = FinancialRecordProvenance.BalanceReconciliationName,
+                MerchantName = FinancialRecordProvenance.BalanceReconciliationName,
+                Amount = AccountLedger.TransactionAmountForBalanceChange(
+                    account.Type,
+                    adjustment),
+                IsoCurrencyCode = account.IsoCurrencyCode,
+                Pending = false,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+
+            _dbContext.Transactions.Add(transaction);
+            adjustmentTransactionId = transaction.Id;
+        }
+
+        await ManualAccountBalance.RefreshAsync(
+            _dbContext,
+            account,
+            today,
+            now,
+            cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new BalanceReconciliationResultDto
+        {
+            Account = await ProjectAccountAsync(account.Id, cancellationToken),
+            CalculatedBalance = calculated,
+            StatementBalance = statementBalance,
+            Adjustment = adjustment,
+            AdjustmentTransactionId = adjustmentTransactionId
         };
     }
 
@@ -136,7 +326,7 @@ public class AccountsService : IAccountsService
             .AsNoTracking()
             .InHousehold(_householdScope)
             .Include(x => x.Account)
-            .Where(x => x.Account.IsActive && x.Date <= today)
+            .Where(x => x.Account.IsActive && x.Account.ArchivedAt == null && x.Date <= today)
             .OrderBy(x => x.Date)
             .ToListAsync(cancellationToken);
 
@@ -156,6 +346,119 @@ public class AccountsService : IAccountsService
                 NetWorth = point.NetWorth
             })
             .ToList();
+    }
+
+    private async Task<Account> FindAccountAsync(
+        Guid accountId,
+        CancellationToken cancellationToken)
+    {
+        var account = await _dbContext.Accounts
+            .InHousehold(_householdScope)
+            .FirstOrDefaultAsync(x => x.Id == accountId, cancellationToken);
+
+        if (account is null)
+        {
+            throw new NotFoundException($"Account '{accountId}' was not found.");
+        }
+
+        return account;
+    }
+
+    private async Task<AccountDto> ProjectAccountAsync(
+        Guid accountId,
+        CancellationToken cancellationToken)
+    {
+        var account = await _dbContext.Accounts
+            .AsNoTracking()
+            .InHousehold(_householdScope)
+            .Where(x => x.Id == accountId)
+            .Select(AccountDtoMapper.Projection)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (account is null)
+        {
+            throw new NotFoundException($"Account '{accountId}' was not found.");
+        }
+
+        return account;
+    }
+
+    private async Task RequireOpeningDateCoversTransactionsAsync(
+        Guid accountId,
+        DateOnly openingDate,
+        CancellationToken cancellationToken)
+    {
+        var hasEarlierTransaction = await _dbContext.Transactions
+            .AnyAsync(
+                x => x.AccountId == accountId
+                    && x.ArchivedAt == null
+                    && x.Date < openingDate,
+                cancellationToken);
+
+        if (hasEarlierTransaction)
+        {
+            throw new BadRequestException(
+                "Transactions already exist before that opening date. Move those transactions or pick an earlier date.");
+        }
+    }
+
+    private static DateOnly RequireOpeningDate(DateOnly openingDate, DateOnly today)
+    {
+        if (openingDate > today)
+        {
+            throw new BadRequestException("The opening date cannot be in the future.");
+        }
+
+        return openingDate;
+    }
+
+    private static string RequireAccountType(string type)
+    {
+        var normalized = type.Trim().ToLowerInvariant();
+        if (normalized is not (
+            AccountTypes.Depository
+            or AccountTypes.Investment
+            or AccountTypes.Credit
+            or AccountTypes.Loan))
+        {
+            throw new BadRequestException(
+                "Account type must be cash, investment, credit card, or loan.");
+        }
+
+        return normalized;
+    }
+
+    private static string RequireName(string name, int maxLength)
+    {
+        var trimmed = name.Trim();
+        if (trimmed.Length == 0 || trimmed.Length > maxLength)
+        {
+            throw new BadRequestException("A name is required.");
+        }
+
+        return trimmed;
+    }
+
+    private static string? EmptyToNull(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
+    }
+
+    private static string NormalizeCurrency(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "USD";
+        }
+
+        var currency = value.Trim().ToUpperInvariant();
+        if (currency.Length is < 3 or > 10)
+        {
+            throw new BadRequestException("Enter a currency code such as USD.");
+        }
+
+        return currency;
     }
 
     private static AccountTotals CalculateAccountTotals(IReadOnlyList<AccountDto> accounts)

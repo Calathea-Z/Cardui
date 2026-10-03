@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useSetMobileHeaderActions } from "@/components/navigation/mobile-header-actions";
 import { syncPlaidItem } from "@/lib/api/browser";
-import type { AccountSummaryDto, PlaidItemDto } from "@/lib/api/types";
+import type { AccountDto, AccountSummaryDto, PlaidItemDto } from "@/lib/api/types";
+import { AccountDetailSheet } from "./AccountDetailSheet";
 import { AccountsActionButtons } from "./AccountsActionButtons";
 import { AccountsView } from "./AccountsView";
 import { AddAccountSheet } from "./AddAccountSheet";
@@ -20,6 +21,9 @@ export function AccountsPageClient({
 }: AccountsPageClientProps) {
   const router = useRouter();
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<AccountDto | null>(
+    null,
+  );
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -81,11 +85,21 @@ export function AccountsPageClient({
 
   return (
     <>
-      <AccountsView summary={summary} actions={desktopHeaderActions} />
+      <AccountsView
+        summary={summary}
+        actions={desktopHeaderActions}
+        onSelectAccount={setSelectedAccount}
+      />
 
       <AddAccountSheet
         open={isAddSheetOpen}
         onClose={() => setIsAddSheetOpen(false)}
+      />
+
+      <AccountDetailSheet
+        account={selectedAccount}
+        onClose={() => setSelectedAccount(null)}
+        onChanged={() => router.refresh()}
       />
     </>
   );

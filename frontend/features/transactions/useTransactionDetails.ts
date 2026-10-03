@@ -10,10 +10,15 @@ import type {
   UpdateTransactionDetailsDto,
 } from "@/lib/api/types";
 
+type AmountDirection = "out" | "in";
+
 type TransactionDetailsFormState = {
   date: string;
   categoryId: string;
   notes: string;
+  name: string;
+  amount: string;
+  direction: AmountDirection;
 };
 
 type UseTransactionDetailsOptions = {
@@ -22,13 +27,36 @@ type UseTransactionDetailsOptions = {
   onSaved: (transaction: TransactionDto) => void;
 };
 
-const NOTES_SAVE_DELAY_MS = 400;
+const TEXT_SAVE_DELAY_MS = 400;
+
+export function isManualEntry(transaction: TransactionDto) {
+  return (
+    transaction.source === "Manual" && transaction.provenance === "ManualEntry"
+  );
+}
+
+function directionFor(amount: number): AmountDirection {
+  return amount < 0 ? "in" : "out";
+}
+
+function toSignedAmount(amount: string, direction: AmountDirection) {
+  const parsed = Number(amount);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+
+  const absolute = Math.abs(parsed);
+  return direction === "in" ? -absolute : absolute;
+}
 
 function toFormState(transaction: TransactionDto): TransactionDetailsFormState {
   return {
     date: transaction.date,
     categoryId: transaction.category?.id ?? "",
     notes: transaction.notes ?? "",
+    name: transaction.name,
+    amount: String(Math.abs(transaction.amount)),
+    direction: directionFor(transaction.amount),
   };
 }
 
@@ -59,22 +87,54 @@ function toOptimisticTransaction(
   form: TransactionDetailsFormState,
   categories: CategoryDto[],
 ): TransactionDto {
-  return {
+  const next: TransactionDto = {
     ...transaction,
     date: form.date,
     category: toCategoryDto(categories, form.categoryId),
     notes: form.notes.trim() || null,
   };
+
+  if (!isManualEntry(transaction)) {
+    return next;
+  }
+
+  const name = form.name.trim();
+  const amount = toSignedAmount(form.amount, form.direction);
+  return {
+    ...next,
+    name: name || transaction.name,
+    merchantName: name || transaction.merchantName,
+    amount: amount ?? transaction.amount,
+  };
 }
 
 function toUpdateDto(
   form: TransactionDetailsFormState,
+  transaction: TransactionDto,
 ): UpdateTransactionDetailsDto {
-  return {
+  const dto: UpdateTransactionDetailsDto = {
     date: form.date,
     categoryId: form.categoryId || null,
     notes: form.notes.trim() || null,
   };
+
+  if (!isManualEntry(transaction)) {
+    return dto;
+  }
+
+  const amount = toSignedAmount(form.amount, form.direction);
+  if (amount === null) {
+    throw new Error("Enter an amount.");
+  }
+
+  const name = form.name.trim();
+  if (!name) {
+    throw new Error("Enter a name.");
+  }
+
+  dto.name = name;
+  dto.amount = amount;
+  return dto;
 }
 
 export function useTransactionDetails({
@@ -90,7 +150,7 @@ export function useTransactionDetails({
   const formRef = useRef(form);
   const committedRef = useRef(transaction);
   const editVersionRef = useRef(0);
-  const notesTimeoutRef = useRef<number | null>(null);
+  const textTimeoutRef = useRef<number | null>(null);
   const categoriesRef = useRef(categories);
   const onSavedRef = useRef(onSaved);
 
@@ -104,8 +164,8 @@ export function useTransactionDetails({
 
   useEffect(() => {
     return () => {
-      if (notesTimeoutRef.current !== null) {
-        window.clearTimeout(notesTimeoutRef.current);
+      if (textTimeoutRef.current !== null) {
+        window.clearTimeout(textTimeoutRef.current);
       }
     };
   }, []);
@@ -119,7 +179,7 @@ export function useTransactionDetails({
     try {
       const updated = await updateTransactionDetails(
         previous.id,
-        toUpdateDto(nextForm),
+        toUpdateDto(nextForm, previous),
       );
 
       committedRef.current = updated;
@@ -145,10 +205,10 @@ export function useTransactionDetails({
     }
   }
 
-  function clearNotesTimeout() {
-    if (notesTimeoutRef.current !== null) {
-      window.clearTimeout(notesTimeoutRef.current);
-      notesTimeoutRef.current = null;
+  function clearTextTimeout() {
+    if (textTimeoutRef.current !== null) {
+      window.clearTimeout(textTimeoutRef.current);
+      textTimeoutRef.current = null;
     }
   }
 
@@ -167,29 +227,43 @@ export function useTransactionDetails({
     return editVersionRef.current;
   }
 
-  function setCategoryId(categoryId: string) {
-    clearNotesTimeout();
-    const nextForm = { ...formRef.current, categoryId };
+  function persistNow(nextForm: TransactionDetailsFormState) {
+    clearTextTimeout();
     const version = applyOptimistic(nextForm);
     void persist(nextForm, version);
+  }
+
+  function persistText(nextForm: TransactionDetailsFormState) {
+    const version = applyOptimistic(nextForm);
+    clearTextTimeout();
+    textTimeoutRef.current = window.setTimeout(() => {
+      textTimeoutRef.current = null;
+      void persist(formRef.current, version);
+    }, TEXT_SAVE_DELAY_MS);
+  }
+
+  function setCategoryId(categoryId: string) {
+    persistNow({ ...formRef.current, categoryId });
   }
 
   function setDate(date: string) {
-    clearNotesTimeout();
-    const nextForm = { ...formRef.current, date };
-    const version = applyOptimistic(nextForm);
-    void persist(nextForm, version);
+    persistNow({ ...formRef.current, date });
   }
 
   function setNotes(notes: string) {
-    const nextForm = { ...formRef.current, notes };
-    const version = applyOptimistic(nextForm);
+    persistText({ ...formRef.current, notes });
+  }
 
-    clearNotesTimeout();
-    notesTimeoutRef.current = window.setTimeout(() => {
-      notesTimeoutRef.current = null;
-      void persist(formRef.current, version);
-    }, NOTES_SAVE_DELAY_MS);
+  function setName(name: string) {
+    persistText({ ...formRef.current, name });
+  }
+
+  function setAmount(amount: string) {
+    persistText({ ...formRef.current, amount });
+  }
+
+  function setDirection(direction: AmountDirection) {
+    persistNow({ ...formRef.current, direction });
   }
 
   function registerCategory(category: CategoryDto) {
@@ -199,11 +273,11 @@ export function useTransactionDetails({
   }
 
   function flushPendingSave() {
-    if (notesTimeoutRef.current === null) {
+    if (textTimeoutRef.current === null) {
       return;
     }
 
-    clearNotesTimeout();
+    clearTextTimeout();
     void persist(formRef.current, editVersionRef.current);
   }
 
@@ -214,6 +288,9 @@ export function useTransactionDetails({
     setDate,
     setCategoryId,
     setNotes,
+    setName,
+    setAmount,
+    setDirection,
     registerCategory,
     flushPendingSave,
   };

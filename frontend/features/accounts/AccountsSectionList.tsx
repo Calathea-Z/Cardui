@@ -1,22 +1,28 @@
 import { EmptyState } from "@/components/ui/empty-state";
-import type { AccountGroupDto } from "@/lib/api/types";
+import type { AccountDto, AccountGroupDto } from "@/lib/api/types";
 import { AccountListRow } from "./AccountListRow";
 import { formatCurrency } from "./formatCurrency";
 
 type AccountsSectionListProps = {
   groups: AccountGroupDto[];
+  archivedAccounts?: AccountDto[];
+  onSelectAccount?: (account: AccountDto) => void;
 };
 
-export function AccountsSectionList({ groups }: AccountsSectionListProps) {
+export function AccountsSectionList({
+  groups,
+  archivedAccounts = [],
+  onSelectAccount,
+}: AccountsSectionListProps) {
   const detailGroups = groups.filter(
     (group) => group.key !== "net-worth" && group.accounts.length > 0,
   );
 
-  if (detailGroups.length === 0) {
+  if (detailGroups.length === 0 && archivedAccounts.length === 0) {
     return (
       <EmptyState
-        title="No accounts connected yet"
-        description="Use the + button to connect a bank."
+        title="No accounts yet"
+        description="Use the + button to add an account."
         className="app-panel py-10"
       />
     );
@@ -41,11 +47,36 @@ export function AccountsSectionList({ groups }: AccountsSectionListProps) {
 
           <div className="divide-y divide-border/70 bg-background/40">
             {group.accounts.map((account) => (
-              <AccountListRow key={account.id} account={account} />
+              <AccountListRow
+                key={account.id}
+                account={account}
+                onSelect={onSelectAccount}
+              />
             ))}
           </div>
         </section>
       ))}
+
+      {archivedAccounts.length > 0 ? (
+        <section className="app-panel">
+          <div className="app-panel-header px-4 py-3.5">
+            <h2 className="app-section-title pl-2">Archived</h2>
+            <p className="app-section-meta pl-2">
+              Hidden from balances. Transactions stay in activity until you
+              archive them too.
+            </p>
+          </div>
+          <div className="divide-y divide-border/70 bg-background/40">
+            {archivedAccounts.map((account) => (
+              <AccountListRow
+                key={account.id}
+                account={account}
+                onSelect={onSelectAccount}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

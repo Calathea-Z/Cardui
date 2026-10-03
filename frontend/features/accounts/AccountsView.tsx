@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { AccountSummaryDto } from "@/lib/api/types";
+import type { AccountDto, AccountSummaryDto } from "@/lib/api/types";
 import {
   DEFAULT_ACCOUNT_CHART_METRIC,
   type AccountChartMetric,
@@ -13,9 +13,14 @@ import { AccountsSectionList } from "./AccountsSectionList";
 type AccountsViewProps = {
   summary: AccountSummaryDto;
   actions?: React.ReactNode;
+  onSelectAccount?: (account: AccountDto) => void;
 };
 
-export function AccountsView({ summary, actions }: AccountsViewProps) {
+export function AccountsView({
+  summary,
+  actions,
+  onSelectAccount,
+}: AccountsViewProps) {
   const [metric, setMetric] = useState<AccountChartMetric>(
     DEFAULT_ACCOUNT_CHART_METRIC,
   );
@@ -37,7 +42,11 @@ export function AccountsView({ summary, actions }: AccountsViewProps) {
         embedded
       />
 
-      <AccountsSectionList groups={summary.groups} />
+      <AccountsSectionList
+        groups={summary.groups}
+        archivedAccounts={summary.archivedAccounts ?? []}
+        onSelectAccount={onSelectAccount}
+      />
     </section>
   );
 }

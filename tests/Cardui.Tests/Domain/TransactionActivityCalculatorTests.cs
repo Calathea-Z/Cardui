@@ -1,4 +1,5 @@
 using Cardui.Api.Domain;
+using Cardui.Api.Models;
 using Xunit;
 
 namespace Cardui.Tests.Domain;
@@ -82,6 +83,22 @@ public class TransactionActivityCalculatorTests
 
         Assert.Equal(500m, result.Income);
         Assert.Equal(0m, result.Spending);
+    }
+
+    [Fact]
+    public void Calculate_IgnoresBalanceReconciliationEvenWhenCategorizedAsIncome()
+    {
+        var result = TransactionActivityCalculator.Calculate(
+        [
+            Activity(-80m, "Income", SystemGroupKeys.Income, categoryKey: SystemCategoryKeys.Income)
+                with { Provenance = FinancialRecordProvenance.BalanceReconciliation },
+            Activity(40m, "Uncategorized", null)
+                with { Provenance = FinancialRecordProvenance.BalanceReconciliation },
+            Activity(25m, "groceries", SystemGroupKeys.Expenses)
+        ]);
+
+        Assert.Equal(0m, result.Income);
+        Assert.Equal(25m, result.Spending);
     }
 
     private static TransactionActivityValue Activity(

@@ -1,5 +1,6 @@
 import { browserClient } from "../browser-client";
 import type {
+  CreateManualTransactionDto,
   MerchantHistoryDto,
   MerchantHistoryGranularity,
   PagedResultDto,
@@ -42,6 +43,30 @@ export async function getMerchantHistory(
     },
   );
 
+  return response.data;
+}
+
+export async function createManualTransaction(
+  dto: CreateManualTransactionDto,
+): Promise<TransactionDto> {
+  const response = await browserClient.post<TransactionDto>(
+    "/api/transactions",
+    dto,
+  );
+  return response.data;
+}
+
+export async function archiveTransaction(id: string): Promise<TransactionDto> {
+  const response = await browserClient.post<TransactionDto>(
+    `/api/transactions/${id}/archive`,
+  );
+  return response.data;
+}
+
+export async function restoreTransaction(id: string): Promise<TransactionDto> {
+  const response = await browserClient.post<TransactionDto>(
+    `/api/transactions/${id}/restore`,
+  );
   return response.data;
 }
 

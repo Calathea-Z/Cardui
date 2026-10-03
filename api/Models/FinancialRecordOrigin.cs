@@ -16,4 +16,8 @@ public static class FinancialRecordProvenance
     public const string PlaidSync = "PlaidSync";
 
     public const string ManualEntry = "ManualEntry";
+
+    public const string BalanceReconciliation = "BalanceReconciliation";
+
+    public const string BalanceReconciliationName = "Balance reconciliation";
 }

@@ -51,6 +51,7 @@ export function emptyAccountSummary(): AccountSummaryDto {
       { key: "credit-cards", name: "Credit Cards", total: 0, accounts: [] },
       { key: "loans", name: "Loans", total: 0, accounts: [] },
     ],
+    archivedAccounts: [],
   };
 }
 

@@ -59,6 +59,7 @@ public class TransferPairingService : ITransferPairingService
             .InHousehold(_householdScope)
             .Where(x =>
                 x.IsActive
+                && x.ArchivedAt == null
                 && (x.Type == AccountTypes.Depository || x.Type == AccountTypes.Investment))
             .Select(x => x.Id)
             .ToListAsync(cancellationToken);
@@ -76,6 +77,8 @@ public class TransferPairingService : ITransferPairingService
             .Include(x => x.Category)
             .Where(x =>
                 eligibleAccountIds.Contains(x.AccountId)
+                && x.ArchivedAt == null
+                && x.Provenance != FinancialRecordProvenance.BalanceReconciliation
                 && x.Date >= windowStart
                 && x.Amount != 0)
             .OrderBy(x => x.Date)

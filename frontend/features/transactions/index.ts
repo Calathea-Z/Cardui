@@ -5,6 +5,7 @@ export { TransactionsFilters } from "./TransactionsFilters";
 export {
   getDayTotalDisplay,
   getTransactionAmountDisplay,
+  isBalanceReconciliation,
   isTransferTransaction,
   sumNonTransferAmounts,
   type TransactionAmountDisplay,

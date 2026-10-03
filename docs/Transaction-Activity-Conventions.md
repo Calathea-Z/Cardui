@@ -29,6 +29,14 @@ for money entering an account.
 - **Transfers:** Transactions in the Transfers group or system Transfers
   category do not affect income, spending, or category spending, regardless of
   amount direction.
+- **Opening balances:** An opening balance is stored on the account. It sets
+  the starting balance and is not a transaction, so it is not income, spending,
+  or a transfer.
+- **Balance reconciliation:** A statement match that differs from the calculated
+  balance is saved as its own adjustment. That adjustment is excluded from
+  income, spending, and category spending. Archiving a transaction removes it
+  from those totals. Archiving an account removes its balance from net worth
+  and leaves its transactions in activity until those transactions are archived.
 - **Uncategorized activity:** Positive amounts count as Uncategorized
   spending. Negative amounts reduce Uncategorized spending and never become
   income solely because of their sign.

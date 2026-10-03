@@ -1,7 +1,8 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,11 @@ export function SheetSelect({
   onOpenChange,
 }: SheetSelectProps) {
   const [open, setOpen] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const selected = options.find((option) => option.value === value);
   const displayValue = selected?.label ?? placeholder;
 
@@ -103,39 +109,44 @@ export function SheetSelect({
         </button>
       )}
 
-      <BottomSheet
-        open={open}
-        onClose={() => setOpenState(false)}
-        title={title}
-        headerAction="close"
-        overlayClassName={overlayClassName}
-        className="max-h-[70vh]"
-      >
-        <div className="divide-y divide-border/70 border-y border-border/70">
-          {options.map((option) => {
-            const isSelected = option.value === value;
+      {mounted
+        ? createPortal(
+            <BottomSheet
+              open={open}
+              onClose={() => setOpenState(false)}
+              title={title}
+              headerAction="close"
+              overlayClassName={cn("z-[70]", overlayClassName)}
+              className="z-[70] max-h-[70vh]"
+            >
+              <div className="divide-y divide-border/70 border-y border-border/70">
+                {options.map((option) => {
+                  const isSelected = option.value === value;
 
-            return (
-              <button
-                key={option.value || "__empty__"}
-                type="button"
-                onClick={() => handleSelect(option.value)}
-                className="flex min-h-12 w-full items-center gap-3 py-3 text-left"
-              >
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                  {option.label}
-                </span>
-                {isSelected ? (
-                  <Check
-                    className="size-4 shrink-0 text-primary"
-                    aria-hidden="true"
-                  />
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      </BottomSheet>
+                  return (
+                    <button
+                      key={option.value || "__empty__"}
+                      type="button"
+                      onClick={() => handleSelect(option.value)}
+                      className="flex min-h-12 w-full items-center gap-3 py-3 text-left"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                        {option.label}
+                      </span>
+                      {isSelected ? (
+                        <Check
+                          className="size-4 shrink-0 text-primary"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </BottomSheet>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

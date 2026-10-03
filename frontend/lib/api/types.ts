@@ -10,6 +10,11 @@
   availableBalance: number | null;
   isoCurrencyCode: string | null;
   isActive: boolean;
+  source: string;
+  provenance: string;
+  openingBalance: number;
+  openingBalanceDate: string | null;
+  archivedAt: string | null;
 };
 
 export type TransactionAccountDto = {
@@ -39,6 +44,9 @@ export type TransactionDto = {
   account: TransactionAccountDto;
   category: TransactionCategoryDto | null;
   notes: string | null;
+  source: string;
+  provenance: string;
+  archivedAt: string | null;
 };
 
 export type TransactionQueryDto = {
@@ -48,6 +56,7 @@ export type TransactionQueryDto = {
   from?: string;
   to?: string;
   pending?: boolean;
+  archived?: boolean;
   page?: number;
   pageSize?: number;
 };
@@ -70,6 +79,44 @@ export type UpdateTransactionDetailsDto = {
   date: string;
   categoryId: string | null;
   notes: string | null;
+  name?: string | null;
+  amount?: number | null;
+  pending?: boolean | null;
+};
+
+export type CreateManualAccountDto = {
+  name: string;
+  type: string;
+  subtype?: string | null;
+  mask?: string | null;
+  isoCurrencyCode?: string | null;
+  openingBalance: number;
+  openingBalanceDate: string;
+};
+
+export type UpdateManualAccountDto = CreateManualAccountDto;
+
+export type ReconcileAccountBalanceDto = {
+  asOfDate: string;
+  statementBalance: number;
+};
+
+export type BalanceReconciliationResultDto = {
+  account: AccountDto;
+  calculatedBalance: number;
+  statementBalance: number;
+  adjustment: number;
+  adjustmentTransactionId: string | null;
+};
+
+export type CreateManualTransactionDto = {
+  accountId: string;
+  date: string;
+  name: string;
+  amount: number;
+  categoryId?: string | null;
+  notes?: string | null;
+  pending?: boolean;
 };
 
 export type MerchantHistoryGranularity = "monthly" | "quarterly" | "yearly";
@@ -183,6 +230,7 @@ export type AccountSummaryDto = {
   netWorth: number;
   groups: AccountGroupDto[];
   history: AccountBalanceHistoryPointDto[];
+  archivedAccounts: AccountDto[];
 };
 
 export type CreatePlaidLinkTokenResponse = {

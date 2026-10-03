@@ -12,4 +12,7 @@ public class TransactionDto
     public required TransactionAccountDto Account { get; set; }
     public TransactionCategoryDto? Category { get; set; }
     public string? Notes { get; set; }
+    public required string Source { get; set; }
+    public required string Provenance { get; set; }
+    public DateTimeOffset? ArchivedAt { get; set; }
 }

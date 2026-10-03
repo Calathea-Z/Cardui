@@ -37,6 +37,8 @@ public static class ApplicationServiceCollectionExtensions
 
         services.AddScoped<IPlaidRequestExecutor, PlaidRequestExecutor>();
         services.AddScoped<IPlaidAccountSyncService, PlaidAccountSyncService>();
+        services.AddScoped<IPlaidTransactionPageClient, PlaidTransactionPageClient>();
+        services.AddScoped<IPlaidTransactionReconciler, PlaidTransactionReconciler>();
         services.AddScoped<IPlaidTransactionSyncService, PlaidTransactionSyncService>();
 
         return services;

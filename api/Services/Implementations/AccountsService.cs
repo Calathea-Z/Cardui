@@ -131,26 +131,21 @@ public class AccountsService : IAccountsService
             .OrderBy(x => x.Date)
             .ToListAsync(cancellationToken);
 
-        return snapshots
-            .GroupBy(x => x.Date)
-            .Select(group =>
+        return AccountBalanceHistory.Build(snapshots.Select(x => new AccountSnapshotBalance(
+                x.AccountId,
+                x.Account.Type,
+                x.Date,
+                x.CurrentBalance,
+                x.CreatedAt)))
+            .Select(point => new AccountBalanceHistoryPointDto
             {
-                var totals = AccountTotalsCalculator.Calculate(
-                    group.Select(x => new AccountBalanceValue(
-                        x.Account.Type,
-                        x.CurrentBalance)));
-
-                return new AccountBalanceHistoryPointDto
-                {
-                    Date = group.Key,
-                    Cash = totals.Cash,
-                    Investments = totals.Investments,
-                    CreditCards = totals.CreditCards,
-                    Loans = totals.Loans,
-                    NetWorth = totals.NetWorth
-                };
+                Date = point.Date,
+                Cash = point.Cash,
+                Investments = point.Investments,
+                CreditCards = point.CreditCards,
+                Loans = point.Loans,
+                NetWorth = point.NetWorth
             })
-            .OrderBy(x => x.Date)
             .ToList();
     }
 

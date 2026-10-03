@@ -1,5 +1,6 @@
 import "server-only";
 
+import { auth } from "@clerk/nextjs/server";
 import axios from "axios";
 import {
   getErrorMessageFromResponseData,
@@ -22,7 +23,13 @@ export const serverClient = axios.create({
   },
 });
 
-serverClient.interceptors.request.use((config) => {
+serverClient.interceptors.request.use(async (config) => {
+  const { getToken } = await auth();
+  const token = await getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
 

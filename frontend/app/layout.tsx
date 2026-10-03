@@ -1,7 +1,8 @@
+import { ClerkProvider } from "@clerk/nextjs";
+import { clerkAppearance } from "@/components/auth/clerk-appearance";
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Shantell_Sans, Sora } from "next/font/google";
 import "./globals.css";
-import { AppShell } from "@/components/appShell";
 
 const shantell = Shantell_Sans({
   subsets: ["latin"],
@@ -44,7 +45,13 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <AppShell>{children}</AppShell>
+        <ClerkProvider
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          appearance={clerkAppearance}
+        >
+          {children}
+        </ClerkProvider>
       </body>
     </html>
   );

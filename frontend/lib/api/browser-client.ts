@@ -5,6 +5,7 @@ import {
   getErrorMessageFromResponseData,
   type ApiError,
 } from "./errors";
+import { readSessionToken } from "./session-token";
 
 export const browserClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -14,7 +15,12 @@ export const browserClient = axios.create({
   },
 });
 
-browserClient.interceptors.request.use((config) => {
+browserClient.interceptors.request.use(async (config) => {
+  const token = await readSessionToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
 

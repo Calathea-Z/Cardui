@@ -1,3 +1,4 @@
+import { AccountMenu } from "@/components/auth/account-menu";
 import { cn } from "@/lib/utils";
 import { BrandMark } from "./brand-mark";
 import { NavLink } from "./nav-link";
@@ -10,16 +11,25 @@ type MobileDrawerProps = {
 
 export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   return (
-    <aside
-      className={cn(
-        "fixed inset-y-0 left-0 z-40 w-[85vw] max-w-sm border-r border-sidebar-border bg-sidebar px-5 py-7 text-sidebar-foreground transition-transform duration-300 ease-in-out",
-        isOpen ? "translate-x-0" : "-translate-x-full",
-      )}
-      aria-hidden={!isOpen}
-    >
+    <>
+      {isOpen ? (
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          className="fixed inset-0 z-[60] bg-black/40 md:hidden"
+          onClick={onClose}
+        />
+      ) : null}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 z-[70] flex h-dvh max-h-dvh w-[85vw] max-w-sm flex-col overflow-hidden overscroll-none border-r border-sidebar-border bg-sidebar px-5 pb-7 pt-[calc(4.5rem+env(safe-area-inset-top))] text-sidebar-foreground transition-transform duration-300 ease-in-out md:hidden",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+        aria-hidden={!isOpen}
+      >
       <BrandMark />
 
-      <nav className="space-y-1">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-none">
         {navItems.map((item) => (
           <NavLink
             key={item.href}
@@ -32,6 +42,8 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           />
         ))}
       </nav>
-    </aside>
+      <AccountMenu />
+      </aside>
+    </>
   );
 }

@@ -59,8 +59,8 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
             .ToHashSet(StringComparer.Ordinal);
 
         var itemAccounts = await _dbContext.Accounts
-            .Where(x => x.PlaidItemId == plaidItem.Id)
-            .ToDictionaryAsync(x => x.PlaidAccountId, cancellationToken);
+            .Where(x => x.PlaidItemId == plaidItem.Id && x.PlaidAccountId != null)
+            .ToDictionaryAsync(x => x.PlaidAccountId!, cancellationToken);
 
         var accountIds = itemAccounts.Values.Select(x => x.Id).ToList();
         var existingSnapshots = accountIds.Count == 0
@@ -83,6 +83,7 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
             }
             else
             {
+                account.HouseholdId = plaidItem.HouseholdId;
                 ApplyPlaidAccountFields(account, plaidAccount, now);
             }
 
@@ -91,7 +92,12 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
 
         foreach (var account in itemAccounts.Values)
         {
-            if (responseAccountIds.Contains(account.PlaidAccountId) || !account.IsActive) continue;
+            if (account.PlaidAccountId is not string plaidAccountId
+                || responseAccountIds.Contains(plaidAccountId)
+                || !account.IsActive)
+            {
+                continue;
+            }
 
             account.IsActive = false;
             account.UpdatedAt = now;
@@ -99,7 +105,7 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
             _logger.LogInformation(
                 "Deactivated orphaned account {AccountId} (PlaidAccountId: {PlaidAccountId}) for Plaid item {PlaidItemId}",
                 account.Id,
-                account.PlaidAccountId,
+                plaidAccountId,
                 plaidItem.Id);
         }
 
@@ -121,8 +127,11 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         var account = new Account
         {
             Id = Guid.NewGuid(),
+            HouseholdId = plaidItem.HouseholdId,
             PlaidItemId = plaidItem.Id,
             PlaidAccountId = plaidAccount.AccountId,
+            Source = FinancialRecordSource.Plaid,
+            Provenance = FinancialRecordProvenance.PlaidSync,
             Name = plaidAccount.Name,
             Type = plaidAccount.Type.ToString().ToLowerInvariant(),
             CreatedAt = now,

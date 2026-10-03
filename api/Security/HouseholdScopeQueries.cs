@@ -22,8 +22,12 @@ public static class HouseholdScopeQueries
         scope.EnsureBound();
 
         return scope.HouseholdId is Guid householdId
-            ? query.Where(x => x.PlaidItem.HouseholdId == householdId)
-            : query.Where(x => x.PlaidItem.HouseholdId == null);
+            ? query.Where(x =>
+                (x.PlaidItemId != null && x.PlaidItem!.HouseholdId == householdId)
+                || (x.PlaidItemId == null && x.HouseholdId == householdId))
+            : query.Where(x =>
+                (x.PlaidItemId != null && x.PlaidItem!.HouseholdId == null)
+                || (x.PlaidItemId == null && x.HouseholdId == null));
     }
 
     public static IQueryable<Transaction> InHousehold(
@@ -33,8 +37,12 @@ public static class HouseholdScopeQueries
         scope.EnsureBound();
 
         return scope.HouseholdId is Guid householdId
-            ? query.Where(x => x.Account.PlaidItem.HouseholdId == householdId)
-            : query.Where(x => x.Account.PlaidItem.HouseholdId == null);
+            ? query.Where(x =>
+                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == householdId)
+                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == householdId))
+            : query.Where(x =>
+                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == null)
+                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == null));
     }
 
     public static IQueryable<AccountBalanceSnapshot> InHousehold(
@@ -44,8 +52,12 @@ public static class HouseholdScopeQueries
         scope.EnsureBound();
 
         return scope.HouseholdId is Guid householdId
-            ? query.Where(x => x.Account.PlaidItem.HouseholdId == householdId)
-            : query.Where(x => x.Account.PlaidItem.HouseholdId == null);
+            ? query.Where(x =>
+                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == householdId)
+                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == householdId))
+            : query.Where(x =>
+                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == null)
+                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == null));
     }
 
     public static IQueryable<Category> VisibleToHousehold(

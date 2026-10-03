@@ -7,7 +7,11 @@ public class Transaction
     public Guid AccountId { get; set; }
     public Account Account { get; init; } = null!;
 
-    public required string PlaidTransactionId { get; set; }
+    public string? PlaidTransactionId { get; set; }
+
+    public string Source { get; set; } = FinancialRecordSource.Plaid;
+
+    public string Provenance { get; set; } = FinancialRecordProvenance.PlaidSync;
 
     public DateOnly Date { get; set; }
     public bool IsDateUserEdited { get; set; }

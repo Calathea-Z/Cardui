@@ -45,6 +45,8 @@ public class PlaidTransactionReconcilerTests
         var stored = await dbContext.Transactions.SingleAsync();
         Assert.Equal(originalId, stored.Id);
         Assert.Equal("posted-1", stored.PlaidTransactionId);
+        Assert.Equal(FinancialRecordSource.Plaid, stored.Source);
+        Assert.Equal(FinancialRecordProvenance.PlaidSync, stored.Provenance);
     }
 
     [Fact]
@@ -210,6 +212,40 @@ public class PlaidTransactionReconcilerTests
         Assert.Equal(1, result.Removed);
     }
 
+    [Fact]
+    public async Task Reconcile_DoesNotRemoveTransactionWithoutExternalId()
+    {
+        await using var dbContext = CreateDbContext();
+        var (plaidItemId, account) = await SeedAccountAsync(dbContext);
+        var manualId = Guid.NewGuid();
+
+        dbContext.Transactions.Add(new StoredTransaction
+        {
+            Id = manualId,
+            AccountId = account.Id,
+            PlaidTransactionId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.ManualEntry,
+            Date = new DateOnly(2026, 10, 1),
+            Name = "Cash",
+            Amount = 5m,
+            Pending = false,
+            CreatedAt = SyncedAt,
+            UpdatedAt = SyncedAt
+        });
+        await dbContext.SaveChangesAsync();
+
+        await CreateReconciler(dbContext).ReconcileAsync(
+            plaidItemId,
+            Accounts(account),
+            [],
+            [],
+            [new RemovedTransaction { TransactionId = "missing" }],
+            SyncedAt);
+
+        Assert.Equal(manualId, (await dbContext.Transactions.SingleAsync()).Id);
+    }
+
     private static PlaidTransactionReconciler CreateReconciler(
         CarduiDBContext dbContext,
         Guid? automaticCategoryId = null) =>
@@ -221,7 +257,7 @@ public class PlaidTransactionReconcilerTests
     private static IReadOnlyDictionary<string, StoredAccount> Accounts(StoredAccount account) =>
         new Dictionary<string, StoredAccount>
         {
-            [account.PlaidAccountId] = account
+            [account.PlaidAccountId!] = account
         };
 
     private static PlaidTransaction CreatePlaidTransaction(

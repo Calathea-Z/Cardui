@@ -48,8 +48,8 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         var removed = new List<RemovedTransaction>();
 
         var accountsByPlaidId = await _dbContext.Accounts
-            .Where(x => x.PlaidItemId == plaidItem.Id)
-            .ToDictionaryAsync(x => x.PlaidAccountId, cancellationToken);
+            .Where(x => x.PlaidItemId == plaidItem.Id && x.PlaidAccountId != null)
+            .ToDictionaryAsync(x => x.PlaidAccountId!, cancellationToken);
 
         while (hasMore)
         {

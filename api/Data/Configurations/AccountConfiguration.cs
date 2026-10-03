@@ -11,8 +11,15 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         entity.HasKey(x => x.Id);
 
         entity.Property(x => x.PlaidAccountId)
-            .IsRequired()
             .HasMaxLength(200);
+
+        entity.Property(x => x.Source)
+            .IsRequired()
+            .HasMaxLength(FinancialRecordSource.MaxLength);
+
+        entity.Property(x => x.Provenance)
+            .IsRequired()
+            .HasMaxLength(FinancialRecordProvenance.MaxLength);
 
         entity.Property(x => x.Name)
             .IsRequired()
@@ -51,6 +58,13 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         entity.HasIndex(x => x.PlaidAccountId)
             .IsUnique();
+
+        entity.HasIndex(x => x.HouseholdId);
+
+        entity.HasOne<Household>()
+            .WithMany()
+            .HasForeignKey(x => x.HouseholdId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity.HasMany(x => x.Transactions)
             .WithOne(x => x.Account)

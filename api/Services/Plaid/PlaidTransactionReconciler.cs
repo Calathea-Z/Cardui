@@ -4,6 +4,8 @@ using Cardui.Api.Services.Interfaces;
 using Going.Plaid.Entity;
 using Microsoft.EntityFrameworkCore;
 using Account = Cardui.Api.Models.Account;
+using FinancialRecordProvenance = Cardui.Api.Models.FinancialRecordProvenance;
+using FinancialRecordSource = Cardui.Api.Models.FinancialRecordSource;
 using StoredTransaction = Cardui.Api.Models.Transaction;
 
 namespace Cardui.Api.Services.Plaid;
@@ -55,9 +57,10 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
             : await _dbContext.Transactions
                 .Where(x =>
                     accountIds.Contains(x.AccountId)
+                    && x.PlaidTransactionId != null
                     && candidateIds.Contains(x.PlaidTransactionId))
                 .ToDictionaryAsync(
-                    x => x.PlaidTransactionId,
+                    x => x.PlaidTransactionId!,
                     StringComparer.Ordinal,
                     cancellationToken);
         var initiallyStoredIds = existingByPlaidId.Keys.ToHashSet(StringComparer.Ordinal);
@@ -110,6 +113,7 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
             var transactionsToRemove = await _dbContext.Transactions
                 .Where(x =>
                     accountIds.Contains(x.AccountId)
+                    && x.PlaidTransactionId != null
                     && removedIds.Contains(x.PlaidTransactionId))
                 .ToListAsync(cancellationToken);
 
@@ -191,6 +195,8 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
                 Id = Guid.NewGuid(),
                 AccountId = account.Id,
                 PlaidTransactionId = plaidTransaction.TransactionId,
+                Source = FinancialRecordSource.Plaid,
+                Provenance = FinancialRecordProvenance.PlaidSync,
                 Date = plaidTransaction.Date.Value,
                 AuthorizedDate = plaidTransaction.AuthorizedDate,
                 Name = name,

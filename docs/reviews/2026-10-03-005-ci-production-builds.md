@@ -37,14 +37,10 @@ No application or database data changed.
 
 ## Manual verification
 
-Awaiting Zach. These edits are on `main` and are not committed.
-
-After this change is pushed, confirm the Actions run for that commit:
-
-- [ ] API tests succeed.
-- [ ] Worker build succeeds.
-- [ ] Frontend tests, lint, and the production build succeed.
-- [ ] The run does not start a database or change application data.
+Zach pushed this change to `main` (`4817809`) and reported on October 3, 2026
+that the GitHub Actions run succeeded. He approved this increment. This session
+confirmed that commit is on `origin/main` and did not read the Actions logs.
+No application or database data changed.
 
 ## Remaining considerations
 

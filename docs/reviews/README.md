@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-03 — Phase 0 baseline close](2026-10-03-006-phase-0-baseline-close.md)
 - [2026-10-03 — CI production builds](2026-10-03-005-ci-production-builds.md)
 - [2026-10-03 — CI for API tests, frontend tests, and lint](2026-10-03-004-ci-tests-and-lint.md)
 - [2026-10-03 — Balance history carries the last known balance](2026-10-03-003-balance-history-carry-forward.md)

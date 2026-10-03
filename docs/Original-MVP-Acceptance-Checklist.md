@@ -113,6 +113,13 @@ Data change: synchronizes every connected Plaid item in the configured database.
 - [ ] Recheck transaction counts and edited metadata for duplicates or regressions.
 
 Expected result: the one-shot worker processes all items, reports its outcome, and exits.
+A failed item sets a non-zero exit code. An empty item list exits without syncing.
+
+**Recorded result:** Pass. On October 3, 2026, Zach confirmed the local one-shot worker
+works and does what this section expects. This record does not include worker logs,
+per-item added, modified, or removed counts, or a new transaction-count check.
+Account synchronization and user edits surviving sync remain the confirmation in
+`docs/reviews/2026-10-03-002-preserve-transaction-user-edits.md`.
 
 ## 7. Review dashboard summaries
 
@@ -122,12 +129,13 @@ Expected result: the one-shot worker processes all items, reports its outcome, a
       data.
 - [ ] Confirm transfers, refunds, and pending transactions are treated consistently;
       record uncertain or incorrect classifications.
-- [ ] Record that monthly income-versus-spending and category spending are not yet
-      visible dashboard widgets if that remains true.
+- [ ] Confirm the dashboard Monthly Activity panel shows the reporting period, income,
+      spending, the difference, and category spending for the controlled data.
 
-Expected result: the API summary is available and reconcilable to controlled
-transactions. Missing visible spending summaries are a known Phase 0 gap, not a reason
-to claim the original MVP is complete.
+Expected result: the API summary and the visible Monthly Activity panel reconcile to
+the same controlled transactions. Those summaries were added on October 2, 2026 and
+confirmed in `docs/reviews/2026-10-02-003-dashboard-spending-and-financial-totals.md`
+and `docs/reviews/2026-10-02-004-transaction-activity-conventions.md`.
 
 ## 8. Record the outcome
 
@@ -141,3 +149,37 @@ to claim the original MVP is complete.
 The original MVP baseline is accepted only when failures and blockers are either fixed
 or explicitly retained as tracked limitations. This checklist does not cover
 authentication, household isolation, public deployment, or production Plaid readiness.
+
+## Phase 0 baseline record
+
+Closed October 3, 2026 for local development. This is the foundation checkpoint for
+continued internal work. It is not a production, live-bank, or scheduled-deployment
+claim.
+
+Confirmed earlier, and not repeated for this close:
+
+- Dashboard monthly activity, category spending, and shared account-total calculations
+  were confirmed on October 2, 2026.
+- Posted income, spending, refund, transfer, and pending conventions were confirmed on
+  October 2, 2026.
+- Balance history carries the last known balance. Zach confirmed the accounts chart on
+  October 3, 2026.
+- User edits to a transaction date, category, and notes survive a later sync. Zach
+  confirmed that on October 3, 2026.
+- CI runs API tests, frontend tests, frontend lint, the worker Release build, and the
+  frontend production build. Zach reported the GitHub Actions runs succeeded. Those
+  sessions did not read the Actions logs.
+
+Limitations retained with this close:
+
+- No integration-test suite exists, so CI does not start PostgreSQL or apply migrations.
+- The frontend production build in CI uses local development URLs. It is not a
+  deployable production bundle.
+- Node.js is pinned to major version 22. The repository does not pin a Node patch.
+- The worker result is a local one-shot run. It does not prove a deployed schedule,
+  durable Data Protection keys, concurrency protection, retry behavior, or live bank
+  connectivity.
+- Edits saved before migration `20261003050300_PreserveTransactionUserEdits` are not
+  marked, so a later sync can still replace those dates.
+- Sections 1–5 and 7 were not re-run as one recorded pass with row counts, browser,
+  database type, and Plaid environment. Their evidence is the October 2–3 reviews.

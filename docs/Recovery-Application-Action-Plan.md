@@ -69,6 +69,8 @@ Existing tests cover selected transaction/category services, mapping, validation
 
 **Assessment:** the transaction/account foundation is substantially implemented. The original Phase 1 is not fully closed because spending presentation and live acceptance evidence remain missing. The broader original budget/debt vision and the new recovery experience remain to be built.
 
+That assessment describes the September 25, 2026 audit. Phase 0 closed the local baseline on October 3, 2026; the current status and retained limitations are in section 5 and `docs/Original-MVP-Acceptance-Checklist.md`.
+
 Key implementation anchors:
 
 - `frontend/features/dashboard/dashboard-widgets.tsx`: current visible dashboard widgets.
@@ -103,6 +105,8 @@ Key implementation anchors:
 6. Establish CI for existing tests/lint, builds, and future integration checks. No `.github` workflow directory was found in this audit.
 
 **Exit:** dashboard and account totals agree for the same data; original Phase 1 has a documented acceptance walkthrough; repeated imports do not duplicate activity or lose user edits. Record remaining live-environment limitations explicitly.
+
+**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/Original-MVP-Acceptance-Checklist.md`. Phase 1 has not started.
 
 ### Phase 1 — Ownership, manual data, and durable financial facts
 

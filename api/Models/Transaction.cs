@@ -7,9 +7,10 @@ public class Transaction
     public Guid AccountId { get; set; }
     public Account Account { get; init; } = null!;
 
-    public required string PlaidTransactionId { get; init; }
+    public required string PlaidTransactionId { get; set; }
 
     public DateOnly Date { get; set; }
+    public bool IsDateUserEdited { get; set; }
     public DateOnly? AuthorizedDate { get; set; }
 
     public required string Name { get; set; }
@@ -22,6 +23,7 @@ public class Transaction
 
     public Guid? CategoryId { get; set; }
     public Category? Category { get; init; }
+    public bool IsCategoryUserEdited { get; set; }
 
     public string? Notes { get; set; }
 

@@ -299,6 +299,7 @@ public class TransactionsService : ITransactionsService
         }
 
         transaction.CategoryId = dto.CategoryId;
+        transaction.IsCategoryUserEdited = true;
         transaction.UpdatedAt = _timeProvider.GetUtcNow();
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -331,7 +332,9 @@ public class TransactionsService : ITransactionsService
         }
 
         transaction.Date = dto.Date;
+        transaction.IsDateUserEdited = true;
         transaction.CategoryId = dto.CategoryId;
+        transaction.IsCategoryUserEdited = true;
         transaction.Notes = dto.Notes;
         transaction.UpdatedAt = _timeProvider.GetUtcNow();
 

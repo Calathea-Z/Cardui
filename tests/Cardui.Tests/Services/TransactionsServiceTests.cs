@@ -38,7 +38,10 @@ public class TransactionsServiceTests
         Assert.Equal(new DateOnly(2026, 7, 18), result.Date);
         Assert.Equal(categoryId, result.Category?.Id);
         Assert.Equal("Updated note", result.Notes);
-        Assert.Equal(UpdatedAt, (await dbContext.Transactions.SingleAsync()).UpdatedAt);
+        var stored = await dbContext.Transactions.SingleAsync();
+        Assert.True(stored.IsDateUserEdited);
+        Assert.True(stored.IsCategoryUserEdited);
+        Assert.Equal(UpdatedAt, stored.UpdatedAt);
     }
 
     [Fact]
@@ -55,6 +58,22 @@ public class TransactionsServiceTests
                     Date = new DateOnly(2026, 7, 18),
                     Notes = "Missing"
                 }));
+    }
+
+    [Fact]
+    public async Task UpdateTransactionCategory_RecordsExplicitUncategorizedChoice()
+    {
+        await using var dbContext = CreateDbContext();
+        var (transactionId, _) = await SeedTransactionAsync(dbContext);
+        var service = new TransactionsService(dbContext, new FakeTimeProvider(UpdatedAt));
+
+        await service.UpdateTransactionCategoryAsync(
+            transactionId,
+            new UpdateTransactionCategoryDto { CategoryId = null });
+
+        var stored = await dbContext.Transactions.SingleAsync();
+        Assert.Null(stored.CategoryId);
+        Assert.True(stored.IsCategoryUserEdited);
     }
 
     [Fact]

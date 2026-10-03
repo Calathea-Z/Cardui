@@ -30,6 +30,12 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         entity.Property(x => x.Pending)
             .IsRequired();
 
+        entity.Property(x => x.IsDateUserEdited)
+            .IsRequired();
+
+        entity.Property(x => x.IsCategoryUserEdited)
+            .IsRequired();
+
         entity.Property(x => x.Notes)
             .HasMaxLength(1000);
 

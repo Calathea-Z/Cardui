@@ -2,6 +2,9 @@
 
 Newest first:
 
+- [2026-10-03 — Balance history carries the last known balance](2026-10-03-003-balance-history-carry-forward.md)
+- [2026-10-03 — Preserve transaction user edits during Plaid sync](2026-10-03-002-preserve-transaction-user-edits.md)
+- [2026-10-03 — Plaid transaction-page retrieval boundary](2026-10-03-001-plaid-transaction-page-boundary.md)
 - [2026-10-02 — Transaction activity conventions and dashboard accuracy](2026-10-02-004-transaction-activity-conventions.md)
 - [2026-10-02 — Dashboard spending and consistent financial totals](2026-10-02-003-dashboard-spending-and-financial-totals.md)
 - [2026-10-02 — Development setup and original-MVP acceptance](2026-10-02-002-development-setup-and-mvp-acceptance.md)

@@ -7,7 +7,7 @@ public class PlaidItem
     public Guid? HouseholdId { get; init; }
 
     public required string PlaidItemId { get; init; }
-    public required string AccessToken { get; init; }
+    public required string AccessToken { get; set; }
 
     public string? InstitutionId { get; init; }
     public string? InstitutionName { get; init; }

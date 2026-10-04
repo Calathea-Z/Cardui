@@ -50,7 +50,6 @@ public class PlaidTransactionSyncServiceTests
         Assert.Equal(2, result.Added);
         Assert.Equal(1, result.Modified);
         Assert.Equal(1, result.Removed);
-        Assert.Equal("cursor-final", result.NextCursor);
         Assert.Equal("cursor-final", plaidItem.TransactionsCursor);
         Assert.Equal(SyncedAt, plaidItem.LastTransactionsSyncedAt);
         Assert.Equal(
@@ -83,7 +82,6 @@ public class PlaidTransactionSyncServiceTests
         var result = await service.SyncTransactionsForPlaidItemAsync(plaidItem);
 
         Assert.Equal(0, result.Added);
-        Assert.Equal("cursor-empty", result.NextCursor);
         Assert.Equal("cursor-empty", plaidItem.TransactionsCursor);
         Assert.Empty(await dbContext.Transactions.ToListAsync());
     }

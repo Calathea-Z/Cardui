@@ -34,3 +34,7 @@ export async function syncPlaidItem(
 
   return response.data;
 }
+
+export async function disconnectPlaidItem(plaidItemId: string): Promise<void> {
+  await browserClient.delete(`/api/plaid/${plaidItemId}`);
+}

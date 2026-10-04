@@ -24,6 +24,7 @@ public class PlaidService : IPlaidService
     private readonly IPlaidAccountSyncService _accountSyncService;
     private readonly IPlaidTransactionSyncService _transactionSyncService;
     private readonly IPlaidAccessTokenProtector _accessTokenProtector;
+    private readonly PlaidItemRemoval _itemRemoval;
     private readonly HouseholdScope _householdScope;
     private readonly ILogger<PlaidService> _logger;
     private readonly TimeProvider _timeProvider;
@@ -36,6 +37,7 @@ public class PlaidService : IPlaidService
         IPlaidAccountSyncService accountSyncService,
         IPlaidTransactionSyncService transactionSyncService,
         IPlaidAccessTokenProtector accessTokenProtector,
+        PlaidItemRemoval itemRemoval,
         HouseholdScope householdScope,
         ILogger<PlaidService> logger,
         TimeProvider timeProvider)
@@ -47,6 +49,7 @@ public class PlaidService : IPlaidService
         _accountSyncService = accountSyncService;
         _transactionSyncService = transactionSyncService;
         _accessTokenProtector = accessTokenProtector;
+        _itemRemoval = itemRemoval;
         _householdScope = householdScope;
         _logger = logger;
         _timeProvider = timeProvider;
@@ -73,7 +76,8 @@ public class PlaidService : IPlaidService
             User = new LinkTokenCreateRequestUser
             {
                 ClientUserId = _householdScope.RequireHouseholdId().ToString("D")
-            }
+            },
+            Webhook = EmptyToNull(_plaidOptions.WebhookUrl)
         });
 
         var response = await _requestExecutor.ExecuteAsync(
@@ -120,6 +124,7 @@ public class PlaidService : IPlaidService
         try
         {
             _dbContext.PlaidItems.Add(plaidItem);
+            await RegisterWebhookAsync(plaidItem, cancellationToken);
             await _accountSyncService.SyncAccountsForPlaidItemAsync(
                 plaidItem,
                 cancellationToken);
@@ -192,6 +197,7 @@ public class PlaidService : IPlaidService
         CancellationToken cancellationToken = default)
     {
         var plaidItem = await GetPlaidItemOrThrowAsync(plaidItemId, cancellationToken);
+        await RegisterWebhookAsync(plaidItem, cancellationToken);
         var now = _timeProvider.GetUtcNow();
 
         plaidItem.LastSyncStartedAt = now;
@@ -242,6 +248,16 @@ public class PlaidService : IPlaidService
         }
     }
 
+    /// <inheritdoc />
+    public async Task RemovePlaidItemAsync(
+        Guid plaidItemId,
+        CancellationToken cancellationToken = default)
+    {
+        var plaidItem = await GetPlaidItemOrThrowAsync(plaidItemId, cancellationToken);
+        await RemoveAtPlaidAsync(plaidItem, cancellationToken);
+        await _itemRemoval.RemoveStoredItemAsync(plaidItem, cancellationToken);
+    }
+
     #region Private Methods
 
     /// <summary>
@@ -263,7 +279,10 @@ public class PlaidService : IPlaidService
     /// </summary>
     private void RecordSyncFailure(PlaidItem plaidItem, Exception ex)
     {
-        _logger.LogError(ex, "Plaid sync failed for item {PlaidItemId}", plaidItem.Id);
+        _logger.LogError(
+            "Plaid sync failed for item {PlaidItemId}. {ErrorType}",
+            plaidItem.Id,
+            ex.GetType().Name);
 
         var failedAt = _timeProvider.GetUtcNow();
         plaidItem.LastSyncFailedAt = failedAt;
@@ -285,6 +304,78 @@ public class PlaidService : IPlaidService
         }
 
         return plaidSyncException.Message;
+    }
+
+    /// <summary>
+    /// Tells Plaid which webhook to call when a URL is configured.
+    /// A registration failure is logged and does not stop the sync.
+    /// </summary>
+    private async Task RegisterWebhookAsync(
+        PlaidItem plaidItem,
+        CancellationToken cancellationToken)
+    {
+        var webhookUrl = EmptyToNull(_plaidOptions.WebhookUrl);
+        if (webhookUrl is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var accessToken = _accessTokenProtector.Unprotect(plaidItem.AccessToken);
+            var request = _requestExecutor.WithCredentials(
+                new ItemWebhookUpdateRequest
+                {
+                    Webhook = webhookUrl
+                },
+                accessToken);
+            await _requestExecutor.ExecuteAsync(
+                () => _plaidClient.ItemWebhookUpdateAsync(request));
+        }
+        catch (PlaidSyncException exception)
+        {
+            _logger.LogWarning(
+                "Plaid webhook registration failed for item {PlaidItemId}. {PlaidErrorType}/{PlaidErrorCode}",
+                plaidItem.Id,
+                exception.PlaidErrorType,
+                exception.PlaidErrorCode);
+        }
+    }
+
+    /// <summary>
+    /// Revokes the access token at Plaid. An item Plaid has already removed
+    /// is treated as success so the local token can still be deleted.
+    /// </summary>
+    private async Task RemoveAtPlaidAsync(
+        PlaidItem plaidItem,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var accessToken = _accessTokenProtector.Unprotect(plaidItem.AccessToken);
+        var request = _requestExecutor.WithCredentials(
+            new ItemRemoveRequest(),
+            accessToken);
+
+        try
+        {
+            await _requestExecutor.ExecuteAsync(() => _plaidClient.ItemRemoveAsync(request));
+        }
+        catch (PlaidSyncException exception) when (
+            exception.PlaidErrorCode is "ITEM_NOT_FOUND" or "INVALID_ACCESS_TOKEN")
+        {
+            _logger.LogInformation(
+                "Plaid item {PlaidItemId} was already removed at Plaid.",
+                plaidItem.Id);
+        }
+    }
+
+    /// <summary>
+    /// Returns a trimmed URL, or null when the setting is blank.
+    /// </summary>
+    private static string? EmptyToNull(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
     #endregion

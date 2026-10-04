@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { AccountDto, PlaidItemDto } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,16 +16,22 @@ type InstitutionCardProps = {
   item: PlaidItemDto;
   accounts: AccountDto[];
   isSyncing: boolean;
+  isDisconnecting: boolean;
   onSync: () => void;
+  onDisconnect: () => void;
 };
 
 export function InstitutionCard({
   item,
   accounts,
   isSyncing,
+  isDisconnecting,
   onSync,
+  onDisconnect,
 }: InstitutionCardProps) {
+  const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
   const institutionName = item.institutionName ?? "Connected institution";
+  const busy = isSyncing || isDisconnecting;
 
   return (
     <Card className="bg-card/80">
@@ -34,13 +41,58 @@ export function InstitutionCard({
           Last synced {formatSyncedAt(item.lastTransactionsSyncedAt)}
         </CardDescription>
         <CardAction>
-          <Button type="button" disabled={isSyncing} size="lg" onClick={onSync}>
-            {isSyncing ? "Syncing" : "Sync now"}
-          </Button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              disabled={busy}
+              size="lg"
+              variant="outline"
+              onClick={onSync}
+            >
+              {isSyncing ? "Syncing" : "Sync now"}
+            </Button>
+            {confirmingDisconnect ? (
+              <Button
+                type="button"
+                disabled={busy}
+                size="lg"
+                variant="destructive"
+                onClick={onDisconnect}
+              >
+                {isDisconnecting ? "Removing" : "Remove bank link"}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={busy}
+                size="lg"
+                variant="ghost"
+                onClick={() => setConfirmingDisconnect(true)}
+              >
+                Disconnect
+              </Button>
+            )}
+          </div>
         </CardAction>
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {confirmingDisconnect ? (
+          <div className="flex flex-col gap-3 rounded-lg border border-border/70 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              This removes the login at the bank. Accounts and transactions stay
+              in Cardui.
+            </p>
+            <Button
+              type="button"
+              disabled={busy}
+              variant="ghost"
+              onClick={() => setConfirmingDisconnect(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : null}
         {item.lastSyncFailedAt ? (
           <p className="text-sm text-destructive">
             Sync failed: {item.lastSyncError ?? "Unknown error"}

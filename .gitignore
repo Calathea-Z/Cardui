@@ -1,4 +1,5 @@
 ﻿.env
+.data-protection-keys/
 .env.local
 .env.*.local
 bin/

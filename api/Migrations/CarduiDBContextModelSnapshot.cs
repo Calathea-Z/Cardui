@@ -194,12 +194,26 @@ namespace Cardui.Api.Migrations
                     b.HasIndex("HouseholdId");
 
                     b.HasIndex("Key")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_Categories_System_Key")
+                        .HasFilter("\"IsSystem\"");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_Categories_System_Name")
+                        .HasFilter("\"IsSystem\"");
 
                     b.HasIndex("SubGroupId");
+
+                    b.HasIndex("HouseholdId", "Key")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Categories_Household_Key")
+                        .HasFilter("NOT \"IsSystem\"");
+
+                    b.HasIndex("HouseholdId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Categories_Household_Name")
+                        .HasFilter("NOT \"IsSystem\"");
 
                     b.ToTable("Categories");
                 });
@@ -418,10 +432,24 @@ namespace Cardui.Api.Migrations
                     b.HasIndex("HouseholdId");
 
                     b.HasIndex("Key")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_SubGroups_System_Key")
+                        .HasFilter("\"IsSystem\"");
 
                     b.HasIndex("GroupId", "Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_SubGroups_System_Group_Name")
+                        .HasFilter("\"IsSystem\"");
+
+                    b.HasIndex("HouseholdId", "Key")
+                        .IsUnique()
+                        .HasDatabaseName("IX_SubGroups_Household_Key")
+                        .HasFilter("NOT \"IsSystem\"");
+
+                    b.HasIndex("HouseholdId", "GroupId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_SubGroups_Household_Group_Name")
+                        .HasFilter("NOT \"IsSystem\"");
 
                     b.ToTable("SubGroups");
                 });

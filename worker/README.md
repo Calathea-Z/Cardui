@@ -5,6 +5,7 @@ One-shot worker for scheduled Plaid account and transaction syncs.
 The worker:
 
 - Loads connected Plaid items from PostgreSQL.
+- Skips an item that has no household.
 - Runs the existing account and transaction sync flow for each item.
 - Logs per-item success or failure.
 - Exits with code `1` if any item fails.
@@ -26,6 +27,10 @@ Required configuration (worker user secrets, env vars, or `DATABASE_URL`):
 - `Plaid__Secret`
 - `Plaid__Environment`
 - `Plaid__ClientName`
+
+The worker uses the same Data Protection key directory as the API. In
+production set `DataProtection__KeysPath` and `DataProtection__CertificatePath`
+on both.
 
 ## Railway Cron
 

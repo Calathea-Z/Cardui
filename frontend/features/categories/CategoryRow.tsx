@@ -42,6 +42,7 @@ export function CategoryRow({
           type="button"
           variant="outline"
           size="xs"
+          disabled={category.isSystem}
           onClick={() => onEdit(category)}
         >
           Edit

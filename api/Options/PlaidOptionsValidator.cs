@@ -31,8 +31,27 @@ public sealed class PlaidOptionsValidator : IValidateOptions<PlaidOptions>
         if (string.IsNullOrWhiteSpace(options.DefaultClientUserId))
             failures.Add("Plaid:DefaultClientUserId is required.");
 
+        if (!string.IsNullOrWhiteSpace(options.WebhookUrl)
+            && !IsAbsoluteHttpUrl(options.WebhookUrl))
+        {
+            failures.Add("Plaid:WebhookUrl must be an absolute http or https URL.");
+        }
+
         return failures.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(failures);
     }
+
+    #region Private Methods
+
+    /// <summary>
+    /// True when the value is an absolute http or https URL.
+    /// </summary>
+    private static bool IsAbsoluteHttpUrl(string value)
+    {
+        return Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+    }
+
+    #endregion
 }

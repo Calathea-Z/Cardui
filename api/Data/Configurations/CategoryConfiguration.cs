@@ -37,7 +37,24 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .HasMaxLength(100);
 
         entity.HasIndex(x => x.Key)
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"IsSystem\"")
+            .HasDatabaseName("IX_Categories_System_Key");
+
+        entity.HasIndex(x => x.Name)
+            .IsUnique()
+            .HasFilter("\"IsSystem\"")
+            .HasDatabaseName("IX_Categories_System_Name");
+
+        entity.HasIndex(x => new { x.HouseholdId, x.Key })
+            .IsUnique()
+            .HasFilter("NOT \"IsSystem\"")
+            .HasDatabaseName("IX_Categories_Household_Key");
+
+        entity.HasIndex(x => new { x.HouseholdId, x.Name })
+            .IsUnique()
+            .HasFilter("NOT \"IsSystem\"")
+            .HasDatabaseName("IX_Categories_Household_Name");
 
         entity.HasIndex(x => x.HouseholdId);
 
@@ -45,9 +62,6 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .WithMany()
             .HasForeignKey(x => x.HouseholdId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        entity.HasIndex(x => x.Name)
-            .IsUnique();
 
         entity.HasOne(x => x.SubGroup)
             .WithMany(x => x.Categories)

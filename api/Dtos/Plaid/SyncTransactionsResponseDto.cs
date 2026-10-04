@@ -5,5 +5,4 @@ public class SyncTransactionsResponseDto
     public int Added { get; set; }
     public int Modified { get; set; }
     public int Removed { get; set; }
-    public string? NextCursor { get; set; }
 }

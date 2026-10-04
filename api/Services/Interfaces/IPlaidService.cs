@@ -47,4 +47,10 @@ public interface IPlaidService
     Task<SyncPlaidItemResponseDto> SyncPlaidItemAsync(
         Guid plaidItemId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes the bank login at Plaid and deletes the stored access token.
+    /// Accounts and transactions stay in Cardui.
+    /// </summary>
+    Task RemovePlaidItemAsync(Guid plaidItemId, CancellationToken cancellationToken = default);
 }

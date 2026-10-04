@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <!--
+      DotRush hover/Quick Info reads XML documentation. Without this, MSBuild
+      does not pass /doc, and summaries (including inheritdoc) stay off hover.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1573;1591;1712</NoWarn>
+  </PropertyGroup>
+</Project>

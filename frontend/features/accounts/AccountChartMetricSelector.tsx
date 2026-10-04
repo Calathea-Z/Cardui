@@ -12,6 +12,10 @@ type AccountChartMetricSelectorProps = {
   className?: string;
 };
 
+/**
+ * Lets the household choose the balance series for the accounts chart.
+ * The pressed button is the series the chart will show.
+ */
 export function AccountChartMetricSelector({
   value,
   onChange,

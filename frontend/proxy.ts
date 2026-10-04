@@ -1,5 +1,9 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
+/**
+ * True for the Clerk sign-in and sign-up pages.
+ * Those routes stay open so a signed-out visitor can authenticate.
+ */
 function isPublicPath(pathname: string) {
   return (
     pathname === "/sign-in" ||
@@ -9,6 +13,10 @@ function isPublicPath(pathname: string) {
   );
 }
 
+/**
+ * Requires a Clerk session on every app route.
+ * Public auth pages are left open.
+ */
 export default clerkMiddleware(async (auth, request) => {
   if (isPublicPath(request.nextUrl.pathname)) {
     return;
@@ -17,6 +25,9 @@ export default clerkMiddleware(async (auth, request) => {
   await auth.protect();
 });
 
+/**
+ * Runs the session check on pages and API routes, and skips Next.js assets.
+ */
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",

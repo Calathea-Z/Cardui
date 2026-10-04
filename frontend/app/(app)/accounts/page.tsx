@@ -3,8 +3,15 @@ import { PageApiErrorBanner } from "@/components/page-api-error-banner";
 import { AccountsPageClient } from "@/features/accounts/AccountsPageClient";
 import { loadAccountsPage } from "@/features/accounts/server/loadAccountsPage";
 
+/**
+ * Renders the accounts page on each request.
+ */
 export const dynamic = "force-dynamic";
 
+/**
+ * Accounts route.
+ * Loads accounts on the server and shows a banner when that load fails.
+ */
 export default async function AccountsPage() {
   await auth.protect();
 

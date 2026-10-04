@@ -4,6 +4,10 @@ import axios from "axios";
 import { getErrorMessageFromResponseData, type ApiError } from "./errors";
 import { readSessionToken } from "./session-token";
 
+/**
+ * Axios client for calls made in the browser.
+ * Attaches the Clerk session token and turns HTTP failures into `ApiError`.
+ */
 export const browserClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   timeout: 10_000,

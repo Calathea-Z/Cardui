@@ -19,6 +19,10 @@ type CategoryFormProps = {
   onCancel: () => void;
 };
 
+/**
+ * Form for creating or editing a category.
+ * The group and sub-group lock while saving or when the category is a system category, and a save needs a name and sub-group.
+ */
 export function CategoryForm({
   form,
   onFormChange,

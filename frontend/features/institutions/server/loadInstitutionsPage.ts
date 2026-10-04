@@ -14,6 +14,10 @@ export type InstitutionsPageData = {
   accounts: AccountDto[];
 };
 
+/**
+ * Loads linked banks and accounts for the institutions page.
+ * A failed request returns empty lists and the first error.
+ */
 export async function loadInstitutionsPage(): Promise<
   PageLoadState<InstitutionsPageData>
 > {

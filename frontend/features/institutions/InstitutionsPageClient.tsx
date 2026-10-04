@@ -22,6 +22,10 @@ type InstitutionsPageClientProps = {
   accounts: AccountDto[];
 };
 
+/**
+ * Groups active accounts under the bank that synced them.
+ * Only accounts with a Plaid item id are included.
+ */
 function groupAccountsByInstitution(accounts: AccountDto[]) {
   return accounts.reduce<Map<string, AccountDto[]>>((groups, account) => {
     if (!account.plaidItemId || !account.isActive) {
@@ -35,6 +39,10 @@ function groupAccountsByInstitution(accounts: AccountDto[]) {
   }, new Map());
 }
 
+/**
+ * Lists linked banks and lets the user connect, sync, or disconnect them.
+ * A sync or disconnect error replaces the last result message.
+ */
 export function InstitutionsPageClient({
   initialItems,
   accounts,
@@ -62,6 +70,10 @@ export function InstitutionsPageClient({
 
   useSetMobileHeaderLeading(mobileHeaderLeading);
 
+  /**
+   * Syncs one linked bank and refreshes the page.
+   * On success, that bank's sync times are set to now and its last failure is cleared.
+   */
   async function handleSync(plaidItemId: string) {
     setSyncingItemId(plaidItemId);
     setLastResult(null);
@@ -96,6 +108,10 @@ export function InstitutionsPageClient({
     }
   }
 
+  /**
+   * Disconnects one bank and refreshes the page.
+   * The bank leaves the list after the request succeeds.
+   */
   async function handleDisconnect(plaidItemId: string) {
     setDisconnectingItemId(plaidItemId);
     setLastResult(null);

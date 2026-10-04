@@ -23,6 +23,10 @@ type ColorPickerProps = {
   disabled?: boolean;
 };
 
+/**
+ * Lets the user pick a preset swatch or a custom color.
+ * The matching swatch is marked selected.
+ */
 export function ColorPicker({
   value,
   onChange,

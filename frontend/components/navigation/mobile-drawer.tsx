@@ -9,6 +9,10 @@ type MobileDrawerProps = {
   onClose: () => void;
 };
 
+/**
+ * Slide-in navigation for small screens.
+ * It lists every primary destination and the account menu, and stays off-screen until isOpen.
+ */
 export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   return (
     <>

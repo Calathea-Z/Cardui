@@ -1,7 +1,14 @@
 import type { AccountBalanceHistoryPointDto } from "@/lib/api/types";
 
+/**
+ * Window the accounts chart can show.
+ * `ALL` starts at the first snapshot instead of a fixed number of days.
+ */
 export type ChartTimeRange = "1W" | "1M" | "3M" | "6M" | "1Y" | "ALL";
 
+/**
+ * Range choices in the order the chart selector shows them.
+ */
 export const CHART_TIME_RANGES: { value: ChartTimeRange; label: string }[] = [
   { value: "1W", label: "1W" },
   { value: "1M", label: "1M" },
@@ -11,6 +18,9 @@ export const CHART_TIME_RANGES: { value: ChartTimeRange; label: string }[] = [
   { value: "ALL", label: "All" },
 ];
 
+/**
+ * Window shown before the household picks another range.
+ */
 export const DEFAULT_CHART_TIME_RANGE: ChartTimeRange = "3M";
 
 const RANGE_DAYS: Record<Exclude<ChartTimeRange, "ALL">, number> = {
@@ -30,6 +40,10 @@ const RANGE_LABELS: Record<ChartTimeRange, string> = {
   ALL: "all time",
 };
 
+/**
+ * Change from the first snapshot in the window to the last.
+ * `deltaPercent` is null when the start value is zero.
+ */
 export type PeriodChange = {
   delta: number;
   deltaPercent: number | null;
@@ -37,27 +51,45 @@ export type PeriodChange = {
   endValue: number;
 };
 
+/**
+ * One balance snapshot placed on a numeric time axis.
+ */
 export type ChartHistoryPoint = AccountBalanceHistoryPointDto & {
   timestamp: number;
 };
 
+/**
+ * Start and end of the chart axis, in milliseconds.
+ * The end is the start of today so the window does not extend into tomorrow.
+ */
 export type ChartTimeWindow = {
   startMs: number;
   endMs: number;
 };
 
+/**
+ * Local midnight for today.
+ * Chart windows end here so a snapshot later today still sits on today's tick.
+ */
 function startOfToday() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return today;
 }
 
+/**
+ * Parses an API date or date-time as local midnight on that calendar day.
+ */
 function parseDate(value: string) {
   // Support DateOnly ("yyyy-MM-dd") and ISO datetimes from the API.
   const dateOnly = value.slice(0, 10);
   return new Date(`${dateOnly}T00:00:00`);
 }
 
+/**
+ * First day included in a fixed window.
+ * `ALL` returns null because that window starts at the first snapshot.
+ */
 function getRangeStartDate(range: ChartTimeRange) {
   if (range === "ALL") {
     return null;
@@ -68,6 +100,10 @@ function getRangeStartDate(range: ChartTimeRange) {
   return start;
 }
 
+/**
+ * Builds the axis window for a range.
+ * `ALL` starts at the first snapshot, or today when there is no history.
+ */
 export function getChartTimeWindow(
   history: AccountBalanceHistoryPointDto[],
   range: ChartTimeRange,
@@ -85,6 +121,10 @@ export function getChartTimeWindow(
   return { startMs: start.getTime(), endMs };
 }
 
+/**
+ * Keeps snapshots that fall inside the selected window.
+ * `ALL` returns the history unchanged.
+ */
 export function filterHistoryByRange(
   history: AccountBalanceHistoryPointDto[],
   range: ChartTimeRange,
@@ -98,7 +138,9 @@ export function filterHistoryByRange(
   return history.filter((point) => parseDate(point.date) >= rangeStart);
 }
 
-/** Map points onto a numeric time axis so the chart spans the selected window. */
+/**
+ * Places each snapshot on a numeric time axis so the chart spans the window.
+ */
 export function toChartHistoryPoints(
   history: AccountBalanceHistoryPointDto[],
 ): ChartHistoryPoint[] {
@@ -109,6 +151,10 @@ export function toChartHistoryPoints(
   }));
 }
 
+/**
+ * Evenly spaced axis ticks from the start of the window to the end.
+ * A zero-length window returns the end time only.
+ */
 export function getRangeTicks(
   window: ChartTimeWindow,
   tickCount: number,
@@ -127,6 +173,10 @@ export function getRangeTicks(
   );
 }
 
+/**
+ * Measures the change from the first snapshot in view to the last.
+ * Returns null when fewer than two days exist, because one point is not a trend.
+ */
 export function computePeriodChange(
   history: AccountBalanceHistoryPointDto[],
   getValue: (point: AccountBalanceHistoryPointDto) => number = (point) =>
@@ -150,10 +200,16 @@ export function computePeriodChange(
   };
 }
 
+/**
+ * Phrase used in the change line and the empty-history message, such as "past 3 months".
+ */
 export function getRangeLabel(range: ChartTimeRange) {
   return RANGE_LABELS[range];
 }
 
+/**
+ * Explains why the chart cannot draw a trend for this window.
+ */
 export function getInsufficientHistoryMessage(
   pointCount: number,
   range: ChartTimeRange,
@@ -167,6 +223,10 @@ export function getInsufficientHistoryMessage(
   return `Only one day of balance history was recorded in the ${rangeLabel}. At least two days are needed to show a trend.`;
 }
 
+/**
+ * Turns a tick value into a date.
+ * Numeric ticks are milliseconds. Strings are API dates.
+ */
 function resolveDate(value: string | number) {
   if (typeof value === "number") {
     return new Date(value);
@@ -175,6 +235,10 @@ function resolveDate(value: string | number) {
   return parseDate(value);
 }
 
+/**
+ * Axis date labels for a range.
+ * A week uses weekdays. A year or all-time uses months. Shorter ranges use month and day.
+ */
 export function getDateTickFormatter(range: ChartTimeRange) {
   return (value: string | number) => {
     const date = resolveDate(value);
@@ -199,6 +263,9 @@ export function getDateTickFormatter(range: ChartTimeRange) {
   };
 }
 
+/**
+ * Full date shown in the chart tooltip.
+ */
 export function formatTooltipDate(value: string | number) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
@@ -208,6 +275,10 @@ export function formatTooltipDate(value: string | number) {
   }).format(resolveDate(value));
 }
 
+/**
+ * Formats a chart label as whole currency units.
+ * Cents are dropped so the label stays a trend figure.
+ */
 export function formatChartCurrency(value: number, currency = "USD") {
   const code = /^[A-Z]{3}$/i.test(currency) ? currency.toUpperCase() : "USD";
 
@@ -226,12 +297,18 @@ export function formatChartCurrency(value: number, currency = "USD") {
   }
 }
 
-/** Compact axis labels in Monarch style: $663K, -$5.3K, $1.2M */
+/**
+ * Compact axis label for large balances, such as $663K or $1.2M.
+ * Amounts under one thousand use the whole-currency chart label.
+ */
 export function formatChartAxisCurrency(value: number, currency = "USD") {
   const abs = Math.abs(value);
   const sign = value < 0 ? "-" : "";
   const symbol = chartCurrencySymbol(currency);
 
+  /**
+   * Formats a compact number and drops a trailing .0.
+   */
   const formatCompact = (n: number, suffix: string) => {
     const digits = n >= 100 ? 0 : 1;
     const formatted = n.toFixed(digits).replace(/\.0$/, "");
@@ -249,6 +326,10 @@ export function formatChartAxisCurrency(value: number, currency = "USD") {
   return formatChartCurrency(value, currency);
 }
 
+/**
+ * Narrow currency symbol for compact axis labels.
+ * An unrecognized code uses the dollar sign.
+ */
 function chartCurrencySymbol(currency: string) {
   const code = /^[A-Z]{3}$/i.test(currency) ? currency.toUpperCase() : "USD";
 
@@ -265,6 +346,10 @@ function chartCurrencySymbol(currency: string) {
   }
 }
 
+/**
+ * Signed amount and percent for the change line under the chart.
+ * The percent is omitted when the period started at zero.
+ */
 export function formatPeriodDelta(change: PeriodChange, currency = "USD") {
   const sign = change.delta >= 0 ? "+" : "-";
   const amount = formatChartCurrency(Math.abs(change.delta), currency);

@@ -26,6 +26,10 @@ type CategorySection = {
   categories: CategoryDto[];
 };
 
+/**
+ * Orders subgroups by sort order, then by name.
+ * The input list is left unchanged.
+ */
 function sortSubGroups(subGroups: SubGroupDto[]) {
   return subGroups
     .slice()
@@ -35,6 +39,10 @@ function sortSubGroups(subGroups: SubGroupDto[]) {
     );
 }
 
+/**
+ * Orders groups by sort order, then by name.
+ * The input list is left unchanged.
+ */
 function sortGroups(groups: GroupDto[]) {
   return groups
     .slice()
@@ -44,6 +52,10 @@ function sortGroups(groups: GroupDto[]) {
     );
 }
 
+/**
+ * Lets the household pick a category or start a new one.
+ * Closing the sheet while add-category is open dismisses that drawer and leaves the picker open.
+ */
 export function ChangeCategoryDrawer({
   open,
   categories,
@@ -56,11 +68,18 @@ export function ChangeCategoryDrawer({
 }: ChangeCategoryDrawerProps) {
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
+  /**
+   * Closes the add-category drawer and the category picker together.
+   */
   function handleClose() {
     setIsAddCategoryOpen(false);
     onClose();
   }
 
+  /**
+   * Closes the sheet the household is looking at.
+   * An open add-category drawer closes first and leaves the picker open.
+   */
   function handleSheetClose() {
     if (isAddCategoryOpen) {
       setIsAddCategoryOpen(false);
@@ -110,6 +129,10 @@ export function ChangeCategoryDrawer({
   );
 }
 
+/**
+ * Lists categories in subgroup sections and filters them as the household types.
+ * A match can be the category name, the subgroup name, or the group name.
+ */
 function ChangeCategoryDrawerContent({
   categories,
   groups,
@@ -222,6 +245,10 @@ function ChangeCategoryDrawerContent({
   );
 }
 
+/**
+ * Shows one category and selects it.
+ * The category already on the transaction shows a check.
+ */
 function CategoryRow({
   category,
   categoryId,

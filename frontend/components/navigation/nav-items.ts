@@ -1,8 +1,14 @@
+/**
+ * One primary destination: the visible label and its path.
+ */
 export type NavItem = {
   label: string;
   href: string;
 };
 
+/**
+ * Primary destinations in sidebar and drawer order.
+ */
 export const navItems: NavItem[] = [
   {
     label: "Dashboard",
@@ -30,6 +36,10 @@ export const navItems: NavItem[] = [
   },
 ];
 
+/**
+ * Nav item for the current path.
+ * The path `/` matches the `/` item. Any other path matches the first item with a non-root href that pathname starts with.
+ */
 export function getActiveNavItem(pathname: string): NavItem | undefined {
   if (pathname === "/") {
     return navItems.find((item) => item.href === "/");
@@ -40,6 +50,10 @@ export function getActiveNavItem(pathname: string): NavItem | undefined {
   );
 }
 
+/**
+ * Phone tab-bar destinations, in navItems order.
+ * The list is Dashboard, Transactions, Accounts, and Budgets.
+ */
 export const bottomNavItems = navItems.filter(
   (item) => item.href !== "/categories" && item.href !== "/institutions",
 );

@@ -1,4 +1,16 @@
-﻿export type AccountDto = {
+﻿/**
+ * Request and response shapes for the Cardui API.
+ * Money amounts use the stored sign: positive is money out, negative is money in.
+ */
+
+/**
+ * One household account.
+ * `plaidItemId` is null when the account was created in Cardui.
+ * `countsInPlanningTotals` is false when the account's currency is left out of totals.
+ * `openingBalance` is the balance already in the account when it was added. It is not a transaction.
+ * `source` is Plaid, Manual, or Csv. `provenance` is how the row was created, such as PlaidSync or ManualEntry.
+ */
+export type AccountDto = {
   id: string;
   plaidItemId: string | null;
   name: string;
@@ -33,6 +45,12 @@ export type TransactionCategoryDto = {
   icon: string | null;
 };
 
+/**
+ * One transaction.
+ * A positive `amount` is money out. A negative `amount` is money in.
+ * Pending rows stay visible but stay out of income and spending until they post.
+ * `provenance` distinguishes Plaid sync, manual entry, CSV import, and balance reconciliation.
+ */
 export type TransactionDto = {
   id: string;
   date: string;
@@ -50,6 +68,10 @@ export type TransactionDto = {
   archivedAt: string | null;
 };
 
+/**
+ * Filters for a transaction page.
+ * `archived` lists hidden rows instead of the active list.
+ */
 export type TransactionQueryDto = {
   search?: string;
   accountId?: string;
@@ -62,6 +84,9 @@ export type TransactionQueryDto = {
   pageSize?: number;
 };
 
+/**
+ * One page of a list, with enough fields for the pager to know what comes next.
+ */
 export type PagedResultDto<T> = {
   items: T[];
   page: number;
@@ -72,6 +97,10 @@ export type PagedResultDto<T> = {
   hasPreviousPage: boolean;
 };
 
+/**
+ * Edits saved on an existing transaction.
+ * Date, category, and notes are always included. Name and amount are included when that entry can be edited.
+ */
 export type UpdateTransactionDetailsDto = {
   date: string;
   categoryId: string | null;
@@ -81,6 +110,10 @@ export type UpdateTransactionDetailsDto = {
   pending?: boolean | null;
 };
 
+/**
+ * Fields for a new manual account.
+ * `openingBalance` is the balance already there. It is not income or a purchase.
+ */
 export type CreateManualAccountDto = {
   name: string;
   type: string;
@@ -91,13 +124,21 @@ export type CreateManualAccountDto = {
   openingBalanceDate: string;
 };
 
+/** Fields saved when a manual account is edited. */
 export type UpdateManualAccountDto = CreateManualAccountDto;
 
+/**
+ * Statement balance the household wants the account to match on a date.
+ */
 export type ReconcileAccountBalanceDto = {
   asOfDate: string;
   statementBalance: number;
 };
 
+/**
+ * Result of matching an account to a statement balance.
+ * `adjustment` is the difference that was recorded. `adjustmentTransactionId` is null when the balances already matched.
+ */
 export type BalanceReconciliationResultDto = {
   account: AccountDto;
   calculatedBalance: number;
@@ -106,6 +147,10 @@ export type BalanceReconciliationResultDto = {
   adjustmentTransactionId: string | null;
 };
 
+/**
+ * Fields for a transaction entered by hand.
+ * `amount` uses the stored sign: positive is money out, negative is money in.
+ */
 export type CreateManualTransactionDto = {
   accountId: string;
   date: string;
@@ -116,6 +161,9 @@ export type CreateManualTransactionDto = {
   pending?: boolean;
 };
 
+/**
+ * How merchant history groups transactions on the chart.
+ */
 export type MerchantHistoryGranularity = "monthly" | "quarterly" | "yearly";
 
 export type MerchantHistoryPeriodDto = {
@@ -142,6 +190,10 @@ export type SpendingByCategoryDto = {
   amount: number;
 };
 
+/**
+ * Totals for the dashboard's current period.
+ * Excluded counts are accounts or transactions left out because their currency is not the planning currency.
+ */
 export type DashboardSummaryDto = {
   periodStart: string;
   periodEnd: string;
@@ -158,6 +210,10 @@ export type DashboardSummaryDto = {
   spendingByCategory: SpendingByCategoryDto[];
 };
 
+/**
+ * A category the household can assign to transactions.
+ * `isSystem` marks a built-in category. `key` is the stable id used for emoji and activity rules.
+ */
 export type CategoryDto = {
   id: string;
   name: string;
@@ -214,6 +270,10 @@ export type AccountBalanceHistoryPointDto = {
   loans: number;
 };
 
+/**
+ * Net worth, balance history, and account groups for the accounts page.
+ * Excluded accounts are omitted from the totals because their currency is not the planning currency.
+ */
 export type AccountSummaryDto = {
   netWorth: number;
   planningCurrency: string;
@@ -238,6 +298,10 @@ export type ExchangePlaidPublicTokenResponse = {
   plaidItemId: string;
 };
 
+/**
+ * One connected institution.
+ * Sync timestamps say whether the last pull is running, finished, or failed.
+ */
 export type PlaidItemDto = {
   id: string;
   institutionId: string | null;
@@ -268,6 +332,10 @@ export type HouseholdDto = {
   createdAt: string;
 };
 
+/**
+ * A person included in the household profile.
+ * `isVisible` is the Shown flag. Hiding a contributor leaves balances unchanged.
+ */
 export type HouseholdContributorDto = {
   id: string;
   name: string;
@@ -290,6 +358,10 @@ export type UpsertHouseholdContributorDto = {
   isVisible: boolean;
 };
 
+/**
+ * Column indexes suggested for a CSV.
+ * Null means that column was not found. `amountSign` is PositiveOut or PositiveIn. `dateOrder` is MonthFirst or DayFirst.
+ */
 export type TransactionImportSuggestedMapDto = {
   dateColumn: number | null;
   nameColumn: number | null;
@@ -310,6 +382,10 @@ export type TransactionImportInspectDto = {
   suggested: TransactionImportSuggestedMapDto;
 };
 
+/**
+ * One CSV row after mapping.
+ * Ready rows can be imported. Duplicate rows are likely already saved. Error rows need a fix and cannot be imported.
+ */
 export type TransactionImportPreviewRowDto = {
   lineNumber: number;
   date: string | null;
@@ -327,6 +403,10 @@ export type TransactionImportPreviewDto = {
   rows: TransactionImportPreviewRowDto[];
 };
 
+/**
+ * A completed CSV import.
+ * `undoneAt` is set after the batch is archived.
+ */
 export type TransactionImportBatchDto = {
   id: string;
   accountId: string;

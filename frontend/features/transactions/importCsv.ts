@@ -1,7 +1,15 @@
 import type { TransactionImportSuggestedMapDto } from "@/lib/api/types";
 
+/**
+ * How a CSV writes money.
+ * `amount` is one signed column. `split` is separate debit and credit columns.
+ */
 export type AmountMode = "amount" | "split";
 
+/**
+ * Column mapping the import sheet sends to the API.
+ * Empty strings mean that column is not used.
+ */
 export type ImportColumnState = {
   dateColumn: string;
   nameColumn: string;
@@ -15,6 +23,10 @@ export type ImportColumnState = {
   dateOrder: string;
 };
 
+/**
+ * Turns the API's suggested columns into the sheet's mapping.
+ * Debit or credit without an amount column starts in split mode.
+ */
 export function columnStateFromSuggestion(
   suggested: TransactionImportSuggestedMapDto,
 ): ImportColumnState {
@@ -36,6 +48,10 @@ export function columnStateFromSuggestion(
   };
 }
 
+/**
+ * Builds the column list for a mapping select.
+ * Optional columns include "Not used" so the household can leave them blank.
+ */
 export function columnChoices(headers: string[], includeUnused: boolean) {
   const columns = headers.map((header, index) => ({
     value: String(index),
@@ -47,6 +63,10 @@ export function columnChoices(headers: string[], includeUnused: boolean) {
     : columns;
 }
 
+/**
+ * Returns the reason a mapping cannot be previewed, or null when it can.
+ * Date and name are required. Amount needs one column, or a debit, a credit, or both.
+ */
 export function mappingError(columns: ImportColumnState) {
   if (!columns.dateColumn || !columns.nameColumn) {
     return "Choose the date and name columns.";
@@ -67,8 +87,12 @@ export function mappingError(columns: ImportColumnState) {
   return null;
 }
 
+/**
+ * Import sheet steps, in the order the household walks them.
+ */
 export const importSteps = ["account", "columns", "rows", "import"] as const;
 
+/** One step in the import sheet. */
 export type ImportStep = (typeof importSteps)[number];
 
 const importStepHeadings: Record<ImportStep, string> = {
@@ -78,18 +102,29 @@ const importStepHeadings: Record<ImportStep, string> = {
   import: "Import",
 };
 
+/** Heading shown for the current import step. */
 export function importStepHeading(step: ImportStep) {
   return importStepHeadings[step];
 }
 
+/**
+ * The step before this one, or null on the first step.
+ */
 export function previousImportStep(step: ImportStep) {
   return adjacentImportStep(step, -1);
 }
 
+/**
+ * The step after this one, or null on the last step.
+ */
 export function nextImportStep(step: ImportStep) {
   return adjacentImportStep(step, 1);
 }
 
+/**
+ * Adds the file, account, and column mapping to a preview or import request.
+ * Unused columns are omitted. Included line numbers limit which preview rows are imported.
+ */
 export function appendTransactionImport(
   form: FormData,
   file: File,
@@ -119,6 +154,10 @@ export function appendTransactionImport(
   }
 }
 
+/**
+ * Moves one step forward or back.
+ * Returns null at either end so the sheet can hide that button.
+ */
 function adjacentImportStep(step: ImportStep, direction: -1 | 1) {
   const index = importSteps.indexOf(step);
   const next = index + direction;
@@ -129,10 +168,17 @@ function adjacentImportStep(step: ImportStep, direction: -1 | 1) {
   return importSteps[next];
 }
 
+/**
+ * Stores a suggested column index as the select value.
+ * A missing column is an empty string, which means not used.
+ */
 function columnValue(column: number | null) {
   return column === null ? "" : String(column);
 }
 
+/**
+ * Adds a column index to the request when the household chose one.
+ */
 function appendColumn(form: FormData, name: string, value: string) {
   if (value) {
     form.append(name, value);

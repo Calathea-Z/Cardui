@@ -1,0 +1,38 @@
+---
+description: Document frontend functions so their purpose is clear
+alwaysApply: true
+---
+
+# Frontend method comments
+
+When adding or changing TypeScript in `frontend/`, document functions
+and the types that carry a rule. Do this in the same change.
+
+- Put a JSDoc block immediately above every module-level function,
+  including React components, hooks, and helpers.
+- A named function inside a component gets a comment when it branches,
+  calls the API, or calculates. A one-line setter whose name is the
+  whole story does not.
+- An API client function names the HTTP method and route, then what it
+  does. Example: `POST /api/accounts`.
+- An exported type gets a comment when a field's meaning is a rule,
+  such as amount sign, a null that means unused, or a fallback used when
+  the API fails. Skip a comment that only repeats the type name.
+- Say what it does and the rule the name leaves out, in one or two
+  sentences.
+- Do not comment every JSX line, every prop, or generated files such as
+  `next-env.d.ts`.
+
+```ts
+/**
+ * POST /api/accounts
+ * Creates a manual account for the signed-in household.
+ */
+export async function createManualAccount(...)
+
+/**
+ * Formats a money amount for on-screen text.
+ * A missing amount is a dash. An unrecognized currency code uses USD.
+ */
+export function formatCurrency(...)
+```

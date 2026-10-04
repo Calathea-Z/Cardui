@@ -1,3 +1,6 @@
+/**
+ * Currencies a household can choose as its planning currency.
+ */
 export const PLANNING_CURRENCIES = [
   { code: "USD", label: "USD — US dollar" },
   { code: "CAD", label: "CAD — Canadian dollar" },
@@ -8,6 +11,10 @@ export const PLANNING_CURRENCIES = [
   { code: "JPY", label: "JPY — Japanese yen" },
 ] as const;
 
+/**
+ * Time zones offered for a household.
+ * A saved zone outside this list is still shown by `timeZoneChoices`.
+ */
 export const HOUSEHOLD_TIME_ZONES = [
   { id: "America/New_York", label: "Eastern — New York" },
   { id: "America/Chicago", label: "Central — Chicago" },
@@ -19,6 +26,10 @@ export const HOUSEHOLD_TIME_ZONES = [
   { id: "UTC", label: "UTC" },
 ] as const;
 
+/**
+ * Planning-currency choices, with the household's current code kept
+ * even when it is not in the usual list.
+ */
 export function currencyChoices(current: string) {
   if (PLANNING_CURRENCIES.some((option) => option.code === current)) {
     return [...PLANNING_CURRENCIES];
@@ -27,6 +38,10 @@ export function currencyChoices(current: string) {
   return [{ code: current, label: current }, ...PLANNING_CURRENCIES];
 }
 
+/**
+ * Time-zone choices, with the household's current zone kept
+ * even when it is not in the usual list.
+ */
 export function timeZoneChoices(current: string) {
   if (HOUSEHOLD_TIME_ZONES.some((option) => option.id === current)) {
     return [...HOUSEHOLD_TIME_ZONES];

@@ -17,6 +17,10 @@ type MobileShellProps = {
   children: React.ReactNode;
 };
 
+/**
+ * Page column with a menu, title, account button, and tab bar on small screens.
+ * That chrome hides from the md breakpoint up, an open drawer locks page scroll, and the title is the active nav label or Tortoise when the path matches none.
+ */
 export function MobileShell({ children }: MobileShellProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const pathname = usePathname();

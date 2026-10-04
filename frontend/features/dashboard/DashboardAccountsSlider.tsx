@@ -27,18 +27,30 @@ type DashboardAccountsSliderProps = {
   summary: AccountSummaryDto;
 };
 
+/**
+ * Slides in the dashboard accounts card, in scroll order.
+ * Net worth is first, then assets, then liabilities.
+ */
 const PANELS = [
   { id: "net-worth", label: "Net Worth" },
   { id: "assets", label: "Assets" },
   { id: "liabilities", label: "Liabilities" },
 ] as const;
 
+/**
+ * True when a group other than net worth contains an account.
+ * The net-worth group is passed over, and a group counts when its account list contains an account.
+ */
 function hasConnectedAccounts(groups: AccountSummaryDto["groups"]) {
   return groups
     .filter((group) => group.key !== "net-worth")
     .some((group) => group.accounts.length > 0);
 }
 
+/**
+ * Swipes between net worth, assets, and liabilities.
+ * The heading follows the visible slide, liability amounts use formatCurrency with a leading minus, and the period change appears on the net-worth slide when accounts exist.
+ */
 export function DashboardAccountsSlider({
   summary,
 }: DashboardAccountsSliderProps) {
@@ -71,6 +83,10 @@ export function DashboardAccountsSlider({
     }
   }, [activeIndex, summary.netWorth, totalAssets, totalLiabilities]);
 
+  /**
+   * Updates the active slide from how far the card has scrolled.
+   * The index is the nearest panel and stays within the three slides.
+   */
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
     if (!container) {
@@ -86,6 +102,10 @@ export function DashboardAccountsSlider({
     setActiveIndex(Math.min(index, PANELS.length - 1));
   }, []);
 
+  /**
+   * Scrolls the accounts card to a chosen slide.
+   * The heading updates to that slide as the scroll starts.
+   */
   const scrollToPanel = useCallback((index: number) => {
     const container = scrollRef.current;
     if (!container) {

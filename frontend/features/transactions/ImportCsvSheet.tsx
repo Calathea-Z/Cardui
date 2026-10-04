@@ -36,8 +36,16 @@ import {
   type ImportStep,
 } from "./importCsv";
 
+/**
+ * Largest CSV the import sheet will accept.
+ * A larger file is rejected before it is read.
+ */
 const maxCsvBytes = 1_048_576;
 
+/**
+ * Column mapping used before a file has been read.
+ * A positive amount starts as money out, and dates start as month first.
+ */
 const emptyColumns: ImportColumnState = {
   dateColumn: "",
   nameColumn: "",
@@ -60,6 +68,10 @@ type ImportCsvSheetProps = {
   onImported: () => void;
 };
 
+/**
+ * Writes a preview amount as money in or money out.
+ * A missing amount is blank, a negative amount reads as money in, and zero or a positive amount reads as money out.
+ */
 function formatImportAmount(amount: number | null, currency: string | null) {
   if (amount === null) {
     return "";
@@ -69,6 +81,10 @@ function formatImportAmount(amount: number | null, currency: string | null) {
   return amount < 0 ? `Money in ${formatted}` : `Money out ${formatted}`;
 }
 
+/**
+ * Writes an import batch's created date as a short US date.
+ * An unreadable value is blank.
+ */
 function formatBatchDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -82,10 +98,17 @@ function formatBatchDate(value: string) {
   });
 }
 
+/**
+ * Writes a row count as "transaction" or "transactions".
+ */
 function transactionLabel(count: number) {
   return `${count} transaction${count === 1 ? "" : "s"}`;
 }
 
+/**
+ * Lists the four import steps and marks the current one.
+ * Steps already passed use the foreground color, and later steps stay muted.
+ */
 function ImportStepIndicator({ step }: { step: ImportStep }) {
   const currentIndex = importSteps.indexOf(step);
 
@@ -118,6 +141,10 @@ function ImportStepIndicator({ step }: { step: ImportStep }) {
   );
 }
 
+/**
+ * Lists imports the household can still undo.
+ * Undo archives every transaction from that file, and an empty list renders nothing.
+ */
 function OpenImportList({
   batches,
   pendingUndoId,
@@ -193,6 +220,10 @@ function OpenImportList({
   );
 }
 
+/**
+ * Renders a labeled choice list on the import sheet.
+ * An optional hint is shown under the list.
+ */
 function LabeledSelect({
   label,
   title,
@@ -231,6 +262,10 @@ function LabeledSelect({
   );
 }
 
+/**
+ * Shows sample rows from the inspected file.
+ * A blank header is labeled by column number, and an empty sample renders nothing.
+ */
 function SampleRows({ inspect }: { inspect: TransactionImportInspectDto }) {
   if (inspect.sampleRows.length === 0) {
     return null;
@@ -272,6 +307,10 @@ function SampleRows({ inspect }: { inspect: TransactionImportInspectDto }) {
   );
 }
 
+/**
+ * Lets the household map columns and say how dates and amounts are written.
+ * Debit is money out and credit is money in, and the positive-amount choice applies to a single amount column.
+ */
 function ColumnMapping({
   headers,
   columns,
@@ -436,6 +475,10 @@ function ColumnMapping({
   );
 }
 
+/**
+ * Lists preview rows so the household can include or skip each line.
+ * A row that needs a fix cannot be checked.
+ */
 function PreviewRows({
   rows,
   included,
@@ -492,6 +535,10 @@ function PreviewRows({
   );
 }
 
+/**
+ * Walks the household through choosing a file, mapping columns, choosing rows, and importing.
+ * Back keeps the account, file, mapping, and row choices, and the file must be a .csv of at most 1 MB.
+ */
 function ImportCsvForm({
   accounts,
   onImported,
@@ -557,6 +604,10 @@ function ImportCsvForm({
     };
   }, []);
 
+  /**
+   * Stores a new column mapping and clears the current preview.
+   * A preview request still in flight is ignored.
+   */
   function changeColumns(next: ImportColumnState) {
     previewRequest.current += 1;
     setColumns(next);
@@ -565,6 +616,10 @@ function ImportCsvForm({
     setBusy((current) => (current === "preview" ? null : current));
   }
 
+  /**
+   * Drops the chosen file and shows why it was rejected.
+   * An inspect still in flight is ignored.
+   */
   function clearFile(message: string) {
     inspectRequest.current += 1;
     setBusy((current) => (current === "inspect" ? null : current));
@@ -573,10 +628,17 @@ function ImportCsvForm({
     setErrorMessage(message);
   }
 
+  /**
+   * Reloads the imports that can still be undone.
+   */
   async function refreshOpenImports() {
     setOpenImports(await listTransactionImports());
   }
 
+  /**
+   * Reads a chosen CSV and applies the suggested column mapping.
+   * The file must end in .csv and be at most 1 MB, and a newer file ignores an older read.
+   */
   async function onFileSelected(next: File | null) {
     setResult(null);
     setPreview(null);
@@ -626,6 +688,10 @@ function ImportCsvForm({
     }
   }
 
+  /**
+   * Moves to the next import step.
+   * The last step stays where it is.
+   */
   function goToNext(from: ImportStep) {
     const next = nextImportStep(from);
     if (!next) {
@@ -636,6 +702,9 @@ function ImportCsvForm({
     setStep(next);
   }
 
+  /**
+   * Leaves the account step when an account, a file, and a successful read are present.
+   */
   function continueFromAccount() {
     if (!file || !accountId || !inspect) {
       setErrorMessage("Choose an account and a CSV file.");
@@ -645,6 +714,10 @@ function ImportCsvForm({
     goToNext("account");
   }
 
+  /**
+   * Checks the column mapping and previews the file before the row step.
+   * Ready rows start checked, duplicates stay unchecked, and a preview already loaded moves on without another request.
+   */
   async function previewAndContinue() {
     if (!file || !accountId) {
       setErrorMessage("Choose an account and a CSV file.");
@@ -697,6 +770,9 @@ function ImportCsvForm({
     }
   }
 
+  /**
+   * Leaves the row step when at least one row is included.
+   */
   function continueFromRows() {
     if (includedCount === 0) {
       setErrorMessage("Choose at least one row to import.");
@@ -706,6 +782,10 @@ function ImportCsvForm({
     goToNext("rows");
   }
 
+  /**
+   * Returns to the previous import step and keeps the account, file, mapping, and row choices.
+   * Back stays put on the first step and after a finished import.
+   */
   function goBack() {
     if (result) {
       return;
@@ -720,6 +800,10 @@ function ImportCsvForm({
     setStep(previous);
   }
 
+  /**
+   * Imports the included lines onto the chosen account.
+   * The file is cleared afterward, the undo list reloads, and the transactions page is asked to refresh.
+   */
   async function importSelected() {
     if (!file || !preview) {
       return;
@@ -752,6 +836,10 @@ function ImportCsvForm({
     }
   }
 
+  /**
+   * Archives every transaction from the chosen import.
+   * Undoing the import that just finished returns the sheet to the account step.
+   */
   async function confirmUndo(importId: string) {
     setBusy("undo");
     setErrorMessage(null);
@@ -771,6 +859,10 @@ function ImportCsvForm({
     }
   }
 
+  /**
+   * Includes or drops one preview line.
+   * Any message from the previous action is cleared.
+   */
   function toggleRow(lineNumber: number) {
     setErrorMessage(null);
     setIncluded((current) => {
@@ -784,6 +876,10 @@ function ImportCsvForm({
     });
   }
 
+  /**
+   * Returns to the first step for another file.
+   * The chosen account stays. The file, mapping, preview, and row choices are cleared.
+   */
   function startAnother() {
     setResult(null);
     setPreview(null);
@@ -1034,6 +1130,10 @@ function ImportCsvForm({
   );
 }
 
+/**
+ * Opens the CSV import sheet.
+ * Escape is ignored while a column or account list is open, and the form remounts each time the sheet opens.
+ */
 export function ImportCsvSheet({
   open,
   accounts,

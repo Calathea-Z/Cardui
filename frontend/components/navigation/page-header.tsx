@@ -9,6 +9,10 @@ type PageHeaderProps = {
   actions?: ReactNode;
 };
 
+/**
+ * Title block for a page, with an optional eyebrow, description, and actions.
+ * The back button shows on desktop and receives backFallbackHref, which defaults to `/`.
+ */
 export function PageHeader({
   eyebrow,
   title,

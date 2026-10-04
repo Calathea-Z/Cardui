@@ -1,6 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { EmptyState } from "@/components/ui/empty-state";
 
+/**
+ * Budgets route.
+ * Requires a signed-in session and shows that budget tracking is coming soon.
+ */
 export default async function BudgetsPage() {
   await auth.protect();
 

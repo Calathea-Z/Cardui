@@ -10,6 +10,10 @@ type EmptyStateProps = {
   className?: string;
 };
 
+/**
+ * Message for a section that has nothing to show.
+ * An icon, description, and action appear only when the caller passes them.
+ */
 function EmptyState({
   title,
   description,

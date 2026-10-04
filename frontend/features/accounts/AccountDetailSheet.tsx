@@ -27,6 +27,10 @@ type AccountDetailSheetProps = {
   onChanged: () => void;
 };
 
+/**
+ * Copies an account into the manual edit form.
+ * A missing opening date is filled with today's local date.
+ */
 function toForm(account: AccountDto): ManualAccountFormValues {
   return {
     name: account.name,
@@ -37,6 +41,10 @@ function toForm(account: AccountDto): ManualAccountFormValues {
   };
 }
 
+/**
+ * Shows one account's current balance and the actions available for it.
+ * A manual account can be edited, and an active manual account can be matched to a statement. Archive asks for confirmation. Restore applies immediately.
+ */
 function AccountDetailContent({
   account,
   planningCurrency = "USD",
@@ -63,6 +71,10 @@ function AccountDetailContent({
   const [isSaving, setIsSaving] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
 
+  /**
+   * Saves the manual account name, type, subtype, and opening balance.
+   * A blank name, invalid opening balance, or missing opening date shows an error and skips the request.
+   */
   async function saveAccount() {
     const openingBalance = parseMoney(form.openingBalance);
     if (
@@ -96,6 +108,10 @@ function AccountDetailContent({
     }
   }
 
+  /**
+   * Reconciles a manual account to a statement balance on a chosen date.
+   * A blank balance or date stops the request, and a zero result means the balance already matched.
+   */
   async function matchStatement() {
     const balance = parseMoney(statementBalance);
     if (balance === null || !asOfDate) {
@@ -127,6 +143,10 @@ function AccountDetailContent({
     }
   }
 
+  /**
+   * Archives an open account, or restores one that is already archived.
+   * The sheet closes after the account updates.
+   */
   async function updateArchive() {
     setIsSaving(true);
     setErrorMessage(null);
@@ -252,6 +272,10 @@ function AccountDetailContent({
   );
 }
 
+/**
+ * Opens the detail sheet for the selected account.
+ * Escape closes the sheet while the type picker is closed, and a different account remounts the form.
+ */
 export function AccountDetailSheet({
   account,
   planningCurrency = "USD",

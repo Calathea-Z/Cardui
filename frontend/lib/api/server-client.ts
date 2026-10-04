@@ -12,6 +12,11 @@ if (!baseURL) {
   );
 }
 
+/**
+ * Axios client for calls made while rendering on the server.
+ * Attaches the Clerk session token and turns HTTP failures into `ApiError`.
+ * Startup fails when `API_BASE_URL` is missing so a misconfigured server does not call the wrong host.
+ */
 export const serverClient = axios.create({
   baseURL,
   timeout: 10_000,

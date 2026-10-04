@@ -11,6 +11,10 @@ type CategoriesClientProps = {
   subGroups: SubGroupDto[];
 };
 
+/**
+ * Category manager.
+ * Shows the category form beside the list of categories.
+ */
 export function CategoriesClient({
   initialCategories,
   groups,

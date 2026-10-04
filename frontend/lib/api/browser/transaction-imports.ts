@@ -5,6 +5,10 @@ import type {
   TransactionImportPreviewDto,
 } from "../types";
 
+/**
+ * Multipart settings for CSV upload calls.
+ * The longer timeout covers reading and checking a file. The false content type lets the browser set the form boundary.
+ */
 const importRequest = {
   timeout: 30_000,
   headers: {
@@ -12,6 +16,10 @@ const importRequest = {
   },
 };
 
+/**
+ * POST /api/transaction-imports/inspect
+ * Reads a CSV and suggests which columns map to date, name, and amount.
+ */
 export async function inspectTransactionImport(
   file: File,
 ): Promise<TransactionImportInspectDto> {
@@ -25,6 +33,10 @@ export async function inspectTransactionImport(
   return response.data;
 }
 
+/**
+ * POST /api/transaction-imports/preview
+ * Checks the mapped rows before anything is saved.
+ */
 export async function previewTransactionImport(
   form: FormData,
 ): Promise<TransactionImportPreviewDto> {
@@ -36,6 +48,10 @@ export async function previewTransactionImport(
   return response.data;
 }
 
+/**
+ * POST /api/transaction-imports
+ * Saves the chosen preview rows as a transaction import batch.
+ */
 export async function commitTransactionImport(
   form: FormData,
 ): Promise<TransactionImportBatchDto> {
@@ -47,6 +63,10 @@ export async function commitTransactionImport(
   return response.data;
 }
 
+/**
+ * GET /api/transaction-imports
+ * Lists import batches that can still be undone.
+ */
 export async function listTransactionImports(): Promise<
   TransactionImportBatchDto[]
 > {
@@ -56,6 +76,10 @@ export async function listTransactionImports(): Promise<
   return response.data;
 }
 
+/**
+ * POST /api/transaction-imports/{id}/undo
+ * Archives the transactions that belonged to one import batch.
+ */
 export async function undoTransactionImport(
   id: string,
 ): Promise<TransactionImportBatchDto> {

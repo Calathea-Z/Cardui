@@ -3,6 +3,10 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * One row in an action menu.
+ * A disabled item stays visible and skips onSelect.
+ */
 export type ActionMenuItem = {
   id: string;
   label: string;
@@ -18,6 +22,10 @@ type ActionMenuProps = {
   className?: string;
 };
 
+/**
+ * Menu of actions anchored to its trigger.
+ * Closes on an outside click or Escape. align end sits on the right edge, and a disabled item skips onSelect.
+ */
 export function ActionMenu({
   open,
   onClose,
@@ -32,12 +40,18 @@ export function ActionMenu({
       return;
     }
 
+    /**
+     * Closes the menu when the press lands outside the menu element.
+     */
     function handlePointerDown(event: MouseEvent) {
       if (!menuRef.current?.contains(event.target as Node)) {
         onClose();
       }
     }
 
+    /**
+     * Closes the menu when the key is Escape.
+     */
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();

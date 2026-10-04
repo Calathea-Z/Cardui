@@ -42,6 +42,10 @@ const CATEGORY_ICON_EMOJIS: Record<string, string> = {
 
 const DEFAULT_CATEGORY_EMOJI = "❔";
 
+/**
+ * Chooses the emoji shown for a category.
+ * A stored key or icon wins. The name is used only when those are missing or unknown.
+ */
 export function getCategoryEmoji(
   category:
     Pick<TransactionCategoryDto, "key" | "icon" | "name"> | null | undefined,

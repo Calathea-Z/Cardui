@@ -18,6 +18,10 @@ type TransactionsFiltersProps = {
   isLoading: boolean;
 };
 
+/**
+ * Lets the household search and filter the transaction list by account, category, and status.
+ * Reset is shown only while a filter is active.
+ */
 export function TransactionsFilters({
   query,
   accounts,

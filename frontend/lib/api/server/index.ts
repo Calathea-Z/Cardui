@@ -1,3 +1,6 @@
+/**
+ * Server API entry. Importing it from a client component fails the build.
+ */
 import "server-only";
 
 export * from "./accounts";

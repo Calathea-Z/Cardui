@@ -3,6 +3,10 @@ import { Input as InputPrimitive } from "@base-ui/react/input";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Single-line text field.
+ * Invalid input uses a destructive ring, and a disabled field ignores pointer events.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive

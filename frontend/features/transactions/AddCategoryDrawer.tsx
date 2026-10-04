@@ -32,6 +32,10 @@ type FormState = {
 
 type PickerKind = "emoji" | "color" | "group" | "subgroup" | null;
 
+/**
+ * Orders items by sort order, then by name.
+ * The input list is left unchanged.
+ */
 function sortByOrderThenName<T extends { sortOrder: number; name: string }>(
   items: T[],
 ) {
@@ -43,6 +47,10 @@ function sortByOrderThenName<T extends { sortOrder: number; name: string }>(
     );
 }
 
+/**
+ * Builds a blank category form.
+ * A known starting subgroup also selects its group.
+ */
 function createInitialForm(
   initialSubGroupId: string,
   subGroups: SubGroupDto[],
@@ -60,6 +68,10 @@ function createInitialForm(
   };
 }
 
+/**
+ * Opens the add-category sheet.
+ * Each time the sheet opens, the form remounts so the previous draft is dropped.
+ */
 export function AddCategoryDrawer({
   open,
   groups,
@@ -91,6 +103,10 @@ export function AddCategoryDrawer({
   );
 }
 
+/**
+ * Collects a name, emoji, color, group, and subgroup, then creates the category.
+ * Save stays off until every field is filled and the form differs from its start, and choosing a group clears the subgroup.
+ */
 function AddCategoryDrawerSession({
   open,
   groups,
@@ -139,11 +155,18 @@ function AddCategoryDrawerSession({
 
   const canSave = isDirty && isComplete && !isSaving;
 
+  /**
+   * Closes an open picker and then the form.
+   */
   function handleClose() {
     setOpenPicker(null);
     onClose();
   }
 
+  /**
+   * Closes the sheet the household is looking at.
+   * An open emoji, color, group, or subgroup picker closes first and leaves the form open.
+   */
   function handleSheetClose() {
     if (openPicker) {
       setOpenPicker(null);
@@ -153,6 +176,10 @@ function AddCategoryDrawerSession({
     handleClose();
   }
 
+  /**
+   * Creates the category when the form is complete and has been changed.
+   * The name is trimmed, and the subgroup must still belong to the chosen group.
+   */
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -408,6 +435,10 @@ function AddCategoryDrawerSession({
   );
 }
 
+/**
+ * Shows a single-choice list and marks the current value.
+ * An empty list tells the household that no options are available.
+ */
 function OptionList({
   options,
   value,

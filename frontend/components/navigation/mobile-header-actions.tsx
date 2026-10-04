@@ -18,6 +18,10 @@ type MobileHeaderActionsContextValue = {
 const MobileHeaderActionsContext =
   createContext<MobileHeaderActionsContextValue | null>(null);
 
+/**
+ * Holds the mobile header's leading control and trailing actions.
+ * A page sets those slots while it is mounted.
+ */
 export function MobileHeaderActionsProvider({
   children,
 }: {
@@ -35,6 +39,10 @@ export function MobileHeaderActionsProvider({
   );
 }
 
+/**
+ * Reads the mobile header slots.
+ * Throws when the caller sits outside MobileHeaderActionsProvider.
+ */
 export function useMobileHeaderActionsContext() {
   const context = useContext(MobileHeaderActionsContext);
 
@@ -47,6 +55,10 @@ export function useMobileHeaderActionsContext() {
   return context;
 }
 
+/**
+ * Places trailing actions in the mobile header for the life of the caller.
+ * Clears those actions when the caller unmounts.
+ */
 export function useSetMobileHeaderActions(actions: ReactNode) {
   const { setActions } = useMobileHeaderActionsContext();
 
@@ -59,6 +71,10 @@ export function useSetMobileHeaderActions(actions: ReactNode) {
   }, [actions, setActions]);
 }
 
+/**
+ * Places a leading control in the mobile header for the life of the caller.
+ * Clears that control when the caller unmounts.
+ */
 export function useSetMobileHeaderLeading(leading: ReactNode) {
   const { setLeading } = useMobileHeaderActionsContext();
 
@@ -71,6 +87,10 @@ export function useSetMobileHeaderLeading(leading: ReactNode) {
   }, [leading, setLeading]);
 }
 
+/**
+ * Shows the page's leading header control.
+ * Uses fallback when the context leading slot is empty.
+ */
 export function MobileHeaderLeadingSlot({ fallback }: { fallback: ReactNode }) {
   const context = useContext(MobileHeaderActionsContext);
 
@@ -81,6 +101,10 @@ export function MobileHeaderLeadingSlot({ fallback }: { fallback: ReactNode }) {
   return <>{fallback}</>;
 }
 
+/**
+ * Shows the page's trailing header actions.
+ * Returns null when the context actions slot is empty.
+ */
 export function MobileHeaderActionsSlot() {
   const context = useContext(MobileHeaderActionsContext);
 

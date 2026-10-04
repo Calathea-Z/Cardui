@@ -17,6 +17,10 @@ export type CategoriesPageData = {
   subGroups: SubGroupDto[];
 };
 
+/**
+ * Loads categories, groups, and sub-groups for the category manager.
+ * A failed request returns empty lists and the first error.
+ */
 export async function loadCategoriesPage(): Promise<
   PageLoadState<CategoriesPageData>
 > {

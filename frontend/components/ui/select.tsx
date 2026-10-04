@@ -26,6 +26,10 @@ type SelectProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
+/**
+ * Choice list that opens in a bottom sheet.
+ * `row` matches transaction detail rows and `field` matches form controls. The list is portaled to document.body after the client mounts.
+ */
 export function Select({
   value,
   options,
@@ -53,6 +57,9 @@ export function Select({
     onOpenChange?.(next);
   }
 
+  /**
+   * Applies the chosen value and closes the list.
+   */
   function handleSelect(nextValue: string) {
     onChange(nextValue);
     setOpenState(false);

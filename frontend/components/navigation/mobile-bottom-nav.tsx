@@ -6,6 +6,10 @@ import { cn } from "@/lib/utils";
 import { NavIcon } from "./nav-icons";
 import { bottomNavItems } from "./nav-items";
 
+/**
+ * Reports whether pathname belongs to a tab href.
+ * The href `/` matches only that exact path; every other href matches the path and routes under it.
+ */
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/") {
     return pathname === "/";
@@ -14,6 +18,10 @@ function isActiveRoute(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
+/**
+ * Fixed tab bar on small screens.
+ * Highlights the destination whose href matches the current path.
+ */
 export function MobileBottomNav() {
   const pathname = usePathname();
 

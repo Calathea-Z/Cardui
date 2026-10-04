@@ -24,6 +24,10 @@ type HouseholdPageClientProps = {
   profile: FinancialProfileDto;
 };
 
+/**
+ * Household financial profile.
+ * The user sets the planning currency, time zone, and named contributors.
+ */
 export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
   const router = useRouter();
   const [planningCurrency, setPlanningCurrency] = useState(
@@ -47,6 +51,9 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
     [timeZoneId],
   );
 
+  /**
+   * Saves the planning currency and time zone, then refreshes the page.
+   */
   async function saveProfile() {
     setIsSavingProfile(true);
     setProfileError(null);
@@ -68,6 +75,10 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
     }
   }
 
+  /**
+   * Adds a contributor by name.
+   * A blank name is rejected before the request, and the new person is sorted into the list.
+   */
   async function addContributor() {
     const name = newName.trim();
     if (!name) {
@@ -99,6 +110,9 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
     }
   }
 
+  /**
+   * Saves one contributor's name and visibility, then sorts the list by name.
+   */
   async function saveContributor(contributor: HouseholdContributorDto) {
     setContributorError(null);
 
@@ -119,6 +133,10 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
     }
   }
 
+  /**
+   * Removes a contributor from the household.
+   * A failed request shows an error on the contributor section.
+   */
   async function removeContributor(contributorId: string) {
     setContributorError(null);
 
@@ -264,6 +282,10 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
   );
 }
 
+/**
+ * Edits one contributor's name and whether they are shown.
+ * Name and visibility are saved together, and Remove deletes that contributor.
+ */
 function ContributorRow({
   contributor,
   onChange,

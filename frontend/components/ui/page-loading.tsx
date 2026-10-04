@@ -1,3 +1,7 @@
+/**
+ * Skeleton blocks while a page's data is loading.
+ * The pulse uses the same content width as a loaded page.
+ */
 export function PageLoading() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">

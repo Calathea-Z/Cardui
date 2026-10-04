@@ -14,10 +14,18 @@ type TransactionHistoryFieldProps = {
   onSelectTransaction?: (transaction: TransactionDto) => void;
 };
 
+/**
+ * Writes the merchant history count for the history row.
+ * A count of one reads "1 transaction".
+ */
 function formatHistoryCount(count: number) {
   return count === 1 ? "1 transaction" : `${count} transactions`;
 }
 
+/**
+ * Shows how many transactions share this merchant and opens that history.
+ * The count uses monthly history, and the row stays closed until the count is above zero.
+ */
 export function TransactionHistoryField({
   transactionId,
   disabled = false,
@@ -32,6 +40,10 @@ export function TransactionHistoryField({
   useEffect(() => {
     let cancelled = false;
 
+    /**
+     * Loads how many transactions share this merchant.
+     * A newer transaction id drops the result from an older request.
+     */
     async function loadCount() {
       setIsLoading(true);
       setError(null);

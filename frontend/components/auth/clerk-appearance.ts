@@ -1,3 +1,7 @@
+/**
+ * Visual theme for Clerk account and sign-in surfaces.
+ * Colors, radius, and type come from the app CSS variables.
+ */
 export const clerkAppearance = {
   variables: {
     colorBackground: "var(--popover)",

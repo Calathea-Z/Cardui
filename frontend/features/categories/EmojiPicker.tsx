@@ -47,6 +47,10 @@ type EmojiPickerProps = {
   disabled?: boolean;
 };
 
+/**
+ * Lets the user pick a category emoji from the preset list.
+ * The current emoji is marked selected.
+ */
 export function EmojiPicker({
   value,
   onChange,

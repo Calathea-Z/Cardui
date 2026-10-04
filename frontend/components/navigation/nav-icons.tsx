@@ -11,6 +11,10 @@ type NavIconProps = {
   href: string;
 };
 
+/**
+ * Icon for a primary nav href.
+ * The dashboard path and any href without its own case use the dashboard icon.
+ */
 export function NavIcon({ href }: NavIconProps) {
   const className = "size-5 shrink-0";
 

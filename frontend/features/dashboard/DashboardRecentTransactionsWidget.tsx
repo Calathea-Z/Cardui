@@ -19,6 +19,10 @@ type DashboardRecentTransactionsWidgetProps = {
   subGroups: SubGroupDto[];
 };
 
+/**
+ * Lists recent transactions and opens one in the detail drawer.
+ * Saving replaces that row, archiving removes it and reloads the page, and restoring closes the drawer and reloads the page.
+ */
 export function DashboardRecentTransactionsWidget({
   transactions: initialTransactions,
   categories: initialCategories,
@@ -32,6 +36,10 @@ export function DashboardRecentTransactionsWidget({
   const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionDto | null>(null);
 
+  /**
+   * Adds a category created while editing a transaction.
+   * A category already in the list stays listed once.
+   */
   function handleCategoryCreated(category: CategoryDto) {
     setCategories((current) => {
       if (current.some((item) => item.id === category.id)) {
@@ -42,6 +50,10 @@ export function DashboardRecentTransactionsWidget({
     });
   }
 
+  /**
+   * Replaces a saved transaction in the recent list.
+   * The drawer stays open on the updated transaction.
+   */
   function handleSaved(updated: TransactionDto) {
     setTransactions((current) =>
       current.map((transaction) =>

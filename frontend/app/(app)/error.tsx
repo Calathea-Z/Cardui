@@ -8,6 +8,10 @@ type ErrorPageProps = {
   reset: () => void;
 };
 
+/**
+ * Signed-in page failed.
+ * The user can retry, and the error is written to the console.
+ */
 export default function Error({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     console.error(error);

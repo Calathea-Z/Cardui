@@ -1,9 +1,16 @@
+/**
+ * Failure from an API call, with the HTTP status when the server answered.
+ */
 export type ApiError = {
   status?: number;
   message: string;
   originalError: unknown;
 };
 
+/**
+ * Reads a Problem Details `detail` or a `message` from an error body.
+ * Other shapes are ignored so the caller can use its own fallback.
+ */
 export function getErrorMessageFromResponseData(
   data: unknown,
 ): string | undefined {
@@ -22,6 +29,9 @@ export function getErrorMessageFromResponseData(
   return undefined;
 }
 
+/**
+ * Returns a message safe to show for an unknown thrown value.
+ */
 export function getApiErrorMessage(
   error: unknown,
   fallback = "Something went wrong.",

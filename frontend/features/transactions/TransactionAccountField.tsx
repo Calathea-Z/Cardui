@@ -2,6 +2,10 @@ type TransactionAccountFieldProps = {
   accountName: string;
 };
 
+/**
+ * Shows which account holds the transaction.
+ * The name is read-only.
+ */
 export function TransactionAccountField({
   accountName,
 }: TransactionAccountFieldProps) {

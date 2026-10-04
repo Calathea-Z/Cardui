@@ -5,15 +5,30 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+/**
+ * How long the close animation runs before the sheet leaves the DOM.
+ */
 const SHEET_TRANSITION_MS = 320;
 
+/**
+ * How many sheets are holding page scroll closed.
+ * Page scroll returns when the count reaches zero.
+ */
 let bodyScrollLockCount = 0;
 
+/**
+ * Hides page scroll and increments the shared lock count.
+ * Nested callers keep scroll hidden until each one unlocks.
+ */
 function lockBodyScroll() {
   bodyScrollLockCount += 1;
   document.body.style.overflow = "hidden";
 }
 
+/**
+ * Releases one page-scroll lock.
+ * Restores scrolling when no sheet still holds a lock.
+ */
 function unlockBodyScroll() {
   bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
   if (bodyScrollLockCount === 0) {
@@ -39,6 +54,10 @@ type BottomSheetProps = {
   headerTrailing?: React.ReactNode;
 };
 
+/**
+ * Panel that slides up from the bottom of the screen.
+ * It stays mounted through the close animation, locks page scroll while shown, and closes on Escape when closeOnEscape is set.
+ */
 export function BottomSheet({
   open,
   onClose,
@@ -77,6 +96,10 @@ export function BottomSheet({
 
     lockBodyScroll();
 
+    /**
+     * Closes the sheet on Escape.
+     * Escape applies when closeOnEscape is set and the sheet is still open.
+     */
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape" && closeOnEscape && open) {
         onClose();

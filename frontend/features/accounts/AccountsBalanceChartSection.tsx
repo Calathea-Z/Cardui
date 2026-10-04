@@ -37,6 +37,10 @@ type AccountsBalanceChartSectionProps = {
   className?: string;
 };
 
+/**
+ * Shows how the selected series moved across the visible range.
+ * The change uses the chart currency formatter, a decrease is favorable on a liability series, and fewer than two points hides the line.
+ */
 export function PeriodDeltaLabel({
   history,
   range,
@@ -99,6 +103,10 @@ export function PeriodDeltaLabel({
   );
 }
 
+/**
+ * Shows the selected series total, its history, and the time-range control.
+ * Net worth keeps its sign, and every other series is shown as a positive amount with formatCurrency.
+ */
 export function AccountsBalanceChartSection({
   history,
   groups = [],

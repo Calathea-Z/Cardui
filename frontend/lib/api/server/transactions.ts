@@ -5,6 +5,10 @@ import type {
   TransactionQueryDto,
 } from "../types";
 
+/**
+ * GET /api/transactions
+ * Lists one page of transactions for server-rendered pages.
+ */
 export async function getTransactions(
   query?: TransactionQueryDto,
 ): Promise<PagedResultDto<TransactionDto>> {

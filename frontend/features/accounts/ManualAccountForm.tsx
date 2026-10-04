@@ -5,6 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { ACCOUNT_TYPE_OPTIONS, openingBalanceHelp } from "./manualAccount";
 
+/**
+ * Editable fields for a manual account.
+ * The opening balance stays text until the caller parses it into an amount.
+ */
 export type ManualAccountFormValues = {
   name: string;
   type: string;
@@ -23,6 +27,10 @@ type ManualAccountFormProps = {
   onPickerOpenChange?: (open: boolean) => void;
 };
 
+/**
+ * Collects a manual account's name, type, subtype, opening balance, and opening date.
+ * The balance hint follows the account type, and the submit button waits while a save is in progress.
+ */
 export function ManualAccountForm({
   values,
   onChange,

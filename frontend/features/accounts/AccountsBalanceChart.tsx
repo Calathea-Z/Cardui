@@ -48,6 +48,10 @@ type ChartTooltipProps = {
   currency?: string;
 };
 
+/**
+ * Shows the date and amount for the hovered history point.
+ * The amount uses the chart currency formatter, and a point without a numeric value stays blank.
+ */
 function ChartTooltip({
   active,
   payload,
@@ -77,6 +81,10 @@ function ChartTooltip({
   );
 }
 
+/**
+ * Sets the chart's vertical range around the selected series.
+ * An empty series uses a zero range, and other series are padded by 12 percent of the larger of the data span, 100, and 1 percent of the peak.
+ */
 function computeYDomain(
   history: AccountBalanceHistoryPointDto[],
   metric: AccountChartMetric,
@@ -94,6 +102,10 @@ function computeYDomain(
   return [min - padding, max + padding] as [number, number];
 }
 
+/**
+ * Draws the selected balance series for a time range.
+ * Fewer than two points shows an explanation, and the embedded layout leaves off the section heading.
+ */
 export function AccountsBalanceChart({
   history,
   range,

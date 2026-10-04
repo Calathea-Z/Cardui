@@ -19,6 +19,10 @@ type AccountsPageClientProps = {
   plaidItems: PlaidItemDto[];
 };
 
+/**
+ * Accounts page with add, refresh, institution management, and account detail.
+ * Refresh syncs each linked institution and then reloads the page.
+ */
 export function AccountsPageClient({
   summary,
   plaidItems,
@@ -31,6 +35,10 @@ export function AccountsPageClient({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  /**
+   * Syncs every linked institution, then reloads the accounts page.
+   * An empty institution list leaves the page as it is.
+   */
   const handleRefreshAll = useCallback(async () => {
     if (plaidItems.length === 0) {
       return;

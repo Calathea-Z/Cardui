@@ -11,8 +11,16 @@ import type {
   SubGroupDto,
 } from "../types";
 
+/**
+ * Page data plus the error to show when the API call failed.
+ * The fallback data lets the page render instead of crashing.
+ */
 export type SafeApiResult<T> = PageLoadState<T>;
 
+/**
+ * Runs a server API call and returns fallback data when it fails.
+ * The page can still render, with the error passed to the banner.
+ */
 export async function safeApiCall<T>(
   fn: () => Promise<T>,
   fallback: T,
@@ -28,6 +36,10 @@ export async function safeApiCall<T>(
   }
 }
 
+/**
+ * Returns the first error from a set of page loads.
+ * One banner is enough when several calls on the same page fail.
+ */
 export function firstApiError(
   ...results: Array<{ error: string | null }>
 ): string | null {
@@ -40,6 +52,9 @@ export function firstApiError(
   return null;
 }
 
+/**
+ * Empty account summary used when the accounts API call fails.
+ */
 export function emptyAccountSummary(): AccountSummaryDto {
   return {
     netWorth: 0,
@@ -58,6 +73,9 @@ export function emptyAccountSummary(): AccountSummaryDto {
   };
 }
 
+/**
+ * Empty dashboard summary used when the dashboard API call fails.
+ */
 export function emptyDashboardSummary(): DashboardSummaryDto {
   return {
     periodStart: "",
@@ -76,26 +94,35 @@ export function emptyDashboardSummary(): DashboardSummaryDto {
   };
 }
 
+/** Empty account list used when that API call fails. */
 export function emptyAccounts(): AccountDto[] {
   return [];
 }
 
+/** Empty category list used when that API call fails. */
 export function emptyCategories(): CategoryDto[] {
   return [];
 }
 
+/** Empty group list used when that API call fails. */
 export function emptyGroups(): GroupDto[] {
   return [];
 }
 
+/** Empty subgroup list used when that API call fails. */
 export function emptySubGroups(): SubGroupDto[] {
   return [];
 }
 
+/** Empty institution list used when that API call fails. */
 export function emptyPlaidItems(): PlaidItemDto[] {
   return [];
 }
 
+/**
+ * Empty page of results used when a paged API call fails.
+ * The requested page and page size are kept so the pager does not jump.
+ */
 export function emptyPagedResult<T>(
   page = 1,
   pageSize = 50,

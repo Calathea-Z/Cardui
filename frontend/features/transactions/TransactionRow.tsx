@@ -12,6 +12,10 @@ type TransactionRowProps = {
   onSelect?: (transaction: TransactionDto) => void;
 };
 
+/**
+ * Picks the color for a transaction amount.
+ * Income uses success, a transfer uses the transfer color, and spending uses the foreground color.
+ */
 function amountClassName(kind: "income" | "spend" | "transfer") {
   return cn(
     "ledger-amount",
@@ -21,6 +25,10 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
   );
 }
 
+/**
+ * Shows one transaction in the list.
+ * A select handler turns the row into a button, and a transfer or balance adjustment gets a stamp.
+ */
 export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
   const amount = getTransactionAmountDisplay(transaction);
   const isTransfer = isTransferTransaction(transaction);

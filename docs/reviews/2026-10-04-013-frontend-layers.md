@@ -48,7 +48,7 @@ None.
 
 ## Manual verification
 
-Please check these, or waive them.
+Zach approved and QA'd this increment on October 4, 2026. The checks below passed.
 
 1. Open Transactions, open a manual or imported transaction, and change
    the name, amount, and notes.
@@ -79,6 +79,7 @@ Please check these, or waive them.
 
 ## Pending decision
 
-Zach approved the user-level rule on October 4, 2026. It is in
-`~/.cursor/rules/react-layers.mdc` and applies in every project. The
-manual checks above are still open.
+None for this increment. Zach approved the user-level rule on October 4,
+2026. It is in `~/.cursor/rules/react-layers.mdc` and applies in every
+project. Phase 2 item 1 is next: income sources, take-home amount,
+cadence, next payment date, contributor, and reliability.

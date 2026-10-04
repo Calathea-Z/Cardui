@@ -3,6 +3,7 @@ import { formatCurrency } from "./formatCurrency";
 
 type AccountListRowProps = {
   account: AccountDto;
+  planningCurrency?: string;
   compact?: boolean;
   showBalance?: boolean;
   onSelect?: (account: AccountDto) => void;
@@ -10,10 +11,12 @@ type AccountListRowProps = {
 
 export function AccountListRow({
   account,
+  planningCurrency = "USD",
   compact = false,
   showBalance = true,
   onSelect,
 }: AccountListRowProps) {
+  const currency = account.isoCurrencyCode ?? planningCurrency;
   const subtitle = [
     account.subtype ?? account.type,
     account.mask ? `···${account.mask}` : null,
@@ -34,7 +37,7 @@ export function AccountListRow({
         </p>
         {showBalance && account.availableBalance !== null ? (
           <p className="mt-1 hidden text-xs text-muted-foreground/80 sm:block">
-            Available {formatCurrency(account.availableBalance)}
+            Available {formatCurrency(account.availableBalance, currency)}
           </p>
         ) : null}
       </div>
@@ -42,9 +45,11 @@ export function AccountListRow({
       {showBalance ? (
         <div className="shrink-0 text-right">
           <p className="ledger-amount text-foreground">
-            {formatCurrency(account.currentBalance)}
+            {formatCurrency(account.currentBalance, currency)}
           </p>
-          {!account.isActive ? (
+          {account.countsInPlanningTotals === false ? (
+            <p className="mt-1 text-xs text-muted-foreground">Not in totals</p>
+          ) : !account.isActive ? (
             <p className="mt-1 text-xs text-muted-foreground">Inactive</p>
           ) : null}
         </div>

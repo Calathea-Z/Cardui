@@ -208,25 +208,36 @@ export function formatTooltipDate(value: string | number) {
   }).format(resolveDate(value));
 }
 
-export function formatChartCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
+export function formatChartCurrency(value: number, currency = "USD") {
+  const code = /^[A-Z]{3}$/i.test(currency) ? currency.toUpperCase() : "USD";
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: code,
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
 }
 
 /** Compact axis labels in Monarch style: $663K, -$5.3K, $1.2M */
-export function formatChartAxisCurrency(value: number) {
+export function formatChartAxisCurrency(value: number, currency = "USD") {
   const abs = Math.abs(value);
   const sign = value < 0 ? "-" : "";
+  const symbol = chartCurrencySymbol(currency);
 
   const formatCompact = (n: number, suffix: string) => {
     const digits = n >= 100 ? 0 : 1;
     const formatted = n
       .toFixed(digits)
       .replace(/\.0$/, "");
-    return `${sign}$${formatted}${suffix}`;
+    return `${sign}${symbol}${formatted}${suffix}`;
   };
 
   if (abs >= 1_000_000) {
@@ -237,12 +248,28 @@ export function formatChartAxisCurrency(value: number) {
     return formatCompact(abs / 1_000, "K");
   }
 
-  return formatChartCurrency(value);
+  return formatChartCurrency(value, currency);
 }
 
-export function formatPeriodDelta(change: PeriodChange) {
+function chartCurrencySymbol(currency: string) {
+  const code = /^[A-Z]{3}$/i.test(currency) ? currency.toUpperCase() : "USD";
+
+  try {
+    const parts = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: code,
+      currencyDisplay: "narrowSymbol",
+      maximumFractionDigits: 0,
+    }).formatToParts(0);
+    return parts.find((part) => part.type === "currency")?.value ?? "$";
+  } catch {
+    return "$";
+  }
+}
+
+export function formatPeriodDelta(change: PeriodChange, currency = "USD") {
   const sign = change.delta >= 0 ? "+" : "-";
-  const amount = formatChartCurrency(Math.abs(change.delta));
+  const amount = formatChartCurrency(Math.abs(change.delta), currency);
   const percent =
     change.deltaPercent === null
       ? null

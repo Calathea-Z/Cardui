@@ -36,6 +36,7 @@ type AccountsBalanceChartProps = {
   history: AccountBalanceHistoryPointDto[];
   range: ChartTimeRange;
   metric?: AccountChartMetric;
+  currency?: string;
   compact?: boolean;
   embedded?: boolean;
 };
@@ -44,9 +45,15 @@ type ChartTooltipProps = {
   active?: boolean;
   payload?: Array<{ value: number; payload: ChartHistoryPoint }>;
   label?: string | number;
+  currency?: string;
 };
 
-function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  currency = "USD",
+}: ChartTooltipProps) {
   if (!active || !payload?.length || label === undefined || label === null) {
     return null;
   }
@@ -64,7 +71,7 @@ function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
         {formatTooltipDate(pointDate)}
       </p>
       <p className="ledger-amount mt-0.5 text-sm text-foreground">
-        {formatChartCurrency(value)}
+        {formatChartCurrency(value, currency)}
       </p>
     </div>
   );
@@ -91,6 +98,7 @@ export function AccountsBalanceChart({
   history,
   range,
   metric = DEFAULT_ACCOUNT_CHART_METRIC,
+  currency = "USD",
   compact = false,
   embedded = false,
 }: AccountsBalanceChartProps) {
@@ -200,7 +208,7 @@ export function AccountsBalanceChart({
 
           <YAxis
             domain={yDomain}
-            tickFormatter={formatChartAxisCurrency}
+            tickFormatter={(value) => formatChartAxisCurrency(value, currency)}
             tick={{ fill: "var(--muted-foreground)" }}
             fontSize={compact ? 11 : 12}
             tickLine={false}
@@ -211,7 +219,7 @@ export function AccountsBalanceChart({
           />
 
           <Tooltip
-            content={<ChartTooltip />}
+            content={<ChartTooltip currency={currency} />}
             cursor={{
               stroke: "var(--chart-1)",
               strokeWidth: 1,

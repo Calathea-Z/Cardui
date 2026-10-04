@@ -5,7 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SheetSelect } from "@/components/ui/sheet-select";
+import { Select } from "@/components/ui/select";
 import { createManualTransaction } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type { AccountDto, CategoryDto } from "@/lib/api/types";
@@ -87,7 +87,7 @@ function AddTransactionForm({
         <>
           <div className="flex flex-col gap-1.5 text-sm font-medium">
             Account
-            <SheetSelect
+            <Select
               title="Account"
               value={accountId}
               onChange={setAccountId}
@@ -151,7 +151,7 @@ function AddTransactionForm({
 
               <div className="flex flex-col gap-1.5 text-sm font-medium">
                 Category
-                <SheetSelect
+                <Select
                   title="Category"
                   value={categoryId}
                   onChange={setCategoryId}

@@ -9,6 +9,7 @@ import {
 import { AccountChartMetricSelector } from "./AccountChartMetricSelector";
 import { AccountsBalanceChartSection } from "./AccountsBalanceChartSection";
 import { AccountsSectionList } from "./AccountsSectionList";
+import { CurrencyExclusionNotice } from "@/features/household/CurrencyExclusionNotice";
 
 type AccountsViewProps = {
   summary: AccountSummaryDto;
@@ -33,11 +34,20 @@ export function AccountsView({
 
       <AccountChartMetricSelector value={metric} onChange={setMetric} />
 
+      <CurrencyExclusionNotice
+        exclusion={{
+          planningCurrency: summary.planningCurrency,
+          excludedAccountCount: summary.excludedAccountCount,
+          excludedCurrencies: summary.excludedCurrencies,
+        }}
+      />
+
       <AccountsBalanceChartSection
         history={summary.history}
         groups={summary.groups}
         metric={metric}
         netWorth={summary.netWorth}
+        currency={summary.planningCurrency}
         showPeriodDelta
         embedded
       />
@@ -45,6 +55,7 @@ export function AccountsView({
       <AccountsSectionList
         groups={summary.groups}
         archivedAccounts={summary.archivedAccounts ?? []}
+        planningCurrency={summary.planningCurrency}
         onSelectAccount={onSelectAccount}
       />
     </section>

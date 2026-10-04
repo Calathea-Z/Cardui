@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-03 — Financial profile preferences](2026-10-03-013-financial-profile.md)
 - [2026-10-03 — Manual accounts, transactions, and balance reconciliation](2026-10-03-012-manual-accounts-and-transactions.md)
 - [2026-10-03 — Accounts and transactions independent of Plaid](2026-10-03-011-independent-financial-records.md)
 - [2026-10-03 — Assign existing rows to the household](2026-10-03-010-assign-household-rows.md)

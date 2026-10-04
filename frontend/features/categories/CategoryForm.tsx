@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
-import { SheetSelect } from "@/components/ui/sheet-select";
+import { Select } from "@/components/ui/select";
 import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import type { CategoryFormState } from "@/lib/categoryForm";
 
@@ -74,7 +74,7 @@ export function CategoryForm({
       <div className="mt-5 space-y-4">
         <div className="block">
           <span className="text-sm text-muted-foreground">Group</span>
-          <SheetSelect
+          <Select
             title="Group"
             value={selectedGroupId}
             disabled={lockHierarchy}
@@ -103,7 +103,7 @@ export function CategoryForm({
 
         <div className="block">
           <span className="text-sm text-muted-foreground">Sub-group</span>
-          <SheetSelect
+          <Select
             title="Sub-group"
             value={form.subGroupId}
             disabled={lockHierarchy || !selectedGroupId}

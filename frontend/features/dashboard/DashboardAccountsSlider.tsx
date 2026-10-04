@@ -109,12 +109,13 @@ export function DashboardAccountsSlider({
           )}
         >
           {headerTotal.liability ? "-" : ""}
-          {formatCurrency(headerTotal.value)}
+          {formatCurrency(headerTotal.value, summary.planningCurrency)}
         </p>
         {activeIndex === 0 && !showNetWorthEmptyState ? (
           <PeriodDeltaLabel
             history={summary.history}
             range={chartRange}
+            currency={summary.planningCurrency}
             compact
             className="mt-1"
           />
@@ -140,6 +141,7 @@ export function DashboardAccountsSlider({
                 <AccountsBalanceChart
                   history={summary.history}
                   range={chartRange}
+                  currency={summary.planningCurrency}
                   compact
                   embedded
                 />
@@ -156,6 +158,7 @@ export function DashboardAccountsSlider({
         <section className="w-full shrink-0 snap-center py-4">
           <DashboardAccountGroupsPanel
             groups={assetGroups}
+            currency={summary.planningCurrency}
             emptyMessage="No asset accounts connected yet."
           />
         </section>
@@ -163,6 +166,7 @@ export function DashboardAccountsSlider({
         <section className="w-full shrink-0 snap-center py-4">
           <DashboardAccountGroupsPanel
             groups={liabilityGroups}
+            currency={summary.planningCurrency}
             emptyMessage="No liability accounts connected yet."
             liability
           />

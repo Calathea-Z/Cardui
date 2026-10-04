@@ -30,6 +30,7 @@ type AccountsBalanceChartSectionProps = {
   groups?: AccountGroupDto[];
   metric?: AccountChartMetric;
   netWorth?: number;
+  currency?: string;
   compact?: boolean;
   embedded?: boolean;
   showPeriodDelta?: boolean;
@@ -41,12 +42,14 @@ export function PeriodDeltaLabel({
   range,
   metric = DEFAULT_ACCOUNT_CHART_METRIC,
   compact = false,
+  currency = "USD",
   className,
 }: {
   history: AccountBalanceHistoryPointDto[];
   range: ChartTimeRange;
   metric?: AccountChartMetric;
   compact?: boolean;
+  currency?: string;
   className?: string;
 }) {
   const metricOption = getAccountChartMetricOption(metric);
@@ -68,7 +71,7 @@ export function PeriodDeltaLabel({
     return null;
   }
 
-  const formatted = formatPeriodDelta(periodChange);
+  const formatted = formatPeriodDelta(periodChange, currency);
   const isFavorable = metricOption.isLiability
     ? periodChange.delta <= 0
     : periodChange.delta >= 0;
@@ -101,6 +104,7 @@ export function AccountsBalanceChartSection({
   groups = [],
   metric = DEFAULT_ACCOUNT_CHART_METRIC,
   netWorth = 0,
+  currency = "USD",
   compact = false,
   embedded = false,
   showPeriodDelta = false,
@@ -125,6 +129,7 @@ export function AccountsBalanceChartSection({
           >
             {formatCurrency(
               metric === "net-worth" ? total : Math.abs(total),
+              currency,
             )}
           </p>
           {showPeriodDelta ? (
@@ -132,6 +137,7 @@ export function AccountsBalanceChartSection({
               history={history}
               range={range}
               metric={metric}
+              currency={currency}
               compact={compact}
               className="mt-1.5"
             />
@@ -144,6 +150,7 @@ export function AccountsBalanceChartSection({
           history={history}
           range={range}
           metric={metric}
+          currency={currency}
           compact={compact}
           embedded={embedded}
         />

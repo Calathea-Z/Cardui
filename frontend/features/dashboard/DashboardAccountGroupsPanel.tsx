@@ -6,12 +6,14 @@ import { formatCurrency } from "@/features/accounts/formatCurrency";
 type DashboardAccountGroupsPanelProps = {
   groups: AccountGroupDto[];
   emptyMessage: string;
+  currency?: string;
   liability?: boolean;
 };
 
 export function DashboardAccountGroupsPanel({
   groups,
   emptyMessage,
+  currency = "USD",
   liability = false,
 }: DashboardAccountGroupsPanelProps) {
   const visibleGroups = groups.filter((group) => group.accounts.length > 0);
@@ -49,7 +51,7 @@ export function DashboardAccountGroupsPanel({
             }
           >
             {liability ? "-" : ""}
-            {formatCurrency(group.total)}
+            {formatCurrency(group.total, currency)}
           </p>
         </div>
       ))}

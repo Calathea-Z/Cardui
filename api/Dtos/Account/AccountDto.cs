@@ -12,6 +12,7 @@ public class AccountDto
     public decimal CurrentBalance { get; set; }
     public decimal? AvailableBalance { get; set; }
     public string? IsoCurrencyCode { get; set; }
+    public bool CountsInPlanningTotals { get; set; } = true;
     public bool IsActive { get; set; }
     public required string Source { get; set; }
     public required string Provenance { get; set; }

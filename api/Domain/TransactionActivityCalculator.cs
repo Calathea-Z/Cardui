@@ -25,6 +25,13 @@ public sealed record TransactionActivityTotals(
 
 public static class TransactionActivityCalculator
 {
+    public static bool AffectsIncomeOrSpending(TransactionActivityValue transaction)
+    {
+        return !transaction.Pending
+            && !IsTransfer(transaction)
+            && !IsBalanceReconciliation(transaction);
+    }
+
     public static TransactionActivityTotals Calculate(
         IEnumerable<TransactionActivityValue> transactions)
     {
@@ -33,9 +40,7 @@ public static class TransactionActivityCalculator
 
         foreach (var transaction in transactions)
         {
-            if (transaction.Pending
-                || IsTransfer(transaction)
-                || IsBalanceReconciliation(transaction))
+            if (!AffectsIncomeOrSpending(transaction))
             {
                 continue;
             }

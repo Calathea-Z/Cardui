@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SheetSelect } from "@/components/ui/sheet-select";
+import { Select } from "@/components/ui/select";
 import {
   ACCOUNT_TYPE_OPTIONS,
   openingBalanceHelp,
@@ -60,7 +60,7 @@ export function ManualAccountForm({
 
       <div className="flex flex-col gap-1.5 text-sm font-medium">
         Type
-        <SheetSelect
+        <Select
           title="Account type"
           value={values.type}
           onChange={(type) => update({ type })}

@@ -14,6 +14,7 @@ type DashboardMonthlyActivityWidgetProps = {
 type MonthlyMetricProps = {
   label: string;
   value: number;
+  currency: string;
   tone?: "default" | "positive" | "negative";
 };
 
@@ -37,16 +38,19 @@ export function DashboardMonthlyActivityWidget({
 
       <div className="grid grid-cols-1 divide-y divide-border/70 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <MonthlyMetric
+          currency={summary.planningCurrency}
           label="Income"
           value={summary.monthlyIncome}
           tone="positive"
         />
         <MonthlyMetric
+          currency={summary.planningCurrency}
           label="Spending"
           value={summary.monthlySpending}
           tone="negative"
         />
         <MonthlyMetric
+          currency={summary.planningCurrency}
           label="Difference"
           value={difference}
           tone={difference >= 0 ? "positive" : "negative"}
@@ -84,7 +88,7 @@ export function DashboardMonthlyActivityWidget({
                       {category.categoryName}
                     </span>
                     <span className="font-mono text-sm font-medium tabular-nums">
-                      {formatCurrency(category.amount)}
+                      {formatCurrency(category.amount, summary.planningCurrency)}
                     </span>
                   </div>
                   <div
@@ -113,7 +117,12 @@ export function DashboardMonthlyActivityWidget({
   );
 }
 
-function MonthlyMetric({ label, value, tone = "default" }: MonthlyMetricProps) {
+function MonthlyMetric({
+  label,
+  value,
+  currency,
+  tone = "default",
+}: MonthlyMetricProps) {
   return (
     <div className="flex min-h-24 flex-col justify-center px-4 py-3">
       <span className="text-xs text-muted-foreground">{label}</span>
@@ -124,7 +133,7 @@ function MonthlyMetric({ label, value, tone = "default" }: MonthlyMetricProps) {
           tone === "negative" && "text-destructive",
         )}
       >
-        {formatCurrency(value)}
+        {formatCurrency(value, currency)}
       </span>
     </div>
   );

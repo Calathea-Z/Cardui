@@ -1,4 +1,5 @@
 using Cardui.Api.Options;
+using Cardui.Api.Services.Plaid;
 using Going.Plaid;
 using Microsoft.Extensions.Options;
 using PlaidConfig = Cardui.Api.Options.PlaidOptions;
@@ -8,7 +9,8 @@ namespace Cardui.Api.Configuration;
 public static class PlaidServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers Plaid options, validates them at startup, and creates the Plaid client.
+    /// Registers Plaid options and the client source.
+    /// Blank credentials are allowed. A partial configuration fails at startup.
     /// </summary>
     public static IServiceCollection AddCarduiPlaid(
         this IServiceCollection services,
@@ -20,18 +22,7 @@ public static class PlaidServiceCollectionExtensions
 
         services.AddSingleton<IValidateOptions<PlaidConfig>, PlaidOptionsValidator>();
         services.AddPlaidHttpClient();
-        services.AddSingleton<PlaidClient>(sp =>
-        {
-            var options = sp.GetRequiredService<IOptions<PlaidConfig>>().Value;
-            var environment = PlaidEnvironmentParser.Parse(options.Environment);
-
-            return new PlaidClient(
-                environment,
-                clientId: options.ClientId,
-                secret: options.Secret,
-                httpClientFactory: sp.GetRequiredService<IHttpClientFactory>(),
-                logger: sp.GetRequiredService<ILogger<PlaidClient>>());
-        });
+        services.AddSingleton<IPlaidClientSource, PlaidClientSource>();
 
         return services;
     }

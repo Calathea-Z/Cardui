@@ -1,5 +1,4 @@
 using Cardui.Api.Dtos.Plaid;
-using Going.Plaid;
 using Going.Plaid.Entity;
 using Going.Plaid.Transactions;
 
@@ -9,14 +8,14 @@ public class PlaidTransactionPageClient : IPlaidTransactionPageClient
 {
     private const int PageSize = 100;
 
-    private readonly PlaidClient _plaidClient;
+    private readonly IPlaidClientSource _clientSource;
     private readonly IPlaidRequestExecutor _requestExecutor;
 
     public PlaidTransactionPageClient(
-        PlaidClient plaidClient,
+        IPlaidClientSource clientSource,
         IPlaidRequestExecutor requestExecutor)
     {
-        _plaidClient = plaidClient;
+        _clientSource = clientSource;
         _requestExecutor = requestExecutor;
     }
 
@@ -27,6 +26,7 @@ public class PlaidTransactionPageClient : IPlaidTransactionPageClient
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var client = _clientSource.GetClient();
 
         var request = _requestExecutor.WithCredentials(new TransactionsSyncRequest
         {
@@ -39,7 +39,7 @@ public class PlaidTransactionPageClient : IPlaidTransactionPageClient
         }, accessToken);
 
         var response = await _requestExecutor.ExecuteAsync(
-            () => _plaidClient.TransactionsSyncAsync(request));
+            () => client.TransactionsSyncAsync(request));
 
         return new PlaidTransactionPageDto
         {

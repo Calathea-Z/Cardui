@@ -6,10 +6,17 @@ namespace Cardui.Api.Options;
 public sealed class PlaidOptionsValidator : IValidateOptions<PlaidOptions>
 {
     /// <summary>
-    /// Checks required Plaid settings before the API starts.
+    /// Checks Plaid settings before the API starts.
+    /// Blank credentials are allowed so manual use can start.
+    /// A partial or invalid set is rejected.
     /// </summary>
     public ValidateOptionsResult Validate(string? name, PlaidOptions options)
     {
+        if (!PlaidConfiguration.HasAnySetting(options))
+        {
+            return ValidateOptionsResult.Success;
+        }
+
         var failures = new List<string>();
 
         if (string.IsNullOrWhiteSpace(options.ClientId))

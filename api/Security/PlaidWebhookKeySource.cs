@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Services.Plaid;
-using Going.Plaid;
 using Going.Plaid.WebhookVerificationKey;
 using Microsoft.IdentityModel.Tokens;
 
@@ -9,17 +8,17 @@ namespace Cardui.Api.Security;
 
 public sealed class PlaidWebhookKeySource : IPlaidWebhookKeySource
 {
-    private readonly PlaidClient _plaidClient;
+    private readonly IPlaidClientSource _clientSource;
     private readonly IPlaidRequestExecutor _requestExecutor;
     private readonly TimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, (JsonWebKey Key, DateTimeOffset ExpiresAt)> _cache = new();
 
     public PlaidWebhookKeySource(
-        PlaidClient plaidClient,
+        IPlaidClientSource clientSource,
         IPlaidRequestExecutor requestExecutor,
         TimeProvider timeProvider)
     {
-        _plaidClient = plaidClient;
+        _clientSource = clientSource;
         _requestExecutor = requestExecutor;
         _timeProvider = timeProvider;
     }
@@ -35,12 +34,13 @@ public sealed class PlaidWebhookKeySource : IPlaidWebhookKeySource
             return cached.Key;
         }
 
+        var client = _clientSource.GetClient();
         var request = _requestExecutor.WithCredentials(new WebhookVerificationKeyGetRequest
         {
             KeyId = keyId
         });
         var response = await _requestExecutor.ExecuteAsync(
-            () => _plaidClient.WebhookVerificationKeyGetAsync(request));
+            () => client.WebhookVerificationKeyGetAsync(request));
         var key = CreateKey(response.Key, now);
         var expiresAt = now.AddHours(12);
         _cache[keyId] = (key, expiresAt);

@@ -7,9 +7,9 @@ Cardui is a personal financial recovery application. The repository contains:
 - `worker/`: one-shot scheduled Plaid synchronization worker.
 - `tests/Cardui.Tests/`: .NET unit tests.
 
-The current application requires PostgreSQL and Plaid configuration to start. Keep all
-database and Plaid credentials in .NET User Secrets or environment variables; do not add
-them to checked-in settings or documentation.
+The current application requires PostgreSQL to start. Plaid credentials are required
+only to link or sync a bank. Keep all database and Plaid credentials in .NET User
+Secrets or environment variables; do not add them to checked-in settings or documentation.
 
 ## Prerequisites
 
@@ -40,11 +40,19 @@ Set the API's local configuration without writing secrets into the repository:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local PostgreSQL connection string>" --project .\api
+dotnet user-secrets set "Clerk:Issuer" "<Clerk Frontend API origin, such as https://your-instance.clerk.accounts.dev>" --project .\api
+```
+
+Plaid credentials are optional. Without `Plaid:ClientId`, `Plaid:Secret`, and
+`Plaid:Environment`, the API starts and manual accounts, transactions, and CSV
+import work. Bank linking and sync stay off until all three are set. A partial
+set stops startup. Add them when bank linking should work:
+
+```powershell
 dotnet user-secrets set "Plaid:ClientId" "<Plaid sandbox client ID>" --project .\api
 dotnet user-secrets set "Plaid:Secret" "<Plaid sandbox secret>" --project .\api
 dotnet user-secrets set "Plaid:Environment" "sandbox" --project .\api
 dotnet user-secrets set "Plaid:ClientName" "Cardui" --project .\api
-dotnet user-secrets set "Clerk:Issuer" "<Clerk Frontend API origin, such as https://your-instance.clerk.accounts.dev>" --project .\api
 ```
 
 `Clerk:Issuer` is the https origin of the Clerk Frontend API. The API uses it to
@@ -138,8 +146,11 @@ Open `http://localhost:3000`.
 
 ## Worker
 
-The worker has a separate User Secrets store. Configure it with the same categories of
-local database and Plaid values before running it:
+The worker has a separate User Secrets store. Configure the database before
+running it. Plaid credentials are required only when connected items should
+sync. Without them, the worker starts and skips bank sync. If connected items
+exist and credentials are missing, it exits with code 1. Configure Plaid with
+the same values as the API when sync should run:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local PostgreSQL connection string>" --project .\worker

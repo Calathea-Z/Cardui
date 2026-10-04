@@ -23,10 +23,12 @@ dotnet run --project worker
 Required configuration (worker user secrets, env vars, or `DATABASE_URL`):
 
 - `ConnectionStrings__DefaultConnection` or `DATABASE_URL`
-- `Plaid__ClientId`
-- `Plaid__Secret`
-- `Plaid__Environment`
-- `Plaid__ClientName`
+
+Plaid credentials are optional. Without `Plaid__ClientId`, `Plaid__Secret`, and
+`Plaid__Environment`, the worker starts and skips bank sync. If connected items
+exist and those values are missing, it exits with code 1. Set the same three
+values, plus optional `Plaid__ClientName`, when sync should run. A partial set
+stops startup.
 
 The worker uses the same Data Protection key directory as the API. In
 production set `DataProtection__KeysPath` and `DataProtection__CertificatePath`

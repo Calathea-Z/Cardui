@@ -1,5 +1,6 @@
 using Cardui.Api.Configuration;
 using Cardui.Api.Data;
+using Cardui.Api.Options;
 using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Cardui.Api.Services.Plaid;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -33,6 +35,21 @@ var plaidItems = await dbContext.PlaidItems
     .ToListAsync();
 
 logger.LogInformation("Starting daily Plaid sync for {Count} item(s).", plaidItems.Count);
+
+var plaidOptions = scope.ServiceProvider.GetRequiredService<IOptions<PlaidOptions>>().Value;
+if (!PlaidConfiguration.IsConfigured(plaidOptions))
+{
+    logger.LogInformation("Plaid credentials are not configured. Bank linking is off.");
+    if (plaidItems.Count > 0)
+    {
+        logger.LogError(
+            "Daily Plaid sync cannot run for {Count} connected item(s) without Plaid credentials.",
+            plaidItems.Count);
+        Environment.ExitCode = 1;
+    }
+
+    return;
+}
 
 if (plaidItems.Count == 0)
 {

@@ -2,6 +2,8 @@
 
 Newest first:
 
+- [2026-10-04 — CSV import UX](2026-10-04-010-csv-import-ux.md)
+- [2026-10-04 — Optional Plaid startup](2026-10-04-009-optional-plaid.md)
 - [2026-10-04 — DotRush hover documentation](2026-10-04-009-dotrush-hover-docs.md)
 - [2026-10-04 — CSV import](2026-10-04-008-csv-import.md)
 - [2026-10-04 — DotRush solution pin](2026-10-04-008-dotrush-solution-pin.md)

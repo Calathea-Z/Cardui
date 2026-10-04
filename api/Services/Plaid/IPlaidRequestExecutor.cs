@@ -13,7 +13,8 @@ public interface IPlaidRequestExecutor
 
     /// <summary>
     /// Runs a Plaid call and turns a Plaid error or a transport failure
-    /// into a PlaidSyncException. A PlaidSyncException is rethrown as-is.
+    /// into a PlaidSyncException. A PlaidSyncException or
+    /// PlaidNotConfiguredException is rethrown as-is.
     /// </summary>
     Task<TResponse> ExecuteAsync<TResponse>(Func<Task<TResponse>> action)
         where TResponse : ResponseBase;

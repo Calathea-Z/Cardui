@@ -22,17 +22,27 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+/**
+ * Browser title and description for Tortoise.
+ */
 export const metadata: Metadata = {
   title: "Tortoise",
   description: "Personal finance tracking",
 };
 
+/**
+ * Sizes the page to the device width and covers the screen safe area.
+ */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
 };
 
+/**
+ * Root layout for Tortoise.
+ * Applies the dark theme, brand fonts, and Clerk sign-in and sign-up routes.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

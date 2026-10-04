@@ -6,6 +6,10 @@ type AppShellProps = {
   children: React.ReactNode;
 };
 
+/**
+ * Frame for signed-in pages.
+ * Places the desktop sidebar beside the page and provides the mobile header action slots.
+ */
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">

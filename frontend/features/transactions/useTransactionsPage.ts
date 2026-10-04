@@ -18,6 +18,10 @@ type UseTransactionsPageOptions = {
   pendingFilter: PendingFilter;
 };
 
+/**
+ * Loads and updates the transaction pages for the current filters.
+ * The first render keeps the server page, and a later filter change reloads page 1 after 300 milliseconds.
+ */
 export function useTransactionsPage({
   initialTransactionsPage,
   pageSize,
@@ -33,6 +37,10 @@ export function useTransactionsPage({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isFirstFilterRender = useRef(true);
 
+  /**
+   * Fetches one page of transactions for the current filters.
+   * Archived loads archived rows and leaves the pending flag unset.
+   */
   const loadPage = useCallback(
     async (page: number) => {
       setIsLoading(true);
@@ -77,6 +85,10 @@ export function useTransactionsPage({
     return () => window.clearTimeout(timeoutId);
   }, [loadPage]);
 
+  /**
+   * Removes one transaction from the loaded page.
+   * The total count drops by one and stays at zero once the page is empty.
+   */
   const removeTransaction = useCallback((id: string) => {
     setTransactionsPage((page) => ({
       ...page,
@@ -85,6 +97,10 @@ export function useTransactionsPage({
     }));
   }, []);
 
+  /**
+   * Replaces one transaction on the loaded page.
+   * The page is sorted by date with the newest date first.
+   */
   const patchTransaction = useCallback((updated: TransactionDto) => {
     setTransactionsPage((page) => ({
       ...page,

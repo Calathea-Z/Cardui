@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 
+/**
+ * Which transactions the list is limited to.
+ * Archived is included with pending and posted.
+ */
 export type PendingFilter = "all" | "pending" | "posted" | "archived";
 
 export const STATUS_OPTIONS: { value: PendingFilter; label: string }[] = [
@@ -11,6 +15,10 @@ export const STATUS_OPTIONS: { value: PendingFilter; label: string }[] = [
   { value: "archived", label: "Archived" },
 ];
 
+/**
+ * Maps the status filter onto the pending query flag.
+ * Pending is true, posted is false, and all or archived leave the flag unset.
+ */
 export function toPendingQueryValue(filter: PendingFilter) {
   if (filter === "pending") {
     return true;
@@ -23,6 +31,10 @@ export function toPendingQueryValue(filter: PendingFilter) {
   return undefined;
 }
 
+/**
+ * Holds search, account, category, and status for the transaction list.
+ * A filter counts as active when search has text, an account or category is chosen, or the status is pending, posted, or archived.
+ */
 export function useTransactionsQueryState() {
   const [search, setSearch] = useState("");
   const [accountId, setAccountId] = useState("");
@@ -40,6 +52,9 @@ export function useTransactionsQueryState() {
     setSearch("");
   }
 
+  /**
+   * Clears search, account, category, and the pending filter.
+   */
   function resetFilters() {
     setSearch("");
     setAccountId("");
@@ -63,6 +78,10 @@ export function useTransactionsQueryState() {
   };
 }
 
+/**
+ * The filter values and updaters the transactions screen shares.
+ * Includes the trimmed search and whether any filter is active.
+ */
 export type TransactionsQueryState = ReturnType<
   typeof useTransactionsQueryState
 >;

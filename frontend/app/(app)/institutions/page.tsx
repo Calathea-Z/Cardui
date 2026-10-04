@@ -3,8 +3,15 @@ import { PageApiErrorBanner } from "@/components/page-api-error-banner";
 import { InstitutionsPageClient } from "@/features/institutions/InstitutionsPageClient";
 import { loadInstitutionsPage } from "@/features/institutions/server/loadInstitutionsPage";
 
+/**
+ * Renders the institutions page on each request.
+ */
 export const dynamic = "force-dynamic";
 
+/**
+ * Institutions route.
+ * Loads linked banks on the server and shows a banner when that load fails.
+ */
 export default async function InstitutionsPage() {
   await auth.protect();
 

@@ -17,6 +17,10 @@ type AccountsViewProps = {
   onSelectAccount?: (account: AccountDto) => void;
 };
 
+/**
+ * Accounts screen with the series selector, balance chart, and grouped list.
+ * The chart starts on net worth until another series is chosen.
+ */
 export function AccountsView({
   summary,
   actions,

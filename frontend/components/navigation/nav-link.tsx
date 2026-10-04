@@ -15,6 +15,10 @@ type NavLinkProps = {
   onNavigate?: () => void;
 };
 
+/**
+ * Reports whether pathname belongs to a nav href.
+ * The href `/` matches only that exact path; every other href matches the path and routes under it.
+ */
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/") {
     return pathname === "/";
@@ -23,6 +27,10 @@ function isActiveRoute(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
+/**
+ * Link to one primary destination.
+ * Active and inactive classes follow isActiveRoute for the current path, and onNavigate runs when the link is chosen.
+ */
 export function NavLink({
   item,
   className,

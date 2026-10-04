@@ -19,6 +19,10 @@ type AddTransactionSheetProps = {
   onCreated: () => void;
 };
 
+/**
+ * Collects a manual transaction and saves it as posted.
+ * Money in is stored as a negative amount.
+ */
 function AddTransactionForm({
   accounts,
   categories,
@@ -38,6 +42,10 @@ function AddTransactionForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  /**
+   * Saves the manual transaction when an account, name, amount, and date are present.
+   * Money in is stored negative, the transaction is posted, and a successful save closes the sheet.
+   */
   async function submit() {
     const parsed = parseMoney(amount);
     if (!accountId || !name.trim() || parsed === null || !date) {
@@ -202,6 +210,10 @@ function AddTransactionForm({
   );
 }
 
+/**
+ * Opens the sheet for entering a transaction by hand.
+ * Escape is ignored while the account or category list is open.
+ */
 export function AddTransactionSheet({
   open,
   accounts,

@@ -12,6 +12,10 @@ type PaginationProps = {
   className?: string;
 };
 
+/**
+ * Previous and Next controls for a paged list.
+ * Each button stays disabled while isLoading is set or when that direction's flag is false.
+ */
 function Pagination({
   page,
   totalPages,

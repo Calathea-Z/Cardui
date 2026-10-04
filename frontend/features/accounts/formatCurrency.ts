@@ -1,3 +1,7 @@
+/**
+ * Formats a money amount for on-screen text.
+ * A missing amount is a dash. An unrecognized currency code uses USD.
+ */
 export function formatCurrency(
   value: number | null,
   currency: string | null = "USD",
@@ -21,6 +25,10 @@ export function formatCurrency(
   }
 }
 
+/**
+ * Keeps a three-letter currency code.
+ * Anything else becomes USD so the formatter does not throw.
+ */
 function normalizeCurrencyCode(currency: string | null) {
   const code = currency?.trim().toUpperCase() ?? "";
   return /^[A-Z]{3}$/.test(code) ? code : "USD";

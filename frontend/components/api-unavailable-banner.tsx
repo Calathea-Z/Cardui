@@ -10,6 +10,10 @@ type ApiUnavailableBannerProps = {
   className?: string;
 };
 
+/**
+ * Banner that says the API cannot be reached.
+ * Retry refreshes the current route, and a missing message says the backend may be offline, browsing still works, and data loads when the API is back.
+ */
 export function ApiUnavailableBanner({
   message,
   className,

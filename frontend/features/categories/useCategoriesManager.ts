@@ -11,6 +11,10 @@ import type { CategoryDto, SubGroupDto } from "@/lib/api/types";
 import { emptyCategoryForm, type CategoryFormState } from "@/lib/categoryForm";
 import { sortCategoriesByName } from "./categorySort";
 
+/**
+ * Holds the category list and the create or edit form.
+ * The list stays sorted by name.
+ */
 export function useCategoriesManager(
   initialCategories: CategoryDto[],
   initialSubGroups: SubGroupDto[],
@@ -31,6 +35,10 @@ export function useCategoriesManager(
     ? (categories.find((category) => category.id === editingId) ?? null)
     : null;
 
+  /**
+   * Creates a category or saves the one being edited.
+   * Name and sub-group are required, and a successful save clears the form.
+   */
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -76,6 +84,10 @@ export function useCategoriesManager(
     }
   }
 
+  /**
+   * Fills the form from a category so the user can edit it.
+   * A missing color uses #22c55e and a missing icon is blank.
+   */
   function startEditing(category: CategoryDto) {
     setEditingId(category.id);
     setForm({
@@ -87,12 +99,20 @@ export function useCategoriesManager(
     setError(null);
   }
 
+  /**
+   * Leaves edit mode and clears the form.
+   * Also clears any save error.
+   */
   function cancelEditing() {
     setEditingId(null);
     setForm(emptyCategoryForm);
     setError(null);
   }
 
+  /**
+   * Deletes a custom category after the user confirms that its transactions become uncategorized.
+   * A system category returns before that prompt, and deleting the category open in the form clears the form.
+   */
   async function handleDelete(category: CategoryDto) {
     if (category.isSystem) {
       return;

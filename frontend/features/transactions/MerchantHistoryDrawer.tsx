@@ -35,6 +35,10 @@ const GRANULARITY_OPTIONS: Array<{
   { value: "yearly", label: "Yearly" },
 ];
 
+/**
+ * Chooses the currency for a period's totals.
+ * The first row's code is used when every row maps to the same code, and mixed codes use USD.
+ */
 function periodCurrency(transactions: TransactionDto[]) {
   const codes = new Set(
     transactions.map((transaction) => transaction.isoCurrencyCode ?? "USD"),
@@ -47,6 +51,10 @@ function periodCurrency(transactions: TransactionDto[]) {
   return "USD";
 }
 
+/**
+ * Shows the merchant's history as a chart, a period summary, and the period's transactions.
+ * Monthly is the starting range, and closing the chart-range sheet leaves the history open.
+ */
 export function MerchantHistoryDrawer({
   open,
   transactionId,
@@ -70,6 +78,10 @@ export function MerchantHistoryDrawer({
 
     let cancelled = false;
 
+    /**
+     * Loads merchant history for the open sheet and the chosen range.
+     * Closing the sheet, or changing the transaction or range, ignores the result.
+     */
     async function loadHistory() {
       setIsLoading(true);
       setError(null);
@@ -117,6 +129,10 @@ export function MerchantHistoryDrawer({
     );
   }, [history, selectedPeriodKey]);
 
+  /**
+   * Closes the history sheet.
+   * An open chart-range sheet closes first and leaves the history open.
+   */
   function handleClose() {
     if (isSettingsOpen) {
       setIsSettingsOpen(false);
@@ -256,6 +272,9 @@ export function MerchantHistoryDrawer({
   );
 }
 
+/**
+ * Shows one labeled figure in the period summary.
+ */
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 text-sm">

@@ -9,6 +9,10 @@ type CategoryRowProps = {
   onDelete: (category: CategoryDto) => void;
 };
 
+/**
+ * One category in the list, with edit and delete.
+ * System categories keep those actions disabled.
+ */
 export function CategoryRow({
   category,
   subGroupName,

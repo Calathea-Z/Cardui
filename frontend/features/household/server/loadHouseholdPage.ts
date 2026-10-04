@@ -3,6 +3,10 @@ import { getFinancialProfile } from "@/lib/api/server/households";
 import type { FinancialProfileDto } from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
+/**
+ * Profile used when the household request fails.
+ * Planning currency is USD and the time zone is America/Denver.
+ */
 export function emptyFinancialProfile(): FinancialProfileDto {
   return {
     planningCurrency: "USD",
@@ -11,6 +15,10 @@ export function emptyFinancialProfile(): FinancialProfileDto {
   };
 }
 
+/**
+ * Loads the household financial profile for the page.
+ * A failed request returns the empty profile and the error message.
+ */
 export async function loadHouseholdPage(): Promise<
   PageLoadState<FinancialProfileDto>
 > {

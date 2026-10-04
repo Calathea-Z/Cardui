@@ -3,6 +3,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Class names for an alert variant.
+ * An omitted variant uses the muted default panel.
+ */
 const alertVariants = cva("rounded-lg text-sm", {
   variants: {
     variant: {
@@ -17,6 +21,10 @@ const alertVariants = cva("rounded-lg text-sm", {
   },
 });
 
+/**
+ * Status message announced as an alert.
+ * variant default is a muted panel, destructive is inline danger text, and panel is a danger panel.
+ */
 function Alert({
   className,
   variant = "default",

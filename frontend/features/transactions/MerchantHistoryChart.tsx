@@ -10,6 +10,10 @@ type MerchantHistoryChartProps = {
   onSelectPeriod: (periodKey: string) => void;
 };
 
+/**
+ * Draws a bar for each merchant-history period and selects one when tapped.
+ * Height follows the absolute total against the tallest period, a zero total draws no bar, and the selected period scrolls into view.
+ */
 export function MerchantHistoryChart({
   periods,
   selectedPeriodKey,

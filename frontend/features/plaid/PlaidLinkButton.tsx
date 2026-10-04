@@ -10,6 +10,10 @@ type PlaidLinkButtonProps = {
   className?: string;
 };
 
+/**
+ * Button that starts a Plaid bank connection.
+ * The label changes to preparing, connecting, or try again to match the current step.
+ */
 export function PlaidLinkButton({
   onSuccess,
   className,

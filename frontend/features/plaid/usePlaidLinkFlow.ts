@@ -16,6 +16,10 @@ type UsePlaidLinkFlowOptions = {
   enabled?: boolean;
 };
 
+/**
+ * Connects a bank through Plaid Link.
+ * Creates a link token, opens Link when it is ready, and exchanges the public token after the user finishes.
+ */
 export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
   const { onSuccess: onSuccessCallback, enabled = true } = options;
   const [linkToken, setLinkToken] = useState<string | null>(null);
@@ -28,6 +32,10 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
     setErrorMessage(null);
   }, []);
 
+  /**
+   * Requests a Plaid Link token.
+   * Returns false when the flow is disabled or the request fails.
+   */
   const prepareLinkToken = useCallback(async () => {
     if (!enabled) {
       return false;
@@ -50,6 +58,10 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
     }
   }, [clearError, enabled]);
 
+  /**
+   * Exchanges the Plaid public token for a bank connection.
+   * Passes the institution id and name from Plaid when they are present.
+   */
   const onSuccess = useCallback(
     async (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
       setIsExchangingToken(true);
@@ -92,6 +104,10 @@ export function usePlaidLinkFlow(options: UsePlaidLinkFlowOptions = {}) {
     open();
   }, [enabled, linkToken, ready, open]);
 
+  /**
+   * Opens Plaid Link.
+   * Requests a token first when one is missing, and opens once Link is ready.
+   */
   const openPlaid = useCallback(async () => {
     if (!enabled) {
       return;

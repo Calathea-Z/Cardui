@@ -44,6 +44,10 @@ type TransactionDetailDrawerProps = {
   onRestored: () => void;
 };
 
+/**
+ * Picks the color for the amount at the top of the detail.
+ * Income uses success, a transfer uses the transfer color, and spending uses the foreground color.
+ */
 function amountClassName(kind: "income" | "spend" | "transfer") {
   return cn(
     "ledger-amount text-lg",
@@ -53,6 +57,10 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
   );
 }
 
+/**
+ * Shows and edits one transaction, and can archive or restore it.
+ * Name and amount stay editable for a manual entry or a CSV import, archive asks before removing a live transaction, and a waiting text save is sent when the detail unmounts.
+ */
 function TransactionDetailDrawerContent({
   transaction,
   categories,
@@ -114,6 +122,10 @@ function TransactionDetailDrawerContent({
   const isAdjustment = isBalanceReconciliation(transaction);
   const canEditEntry = canEditTransactionEntry(transaction);
 
+  /**
+   * Archives a live transaction or restores one that is already archived.
+   * A failure stays on the detail, and the archive confirmation closes either way.
+   */
   async function handleArchive() {
     setIsArchiving(true);
     setArchiveError(null);
@@ -136,6 +148,9 @@ function TransactionDetailDrawerContent({
     }
   }
 
+  /**
+   * Adds a new category to this transaction and to the page list.
+   */
   function handleCategoryCreated(category: CategoryDto) {
     registerCategory(category);
     onCategoryCreated(category);
@@ -319,6 +334,10 @@ function TransactionDetailDrawerContent({
   );
 }
 
+/**
+ * Opens a transaction's detail sheet.
+ * Escape is ignored while a nested sheet is open, and the last transaction stays available while the sheet closes.
+ */
 export function TransactionDetailDrawer({
   transaction,
   categories,
@@ -343,6 +362,9 @@ export function TransactionDetailDrawer({
     ? activeTransaction.merchantName?.trim() || activeTransaction.name
     : "Transaction";
 
+  /**
+   * Clears the nested-sheet flag and closes the detail.
+   */
   function handleClose() {
     setIsNestedOpen(false);
     onClose();

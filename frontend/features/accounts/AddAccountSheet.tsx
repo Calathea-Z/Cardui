@@ -21,6 +21,10 @@ type AddAccountSheetProps = {
 
 type AddMode = "choose" | "manual" | "plaid";
 
+/**
+ * Blank values for a new manual account.
+ * The type starts as a depository account, and the opening date is today in the local calendar.
+ */
 const emptyForm = (): ManualAccountFormValues => ({
   name: "",
   type: "depository",
@@ -29,6 +33,10 @@ const emptyForm = (): ManualAccountFormValues => ({
   openingBalanceDate: todayDateInput(),
 });
 
+/**
+ * Lets the household enter an account by hand or link one through Plaid.
+ * Plaid starts only after that choice, and a successful link closes the sheet and reloads the page.
+ */
 function AddAccountSheetContent({
   onClose,
   onPickerOpenChange,
@@ -65,6 +73,10 @@ function AddAccountSheetContent({
         ? "Try again"
         : "Connect with Plaid";
 
+  /**
+   * Creates a manual account from the form and reloads the page.
+   * A blank name, invalid opening balance, or missing opening date shows an error and skips the request.
+   */
   async function saveManualAccount() {
     const openingBalance = parseMoney(form.openingBalance);
     if (
@@ -177,6 +189,10 @@ function AddAccountSheetContent({
   );
 }
 
+/**
+ * Sheet for adding a manual account or linking one through Plaid.
+ * Escape closes the sheet while the type picker is closed, and reopening starts a fresh form.
+ */
 export function AddAccountSheet({ open, onClose }: AddAccountSheetProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
 

@@ -22,8 +22,15 @@ import type {
 } from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
+/**
+ * How many transactions the first page request asks for.
+ */
 const DEFAULT_PAGE_SIZE = 50;
 
+/**
+ * Everything the transactions page needs on first render.
+ * Includes the first transaction page, categories, groups, subgroups, and accounts.
+ */
 export type TransactionsPageData = {
   initialTransactionsPage: PagedResultDto<TransactionDto>;
   categories: CategoryDto[];
@@ -33,6 +40,10 @@ export type TransactionsPageData = {
   pageSize: number;
 };
 
+/**
+ * Loads the first transaction page and the lists the filters use.
+ * A failed request keeps an empty stand-in so the page can still render, and the first error is returned with the data.
+ */
 export async function loadTransactionsPage(): Promise<
   PageLoadState<TransactionsPageData>
 > {

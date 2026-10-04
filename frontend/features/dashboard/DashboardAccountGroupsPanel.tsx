@@ -10,6 +10,10 @@ type DashboardAccountGroupsPanelProps = {
   liability?: boolean;
 };
 
+/**
+ * Lists the account groups on an assets or liabilities slide.
+ * Groups with no accounts are omitted, and a liability total uses formatCurrency with a leading minus.
+ */
 export function DashboardAccountGroupsPanel({
   groups,
   emptyMessage,

@@ -9,6 +9,10 @@ type CategoryListProps = {
   onDelete: (category: CategoryDto) => void;
 };
 
+/**
+ * Lists categories with their sub-group and system or custom type.
+ * An empty list shows an empty state.
+ */
 export function CategoryList({
   categories,
   subGroups,

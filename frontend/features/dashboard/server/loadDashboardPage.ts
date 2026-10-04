@@ -29,6 +29,10 @@ export type DashboardPageData = {
   subGroups: SubGroupDto[];
 };
 
+/**
+ * Loads the dashboard summary, accounts, categories, groups, and subgroups together.
+ * A failed call still returns empty fallback data, and the page keeps the first error.
+ */
 export async function loadDashboardPage(): Promise<
   PageLoadState<DashboardPageData>
 > {

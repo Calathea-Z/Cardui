@@ -3,6 +3,10 @@ import { BrandMark } from "./brand-mark";
 import { NavLink } from "./nav-link";
 import { navItems } from "./nav-items";
 
+/**
+ * Side navigation for wide screens.
+ * Shows the brand, every primary destination, and the account menu, and stays hidden below the md breakpoint.
+ */
 export function DesktopSidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar px-5 py-7 text-sidebar-foreground md:flex">

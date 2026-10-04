@@ -14,6 +14,10 @@ export type AccountsPageData = {
   plaidItems: PlaidItemDto[];
 };
 
+/**
+ * Loads the account summary and linked institutions together.
+ * A failed call still returns empty fallback data, and the page keeps the first error.
+ */
 export async function loadAccountsPage(): Promise<
   PageLoadState<AccountsPageData>
 > {

@@ -18,6 +18,10 @@ type MonthlyMetricProps = {
   tone?: "default" | "positive" | "negative";
 };
 
+/**
+ * Shows income, spending, and their difference for the dashboard period.
+ * Category amounts use formatCurrency, and each bar is that category's share of spending.
+ */
 export function DashboardMonthlyActivityWidget({
   summary,
 }: DashboardMonthlyActivityWidgetProps) {
@@ -120,6 +124,10 @@ export function DashboardMonthlyActivityWidget({
   );
 }
 
+/**
+ * Shows one income, spending, or difference amount.
+ * The figure uses formatCurrency, with the success color for a positive tone and the destructive color for a negative tone.
+ */
 function MonthlyMetric({
   label,
   value,

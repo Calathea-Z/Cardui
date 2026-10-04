@@ -27,8 +27,15 @@ type UseTransactionDetailsOptions = {
   onSaved: (transaction: TransactionDto) => void;
 };
 
+/**
+ * How long a notes, name, or amount edit waits before it is saved.
+ */
 const TEXT_SAVE_DELAY_MS = 400;
 
+/**
+ * True when the household can change the name and amount.
+ * A manual entry with manual provenance, or a CSV import, can be edited.
+ */
 export function canEditTransactionEntry(transaction: TransactionDto) {
   return (
     (transaction.source === "Manual" &&
@@ -37,10 +44,18 @@ export function canEditTransactionEntry(transaction: TransactionDto) {
   );
 }
 
+/**
+ * Reads a stored amount as money in or money out.
+ * A negative amount is money in, and zero or a positive amount is money out.
+ */
 function directionFor(amount: number): AmountDirection {
   return amount < 0 ? "in" : "out";
 }
 
+/**
+ * Turns the typed amount and direction into the number that will be stored.
+ * Money in is negative, money out is positive, and an unreadable amount returns null.
+ */
 function toSignedAmount(amount: string, direction: AmountDirection) {
   const parsed = Number(amount);
   if (!Number.isFinite(parsed)) {
@@ -51,6 +66,10 @@ function toSignedAmount(amount: string, direction: AmountDirection) {
   return direction === "in" ? -absolute : absolute;
 }
 
+/**
+ * Copies a transaction into the detail form.
+ * The amount is the absolute value, and a missing category is an empty id.
+ */
 function toFormState(transaction: TransactionDto): TransactionDetailsFormState {
   return {
     date: transaction.date,
@@ -62,6 +81,10 @@ function toFormState(transaction: TransactionDto): TransactionDetailsFormState {
   };
 }
 
+/**
+ * Builds the category shown on an unsaved transaction.
+ * An empty id or an id missing from the list becomes null.
+ */
 function toCategoryDto(
   categories: CategoryDto[],
   categoryId: string,
@@ -84,6 +107,10 @@ function toCategoryDto(
   };
 }
 
+/**
+ * Builds the transaction the list shows before the save returns.
+ * Name and amount change for an editable entry, and a blank name keeps the current name.
+ */
 function toOptimisticTransaction(
   transaction: TransactionDto,
   form: TransactionDetailsFormState,
@@ -110,6 +137,10 @@ function toOptimisticTransaction(
   };
 }
 
+/**
+ * Builds the payload sent when the detail form is saved.
+ * Name and amount are included for an editable entry, and a blank name or unreadable amount stops the save.
+ */
 function toUpdateDto(
   form: TransactionDetailsFormState,
   transaction: TransactionDto,
@@ -139,6 +170,10 @@ function toUpdateDto(
   return dto;
 }
 
+/**
+ * Keeps the transaction detail form and saves each change.
+ * A response from an older edit is ignored, and a failed save restores the last saved transaction.
+ */
 export function useTransactionDetails({
   transaction,
   categories,
@@ -172,6 +207,10 @@ export function useTransactionDetails({
     };
   }, []);
 
+  /**
+   * Sends the form to the server.
+   * A newer edit discards this result, and a failure restores the form from the last saved transaction.
+   */
   async function persist(
     nextForm: TransactionDetailsFormState,
     versionAtStart: number,
@@ -207,6 +246,9 @@ export function useTransactionDetails({
     }
   }
 
+  /**
+   * Clears the timer for a text edit that is still waiting to save.
+   */
   function clearTextTimeout() {
     if (textTimeoutRef.current !== null) {
       window.clearTimeout(textTimeoutRef.current);
@@ -214,6 +256,10 @@ export function useTransactionDetails({
     }
   }
 
+  /**
+   * Shows the next form on the detail and in the list before the save returns.
+   * Each call advances the edit version used to ignore an older response.
+   */
   function applyOptimistic(nextForm: TransactionDetailsFormState) {
     editVersionRef.current += 1;
     setForm(nextForm);
@@ -229,12 +275,20 @@ export function useTransactionDetails({
     return editVersionRef.current;
   }
 
+  /**
+   * Saves a date, category, or direction change immediately.
+   * A waiting text save is cancelled first.
+   */
   function persistNow(nextForm: TransactionDetailsFormState) {
     clearTextTimeout();
     const version = applyOptimistic(nextForm);
     void persist(nextForm, version);
   }
 
+  /**
+   * Shows a text edit immediately and saves it after the text delay.
+   * Another keystroke replaces the waiting save.
+   */
   function persistText(nextForm: TransactionDetailsFormState) {
     const version = applyOptimistic(nextForm);
     clearTextTimeout();
@@ -268,12 +322,20 @@ export function useTransactionDetails({
     persistNow({ ...formRef.current, direction });
   }
 
+  /**
+   * Remembers a category created while the detail is open.
+   * A category already in the list is left unchanged.
+   */
   function registerCategory(category: CategoryDto) {
     if (!categoriesRef.current.some((item) => item.id === category.id)) {
       categoriesRef.current = [...categoriesRef.current, category];
     }
   }
 
+  /**
+   * Sends a text edit that is still waiting, such as when the detail closes.
+   * Nothing is sent when no save is waiting.
+   */
   function flushPendingSave() {
     if (textTimeoutRef.current === null) {
       return;

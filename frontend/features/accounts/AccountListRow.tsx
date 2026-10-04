@@ -9,6 +9,10 @@ type AccountListRowProps = {
   onSelect?: (account: AccountDto) => void;
 };
 
+/**
+ * Shows an account name, subtype or type, and current balance.
+ * Amounts use formatCurrency in the account currency, or the planning currency when that code is missing, and an account left out of planning totals is marked "Not in totals".
+ */
 export function AccountListRow({
   account,
   planningCurrency = "USD",

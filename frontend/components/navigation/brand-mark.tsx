@@ -1,3 +1,7 @@
+/**
+ * Tortoise wordmark and Personal ledger tagline.
+ * An ink stroke sits under the tagline.
+ */
 export function BrandMark() {
   return (
     <div className="mb-10">

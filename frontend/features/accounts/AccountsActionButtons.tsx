@@ -15,6 +15,10 @@ type AccountsActionButtonsProps = {
   isRefreshing: boolean;
 };
 
+/**
+ * Adds an account or opens refresh and institution actions.
+ * Refresh and institution management stay disabled while a refresh is running.
+ */
 export function AccountsActionButtons({
   onAdd,
   onRefreshAll,

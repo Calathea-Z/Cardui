@@ -16,6 +16,10 @@ type DashboardViewProps = {
   subGroups: SubGroupDto[];
 };
 
+/**
+ * Renders the dashboard widgets in list order.
+ * The currency notice sits above them and stays hidden when nothing is excluded from the planning currency.
+ */
 export function DashboardView({
   dashboardSummary,
   accountsSummary,

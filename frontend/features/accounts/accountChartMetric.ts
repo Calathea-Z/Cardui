@@ -3,9 +3,17 @@ import type {
   AccountGroupDto,
 } from "@/lib/api/types";
 
+/**
+ * Balance series the accounts chart can show.
+ * Liabilities are included so the chart can plot what is owed as well as what is owned.
+ */
 export type AccountChartMetric =
   "net-worth" | "cash" | "investments" | "credit-cards" | "loans";
 
+/**
+ * One chart series and the account-group total that matches it.
+ * `isLiability` marks a series where an increase is money owed.
+ */
 export type AccountChartMetricOption = {
   value: AccountChartMetric;
   label: string;
@@ -18,6 +26,9 @@ export type AccountChartMetricOption = {
   isLiability: boolean;
 };
 
+/**
+ * Chart series in the order the metric selector shows them.
+ */
 export const ACCOUNT_CHART_METRICS: AccountChartMetricOption[] = [
   {
     value: "net-worth",
@@ -56,8 +67,15 @@ export const ACCOUNT_CHART_METRICS: AccountChartMetricOption[] = [
   },
 ];
 
+/**
+ * Series shown before the household picks another metric.
+ */
 export const DEFAULT_ACCOUNT_CHART_METRIC: AccountChartMetric = "net-worth";
 
+/**
+ * Resolves a chart series.
+ * An unknown value falls back to the first series so the chart still has a scale.
+ */
 export function getAccountChartMetricOption(
   metric: AccountChartMetric,
 ): AccountChartMetricOption {
@@ -67,6 +85,10 @@ export function getAccountChartMetricOption(
   );
 }
 
+/**
+ * Reads the account-group total for a chart series.
+ * Net worth can fall back to a caller total when that group is missing.
+ */
 export function getMetricTotal(
   groups: AccountGroupDto[],
   metric: AccountChartMetric,
@@ -82,6 +104,9 @@ export function getMetricTotal(
   return metric === "net-worth" ? fallbackNetWorth : 0;
 }
 
+/**
+ * Reads one history point's value for the selected series.
+ */
 export function getHistoryValue(
   point: AccountBalanceHistoryPointDto,
   metric: AccountChartMetric,

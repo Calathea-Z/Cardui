@@ -4,6 +4,10 @@ import {
   type CurrencyExclusion,
 } from "./currencyExclusion";
 
+/**
+ * Shows when accounts or transactions were left out of a total.
+ * Renders nothing when there is nothing to report.
+ */
 export function CurrencyExclusionNotice({
   exclusion,
 }: {

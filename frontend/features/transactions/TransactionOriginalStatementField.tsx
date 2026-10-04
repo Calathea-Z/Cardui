@@ -2,6 +2,10 @@ type TransactionOriginalStatementFieldProps = {
   statement: string;
 };
 
+/**
+ * Shows the original statement text.
+ * The text is read-only.
+ */
 export function TransactionOriginalStatementField({
   statement,
 }: TransactionOriginalStatementFieldProps) {

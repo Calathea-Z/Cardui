@@ -18,6 +18,10 @@ type TransactionCategorySelectProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
+/**
+ * Lets the household choose a category for the transaction.
+ * The current name is shown, and "None" appears when no category has that id.
+ */
 export function TransactionCategorySelect({
   categories,
   groups,
@@ -36,6 +40,10 @@ export function TransactionCategorySelect({
   );
   const displayValue = selectedCategory?.name ?? "None";
 
+  /**
+   * Opens or closes the category drawer.
+   * Opening starts a new drawer session so the previous search is cleared.
+   */
   function setOpen(open: boolean) {
     if (open) {
       setDrawerSession((current) => current + 1);

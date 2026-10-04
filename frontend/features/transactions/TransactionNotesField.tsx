@@ -9,13 +9,24 @@ type TransactionNotesFieldProps = {
   disabled?: boolean;
 };
 
+/**
+ * Notes stop at 1,000 characters.
+ */
 const MAX_NOTES_LENGTH = 1000;
 
+/**
+ * Grows the notes box to fit its text.
+ * The box height matches the text so the whole note stays visible.
+ */
 function resizeTextarea(element: HTMLTextAreaElement) {
   element.style.height = "auto";
   element.style.height = `${element.scrollHeight}px`;
 }
 
+/**
+ * Lets the household write a note on the transaction.
+ * Notes stop at 1,000 characters, and the box grows with the text.
+ */
 export function TransactionNotesField({
   value,
   onChange,

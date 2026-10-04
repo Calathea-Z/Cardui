@@ -11,6 +11,10 @@ type TransactionDateGroupProps = {
   onSelectTransaction?: (transaction: TransactionDto) => void;
 };
 
+/**
+ * Shows one day's transactions under a sticky date heading.
+ * An income day total uses the success color.
+ */
 export function TransactionDateGroup({
   group,
   onSelectTransaction,

@@ -1,3 +1,7 @@
+/**
+ * Labels the dashboard activity window.
+ * A missing or invalid range says "Current month".
+ */
 export function formatDashboardPeriod(start: string, end: string): string {
   const startDate = parseDateOnly(start);
   const endDate = parseDateOnly(end);
@@ -39,6 +43,10 @@ export function formatDashboardPeriod(start: string, end: string): string {
   return `${startLabel}–${endLabel}`;
 }
 
+/**
+ * Share of the activity total for one category, capped at 100.
+ * A non-positive total or amount is zero so the bar stays empty.
+ */
 export function calculateCategoryPercentage(
   amount: number,
   total: number,
@@ -50,6 +58,10 @@ export function calculateCategoryPercentage(
   return Math.min(100, (amount / total) * 100);
 }
 
+/**
+ * Parses a `YYYY-MM-DD` date in the local calendar.
+ * Impossible dates such as February 31 are rejected.
+ */
 function parseDateOnly(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) {

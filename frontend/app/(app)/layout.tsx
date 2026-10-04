@@ -5,8 +5,15 @@ import { PageApiErrorBanner } from "@/components/page-api-error-banner";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { ensureCurrentHousehold } from "@/lib/api/server/households";
 
+/**
+ * Renders signed-in routes on each request.
+ */
 export const dynamic = "force-dynamic";
 
+/**
+ * Signed-in layout.
+ * Requires a session, ensures a household exists, and shows a banner when that save fails.
+ */
 export default async function SignedInLayout({
   children,
 }: Readonly<{

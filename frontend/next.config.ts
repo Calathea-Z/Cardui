@@ -1,8 +1,20 @@
 import type { NextConfig } from "next";
 
+/**
+ * True in the Next.js dev server.
+ * Dev keeps `unsafe-eval` for the dev runtime and skips HSTS on local HTTP.
+ */
 const isDev = process.env.NODE_ENV !== "production";
+/**
+ * API origin allowed by the content security policy.
+ * Local development falls back to the API's default port.
+ */
 const apiOrigin =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5235";
+/**
+ * Scripts the app is allowed to run.
+ * Clerk, Cloudflare challenges, and Plaid Link are required for sign-in and bank linking.
+ */
 const scriptSrc = [
   "'self'",
   "'unsafe-inline'",
@@ -15,6 +27,9 @@ const scriptSrc = [
   .filter(Boolean)
   .join(" ");
 
+/**
+ * Content security policy for pages, API calls, images, and embedded sign-in or Plaid frames.
+ */
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src ${scriptSrc}`,
@@ -30,6 +45,10 @@ const contentSecurityPolicy = [
   "object-src 'none'",
 ].join("; ");
 
+/**
+ * Response headers that limit framing, sniffing, and device permissions.
+ * HSTS is production-only because local HTTP cannot satisfy it.
+ */
 const securityHeaders = [
   { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -49,8 +68,15 @@ const securityHeaders = [
       ]),
 ];
 
+/**
+ * Next.js config.
+ * Hides the framework header and sends the security headers on every route.
+ */
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  /**
+   * Applies the content security policy and related headers to every path.
+   */
   async headers() {
     return [
       {

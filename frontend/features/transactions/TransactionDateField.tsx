@@ -9,6 +9,10 @@ type TransactionDateFieldProps = {
   disabled?: boolean;
 };
 
+/**
+ * Formats a stored yyyy-mm-dd value for the date field.
+ * An empty value reads "Select date", and a partial value stays as typed.
+ */
 function formatDisplayDate(value: string) {
   if (!value) {
     return "Select date";
@@ -26,6 +30,10 @@ function formatDisplayDate(value: string) {
   });
 }
 
+/**
+ * Lets the household pick the transaction date.
+ * The label is a short local date, and the control underneath is a date input.
+ */
 export function TransactionDateField({
   value,
   onChange,

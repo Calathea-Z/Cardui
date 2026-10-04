@@ -3,10 +3,18 @@
 import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
 
+/**
+ * Clerk user button for the signed-in account.
+ * It renders UserButton with no extra props.
+ */
 export function AccountButton() {
   return <UserButton />;
 }
 
+/**
+ * Account block at the bottom of the side navigation.
+ * Links to Household and shows the Clerk button with the user's email, then full name, then Account.
+ */
 export function AccountMenu() {
   const { user } = useUser();
   const label =

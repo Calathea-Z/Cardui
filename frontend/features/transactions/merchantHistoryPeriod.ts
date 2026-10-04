@@ -4,6 +4,10 @@ import type {
   TransactionDto,
 } from "@/lib/api/types";
 
+/**
+ * Maps a transaction date onto the chart period that contains it.
+ * An unreadable date is returned unchanged so it does not land in the wrong period.
+ */
 export function getMerchantPeriodKey(
   date: string,
   granularity: MerchantHistoryGranularity,
@@ -28,6 +32,10 @@ export function getMerchantPeriodKey(
   return `${yearText}-${monthText}`;
 }
 
+/**
+ * Builds the selected period from the transactions that fall in it.
+ * Totals are recalculated here so the drawer matches the rows it lists.
+ */
 export function getSelectedMerchantPeriod(
   periods: MerchantHistoryPeriodDto[],
   selectedPeriodKey: string,

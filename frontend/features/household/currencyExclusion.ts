@@ -1,3 +1,7 @@
+/**
+ * Accounts and transactions left out of a total because their currency
+ * is not the household planning currency.
+ */
 export type CurrencyExclusion = {
   planningCurrency: string;
   excludedAccountCount: number;
@@ -5,6 +9,10 @@ export type CurrencyExclusion = {
   excludedCurrencies: string[];
 };
 
+/**
+ * Builds the notice that some rows were left out of a total.
+ * Returns null when nothing was excluded.
+ */
 export function formatCurrencyExclusion(
   exclusion: CurrencyExclusion,
 ): string | null {

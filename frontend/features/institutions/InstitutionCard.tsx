@@ -21,6 +21,10 @@ type InstitutionCardProps = {
   onDisconnect: () => void;
 };
 
+/**
+ * One linked bank, its synced accounts, and sync or disconnect actions.
+ * Disconnect asks for confirmation and says accounts and transactions stay in Cardui.
+ */
 export function InstitutionCard({
   item,
   accounts,

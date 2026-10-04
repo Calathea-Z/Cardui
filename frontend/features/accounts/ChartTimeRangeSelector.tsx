@@ -10,6 +10,10 @@ type ChartTimeRangeSelectorProps = {
   className?: string;
 };
 
+/**
+ * Lets the household pick the balance chart's time window.
+ * The pressed button is the range the chart filters to.
+ */
 export function ChartTimeRangeSelector({
   value,
   onChange,

@@ -9,6 +9,10 @@ import type {
   UpdateTransactionDetailsDto,
 } from "../types";
 
+/**
+ * GET /api/transactions
+ * Lists one page of the household's transactions.
+ */
 export async function getTransactions(
   query?: TransactionQueryDto,
 ): Promise<PagedResultDto<TransactionDto>> {
@@ -22,6 +26,10 @@ export async function getTransactions(
   return response.data;
 }
 
+/**
+ * GET /api/transactions/{id}/merchant-history
+ * Loads spending at the same merchant, grouped by the requested period.
+ */
 export async function getMerchantHistory(
   id: string,
   query?: {
@@ -38,6 +46,10 @@ export async function getMerchantHistory(
   return response.data;
 }
 
+/**
+ * POST /api/transactions
+ * Records a transaction the household entered by hand.
+ */
 export async function createManualTransaction(
   dto: CreateManualTransactionDto,
 ): Promise<TransactionDto> {
@@ -48,6 +60,10 @@ export async function createManualTransaction(
   return response.data;
 }
 
+/**
+ * POST /api/transactions/{id}/archive
+ * Hides a transaction without deleting it.
+ */
 export async function archiveTransaction(id: string): Promise<TransactionDto> {
   const response = await browserClient.post<TransactionDto>(
     `/api/transactions/${id}/archive`,
@@ -55,6 +71,10 @@ export async function archiveTransaction(id: string): Promise<TransactionDto> {
   return response.data;
 }
 
+/**
+ * POST /api/transactions/{id}/restore
+ * Puts an archived transaction back in the list.
+ */
 export async function restoreTransaction(id: string): Promise<TransactionDto> {
   const response = await browserClient.post<TransactionDto>(
     `/api/transactions/${id}/restore`,
@@ -62,6 +82,10 @@ export async function restoreTransaction(id: string): Promise<TransactionDto> {
   return response.data;
 }
 
+/**
+ * PATCH /api/transactions/{id}
+ * Saves edits to a transaction's category, date, notes, or other details.
+ */
 export async function updateTransactionDetails(
   id: string,
   dto: UpdateTransactionDetailsDto,

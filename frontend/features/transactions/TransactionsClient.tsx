@@ -32,6 +32,10 @@ type TransactionsClientProps = {
   pageSize: number;
 };
 
+/**
+ * Renders the transaction list, filters, and the sheets for adding or importing.
+ * A category created here stays on the page, and restoring a transaction reloads the first page.
+ */
 export function TransactionsClient({
   initialTransactionsPage,
   categories: initialCategories,
@@ -71,6 +75,10 @@ export function TransactionsClient({
     [transactions],
   );
 
+  /**
+   * Adds a category created from the detail or category drawer.
+   * A category already in the list is left unchanged.
+   */
   function handleCategoryCreated(category: CategoryDto) {
     setCategories((current) => {
       if (current.some((item) => item.id === category.id)) {
@@ -81,6 +89,9 @@ export function TransactionsClient({
     });
   }
 
+  /**
+   * Puts a saved transaction back into the list and the open detail.
+   */
   function handleSaved(updated: TransactionDto) {
     patchTransaction(updated);
     setSelectedTransaction(updated);

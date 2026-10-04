@@ -12,6 +12,10 @@ type BackButtonProps = {
   className?: string;
 };
 
+/**
+ * Returns to the previous page.
+ * Uses browser history when more than one entry exists; a shorter history opens fallbackHref.
+ */
 export function BackButton({
   fallbackHref = "/",
   ariaLabel = "Go back",
@@ -19,6 +23,10 @@ export function BackButton({
 }: BackButtonProps) {
   const router = useRouter();
 
+  /**
+   * Goes back when window.history.length is greater than 1.
+   * A shorter history opens fallbackHref.
+   */
   const handleBack = useCallback(() => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();

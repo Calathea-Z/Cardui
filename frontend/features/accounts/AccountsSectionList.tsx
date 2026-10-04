@@ -10,6 +10,10 @@ type AccountsSectionListProps = {
   onSelectAccount?: (account: AccountDto) => void;
 };
 
+/**
+ * Lists accounts by group, with archived accounts in their own section.
+ * The net-worth group and empty groups are omitted, and each group total uses formatCurrency in the planning currency.
+ */
 export function AccountsSectionList({
   groups,
   archivedAccounts = [],

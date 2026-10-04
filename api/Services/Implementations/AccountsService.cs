@@ -259,25 +259,11 @@ public class AccountsService : IAccountsService
 
         if (adjustment != 0)
         {
-            var transaction = new Transaction
-            {
-                Id = Guid.NewGuid(),
-                AccountId = account.Id,
-                PlaidTransactionId = null,
-                Source = FinancialRecordSource.Manual,
-                Provenance = FinancialRecordProvenance.BalanceReconciliation,
-                Date = dto.AsOfDate,
-                Name = FinancialRecordProvenance.BalanceReconciliationName,
-                MerchantName = FinancialRecordProvenance.BalanceReconciliationName,
-                Amount = AccountLedger.TransactionAmountForBalanceChange(
-                    account.Type,
-                    adjustment),
-                IsoCurrencyCode = account.IsoCurrencyCode,
-                Pending = false,
-                CreatedAt = now,
-                UpdatedAt = now
-            };
-
+            var transaction = CreateAdjustmentTransaction(
+                account,
+                dto.AsOfDate,
+                adjustment,
+                now);
             _dbContext.Transactions.Add(transaction);
             adjustmentTransactionId = transaction.Id;
         }
@@ -300,7 +286,37 @@ public class AccountsService : IAccountsService
         };
     }
 
-    #region Private methods
+    #region Private Methods
+
+    /// <summary>
+    /// Builds the unsaved transaction that moves the ledger to the statement balance.
+    /// </summary>
+    private static Transaction CreateAdjustmentTransaction(
+        Account account,
+        DateOnly asOfDate,
+        decimal adjustment,
+        DateTimeOffset now)
+    {
+        return new Transaction
+        {
+            Id = Guid.NewGuid(),
+            AccountId = account.Id,
+            PlaidTransactionId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.BalanceReconciliation,
+            Date = asOfDate,
+            Name = FinancialRecordProvenance.BalanceReconciliationName,
+            MerchantName = FinancialRecordProvenance.BalanceReconciliationName,
+            Amount = AccountLedger.TransactionAmountForBalanceChange(
+                account.Type,
+                adjustment),
+            IsoCurrencyCode = account.IsoCurrencyCode,
+            Pending = false,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+    }
+
     /// <summary>
     /// Builds one summary group. Net worth includes every active account.
     /// The other groups keep only accounts of that type.

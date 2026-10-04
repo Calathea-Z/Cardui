@@ -48,3 +48,10 @@ type used by only one caller may be `internal`. See
 Put a pure business rule in `Domain`. Put work that loads or saves rows in
 `Services`. Do not add a `Helpers` folder. See
 `.cursor/rules/backend-domain-rules.mdc`.
+
+## Backend method responsibility
+
+Each method in `api/` and `worker/` does one job. A method that sequences
+several jobs calls one method per job. A pure calculation goes in `Domain`.
+Skip generated EF Core migrations. See
+`.cursor/rules/backend-method-responsibility.mdc`.

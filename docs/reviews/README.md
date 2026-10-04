@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-03 — Method responsibility](2026-10-03-017-method-responsibility.md)
 - [2026-10-03 — Domain classifiers](2026-10-03-016-domain-classifiers.md)
 - [2026-10-03 — Backend type files](2026-10-03-015-backend-type-files.md)
 - [2026-10-03 — Private method regions](2026-10-03-014-private-method-regions.md)

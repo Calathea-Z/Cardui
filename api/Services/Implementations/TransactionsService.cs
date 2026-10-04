@@ -89,63 +89,31 @@ public class TransactionsService : ITransactionsService
             throw new NotFoundException($"Transaction '{transactionId}' was not found.");
         }
 
-        var merchantKey = source.MerchantName?.Trim();
-        var hasMerchantName = !string.IsNullOrWhiteSpace(merchantKey);
-        var matchKey = hasMerchantName
-            ? merchantKey!
-            : source.Name.Trim();
-        var matchKeyLower = matchKey.ToLowerInvariant();
-
-        var historyQuery = _dbContext.Transactions
-            .AsNoTracking()
-            .InHousehold(_householdScope)
-            .Where(x => x.ArchivedAt == null);
-
-        if (hasMerchantName)
-        {
-            historyQuery = historyQuery.Where(x =>
-                x.MerchantName != null &&
-                x.MerchantName.ToLower() == matchKeyLower);
-        }
-        else
-        {
-            historyQuery = historyQuery.Where(x =>
-                x.Name.ToLower() == matchKeyLower);
-        }
-
-        var transactions = await historyQuery
-            .OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.CreatedAt)
-            .Select(TransactionDtoMapper.Projection)
-            .ToListAsync(cancellationToken);
-
-        var normalizedGranularity = NormalizeGranularity(granularity);
+        var match = MerchantMatchKey.Create(source.Name, source.MerchantName);
+        var transactions = await LoadMerchantTransactionsAsync(match, cancellationToken);
         var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
-        var selectedKey = GetPeriodKey(today, normalizedGranularity);
-
-        var earliestDate = transactions.Count == 0
-            ? today
-            : transactions.Min(x => x.Date);
-
-        var periods = BuildPeriods(
-            earliestDate,
+        var series = MerchantHistoryPeriods.Build(
             today,
-            normalizedGranularity,
-            transactions);
-
-        if (periods.All(period => period.Key != selectedKey))
-        {
-            periods.Add(CreateEmptyPeriod(selectedKey, normalizedGranularity));
-            periods = OrderPeriods(periods);
-        }
+            granularity,
+            transactions.Select(transaction =>
+                new MerchantHistoryActivity(transaction.Date, transaction.Amount)));
 
         return new MerchantHistoryDto
         {
-            DisplayName = matchKey,
+            DisplayName = match.DisplayName,
             TotalTransactionCount = transactions.Count,
-            Granularity = normalizedGranularity,
-            SelectedPeriodKey = selectedKey,
-            Periods = periods,
+            Granularity = series.Granularity,
+            SelectedPeriodKey = series.SelectedPeriodKey,
+            Periods = series.Periods
+                .Select(period => new MerchantHistoryPeriodDto
+                {
+                    Key = period.Key,
+                    Label = period.Label,
+                    ShortLabel = period.ShortLabel,
+                    TotalAmount = period.TotalAmount,
+                    TransactionCount = period.TransactionCount
+                })
+                .ToList(),
             Transactions = transactions
         };
     }
@@ -214,19 +182,10 @@ public class TransactionsService : ITransactionsService
         }
 
         var today = FinancialDate.Today(_timeProvider);
-        if (dto.Date > today)
-        {
-            throw new BadRequestException("The transaction date cannot be in the future.");
-        }
+        RequireTransactionDate(dto.Date, today);
 
         var account = await LoadAccountAsync(transaction.AccountId, cancellationToken);
-        if (ManualAccountBalance.UsesLedger(account)
-            && account.OpeningBalanceDate is DateOnly openingDate
-            && dto.Date < openingDate)
-        {
-            throw new BadRequestException(
-                "The transaction date cannot be before the account opening date.");
-        }
+        RequireDateOnOrAfterOpening(account, dto.Date);
 
         var manualEntry = IsManualEntry(transaction);
         if (manualEntry)
@@ -282,18 +241,8 @@ public class TransactionsService : ITransactionsService
         }
 
         var today = FinancialDate.Today(_timeProvider);
-        if (dto.Date > today)
-        {
-            throw new BadRequestException("The transaction date cannot be in the future.");
-        }
-
-        if (ManualAccountBalance.UsesLedger(account)
-            && account.OpeningBalanceDate is DateOnly openingDate
-            && dto.Date < openingDate)
-        {
-            throw new BadRequestException(
-                "The transaction date cannot be before the account opening date.");
-        }
+        RequireTransactionDate(dto.Date, today);
+        RequireDateOnOrAfterOpening(account, dto.Date);
 
         if (dto.CategoryId is Guid categoryId)
         {
@@ -377,165 +326,61 @@ public class TransactionsService : ITransactionsService
     #region Private Methods
 
     /// <summary>
-    /// Accepts monthly, quarterly, or yearly. Anything else stays monthly.
+    /// Loads non-archived transactions for the same merchant, newest first.
     /// </summary>
-    private static string NormalizeGranularity(string? granularity)
+    private async Task<List<TransactionDto>> LoadMerchantTransactionsAsync(
+        MerchantMatchKey match,
+        CancellationToken cancellationToken)
     {
-        return granularity?.Trim().ToLowerInvariant() switch
-        {
-            "quarterly" => "quarterly",
-            "yearly" => "yearly",
-            _ => "monthly"
-        };
-    }
+        var matchKeyLower = match.DisplayName.ToLowerInvariant();
+        var historyQuery = _dbContext.Transactions
+            .AsNoTracking()
+            .InHousehold(_householdScope)
+            .Where(transaction => transaction.ArchivedAt == null);
 
-    /// <summary>
-    /// Builds the period key: yyyy-MM, yyyy-Q#, or yyyy.
-    /// </summary>
-    private static string GetPeriodKey(DateOnly date, string granularity)
-    {
-        return granularity switch
+        if (match.MatchesMerchantName)
         {
-            "quarterly" => $"{date.Year}-Q{(date.Month - 1) / 3 + 1}",
-            "yearly" => date.Year.ToString(),
-            _ => $"{date.Year:D4}-{date.Month:D2}"
-        };
-    }
-
-    /// <summary>
-    /// Builds the long and short labels for a history period.
-    /// </summary>
-    private static (string Label, string ShortLabel) GetPeriodLabels(
-        string periodKey,
-        string granularity)
-    {
-        if (granularity == "yearly" && int.TryParse(periodKey, out var year))
+            historyQuery = historyQuery.Where(transaction =>
+                transaction.MerchantName != null &&
+                transaction.MerchantName.ToLower() == matchKeyLower);
+        }
+        else
         {
-            return (year.ToString(), year.ToString());
+            historyQuery = historyQuery.Where(transaction =>
+                transaction.Name.ToLower() == matchKeyLower);
         }
 
-        if (granularity == "quarterly")
+        return await historyQuery
+            .OrderByDescending(transaction => transaction.Date)
+            .ThenByDescending(transaction => transaction.CreatedAt)
+            .Select(TransactionDtoMapper.Projection)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Rejects a transaction date in the future.
+    /// </summary>
+    private static void RequireTransactionDate(DateOnly date, DateOnly today)
+    {
+        if (date > today)
         {
-            var parts = periodKey.Split("-Q");
-            if (parts.Length == 2 &&
-                int.TryParse(parts[0], out var quarterYear) &&
-                int.TryParse(parts[1], out var quarter))
-            {
-                return ($"Q{quarter} {quarterYear}", $"Q{quarter}");
-            }
+            throw new BadRequestException("The transaction date cannot be in the future.");
         }
+    }
 
-        if (DateOnly.TryParseExact(
-                $"{periodKey}-01",
-                "yyyy-MM-dd",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None,
-                out var monthDate))
+    /// <summary>
+    /// Rejects a date before the opening date of an account whose balance
+    /// comes from its transactions.
+    /// </summary>
+    private static void RequireDateOnOrAfterOpening(Account account, DateOnly date)
+    {
+        if (ManualAccountBalance.UsesLedger(account)
+            && account.OpeningBalanceDate is DateOnly openingDate
+            && date < openingDate)
         {
-            return (
-                monthDate.ToString("MMMM yyyy"),
-                monthDate.ToString("MMM"));
+            throw new BadRequestException(
+                "The transaction date cannot be before the account opening date.");
         }
-
-        return (periodKey, periodKey);
-    }
-
-    /// <summary>
-    /// Creates a period with no transactions so the current period is always present.
-    /// </summary>
-    private static MerchantHistoryPeriodDto CreateEmptyPeriod(
-        string periodKey,
-        string granularity)
-    {
-        var (label, shortLabel) = GetPeriodLabels(periodKey, granularity);
-        return new MerchantHistoryPeriodDto
-        {
-            Key = periodKey,
-            Label = label,
-            ShortLabel = shortLabel,
-            TotalAmount = 0,
-            TransactionCount = 0
-        };
-    }
-
-    /// <summary>
-    /// Fills every period from the earliest transaction through today, including gaps.
-    /// </summary>
-    private static List<MerchantHistoryPeriodDto> BuildPeriods(
-        DateOnly startDate,
-        DateOnly endDate,
-        string granularity,
-        IReadOnlyList<TransactionDto> transactions)
-    {
-        var totals = transactions
-            .GroupBy(x => GetPeriodKey(x.Date, granularity))
-            .ToDictionary(
-                group => group.Key,
-                group => (
-                    TotalAmount: group.Sum(x => x.Amount),
-                    TransactionCount: group.Count()));
-
-        var periods = new List<MerchantHistoryPeriodDto>();
-        var cursor = AlignPeriodStart(startDate, granularity);
-        var end = AlignPeriodStart(endDate, granularity);
-
-        while (cursor <= end)
-        {
-            var key = GetPeriodKey(cursor, granularity);
-            totals.TryGetValue(key, out var stats);
-            var (label, shortLabel) = GetPeriodLabels(key, granularity);
-
-            periods.Add(new MerchantHistoryPeriodDto
-            {
-                Key = key,
-                Label = label,
-                ShortLabel = shortLabel,
-                TotalAmount = stats.TotalAmount,
-                TransactionCount = stats.TransactionCount
-            });
-
-            cursor = AdvancePeriod(cursor, granularity);
-        }
-
-        return periods;
-    }
-
-    /// <summary>
-    /// Sorts periods by key and drops a duplicate key.
-    /// </summary>
-    private static List<MerchantHistoryPeriodDto> OrderPeriods(
-        List<MerchantHistoryPeriodDto> periods)
-    {
-        return periods
-            .DistinctBy(period => period.Key)
-            .OrderBy(period => period.Key, StringComparer.Ordinal)
-            .ToList();
-    }
-
-    /// <summary>
-    /// Moves a date to the first day of its month, quarter, or year.
-    /// </summary>
-    private static DateOnly AlignPeriodStart(DateOnly date, string granularity)
-    {
-        return granularity switch
-        {
-            "quarterly" => new DateOnly(date.Year, (date.Month - 1) / 3 * 3 + 1, 1),
-            "yearly" => new DateOnly(date.Year, 1, 1),
-            _ => new DateOnly(date.Year, date.Month, 1)
-        };
-    }
-
-    /// <summary>
-    /// Steps one month, quarter, or year forward.
-    /// </summary>
-    private static DateOnly AdvancePeriod(DateOnly date, string granularity)
-    {
-        return granularity switch
-        {
-            "quarterly" => date.AddMonths(3),
-            "yearly" => date.AddYears(1),
-            _ => date.AddMonths(1)
-        };
     }
 
     /// <summary>

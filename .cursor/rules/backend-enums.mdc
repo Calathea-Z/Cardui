@@ -1,0 +1,34 @@
+---
+description: Use enums for closed backend value sets
+alwaysApply: true
+---
+
+# Backend enums
+
+When adding or changing C# in `api/` or `worker/`, use an enum for a closed
+set that Cardui defines and branches on. Do this in the same change as the
+value.
+
+- Give each enum its own file. Name the file after the enum.
+- A value stored on an entity lives in `Models`. A value used by domain
+  rules lives in `Domain`. Do not put an enum under `Services`.
+- Do not nest an enum in a class, record, service, controller, or calculator.
+- An enum used by only one caller may be `internal`.
+- The member name is the stored text and the JSON text. Do not store or
+  return the numeric value.
+- Persist with `HasConversion<string>()`. Serialize with
+  `CarduiJsonSerializer.UseEnumMemberNames`, which writes the member name
+  and rejects a number.
+- A value an outside system can extend, a user-defined key, or a slug whose
+  text is not the member name stays a string constant. Account type,
+  account subtype, category keys, and account group keys stay strings.
+- A display name stays a string constant. It is not an enum member.
+
+```csharp
+public enum FinancialRecordSource
+{
+    Plaid,
+    Manual,
+    Csv
+}
+```

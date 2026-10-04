@@ -1,3 +1,5 @@
+using Cardui.Api.Models;
+
 namespace Cardui.Api.Domain;
 
 /// <summary>
@@ -11,4 +13,4 @@ public sealed record TransactionActivityValue(
     string? CategoryColor,
     string? CategoryKey,
     string? GroupKey,
-    string? Provenance = null);
+    FinancialRecordProvenance? Provenance = null);

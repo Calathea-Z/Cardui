@@ -9,5 +9,5 @@ public sealed record TransactionImportDraft(
     string? CategoryName,
     bool CategoryFromFile,
     string? Notes,
-    string Status,
+    TransactionImportRowStatus Status,
     string? Message);

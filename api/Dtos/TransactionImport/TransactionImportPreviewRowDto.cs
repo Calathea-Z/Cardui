@@ -1,3 +1,5 @@
+using Cardui.Api.Domain;
+
 namespace Cardui.Api.Dtos.TransactionImport;
 
 public class TransactionImportPreviewRowDto
@@ -12,7 +14,7 @@ public class TransactionImportPreviewRowDto
 
     public string? CategoryName { get; set; }
 
-    public required string Status { get; set; }
+    public required TransactionImportRowStatus Status { get; set; }
 
     public string? Message { get; set; }
 }

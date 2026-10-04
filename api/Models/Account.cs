@@ -11,9 +11,9 @@ public class Account
 
     public string? PlaidAccountId { get; set; }
 
-    public string Source { get; set; } = FinancialRecordSource.Plaid;
+    public FinancialRecordSource Source { get; set; } = FinancialRecordSource.Plaid;
 
-    public string Provenance { get; set; } = FinancialRecordProvenance.PlaidSync;
+    public FinancialRecordProvenance Provenance { get; set; } = FinancialRecordProvenance.PlaidSync;
 
     public required string Name { get; set; }
     public string? OfficialName { get; set; }

@@ -244,7 +244,8 @@ public class TransactionImportService : ITransactionImportService
     }
 
     /// <summary>
-    /// Copies the request into the domain column map, using the default sign and date order.
+    /// Copies the request into the domain column map.
+    /// A missing sign or date order uses the request default.
     /// </summary>
     private static TransactionImportColumnMap ToColumnMap(TransactionImportRequestDto request)
     {
@@ -256,12 +257,8 @@ public class TransactionImportService : ITransactionImportService
             request.CreditColumn,
             request.CategoryColumn,
             request.NotesColumn,
-            string.IsNullOrWhiteSpace(request.AmountSign)
-                ? CsvAmountSign.PositiveOut
-                : request.AmountSign,
-            string.IsNullOrWhiteSpace(request.DateOrder)
-                ? CsvDateOrder.MonthFirst
-                : request.DateOrder);
+            request.AmountSign,
+            request.DateOrder);
     }
 
     /// <summary>

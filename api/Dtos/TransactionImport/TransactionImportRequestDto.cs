@@ -1,3 +1,5 @@
+using Cardui.Api.Domain;
+
 namespace Cardui.Api.Dtos.TransactionImport;
 
 public class TransactionImportRequestDto
@@ -18,9 +20,9 @@ public class TransactionImportRequestDto
 
     public int? NotesColumn { get; set; }
 
-    public string AmountSign { get; set; } = "";
+    public CsvAmountSign AmountSign { get; set; } = CsvAmountSign.PositiveOut;
 
-    public string DateOrder { get; set; } = "";
+    public CsvDateOrder DateOrder { get; set; } = CsvDateOrder.MonthFirst;
 
     public string? IncludedLineNumbers { get; set; }
 }

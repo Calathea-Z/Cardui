@@ -81,10 +81,7 @@ public static class TransactionActivityCalculator
     /// </summary>
     private static bool IsBalanceReconciliation(TransactionActivityValue transaction)
     {
-        return string.Equals(
-            transaction.Provenance,
-            FinancialRecordProvenance.BalanceReconciliation,
-            StringComparison.Ordinal);
+        return transaction.Provenance == FinancialRecordProvenance.BalanceReconciliation;
     }
 
     /// <summary>

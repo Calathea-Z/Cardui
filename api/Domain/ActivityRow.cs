@@ -1,3 +1,5 @@
+using Cardui.Api.Models;
+
 namespace Cardui.Api.Domain;
 
 /// <summary>
@@ -11,7 +13,7 @@ internal sealed record ActivityRow(
     string? CategoryColor,
     string? CategoryKey,
     string? GroupKey,
-    string? Provenance,
+    FinancialRecordProvenance Provenance,
     string? CurrencyCode)
 {
     /// <summary>

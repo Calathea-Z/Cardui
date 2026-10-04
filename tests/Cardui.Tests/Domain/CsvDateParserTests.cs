@@ -15,7 +15,7 @@ public class CsvDateParserTests
     [InlineData("Oct 4, 2026", CsvDateOrder.DayFirst, 2026, 10, 4)]
     public void Parse_ReadsCommonBankDates(
         string text,
-        string dateOrder,
+        CsvDateOrder dateOrder,
         int year,
         int month,
         int day)

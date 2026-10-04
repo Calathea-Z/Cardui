@@ -9,7 +9,7 @@ public static class TransactionImportDates
     public static bool TryGetSpan(
         CsvTable table,
         int dateColumn,
-        string dateOrder,
+        CsvDateOrder dateOrder,
         out DateOnly min,
         out DateOnly max)
     {

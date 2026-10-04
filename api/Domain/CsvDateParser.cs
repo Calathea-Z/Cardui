@@ -19,7 +19,7 @@ public static class CsvDateParser
     /// unambiguous. A numeric month and day follow the chosen order unless
     /// one number is greater than 12.
     /// </summary>
-    public static DateOnly? Parse(string text, string dateOrder)
+    public static DateOnly? Parse(string text, CsvDateOrder dateOrder)
     {
         var trimmed = text.Trim();
         if (trimmed.Length == 0)
@@ -102,7 +102,7 @@ public static class CsvDateParser
     /// Reads M/d/yyyy or d/M/yyyy. A value over 12 is the day.
     /// A two-digit year from 00 through 69 is 2000 through 2069.
     /// </summary>
-    private static bool TryMonthAndDay(string text, string dateOrder, out DateOnly date)
+    private static bool TryMonthAndDay(string text, CsvDateOrder dateOrder, out DateOnly date)
     {
         date = default;
         var parts = text.Split(['-', '/']);
@@ -145,10 +145,14 @@ public static class CsvDateParser
             day = first;
             month = second;
         }
-        else
+        else if (dateOrder == CsvDateOrder.MonthFirst)
         {
             month = first;
             day = second;
+        }
+        else
+        {
+            return false;
         }
 
         return TryCreate(year, month, day, out date);

@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Services.Interfaces;
 using Going.Plaid.Entity;
@@ -392,6 +393,8 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
                 break;
             case TransactionUpsertResult.Modified:
                 modifiedCount++;
+                break;
+            case TransactionUpsertResult.Skipped:
                 break;
         }
     }

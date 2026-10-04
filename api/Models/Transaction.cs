@@ -9,9 +9,9 @@ public class Transaction
 
     public string? PlaidTransactionId { get; set; }
 
-    public string Source { get; set; } = FinancialRecordSource.Plaid;
+    public FinancialRecordSource Source { get; set; } = FinancialRecordSource.Plaid;
 
-    public string Provenance { get; set; } = FinancialRecordProvenance.PlaidSync;
+    public FinancialRecordProvenance Provenance { get; set; } = FinancialRecordProvenance.PlaidSync;
 
     public Guid? ImportId { get; set; }
 

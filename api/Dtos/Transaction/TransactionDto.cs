@@ -1,4 +1,6 @@
-﻿namespace Cardui.Api.Dtos.Transaction;
+﻿using Cardui.Api.Models;
+
+namespace Cardui.Api.Dtos.Transaction;
 public class TransactionDto
 {
     public Guid Id { get; set; }
@@ -12,7 +14,7 @@ public class TransactionDto
     public required TransactionAccountDto Account { get; set; }
     public TransactionCategoryDto? Category { get; set; }
     public string? Notes { get; set; }
-    public required string Source { get; set; }
-    public required string Provenance { get; set; }
+    public required FinancialRecordSource Source { get; set; }
+    public required FinancialRecordProvenance Provenance { get; set; }
     public DateTimeOffset? ArchivedAt { get; set; }
 }

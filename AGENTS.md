@@ -43,6 +43,13 @@ calculator, and do not declare it in the same file as that behavior. A
 type used by only one caller may be `internal`. See
 `.cursor/rules/backend-type-files.mdc`.
 
+## Backend enums
+
+A closed set that Cardui defines and branches on is an enum in its own
+file. Store and return the member name, not the number. A value an outside
+system can extend, a user-defined key, or a slug stays a string. See
+`.cursor/rules/backend-enums.mdc`.
+
 ## Backend domain rules
 
 Put a pure business rule in `Domain`. Put work that loads or saves rows in

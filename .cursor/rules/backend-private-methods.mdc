@@ -12,8 +12,9 @@ change as the method.
 - The region holds private methods only. Fields, constants, and constructors
   stay above it.
 - Public and internal methods stay above the region.
-- A private nested type stays outside the region.
 - One region per type. Skip the region when the type has no private methods.
+- Do not nest a data type in the class. See
+  `.cursor/rules/backend-type-files.mdc`.
 - Do not add regions to generated EF Core migration files.
 
 ```csharp

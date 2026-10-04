@@ -2,36 +2,6 @@ using Cardui.Api.Models;
 
 namespace Cardui.Api.Domain;
 
-/// <summary>
-/// One transaction reduced to the fields income and spending need.
-/// </summary>
-public sealed record TransactionActivityValue(
-    decimal Amount,
-    bool Pending,
-    Guid? CategoryId,
-    string CategoryName,
-    string? CategoryColor,
-    string? CategoryKey,
-    string? GroupKey,
-    string? Provenance = null);
-
-/// <summary>
-/// Spending total for one category in a date range.
-/// </summary>
-public sealed record TransactionActivityCategoryTotal(
-    Guid? CategoryId,
-    string CategoryName,
-    string? CategoryColor,
-    decimal Amount);
-
-/// <summary>
-/// Income, spending, and spending by category for a set of transactions.
-/// </summary>
-public sealed record TransactionActivityTotals(
-    decimal Income,
-    decimal Spending,
-    IReadOnlyList<TransactionActivityCategoryTotal> SpendingByCategory);
-
 public static class TransactionActivityCalculator
 {
     /// <summary>
@@ -126,12 +96,4 @@ public static class TransactionActivityCalculator
     }
 
     #endregion
-
-    /// <summary>
-    /// Groups spending by category id, name, and color.
-    /// </summary>
-    private sealed record CategoryBucket(
-        Guid? CategoryId,
-        string CategoryName,
-        string? CategoryColor);
 }

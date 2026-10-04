@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-03 — Backend type files](2026-10-03-015-backend-type-files.md)
 - [2026-10-03 — Private method regions](2026-10-03-014-private-method-regions.md)
 - [2026-10-03 — Backend method comments](2026-10-03-013-backend-method-comments.md)
 - [2026-10-03 — Manual accounts, transactions, and balance reconciliation](2026-10-03-012-manual-accounts-and-transactions.md)

@@ -1,0 +1,38 @@
+---
+description: Keep backend data types in their own files
+alwaysApply: true
+---
+
+# Backend type files
+
+When adding or changing C# in `api/` or `worker/`, keep data types out of
+behavior types. Do this in the same change as the type.
+
+- Give each model, DTO, domain value, and options type its own file. Name
+  the file after the type.
+- Put it in `Models`, `Dtos/<feature>`, `Domain`, or `Options`, with the
+  types already there.
+- Do not nest that type inside a class, record, service, controller, or
+  calculator.
+- Do not declare it in the same file as a service or other behavior type.
+- A type used by only one caller may be `internal` in its own file.
+- Test doubles may stay private nested types in the test class that uses
+  them.
+
+```csharp
+// CategoryBucket.cs
+internal sealed record CategoryBucket(
+    Guid? CategoryId,
+    string CategoryName,
+    string? CategoryColor);
+
+// TransactionActivityCalculator.cs
+public static class TransactionActivityCalculator
+{
+    public static TransactionActivityTotals Calculate(
+        IEnumerable<TransactionActivityValue> transactions)
+    {
+        var spendingByCategory = new Dictionary<CategoryBucket, decimal>();
+    }
+}
+```

@@ -34,3 +34,11 @@ Put every private method in `api/` and `worker/` inside
 and public methods stay above the region. Skip the region when a type has
 no private methods, and skip generated EF Core migrations. See
 `.cursor/rules/backend-private-methods.mdc`.
+
+## Backend type files
+
+Give each model, DTO, domain value, and options type in `api/` or `worker/`
+its own file. Do not nest one inside a class, service, controller, or
+calculator, and do not declare it in the same file as that behavior. A
+type used by only one caller may be `internal`. See
+`.cursor/rules/backend-type-files.mdc`.

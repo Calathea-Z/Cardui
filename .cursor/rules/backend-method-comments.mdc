@@ -20,6 +20,8 @@ change as the method.
 - Do not add these comments to generated EF Core migration files.
 - Put private methods in `#region Private Methods`. See
   `.cursor/rules/backend-private-methods.mdc`.
+- Keep models, DTOs, and domain values in their own files. See
+  `.cursor/rules/backend-type-files.mdc`.
 
 ```csharp
 /// <summary>

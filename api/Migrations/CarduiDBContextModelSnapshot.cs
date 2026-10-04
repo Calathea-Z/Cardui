@@ -259,6 +259,20 @@ namespace Cardui.Api.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<string>("PlanningCurrency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("USD");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasDefaultValue("America/Denver");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -268,6 +282,38 @@ namespace Cardui.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Households");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.HouseholdContributor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsVisible")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId");
+
+                    b.ToTable("HouseholdContributors");
                 });
 
             modelBuilder.Entity("Cardui.Api.Models.PlaidItem", b =>
@@ -509,6 +555,17 @@ namespace Cardui.Api.Migrations
                     b.Navigation("SubGroup");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.HouseholdContributor", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Household", "Household")
+                        .WithMany("Contributors")
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.PlaidItem", b =>
                 {
                     b.HasOne("Cardui.Api.Models.Household", null)
@@ -566,6 +623,11 @@ namespace Cardui.Api.Migrations
             modelBuilder.Entity("Cardui.Api.Models.Group", b =>
                 {
                     b.Navigation("SubGroups");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.Household", b =>
+                {
+                    b.Navigation("Contributors");
                 });
 
             modelBuilder.Entity("Cardui.Api.Models.PlaidItem", b =>

@@ -346,7 +346,7 @@ public class TransactionsService : ITransactionsService
             }
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         if (dto.Date > today)
         {
             throw new BadRequestException("The transaction date cannot be in the future.");
@@ -413,7 +413,7 @@ public class TransactionsService : ITransactionsService
             throw new BadRequestException("Restore this account before adding a transaction.");
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         if (dto.Date > today)
         {
             throw new BadRequestException("The transaction date cannot be in the future.");
@@ -626,9 +626,14 @@ public class TransactionsService : ITransactionsService
         await ManualAccountBalance.RefreshAsync(
             _dbContext,
             account,
-            FinancialDate.Today(_timeProvider),
+            Today(),
             now,
             cancellationToken);
+    }
+
+    private DateOnly Today()
+    {
+        return FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
     }
 
     private static bool IsManualEntry(Transaction transaction) =>

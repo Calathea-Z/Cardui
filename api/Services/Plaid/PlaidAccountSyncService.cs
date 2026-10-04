@@ -51,7 +51,9 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
             () => _plaidClient.AccountsGetAsync(request));
 
         var now = _timeProvider.GetUtcNow();
-        var today = FinancialDate.Today(_timeProvider);
+        var today = FinancialDate.Today(
+            _timeProvider,
+            await GetHouseholdTimeZoneIdAsync(plaidItem, cancellationToken));
 
         var responseAccountIds = response.Accounts
             .Select(x => x.AccountId)
@@ -187,5 +189,25 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
 
         _dbContext.AccountBalanceSnapshots.Add(snapshot);
         existingSnapshotsByAccountId[account.Id] = snapshot;
+    }
+
+    private async Task<string> GetHouseholdTimeZoneIdAsync(
+        PlaidItem plaidItem,
+        CancellationToken cancellationToken)
+    {
+        if (plaidItem.HouseholdId is not Guid householdId)
+        {
+            return HouseholdTime.DefaultTimeZoneId;
+        }
+
+        var timeZoneId = await _dbContext.Households
+            .AsNoTracking()
+            .Where(x => x.Id == householdId)
+            .Select(x => x.TimeZoneId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return string.IsNullOrWhiteSpace(timeZoneId)
+            ? HouseholdTime.DefaultTimeZoneId
+            : timeZoneId;
     }
 }

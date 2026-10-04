@@ -27,6 +27,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddSingleton<IPlaidAccessTokenProtector, DataProtectionPlaidAccessTokenProtector>();
 
         services.AddScoped<IHouseholdsService, HouseholdsService>();
+        services.AddScoped<IFinancialProfileService, FinancialProfileService>();
         services.AddScoped<IAccountsService, AccountsService>();
         services.AddScoped<ITransactionsService, TransactionsService>();
         services.AddScoped<IGroupsService, GroupsService>();

@@ -16,3 +16,12 @@ that reply.
 Update models and the DbContext, then ask before generating or applying an
 EF Core migration. After approval, run `dotnet ef` from `api/` in
 PowerShell. Do not drop or wipe data without a separate approval.
+
+## UI primitives
+
+When a control is reused, decide whether it should be a shared primitive in
+`frontend/components/ui`. For a large or specialized control, decide whether
+a small primitive is enough or a library is the better fit, and ask before
+adding that dependency. Choice lists use `Select` in
+`frontend/components/ui/select.tsx`. Do not use a native `<select>`. See
+`.cursor/rules/ui-primitives.mdc`.

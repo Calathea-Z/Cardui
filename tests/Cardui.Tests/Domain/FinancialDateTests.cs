@@ -22,4 +22,15 @@ public class FinancialDateTests
 
         Assert.Equal(new DateOnly(2026, 10, 2), today);
     }
+
+    [Fact]
+    public void Today_UsesTheHouseholdTimeZone()
+    {
+        var timeProvider = new FakeTimeProvider(
+            new DateTimeOffset(2026, 10, 3, 4, 38, 0, TimeSpan.Zero));
+
+        var today = FinancialDate.Today(timeProvider, "America/Denver");
+
+        Assert.Equal(new DateOnly(2026, 10, 2), today);
+    }
 }

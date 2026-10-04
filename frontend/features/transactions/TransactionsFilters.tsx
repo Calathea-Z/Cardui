@@ -3,7 +3,7 @@
 import { CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SheetSelect } from "@/components/ui/sheet-select";
+import { Select } from "@/components/ui/select";
 import type { AccountDto, CategoryDto } from "@/lib/api/types";
 import {
   STATUS_OPTIONS,
@@ -49,7 +49,7 @@ export function TransactionsFilters({
         ) : null}
       </div>
 
-      <SheetSelect
+      <Select
         title="Account"
         value={query.accountId}
         onChange={query.setAccountId}
@@ -63,7 +63,7 @@ export function TransactionsFilters({
         ]}
       />
 
-      <SheetSelect
+      <Select
         title="Category"
         value={query.categoryId}
         onChange={query.setCategoryId}
@@ -77,7 +77,7 @@ export function TransactionsFilters({
         ]}
       />
 
-      <SheetSelect
+      <Select
         title="Status"
         value={query.pendingFilter}
         onChange={(value) => query.setPendingFilter(value as PendingFilter)}

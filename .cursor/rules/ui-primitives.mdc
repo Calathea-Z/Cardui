@@ -1,0 +1,23 @@
+---
+description: Decide when a reused control should be a primitive or a library
+alwaysApply: true
+---
+
+# UI primitives
+
+When a control is used in more than one place, decide whether a shared
+primitive is the better shape before copying it. Use a control from
+`frontend/components/ui` when one already fits. Add a primitive there when
+the same control will be reused. Do not restyle a one-off copy of a control
+that already has a primitive.
+
+For a large or specialized control, such as a chart, rich editor, or date
+library, decide whether a small primitive is enough or a library is the
+better fit. Ask before adding that dependency. Say what it is for, what it
+costs to maintain, and what a smaller primitive would cover instead.
+
+Choice lists use `Select` from `frontend/components/ui/select.tsx`. It opens
+the themed list. Do not use a native `<select>` element. On Windows that
+menu stays the browser's white list and ignores the app theme.
+
+Action menus stay `ActionMenu`. Text entry stays `Input`.

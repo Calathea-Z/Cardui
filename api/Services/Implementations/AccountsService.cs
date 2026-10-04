@@ -39,10 +39,12 @@ public class AccountsService : IAccountsService
             accounts = accounts.Where(x => x.ArchivedAt == null);
         }
 
-        return await accounts
+        var result = await accounts
             .OrderBy(x => x.Name)
             .Select(AccountDtoMapper.Projection)
             .ToListAsync(cancellationToken);
+        MarkPlanningTotals(result, _householdScope.PlanningCurrency);
+        return result;
     }
 
     public async Task<AccountSummaryDto> GetAccountsSummaryAsync(
@@ -64,6 +66,12 @@ public class AccountsService : IAccountsService
             .Select(AccountDtoMapper.Projection)
             .ToListAsync(cancellationToken);
 
+        var planningCurrency = _householdScope.PlanningCurrency;
+        MarkPlanningTotals(accounts, planningCurrency);
+        MarkPlanningTotals(archivedAccounts, planningCurrency);
+        var excludedAccounts = accounts
+            .Where(x => !x.CountsInPlanningTotals)
+            .ToList();
         var accountTotals = CalculateAccountTotals(accounts);
         var groups = new List<AccountGroupDto>
         {
@@ -91,6 +99,11 @@ public class AccountsService : IAccountsService
         return new AccountSummaryDto
         {
             NetWorth = groups.Single(x => x.Key == AccountGroupKeys.NetWorth).Total,
+            PlanningCurrency = planningCurrency,
+            ExcludedAccountCount = excludedAccounts.Count,
+            ExcludedCurrencies = PlanningCurrencyRules.ExcludedCodes(
+                excludedAccounts.Select(x => x.IsoCurrencyCode),
+                planningCurrency),
             Groups = groups,
             History = history,
             ArchivedAccounts = archivedAccounts
@@ -102,7 +115,7 @@ public class AccountsService : IAccountsService
         CancellationToken cancellationToken = default)
     {
         var householdId = _householdScope.RequireHouseholdId();
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         var now = _timeProvider.GetUtcNow();
         var openingDate = RequireOpeningDate(dto.OpeningBalanceDate, today);
 
@@ -152,7 +165,7 @@ public class AccountsService : IAccountsService
                 "Linked accounts keep their name, type, and balance from the bank. You can archive the account.");
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         var openingDate = RequireOpeningDate(dto.OpeningBalanceDate, today);
         await RequireOpeningDateCoversTransactionsAsync(
             account.Id,
@@ -222,7 +235,7 @@ public class AccountsService : IAccountsService
             throw new BadRequestException("Restore this account before reconciling its balance.");
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         if (dto.AsOfDate < openingDate || dto.AsOfDate > today)
         {
             throw new BadRequestException(
@@ -321,7 +334,7 @@ public class AccountsService : IAccountsService
     private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync(
         CancellationToken cancellationToken)
     {
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
             .InHousehold(_householdScope)
@@ -330,7 +343,13 @@ public class AccountsService : IAccountsService
             .OrderBy(x => x.Date)
             .ToListAsync(cancellationToken);
 
-        return AccountBalanceHistory.Build(snapshots.Select(x => new AccountSnapshotBalance(
+        var planningCurrency = _householdScope.PlanningCurrency;
+        var includedSnapshots = snapshots
+            .Where(x => PlanningCurrencyRules.IsIncluded(
+                x.Account.IsoCurrencyCode,
+                planningCurrency));
+
+        return AccountBalanceHistory.Build(includedSnapshots.Select(x => new AccountSnapshotBalance(
                 x.AccountId,
                 x.Account.Type,
                 x.Date,
@@ -380,7 +399,25 @@ public class AccountsService : IAccountsService
             throw new NotFoundException($"Account '{accountId}' was not found.");
         }
 
+        MarkPlanningTotals([account], _householdScope.PlanningCurrency);
         return account;
+    }
+
+    private DateOnly Today()
+    {
+        return FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
+    }
+
+    private static void MarkPlanningTotals(
+        IEnumerable<AccountDto> accounts,
+        string planningCurrency)
+    {
+        foreach (var account in accounts)
+        {
+            account.CountsInPlanningTotals = PlanningCurrencyRules.IsIncluded(
+                account.IsoCurrencyCode,
+                planningCurrency);
+        }
     }
 
     private async Task RequireOpeningDateCoversTransactionsAsync(
@@ -445,11 +482,11 @@ public class AccountsService : IAccountsService
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
-    private static string NormalizeCurrency(string? value)
+    private string NormalizeCurrency(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            return "USD";
+            return _householdScope.PlanningCurrency;
         }
 
         var currency = value.Trim().ToUpperInvariant();
@@ -464,6 +501,8 @@ public class AccountsService : IAccountsService
     private static AccountTotals CalculateAccountTotals(IReadOnlyList<AccountDto> accounts)
     {
         return AccountTotalsCalculator.Calculate(
-            accounts.Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)));
+            accounts
+                .Where(x => x.CountsInPlanningTotals)
+                .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)));
     }
 }

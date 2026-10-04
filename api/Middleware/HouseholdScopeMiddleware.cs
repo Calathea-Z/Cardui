@@ -23,18 +23,26 @@ public sealed class HouseholdScopeMiddleware
         if (context.User.Identity?.IsAuthenticated == true && !IsCurrentHouseholdCreate(context))
         {
             var ownerId = ownerContext.ClerkUserId.Trim();
-            var householdId = await dbContext.Households
+            var household = await dbContext.Households
                 .AsNoTracking()
                 .Where(x => x.OwnerClerkUserId == ownerId)
-                .Select(x => (Guid?)x.Id)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.PlanningCurrency,
+                    x.TimeZoneId
+                })
                 .SingleOrDefaultAsync(context.RequestAborted);
 
-            if (householdId is not Guid id)
+            if (household is null)
             {
                 throw new NotFoundException("No household exists for the signed-in owner.");
             }
 
-            householdScope.Bind(id);
+            householdScope.Bind(
+                household.Id,
+                household.PlanningCurrency,
+                household.TimeZoneId);
         }
 
         await _next(context);

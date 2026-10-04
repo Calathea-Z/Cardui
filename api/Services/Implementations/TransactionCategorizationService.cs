@@ -1,5 +1,5 @@
 using Cardui.Api.Data;
-using Cardui.Api.Services;
+using Cardui.Api.Domain;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using PlaidTransaction = Going.Plaid.Entity.Transaction;

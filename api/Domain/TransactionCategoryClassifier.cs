@@ -1,6 +1,4 @@
-using Cardui.Api.Domain;
-
-namespace Cardui.Api.Services;
+namespace Cardui.Api.Domain;
 
 public static class TransactionCategoryClassifier
 {

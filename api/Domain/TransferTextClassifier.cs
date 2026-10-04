@@ -1,4 +1,4 @@
-namespace Cardui.Api.Services;
+namespace Cardui.Api.Domain;
 
 /// <summary>
 /// Shared text heuristics for transfer detection.

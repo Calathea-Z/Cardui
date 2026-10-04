@@ -1,8 +1,7 @@
 using Cardui.Api.Domain;
-using Cardui.Api.Services;
 using Xunit;
 
-namespace Cardui.Tests.Services;
+namespace Cardui.Tests.Domain;
 
 public class TransactionCategoryClassifierTests
 {

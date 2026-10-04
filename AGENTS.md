@@ -42,3 +42,9 @@ its own file. Do not nest one inside a class, service, controller, or
 calculator, and do not declare it in the same file as that behavior. A
 type used by only one caller may be `internal`. See
 `.cursor/rules/backend-type-files.mdc`.
+
+## Backend domain rules
+
+Put a pure business rule in `Domain`. Put work that loads or saves rows in
+`Services`. Do not add a `Helpers` folder. See
+`.cursor/rules/backend-domain-rules.mdc`.

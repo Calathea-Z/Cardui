@@ -15,6 +15,7 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
         _dbContext = dbContext;
     }
 
+    /// <inheritdoc />
     public Task<Guid?> GetCategoryIdForPlaidTransactionAsync(
         PlaidTransaction transaction,
         CancellationToken cancellationToken = default)
@@ -27,6 +28,7 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
         return ResolveCategoryIdAsync(categoryKey, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<Guid?> GetCategoryIdForStoredTransactionAsync(
         string name,
         string? merchantName,
@@ -37,6 +39,9 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
         return ResolveCategoryIdAsync(categoryKey, cancellationToken);
     }
 
+    /// <summary>
+    /// Looks up the seeded category id for a classifier key.
+    /// </summary>
     private async Task<Guid?> ResolveCategoryIdAsync(
         string categoryKey,
         CancellationToken cancellationToken)
@@ -48,6 +53,9 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Chooses a system category key from the merchant, description, and amount.
+    /// </summary>
     private static string GetCategoryKey(
         string? merchantName,
         string? description,

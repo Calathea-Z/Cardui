@@ -32,6 +32,7 @@ public class TransferPairingService : ITransferPairingService
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public async Task<int> PairOwnedAccountTransfersAsync(
         CancellationToken cancellationToken = default)
     {
@@ -134,6 +135,11 @@ public class TransferPairingService : ITransferPairingService
         return pairCount + promotedCount;
     }
 
+    /// <summary>
+    /// Links an outflow to an opposite inflow of the same amount within one day,
+    /// on a different owned account, when either side looks like a transfer.
+    /// Both legs are categorized as Transfers.
+    /// </summary>
     private static int PairOppositeLegs(
         List<Transaction> candidates,
         Guid uncategorizedCategoryId,
@@ -197,6 +203,10 @@ public class TransferPairingService : ITransferPairingService
         return pairCount;
     }
 
+    /// <summary>
+    /// Marks a single leg as a Transfer when its text is a bank-transfer phrase.
+    /// Those rows are kept even if they have no opposite leg.
+    /// </summary>
     private static int PromoteBankTransferNamedTransactions(
         List<Transaction> candidates,
         Guid transfersCategoryId,
@@ -240,6 +250,10 @@ public class TransferPairingService : ITransferPairingService
         return promotedCount;
     }
 
+    /// <summary>
+    /// Recategorizes Transfer rows from this window that were not paired or
+    /// promoted, using keyword categorization.
+    /// </summary>
     private async Task<int> RepairFalsePositiveTransfersAsync(
         List<Transaction> candidates,
         HashSet<Guid> keepAsTransferIds,
@@ -277,6 +291,10 @@ public class TransferPairingService : ITransferPairingService
         return repairedCount;
     }
 
+    /// <summary>
+    /// True for an uncategorized, transfer, or income category, and for a missing category.
+    /// Other categories are left alone.
+    /// </summary>
     private static bool IsTransferCandidateCategory(
         Category? category,
         Guid uncategorizedCategoryId,
@@ -300,6 +318,9 @@ public class TransferPairingService : ITransferPairingService
             || string.Equals(category.Key, SystemCategoryKeys.Income, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// True when either transaction's text contains a transfer or payment-rail hint.
+    /// </summary>
     private static bool HasTransferPairSignal(Transaction left, Transaction right)
     {
         return TransferTextClassifier.LooksLikeTransferPairSignal(left.MerchantName, left.Name)

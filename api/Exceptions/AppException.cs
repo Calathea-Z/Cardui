@@ -13,8 +13,14 @@ public abstract class AppException : Exception
     {
     }
 
+    /// <summary>
+    /// HTTP status returned for this error.
+    /// </summary>
     public abstract int StatusCode { get; }
 
+    /// <summary>
+    /// Short problem-details title for the status code.
+    /// </summary>
     public virtual string Title => StatusCode switch
     {
         StatusCodes.Status400BadRequest => "Bad Request",
@@ -29,6 +35,7 @@ public sealed class NotFoundException : AppException
     {
     }
 
+    /// <inheritdoc />
     public override int StatusCode => StatusCodes.Status404NotFound;
 }
 
@@ -38,6 +45,7 @@ public sealed class BadRequestException : AppException
     {
     }
 
+    /// <inheritdoc />
     public override int StatusCode => StatusCodes.Status400BadRequest;
 }
 
@@ -58,6 +66,9 @@ public sealed class PlaidSyncException : AppException
 
     public string? PlaidErrorType { get; }
 
+    /// <summary>
+    /// Maps a Plaid error to 409, 429, 400, or 502.
+    /// </summary>
     public override int StatusCode => PlaidErrorCode switch
     {
         "ITEM_LOGIN_REQUIRED" => StatusCodes.Status409Conflict,
@@ -67,6 +78,9 @@ public sealed class PlaidSyncException : AppException
         _ => StatusCodes.Status502BadGateway
     };
 
+    /// <summary>
+    /// Problem-details title for the Plaid status chosen above.
+    /// </summary>
     public override string Title => StatusCode switch
     {
         StatusCodes.Status409Conflict => "Plaid Item Requires Reauthentication",

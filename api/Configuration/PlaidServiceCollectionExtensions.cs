@@ -7,6 +7,9 @@ namespace Cardui.Api.Configuration;
 
 public static class PlaidServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers Plaid options, validates them at startup, and creates the Plaid client.
+    /// </summary>
     public static IServiceCollection AddCarduiPlaid(
         this IServiceCollection services,
         IConfiguration configuration)

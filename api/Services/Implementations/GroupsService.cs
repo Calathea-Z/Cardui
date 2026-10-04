@@ -19,6 +19,7 @@ public class GroupsService : IGroupsService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<GroupDto>> GetGroupsAsync(
         CancellationToken cancellationToken = default)
     {
@@ -32,6 +33,7 @@ public class GroupsService : IGroupsService
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<GroupDetailDto> GetGroupByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default)

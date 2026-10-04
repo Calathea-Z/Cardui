@@ -30,6 +30,7 @@ public class TransactionsService : ITransactionsService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<PagedResultDto<TransactionDto>> GetTransactionsAsync(
         TransactionQueryDto query,
         CancellationToken cancellationToken = default)
@@ -64,11 +65,13 @@ public class TransactionsService : ITransactionsService
         };
     }
 
+    /// <inheritdoc />
     public Task<TransactionDto> GetTransactionByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default) =>
         ProjectTransactionByIdAsync(id, cancellationToken);
 
+    /// <inheritdoc />
     public async Task<MerchantHistoryDto> GetMerchantHistoryAsync(
         Guid transactionId,
         string granularity = "monthly",
@@ -147,6 +150,9 @@ public class TransactionsService : ITransactionsService
         };
     }
 
+    /// <summary>
+    /// Accepts monthly, quarterly, or yearly. Anything else stays monthly.
+    /// </summary>
     private static string NormalizeGranularity(string? granularity)
     {
         return granularity?.Trim().ToLowerInvariant() switch
@@ -157,6 +163,9 @@ public class TransactionsService : ITransactionsService
         };
     }
 
+    /// <summary>
+    /// Builds the period key: yyyy-MM, yyyy-Q#, or yyyy.
+    /// </summary>
     private static string GetPeriodKey(DateOnly date, string granularity)
     {
         return granularity switch
@@ -202,6 +211,9 @@ public class TransactionsService : ITransactionsService
         return (periodKey, periodKey);
     }
 
+    /// <summary>
+    /// Creates a period with no transactions so the current period is always present.
+    /// </summary>
     private static MerchantHistoryPeriodDto CreateEmptyPeriod(
         string periodKey,
         string granularity)
@@ -217,6 +229,9 @@ public class TransactionsService : ITransactionsService
         };
     }
 
+    /// <summary>
+    /// Fills every period from the earliest transaction through today, including gaps.
+    /// </summary>
     private static List<MerchantHistoryPeriodDto> BuildPeriods(
         DateOnly startDate,
         DateOnly endDate,
@@ -256,6 +271,9 @@ public class TransactionsService : ITransactionsService
         return periods;
     }
 
+    /// <summary>
+    /// Sorts periods by key and drops a duplicate key.
+    /// </summary>
     private static List<MerchantHistoryPeriodDto> OrderPeriods(
         List<MerchantHistoryPeriodDto> periods)
     {
@@ -265,6 +283,9 @@ public class TransactionsService : ITransactionsService
             .ToList();
     }
 
+    /// <summary>
+    /// Moves a date to the first day of its month, quarter, or year.
+    /// </summary>
     private static DateOnly AlignPeriodStart(DateOnly date, string granularity)
     {
         return granularity switch
@@ -275,6 +296,9 @@ public class TransactionsService : ITransactionsService
         };
     }
 
+    /// <summary>
+    /// Steps one month, quarter, or year forward.
+    /// </summary>
     private static DateOnly AdvancePeriod(DateOnly date, string granularity)
     {
         return granularity switch
@@ -285,6 +309,7 @@ public class TransactionsService : ITransactionsService
         };
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> UpdateTransactionCategoryAsync(
         Guid transactionId,
         UpdateTransactionCategoryDto dto,
@@ -320,6 +345,7 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> UpdateTransactionDetailsAsync(
         Guid transactionId,
         UpdateTransactionDetailsDto dto,
@@ -403,6 +429,7 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> CreateManualTransactionAsync(
         CreateManualTransactionDto dto,
         CancellationToken cancellationToken = default)
@@ -476,6 +503,7 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> ArchiveTransactionAsync(
         Guid transactionId,
         CancellationToken cancellationToken = default)
@@ -490,6 +518,7 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> RestoreTransactionAsync(
         Guid transactionId,
         CancellationToken cancellationToken = default)
@@ -512,6 +541,10 @@ public class TransactionsService : ITransactionsService
         return (page, pageSize);
     }
 
+    /// <summary>
+    /// Applies search, account, category, date, pending, and archived filters.
+    /// Archived transactions are excluded unless the query asks for them.
+    /// </summary>
     private static IQueryable<Transaction> ApplyFilters(
         IQueryable<Transaction> transactionsQuery,
         TransactionQueryDto query)
@@ -558,6 +591,9 @@ public class TransactionsService : ITransactionsService
         return transactionsQuery;
     }
 
+    /// <summary>
+    /// Loads the API shape of one household transaction, or throws when it is missing.
+    /// </summary>
     private async Task<TransactionDto> ProjectTransactionByIdAsync(
         Guid id,
         CancellationToken cancellationToken)
@@ -577,6 +613,9 @@ public class TransactionsService : ITransactionsService
         return transaction;
     }
 
+    /// <summary>
+    /// Loads a tracked household account, or throws when it is missing.
+    /// </summary>
     private async Task<Account> LoadAccountAsync(
         Guid accountId,
         CancellationToken cancellationToken)
@@ -593,6 +632,9 @@ public class TransactionsService : ITransactionsService
         return account;
     }
 
+    /// <summary>
+    /// Loads a tracked household transaction, or throws when it is missing.
+    /// </summary>
     private async Task<Transaction> FindTransactionAsync(
         Guid transactionId,
         CancellationToken cancellationToken)
@@ -609,6 +651,10 @@ public class TransactionsService : ITransactionsService
         return transaction;
     }
 
+    /// <summary>
+    /// Recalculates today's balance when the account uses the manual ledger.
+    /// Linked accounts are left unchanged.
+    /// </summary>
     private async Task RefreshAccountBalanceAsync(
         Guid accountId,
         DateTimeOffset now,
@@ -631,10 +677,16 @@ public class TransactionsService : ITransactionsService
             cancellationToken);
     }
 
+    /// <summary>
+    /// True when the transaction was entered in Cardui and is not a reconciliation.
+    /// </summary>
     private static bool IsManualEntry(Transaction transaction) =>
         transaction.Source == FinancialRecordSource.Manual
         && transaction.Provenance == FinancialRecordProvenance.ManualEntry;
 
+    /// <summary>
+    /// Trims a required name and rejects an empty value or one longer than 300 characters.
+    /// </summary>
     private static string RequireName(string name)
     {
         var trimmed = name.Trim();
@@ -646,12 +698,18 @@ public class TransactionsService : ITransactionsService
         return trimmed;
     }
 
+    /// <summary>
+    /// Trims optional text and stores blank input as null.
+    /// </summary>
     private static string? EmptyToNull(string? value)
     {
         var trimmed = value?.Trim();
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
+    /// <summary>
+    /// True when the category is a system category or belongs to this household.
+    /// </summary>
     private Task<bool> CategoryIsVisibleAsync(
         Guid categoryId,
         CancellationToken cancellationToken)

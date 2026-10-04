@@ -15,6 +15,10 @@ public class SubGroupsController : ControllerBase
         _subGroupsService = subGroupsService;
     }
 
+    /// <summary>
+    /// GET /api/subgroups
+    /// Lists visible sub-groups. groupId limits the list to one group.
+    /// </summary>
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<SubGroupDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<SubGroupDto>>> GetSubGroups(
@@ -27,6 +31,10 @@ public class SubGroupsController : ControllerBase
         return Ok(subGroups);
     }
 
+    /// <summary>
+    /// GET /api/subgroups/{id}
+    /// Returns one visible sub-group.
+    /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType<SubGroupDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -40,6 +48,10 @@ public class SubGroupsController : ControllerBase
         return Ok(subGroup);
     }
 
+    /// <summary>
+    /// POST /api/subgroups
+    /// Creates a household sub-group inside a group.
+    /// </summary>
     [HttpPost]
     [ProducesResponseType<SubGroupDto>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -57,6 +69,10 @@ public class SubGroupsController : ControllerBase
             subGroup);
     }
 
+    /// <summary>
+    /// PATCH /api/subgroups/{id}
+    /// Renames a household sub-group.
+    /// </summary>
     [HttpPatch("{id:guid}")]
     [ProducesResponseType<SubGroupDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -73,6 +89,10 @@ public class SubGroupsController : ControllerBase
         return Ok(subGroup);
     }
 
+    /// <summary>
+    /// DELETE /api/subgroups/{id}
+    /// Deletes a household sub-group that has no categories.
+    /// </summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

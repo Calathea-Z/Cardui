@@ -6,6 +6,9 @@ namespace Cardui.Api.Data.Configurations;
 
 public class PlaidItemConfiguration : IEntityTypeConfiguration<PlaidItem>
 {
+    /// <summary>
+    /// Maps a Plaid item, its household, and the accounts it owns.
+    /// </summary>
     public void Configure(EntityTypeBuilder<PlaidItem> entity)
     {
         entity.HasKey(x => x.Id);

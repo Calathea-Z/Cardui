@@ -5,6 +5,11 @@ namespace Cardui.Api.Configuration;
 
 public static class WebApplicationExtensions
 {
+    /// <summary>
+    /// Configures the API pipeline: exception handling, CORS, Clerk
+    /// authentication, household scope, GET /api/health, and controllers.
+    /// In development it also seeds system categories when none exist and maps OpenAPI.
+    /// </summary>
     public static async Task UseCarduiApiAsync(this WebApplication app)
     {
         if (app.Environment.IsDevelopment())

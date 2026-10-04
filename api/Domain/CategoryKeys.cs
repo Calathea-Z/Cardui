@@ -4,6 +4,9 @@ namespace Cardui.Api.Domain;
 
 public static class CategoryKeys
 {
+    /// <summary>
+    /// Turns a display name into a lowercase key, with words separated by hyphens.
+    /// </summary>
     public static string CreateFromName(string name)
     {
         var builder = new StringBuilder(name.Length);

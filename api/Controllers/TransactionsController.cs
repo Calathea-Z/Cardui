@@ -1,4 +1,4 @@
-﻿using Cardui.Api.Dtos.Common;
+using Cardui.Api.Dtos.Common;
 using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +16,10 @@ public class TransactionsController : ControllerBase
         _transactionsService = transactionsService;
     }
 
+    /// <summary>
+    /// GET /api/transactions
+    /// Returns a page of household transactions using the query filters.
+    /// </summary>
     [HttpGet]
     [ProducesResponseType<PagedResultDto<TransactionDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResultDto<TransactionDto>>> GetTransactions(
@@ -26,6 +30,10 @@ public class TransactionsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// GET /api/transactions/{id}
+    /// Returns one household transaction.
+    /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -39,6 +47,10 @@ public class TransactionsController : ControllerBase
         return Ok(transaction);
     }
 
+    /// <summary>
+    /// GET /api/transactions/{id}/merchant-history
+    /// Returns spending history for the merchant on this transaction.
+    /// </summary>
     [HttpGet("{id:guid}/merchant-history")]
     [ProducesResponseType<MerchantHistoryDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,6 +66,11 @@ public class TransactionsController : ControllerBase
         return Ok(history);
     }
 
+    /// <summary>
+    /// PATCH /api/transactions/{id}
+    /// Updates a transaction's date, category, notes, and, for a manual
+    /// entry, its name and amount.
+    /// </summary>
     [HttpPatch("{id:guid}")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -70,6 +87,10 @@ public class TransactionsController : ControllerBase
         return Ok(transaction);
     }
 
+    /// <summary>
+    /// PATCH /api/transactions/{id}/category
+    /// Changes a transaction's category and keeps that choice across Plaid sync.
+    /// </summary>
     [HttpPatch("{id:guid}/category")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -86,6 +107,10 @@ public class TransactionsController : ControllerBase
         return Ok(transaction);
     }
 
+    /// <summary>
+    /// POST /api/transactions
+    /// Creates a manual transaction on a household account.
+    /// </summary>
     [HttpPost]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -100,6 +125,10 @@ public class TransactionsController : ControllerBase
         return Ok(transaction);
     }
 
+    /// <summary>
+    /// POST /api/transactions/{id}/archive
+    /// Archives a transaction so it leaves activity and a manual balance.
+    /// </summary>
     [HttpPost("{id:guid}/archive")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -113,6 +142,10 @@ public class TransactionsController : ControllerBase
         return Ok(transaction);
     }
 
+    /// <summary>
+    /// POST /api/transactions/{id}/restore
+    /// Restores an archived transaction and recalculates a manual balance.
+    /// </summary>
     [HttpPost("{id:guid}/restore")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

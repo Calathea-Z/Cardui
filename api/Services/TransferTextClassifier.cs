@@ -45,6 +45,9 @@ public static class TransferTextClassifier
         "debit to",
     ];
 
+    /// <summary>
+    /// Joins the merchant and name into one lowercase string for hint matching.
+    /// </summary>
     public static string BuildText(string? merchantName, string? name)
     {
         return string.Join(
@@ -54,12 +57,19 @@ public static class TransferTextClassifier
             .ToLowerInvariant();
     }
 
+    /// <summary>
+    /// True for phrases that are safe to categorize as a Transfer on one leg.
+    /// </summary>
     public static bool LooksLikeBankTransfer(string? merchantName, string? name)
     {
         var text = BuildText(merchantName, name);
         return BankTransferHints.Any(hint => text.Contains(hint, StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// True for bank-transfer phrases or broader rails such as Zelle and Venmo.
+    /// Used only when pairing opposite amounts.
+    /// </summary>
     public static bool LooksLikeTransferPairSignal(string? merchantName, string? name)
     {
         var text = BuildText(merchantName, name);

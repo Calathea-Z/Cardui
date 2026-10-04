@@ -26,6 +26,7 @@ public class SubGroupsService : ISubGroupsService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<SubGroupDto>> GetSubGroupsAsync(
         Guid? groupId = null,
         CancellationToken cancellationToken = default)
@@ -46,11 +47,13 @@ public class SubGroupsService : ISubGroupsService
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<SubGroupDto> GetSubGroupByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default) =>
         ProjectSubGroupByIdAsync(id, cancellationToken);
 
+    /// <inheritdoc />
     public async Task<SubGroupDto> CreateSubGroupAsync(
         CreateSubGroupDto dto,
         CancellationToken cancellationToken = default)
@@ -113,6 +116,7 @@ public class SubGroupsService : ISubGroupsService
         return SubGroupDtoMapper.MapToDto(subGroup);
     }
 
+    /// <inheritdoc />
     public async Task<SubGroupDto> UpdateSubGroupAsync(
         Guid id,
         UpdateSubGroupDto dto,
@@ -158,6 +162,7 @@ public class SubGroupsService : ISubGroupsService
         return SubGroupDtoMapper.MapToDto(subGroup);
     }
 
+    /// <inheritdoc />
     public async Task DeleteSubGroupAsync(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -189,6 +194,9 @@ public class SubGroupsService : ISubGroupsService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Loads one visible sub-group, or throws when it is missing.
+    /// </summary>
     private async Task<SubGroupDto> ProjectSubGroupByIdAsync(
         Guid id,
         CancellationToken cancellationToken)

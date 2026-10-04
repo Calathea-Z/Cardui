@@ -19,11 +19,13 @@ public class DataProtectionPlaidAccessTokenProtector : IPlaidAccessTokenProtecto
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public string Protect(string accessToken)
     {
         return $"{ProtectedTokenPrefix}{_protector.Protect(accessToken)}";
     }
 
+    /// <inheritdoc />
     public string Unprotect(string storedAccessToken)
     {
         if (!storedAccessToken.StartsWith(ProtectedTokenPrefix, StringComparison.Ordinal))

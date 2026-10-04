@@ -15,6 +15,9 @@ public static class GroupDtoMapper
         SortOrder = x.SortOrder
     };
 
+    /// <summary>
+    /// Maps a group and its sub-groups, ordered for display.
+    /// </summary>
     public static GroupDetailDto MapToDetailDto(Group group)
     {
         return new GroupDetailDto

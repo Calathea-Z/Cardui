@@ -6,6 +6,9 @@ namespace Cardui.Api.Data.Configurations;
 
 public class GroupConfiguration : IEntityTypeConfiguration<Group>
 {
+    /// <summary>
+    /// Maps a category group and its unique key and name.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Group> entity)
     {
         entity.HasKey(x => x.Id);

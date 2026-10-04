@@ -16,3 +16,13 @@ that reply.
 Update models and the DbContext, then ask before generating or applying an
 EF Core migration. After approval, run `dotnet ef` from `api/` in
 PowerShell. Do not drop or wipe data without a separate approval.
+
+## Backend method comments
+
+Document every method in `api/` and `worker/` with an XML summary that says
+what it does. Public service methods are documented on the interface;
+implementations use `/// <inheritdoc />`. Private methods have their own
+summary. Do not document constructors. Controller actions list the HTTP
+method and route.
+Skip generated EF Core migrations. See
+`.cursor/rules/backend-method-comments.mdc`.

@@ -14,6 +14,11 @@ public sealed class HouseholdScopeMiddleware
         _next = next;
     }
 
+    /// <summary>
+    /// Binds the household owned by the signed-in Clerk user before the rest
+    /// of the pipeline runs. Anonymous requests and POST /api/households/current
+    /// are left unbound so a household can be created first.
+    /// </summary>
     public async Task InvokeAsync(
         HttpContext context,
         IHouseholdOwnerContext ownerContext,
@@ -40,6 +45,9 @@ public sealed class HouseholdScopeMiddleware
         await _next(context);
     }
 
+    /// <summary>
+    /// True for the route that creates the current household.
+    /// </summary>
     private static bool IsCurrentHouseholdCreate(HttpContext context)
     {
         return HttpMethods.IsPost(context.Request.Method)

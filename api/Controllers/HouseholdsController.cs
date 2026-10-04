@@ -22,6 +22,12 @@ public class HouseholdsController : ControllerBase
         _ownerContext = ownerContext;
     }
 
+    /// <summary>
+    /// POST /api/households/current
+    /// Returns the signed-in owner's household, creating it on the first call.
+    /// This route is excluded from household-scope middleware so the household
+    /// can be created before later requests are scoped.
+    /// </summary>
     [HttpPost("current")]
     [ProducesResponseType<HouseholdDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

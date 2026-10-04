@@ -33,6 +33,7 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public async Task<TransactionSyncPageResultDto> ReconcileAsync(
         Guid plaidItemId,
         IReadOnlyDictionary<string, Account> accountsByPlaidId,
@@ -131,6 +132,10 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
         };
     }
 
+    /// <summary>
+    /// Inserts a transaction or updates the stored row, including a pending
+    /// row that Plaid has now posted. Skips a transaction whose account is unknown.
+    /// </summary>
     private async Task<TransactionUpsertResult> UpsertAsync(
         Transaction plaidTransaction,
         Guid plaidItemId,
@@ -241,6 +246,9 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
         return TransactionUpsertResult.Modified;
     }
 
+    /// <summary>
+    /// Adds one to the added or modified count. A skipped transaction is not counted.
+    /// </summary>
     private static void Count(
         TransactionUpsertResult result,
         ref int addedCount,

@@ -6,6 +6,9 @@ namespace Cardui.Api.Data.Configurations;
 
 public class SubGroupConfiguration : IEntityTypeConfiguration<SubGroup>
 {
+    /// <summary>
+    /// Maps a sub-group, its group, and the household that owns a custom row.
+    /// </summary>
     public void Configure(EntityTypeBuilder<SubGroup> entity)
     {
         entity.HasKey(x => x.Id);

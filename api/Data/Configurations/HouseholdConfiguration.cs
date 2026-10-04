@@ -6,6 +6,9 @@ namespace Cardui.Api.Data.Configurations;
 
 public class HouseholdConfiguration : IEntityTypeConfiguration<Household>
 {
+    /// <summary>
+    /// Maps a household and the unique Clerk owner id.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Household> entity)
     {
         entity.HasKey(x => x.Id);

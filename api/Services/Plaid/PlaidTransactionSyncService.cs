@@ -36,6 +36,7 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         _timeProvider = timeProvider;
     }
 
+    /// <inheritdoc />
     public async Task<SyncTransactionsResponseDto> SyncTransactionsForPlaidItemAsync(
         PlaidItem plaidItem,
         CancellationToken cancellationToken = default)
@@ -96,6 +97,10 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         };
     }
 
+    /// <summary>
+    /// Assigns a keyword category to this item's transactions that have no
+    /// category and were not edited by the user.
+    /// </summary>
     private async Task CategorizeUncategorizedForPlaidItemAsync(
         Guid plaidItemId,
         CancellationToken cancellationToken)

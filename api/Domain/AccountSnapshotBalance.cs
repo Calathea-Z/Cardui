@@ -1,5 +1,8 @@
 namespace Cardui.Api.Domain;
 
+/// <summary>
+/// One stored balance used to build history. RecordedAt orders snapshots on the same day.
+/// </summary>
 public readonly record struct AccountSnapshotBalance(
     Guid AccountId,
     string Type,

@@ -17,6 +17,10 @@ public class GlobalExceptionHandler : IExceptionHandler
         _environment = environment;
     }
 
+    /// <summary>
+    /// Writes an application exception as problem details. Unexpected errors
+    /// become a 500, with the exception message only in development.
+    /// </summary>
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext,
         Exception exception,

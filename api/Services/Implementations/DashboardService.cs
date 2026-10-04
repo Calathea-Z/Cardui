@@ -28,6 +28,7 @@ public class DashboardService : IDashboardService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<DashboardSummaryDto> GetSummaryAsync(
         CancellationToken cancellationToken = default)
     {
@@ -62,6 +63,9 @@ public class DashboardService : IDashboardService
         };
     }
 
+    /// <summary>
+    /// Returns the first day of the local month through today.
+    /// </summary>
     private (DateOnly Start, DateOnly End) GetCurrentMonthRange()
     {
         var today = FinancialDate.Today(_timeProvider);
@@ -70,6 +74,10 @@ public class DashboardService : IDashboardService
         return (monthStart, today);
     }
 
+    /// <summary>
+    /// Sums cash, investments, credit cards, loans, and net worth for
+    /// active accounts that are not archived.
+    /// </summary>
     private async Task<AccountTotals> GetActiveAccountTotalsAsync(
         CancellationToken cancellationToken)
     {
@@ -83,6 +91,10 @@ public class DashboardService : IDashboardService
         return AccountTotalsCalculator.Calculate(balances);
     }
 
+    /// <summary>
+    /// Totals income and spending for posted, non-archived transactions
+    /// in the date range. Transfers and reconciliations are excluded by the calculator.
+    /// </summary>
     private async Task<TransactionActivityTotals> GetMonthlyActivityAsync(
         DateOnly monthStart,
         DateOnly monthEnd,
@@ -107,6 +119,9 @@ public class DashboardService : IDashboardService
         return TransactionActivityCalculator.Calculate(transactions);
     }
 
+    /// <summary>
+    /// Returns the eight most recent non-archived transactions.
+    /// </summary>
     private async Task<IReadOnlyList<TransactionDto>> GetRecentTransactionsAsync(
         CancellationToken cancellationToken)
     {
@@ -120,6 +135,9 @@ public class DashboardService : IDashboardService
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Household transactions whose date falls inside the inclusive range.
+    /// </summary>
     private IQueryable<Transaction> TransactionsInDateRange(DateOnly start, DateOnly end)
     {
         return _dbContext.Transactions

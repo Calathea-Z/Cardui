@@ -16,6 +16,9 @@ public static class SubGroupDtoMapper
         SortOrder = x.SortOrder
     };
 
+    /// <summary>
+    /// Maps a tracked sub-group to the API response. Used after create and update.
+    /// </summary>
     public static SubGroupDto MapToDto(SubGroup subGroup)
     {
         return new SubGroupDto

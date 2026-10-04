@@ -24,6 +24,7 @@ public sealed class ClerkSigningKeySource : IClerkSigningKeySource
         _timeProvider = timeProvider;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<SecurityKey>> GetSigningKeysAsync(
         CancellationToken cancellationToken = default)
     {
@@ -83,6 +84,9 @@ public sealed class ClerkSigningKeySource : IClerkSigningKeySource
         }
     }
 
+    /// <summary>
+    /// Imports an RSA public key from PEM text. Literal \n sequences are turned into newlines.
+    /// </summary>
     public static SecurityKey CreatePemKey(string pem)
     {
         var normalized = pem.Replace("\\n", "\n", StringComparison.Ordinal).Trim();

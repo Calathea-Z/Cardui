@@ -36,6 +36,7 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         _timeProvider = timeProvider;
     }
 
+    /// <inheritdoc />
     public async Task SyncAccountsForPlaidItemAsync(
         PlaidItem plaidItem,
         CancellationToken cancellationToken = default)
@@ -119,6 +120,9 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Creates a linked account from a Plaid account and copies the bank fields.
+    /// </summary>
     private static Account CreateAccountFromPlaid(
         PlaidItem plaidItem,
         PlaidAccount plaidAccount,
@@ -142,6 +146,10 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         return account;
     }
 
+    /// <summary>
+    /// Copies the name, type, mask, and balances supplied by the bank.
+    /// ArchivedAt is left unchanged.
+    /// </summary>
     private static void ApplyPlaidAccountFields(
         Account account,
         PlaidAccount plaidAccount,
@@ -163,6 +171,9 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         account.UpdatedAt = now;
     }
 
+    /// <summary>
+    /// Replaces today's snapshot for the account so the chart uses the bank balance.
+    /// </summary>
     private void UpsertAccountBalanceSnapshot(
         Account account,
         DateOnly today,

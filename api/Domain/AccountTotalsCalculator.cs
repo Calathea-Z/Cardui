@@ -2,6 +2,10 @@ namespace Cardui.Api.Domain;
 
 public static class AccountTotalsCalculator
 {
+    /// <summary>
+    /// Sums balances into cash, investments, credit cards, and loans.
+    /// Net worth is assets minus liabilities.
+    /// </summary>
     public static AccountTotals Calculate(IEnumerable<AccountBalanceValue> accounts)
     {
         decimal cash = 0;

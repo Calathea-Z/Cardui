@@ -17,6 +17,10 @@ public static class TransactionCategoryClassifier
         "dividend"
     ];
 
+    /// <summary>
+    /// Chooses a system category key. Bank transfers win first, then income
+    /// hints on money coming in, then merchant keywords. Anything else is Other.
+    /// </summary>
     public static string GetCategoryKey(
         string? merchantName,
         string? description,
@@ -67,6 +71,9 @@ public static class TransactionCategoryClassifier
         return SystemCategoryKeys.Other;
     }
 
+    /// <summary>
+    /// True when the text contains any of the keywords.
+    /// </summary>
     private static bool ContainsAny(string text, params string[] keywords)
     {
         return keywords.Any(text.Contains);

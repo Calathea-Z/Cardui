@@ -5,6 +5,9 @@ namespace Cardui.Api.Options;
 
 public sealed class PlaidOptionsValidator : IValidateOptions<PlaidOptions>
 {
+    /// <summary>
+    /// Checks required Plaid settings before the API starts.
+    /// </summary>
     public ValidateOptionsResult Validate(string? name, PlaidOptions options)
     {
         var failures = new List<string>();

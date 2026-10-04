@@ -1,4 +1,4 @@
-﻿using Cardui.Api.Dtos.Dashboard;
+using Cardui.Api.Dtos.Dashboard;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +15,10 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
+    /// <summary>
+    /// GET /api/dashboard/summary
+    /// Returns the current month's balances, income, spending, and recent transactions.
+    /// </summary>
     [HttpGet("summary")]
     [ProducesResponseType<DashboardSummaryDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<DashboardSummaryDto>> GetSummary(

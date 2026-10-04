@@ -20,6 +20,7 @@ public class HouseholdsService : IHouseholdsService
         _timeProvider = timeProvider;
     }
 
+    /// <inheritdoc />
     public async Task<HouseholdDto> GetOrCreateForOwnerAsync(
         string ownerClerkUserId,
         CancellationToken cancellationToken = default)
@@ -66,6 +67,9 @@ public class HouseholdsService : IHouseholdsService
         }
     }
 
+    /// <summary>
+    /// Loads the household for a Clerk user id, or null when that owner has none.
+    /// </summary>
     private Task<Household?> FindByOwnerAsync(
         string ownerClerkUserId,
         CancellationToken cancellationToken)
@@ -74,6 +78,9 @@ public class HouseholdsService : IHouseholdsService
             .SingleOrDefaultAsync(x => x.OwnerClerkUserId == ownerClerkUserId, cancellationToken);
     }
 
+    /// <summary>
+    /// Maps a household row to the API response.
+    /// </summary>
     private static HouseholdDto Map(Household household)
     {
         return new HouseholdDto

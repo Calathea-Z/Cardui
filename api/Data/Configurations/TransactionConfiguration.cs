@@ -6,6 +6,9 @@ namespace Cardui.Api.Data.Configurations;
 
 public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 {
+    /// <summary>
+    /// Maps transaction columns, lookup indexes, and the optional category.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Transaction> entity)
     {
         entity.HasKey(x => x.Id);

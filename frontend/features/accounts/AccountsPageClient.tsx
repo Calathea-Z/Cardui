@@ -98,6 +98,7 @@ export function AccountsPageClient({
 
       <AccountDetailSheet
         account={selectedAccount}
+        planningCurrency={summary.planningCurrency}
         onClose={() => setSelectedAccount(null)}
         onChanged={() => router.refresh()}
       />

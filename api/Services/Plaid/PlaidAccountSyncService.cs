@@ -44,7 +44,9 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         cancellationToken.ThrowIfCancellationRequested();
         var response = await FetchAccountsAsync(plaidItem);
         var now = _timeProvider.GetUtcNow();
-        var today = FinancialDate.Today(_timeProvider);
+        var today = FinancialDate.Today(
+            _timeProvider,
+            await GetHouseholdTimeZoneIdAsync(plaidItem, cancellationToken));
         var responseAccountIds = response.Accounts
             .Select(account => account.AccountId)
             .Where(id => !string.IsNullOrWhiteSpace(id))
@@ -267,6 +269,30 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
 
         _dbContext.AccountBalanceSnapshots.Add(snapshot);
         existingSnapshotsByAccountId[account.Id] = snapshot;
+    }
+
+    /// <summary>
+    /// Loads the household time zone used to choose the snapshot date.
+    /// An item with no household uses the default time zone.
+    /// </summary>
+    private async Task<string> GetHouseholdTimeZoneIdAsync(
+        PlaidItem plaidItem,
+        CancellationToken cancellationToken)
+    {
+        if (plaidItem.HouseholdId is not Guid householdId)
+        {
+            return HouseholdTime.DefaultTimeZoneId;
+        }
+
+        var timeZoneId = await _dbContext.Households
+            .AsNoTracking()
+            .Where(x => x.Id == householdId)
+            .Select(x => x.TimeZoneId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return string.IsNullOrWhiteSpace(timeZoneId)
+            ? HouseholdTime.DefaultTimeZoneId
+            : timeZoneId;
     }
 
     #endregion

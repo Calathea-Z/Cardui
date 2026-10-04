@@ -9,4 +9,14 @@ public static class FinancialDate
     {
         return DateOnly.FromDateTime(timeProvider.GetLocalNow().DateTime);
     }
+
+    /// <summary>
+    /// Today's date in the household time zone.
+    /// </summary>
+    public static DateOnly Today(TimeProvider timeProvider, string timeZoneId)
+    {
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        var local = TimeZoneInfo.ConvertTime(timeProvider.GetUtcNow(), timeZone);
+        return DateOnly.FromDateTime(local.DateTime);
+    }
 }

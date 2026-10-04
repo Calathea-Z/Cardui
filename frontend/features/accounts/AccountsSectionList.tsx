@@ -6,12 +6,14 @@ import { formatCurrency } from "./formatCurrency";
 type AccountsSectionListProps = {
   groups: AccountGroupDto[];
   archivedAccounts?: AccountDto[];
+  planningCurrency?: string;
   onSelectAccount?: (account: AccountDto) => void;
 };
 
 export function AccountsSectionList({
   groups,
   archivedAccounts = [],
+  planningCurrency = "USD",
   onSelectAccount,
 }: AccountsSectionListProps) {
   const detailGroups = groups.filter(
@@ -41,7 +43,7 @@ export function AccountsSectionList({
               </p>
             </div>
             <p className="ledger-amount shrink-0 text-xl text-foreground">
-              {formatCurrency(group.total)}
+              {formatCurrency(group.total, planningCurrency)}
             </p>
           </div>
 
@@ -50,6 +52,7 @@ export function AccountsSectionList({
               <AccountListRow
                 key={account.id}
                 account={account}
+                planningCurrency={planningCurrency}
                 onSelect={onSelectAccount}
               />
             ))}
@@ -71,6 +74,7 @@ export function AccountsSectionList({
               <AccountListRow
                 key={account.id}
                 account={account}
+                planningCurrency={planningCurrency}
                 onSelect={onSelectAccount}
               />
             ))}

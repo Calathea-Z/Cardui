@@ -26,6 +26,7 @@ import {
 
 type AccountDetailSheetProps = {
   account: AccountDto | null;
+  planningCurrency?: string;
   onClose: () => void;
   onChanged: () => void;
 };
@@ -42,15 +43,18 @@ function toForm(account: AccountDto): ManualAccountFormValues {
 
 function AccountDetailContent({
   account,
+  planningCurrency = "USD",
   onClose,
   onChanged,
   onPickerOpenChange,
 }: {
   account: AccountDto;
+  planningCurrency?: string;
   onClose: () => void;
   onChanged: () => void;
   onPickerOpenChange: (open: boolean) => void;
 }) {
+  const currency = account.isoCurrencyCode ?? planningCurrency;
   const manual = isManualAccount(account);
   const [form, setForm] = useState(() => toForm(account));
   const [statementBalance, setStatementBalance] = useState(
@@ -109,7 +113,7 @@ function AccountDetailContent({
       setReconcileMessage(
         result.adjustment === 0
           ? "The balance already matched this statement."
-          : `Saved a ${formatCurrency(result.adjustment)} adjustment. It is not income or spending.`,
+          : `Saved a ${formatCurrency(result.adjustment, currency)} adjustment. It is not income or spending.`,
       );
       onChanged();
     } catch (error) {
@@ -145,7 +149,7 @@ function AccountDetailContent({
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm text-muted-foreground">
-        Current balance {formatCurrency(currentBalance)}
+        Current balance {formatCurrency(currentBalance, currency)}
       </p>
 
       {manual ? (
@@ -246,6 +250,7 @@ function AccountDetailContent({
 
 export function AccountDetailSheet({
   account,
+  planningCurrency = "USD",
   onClose,
   onChanged,
 }: AccountDetailSheetProps) {
@@ -263,6 +268,7 @@ export function AccountDetailSheet({
         <AccountDetailContent
           key={account.id}
           account={account}
+          planningCurrency={planningCurrency}
           onClose={onClose}
           onChanged={onChanged}
           onPickerOpenChange={setPickerOpen}

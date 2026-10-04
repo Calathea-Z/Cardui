@@ -43,6 +43,9 @@ export function firstApiError(
 export function emptyAccountSummary(): AccountSummaryDto {
   return {
     netWorth: 0,
+    planningCurrency: "USD",
+    excludedAccountCount: 0,
+    excludedCurrencies: [],
     history: [],
     groups: [
       { key: "net-worth", name: "Net Worth", total: 0, accounts: [] },
@@ -64,6 +67,10 @@ export function emptyDashboardSummary(): DashboardSummaryDto {
     netWorth: 0,
     monthlyIncome: 0,
     monthlySpending: 0,
+    planningCurrency: "USD",
+    excludedAccountCount: 0,
+    excludedTransactionCount: 0,
+    excludedCurrencies: [],
     recentTransactions: [],
     spendingByCategory: [],
   };

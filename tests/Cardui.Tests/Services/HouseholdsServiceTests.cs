@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,9 @@ public class HouseholdsServiceTests
         Assert.Equal(first.Id, again.Id);
         Assert.Equal(HouseholdsService.DefaultDisplayName, first.DisplayName);
         Assert.Equal(CreatedAt, first.CreatedAt);
+        var stored = await dbContext.Households.SingleAsync(x => x.Id == first.Id);
+        Assert.Equal(PlanningCurrencyRules.DefaultCode, stored.PlanningCurrency);
+        Assert.Equal(HouseholdTime.DefaultTimeZoneId, stored.TimeZoneId);
         Assert.NotEqual(first.Id, secondOwner.Id);
         Assert.Equal(2, await dbContext.Households.CountAsync());
     }

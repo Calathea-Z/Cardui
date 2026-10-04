@@ -40,10 +40,12 @@ public class AccountsService : IAccountsService
             accounts = accounts.Where(x => x.ArchivedAt == null);
         }
 
-        return await accounts
+        var result = await accounts
             .OrderBy(x => x.Name)
             .Select(AccountDtoMapper.Projection)
             .ToListAsync(cancellationToken);
+        MarkPlanningTotals(result, _householdScope.PlanningCurrency);
+        return result;
     }
 
     /// <inheritdoc />
@@ -66,6 +68,12 @@ public class AccountsService : IAccountsService
             .Select(AccountDtoMapper.Projection)
             .ToListAsync(cancellationToken);
 
+        var planningCurrency = _householdScope.PlanningCurrency;
+        MarkPlanningTotals(accounts, planningCurrency);
+        MarkPlanningTotals(archivedAccounts, planningCurrency);
+        var excludedAccounts = accounts
+            .Where(x => !x.CountsInPlanningTotals)
+            .ToList();
         var accountTotals = CalculateAccountTotals(accounts);
         var groups = new List<AccountGroupDto>
         {
@@ -93,6 +101,11 @@ public class AccountsService : IAccountsService
         return new AccountSummaryDto
         {
             NetWorth = groups.Single(x => x.Key == AccountGroupKeys.NetWorth).Total,
+            PlanningCurrency = planningCurrency,
+            ExcludedAccountCount = excludedAccounts.Count,
+            ExcludedCurrencies = PlanningCurrencyRules.ExcludedCodes(
+                excludedAccounts.Select(x => x.IsoCurrencyCode),
+                planningCurrency),
             Groups = groups,
             History = history,
             ArchivedAccounts = archivedAccounts
@@ -105,7 +118,7 @@ public class AccountsService : IAccountsService
         CancellationToken cancellationToken = default)
     {
         var householdId = _householdScope.RequireHouseholdId();
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         var now = _timeProvider.GetUtcNow();
         var openingDate = RequireOpeningDate(dto.OpeningBalanceDate, today);
 
@@ -156,7 +169,7 @@ public class AccountsService : IAccountsService
                 "Linked accounts keep their name, type, and balance from the bank. You can archive the account.");
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         var openingDate = RequireOpeningDate(dto.OpeningBalanceDate, today);
         await RequireOpeningDateCoversTransactionsAsync(
             account.Id,
@@ -229,7 +242,7 @@ public class AccountsService : IAccountsService
             throw new BadRequestException("Restore this account before reconciling its balance.");
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         if (dto.AsOfDate < openingDate || dto.AsOfDate > today)
         {
             throw new BadRequestException(
@@ -347,27 +360,39 @@ public class AccountsService : IAccountsService
     }
 
     /// <summary>
-    /// Builds daily balance history from the snapshot columns the chart needs,
-    /// carrying each account's last known balance forward.
+    /// Builds daily balance history from the snapshot columns the chart needs.
+    /// Snapshots in another currency are left out. Each account keeps its last known balance.
     /// </summary>
     private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync(
         CancellationToken cancellationToken)
     {
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
+        var planningCurrency = _householdScope.PlanningCurrency;
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
             .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Account.IsActive && x.Account.ArchivedAt == null && x.Date <= today)
             .OrderBy(x => x.Date)
-            .Select(x => new AccountSnapshotBalance(
+            .Select(x => new
+            {
                 x.AccountId,
                 x.Account.Type,
                 x.Date,
                 x.CurrentBalance,
-                x.CreatedAt))
+                x.CreatedAt,
+                x.Account.IsoCurrencyCode
+            })
             .ToListAsync(cancellationToken);
 
-        return AccountBalanceHistory.Build(snapshots)
+        var includedSnapshots = snapshots.Where(x =>
+            PlanningCurrencyRules.IsIncluded(x.IsoCurrencyCode, planningCurrency));
+
+        return AccountBalanceHistory.Build(includedSnapshots.Select(x => new AccountSnapshotBalance(
+                x.AccountId,
+                x.Type,
+                x.Date,
+                x.CurrentBalance,
+                x.CreatedAt)))
             .Select(point => new AccountBalanceHistoryPointDto
             {
                 Date = point.Date,
@@ -418,7 +443,31 @@ public class AccountsService : IAccountsService
             throw new NotFoundException($"Account '{accountId}' was not found.");
         }
 
+        MarkPlanningTotals([account], _householdScope.PlanningCurrency);
         return account;
+    }
+
+    /// <summary>
+    /// Today's date in the household time zone.
+    /// </summary>
+    private DateOnly Today()
+    {
+        return FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
+    }
+
+    /// <summary>
+    /// Marks each account that counts toward planning totals for this currency.
+    /// </summary>
+    private static void MarkPlanningTotals(
+        IEnumerable<AccountDto> accounts,
+        string planningCurrency)
+    {
+        foreach (var account in accounts)
+        {
+            account.CountsInPlanningTotals = PlanningCurrencyRules.IsIncluded(
+                account.IsoCurrencyCode,
+                planningCurrency);
+        }
     }
 
     /// <summary>
@@ -499,13 +548,13 @@ public class AccountsService : IAccountsService
     }
 
     /// <summary>
-    /// Uses USD when no currency is supplied, and rejects a code that is not 3 to 10 characters.
+    /// Uses the planning currency when no currency is supplied, and rejects a code that is not 3 to 10 characters.
     /// </summary>
-    private static string NormalizeCurrency(string? value)
+    private string NormalizeCurrency(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            return "USD";
+            return _householdScope.PlanningCurrency;
         }
 
         var currency = value.Trim().ToUpperInvariant();
@@ -523,7 +572,9 @@ public class AccountsService : IAccountsService
     private static AccountTotals CalculateAccountTotals(IReadOnlyList<AccountDto> accounts)
     {
         return AccountTotalsCalculator.Calculate(
-            accounts.Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)));
+            accounts
+                .Where(x => x.CountsInPlanningTotals)
+                .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)));
     }
     #endregion
 }

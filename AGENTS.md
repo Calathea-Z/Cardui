@@ -62,3 +62,12 @@ A read that does not update rows uses `AsNoTracking` or `Select`. Project
 the columns the caller needs. Filter transactions and balance snapshots by
 account id, and index a growing table by the columns that lookup uses. Ask
 before an index migration. See `.cursor/rules/backend-query-access.mdc`.
+
+## UI primitives
+
+When a control is reused, decide whether it should be a shared primitive in
+`frontend/components/ui`. For a large or specialized control, decide whether
+a small primitive is enough or a library is the better fit, and ask before
+adding that dependency. Choice lists use `Select` in
+`frontend/components/ui/select.tsx`. Do not use a native `<select>`. See
+`.cursor/rules/ui-primitives.mdc`.

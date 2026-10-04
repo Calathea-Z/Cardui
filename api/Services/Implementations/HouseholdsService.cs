@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Household;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;
@@ -43,6 +44,8 @@ public class HouseholdsService : IHouseholdsService
             Id = Guid.NewGuid(),
             OwnerClerkUserId = ownerId,
             DisplayName = DefaultDisplayName,
+            PlanningCurrency = PlanningCurrencyRules.DefaultCode,
+            TimeZoneId = HouseholdTime.DefaultTimeZoneId,
             CreatedAt = now,
             UpdatedAt = now
         };

@@ -5,6 +5,17 @@ namespace Cardui.Api.Domain;
 public static class TransactionActivityCalculator
 {
     /// <summary>
+    /// True when a posted transaction counts as income or spending.
+    /// Transfers and balance reconciliations are excluded.
+    /// </summary>
+    public static bool AffectsIncomeOrSpending(TransactionActivityValue transaction)
+    {
+        return !transaction.Pending
+            && !IsTransfer(transaction)
+            && !IsBalanceReconciliation(transaction);
+    }
+
+    /// <summary>
     /// Totals income and spending. Pending transactions, transfers, and
     /// balance reconciliations are excluded. Income is stored as a negative
     /// amount and returned as a positive total.
@@ -17,9 +28,7 @@ public static class TransactionActivityCalculator
 
         foreach (var transaction in transactions)
         {
-            if (transaction.Pending
-                || IsTransfer(transaction)
-                || IsBalanceReconciliation(transaction))
+            if (!AffectsIncomeOrSpending(transaction))
             {
                 continue;
             }

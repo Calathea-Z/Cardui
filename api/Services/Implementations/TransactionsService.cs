@@ -91,7 +91,7 @@ public class TransactionsService : ITransactionsService
 
         var match = MerchantMatchKey.Create(source.Name, source.MerchantName);
         var transactions = await LoadMerchantTransactionsAsync(match, cancellationToken);
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         var series = MerchantHistoryPeriods.Build(
             today,
             granularity,
@@ -181,7 +181,7 @@ public class TransactionsService : ITransactionsService
             }
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         RequireTransactionDate(dto.Date, today);
 
         var account = await LoadAccountAsync(transaction.AccountId, cancellationToken);
@@ -240,7 +240,7 @@ public class TransactionsService : ITransactionsService
             throw new BadRequestException("Restore this account before adding a transaction.");
         }
 
-        var today = FinancialDate.Today(_timeProvider);
+        var today = Today();
         RequireTransactionDate(dto.Date, today);
         RequireDateOnOrAfterOpening(account, dto.Date);
 
@@ -525,9 +525,17 @@ public class TransactionsService : ITransactionsService
         await ManualAccountBalance.RefreshAsync(
             _dbContext,
             account,
-            FinancialDate.Today(_timeProvider),
+            Today(),
             now,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Today's date in the household time zone.
+    /// </summary>
+    private DateOnly Today()
+    {
+        return FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
     }
 
     /// <summary>

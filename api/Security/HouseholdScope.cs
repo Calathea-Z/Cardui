@@ -1,3 +1,5 @@
+using Cardui.Api.Domain;
+
 namespace Cardui.Api.Security;
 
 public sealed class HouseholdScope
@@ -6,13 +8,30 @@ public sealed class HouseholdScope
 
     public Guid? HouseholdId { get; private set; }
 
+    public string PlanningCurrency { get; private set; } = PlanningCurrencyRules.DefaultCode;
+
+    public string TimeZoneId { get; private set; } = HouseholdTime.DefaultTimeZoneId;
+
     /// <summary>
     /// Limits later queries to this household.
     /// </summary>
     public void Bind(Guid householdId)
     {
+        Bind(
+            householdId,
+            PlanningCurrencyRules.DefaultCode,
+            HouseholdTime.DefaultTimeZoneId);
+    }
+
+    /// <summary>
+    /// Limits later queries to this household and keeps its planning currency and time zone.
+    /// </summary>
+    public void Bind(Guid householdId, string planningCurrency, string timeZoneId)
+    {
         IsBound = true;
         HouseholdId = householdId;
+        PlanningCurrency = planningCurrency;
+        TimeZoneId = timeZoneId;
     }
 
     /// <summary>

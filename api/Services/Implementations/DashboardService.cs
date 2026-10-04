@@ -45,13 +45,21 @@ public class DashboardService : IDashboardService
         {
             PeriodStart = monthStart,
             PeriodEnd = monthEnd,
-            CashBalance = accountTotals.Cash,
-            CreditCardBalance = accountTotals.CreditCards,
-            NetWorth = accountTotals.NetWorth,
-            MonthlyIncome = monthlyActivity.Income,
-            MonthlySpending = monthlyActivity.Spending,
+            CashBalance = accountTotals.Totals.Cash,
+            CreditCardBalance = accountTotals.Totals.CreditCards,
+            NetWorth = accountTotals.Totals.NetWorth,
+            MonthlyIncome = monthlyActivity.Totals.Income,
+            MonthlySpending = monthlyActivity.Totals.Spending,
+            PlanningCurrency = _householdScope.PlanningCurrency,
+            ExcludedAccountCount = accountTotals.ExcludedAccountCount,
+            ExcludedTransactionCount = monthlyActivity.ExcludedTransactionCount,
+            ExcludedCurrencies = accountTotals.ExcludedCurrencies
+                .Concat(monthlyActivity.ExcludedCurrencies)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(code => code, StringComparer.Ordinal)
+                .ToList(),
             RecentTransactions = recentTransactions,
-            SpendingByCategory = monthlyActivity.SpendingByCategory
+            SpendingByCategory = monthlyActivity.Totals.SpendingByCategory
                 .Select(x => new SpendingByCategoryDto
                 {
                     CategoryId = x.CategoryId,
@@ -70,7 +78,7 @@ public class DashboardService : IDashboardService
     /// </summary>
     private (DateOnly Start, DateOnly End) GetCurrentMonthRange()
     {
-        var today = FinancialDate.Today(_timeProvider);
+        var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
         var monthStart = new DateOnly(today.Year, today.Month, 1);
 
         return (monthStart, today);
@@ -78,34 +86,52 @@ public class DashboardService : IDashboardService
 
     /// <summary>
     /// Sums cash, investments, credit cards, loans, and net worth for
-    /// active accounts that are not archived.
+    /// active accounts that are not archived and use the planning currency.
     /// </summary>
-    private async Task<AccountTotals> GetActiveAccountTotalsAsync(
+    private async Task<AccountTotalResult> GetActiveAccountTotalsAsync(
         CancellationToken cancellationToken)
     {
+        var planningCurrency = _householdScope.PlanningCurrency;
         var balances = await _dbContext.Accounts
             .AsNoTracking()
             .InHousehold(_householdScope)
             .Where(x => x.IsActive && x.ArchivedAt == null)
-            .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance))
+            .Select(x => new AccountCurrencyBalance(
+                x.Type,
+                x.CurrentBalance,
+                x.IsoCurrencyCode))
             .ToListAsync(cancellationToken);
 
-        return AccountTotalsCalculator.Calculate(balances);
+        var included = balances
+            .Where(x => PlanningCurrencyRules.IsIncluded(x.CurrencyCode, planningCurrency))
+            .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance));
+        var excluded = balances
+            .Where(x => !PlanningCurrencyRules.IsIncluded(x.CurrencyCode, planningCurrency))
+            .ToList();
+
+        return new AccountTotalResult(
+            AccountTotalsCalculator.Calculate(included),
+            excluded.Count,
+            PlanningCurrencyRules.ExcludedCodes(
+                excluded.Select(x => x.CurrencyCode),
+                planningCurrency));
     }
 
     /// <summary>
     /// Totals income and spending for posted, non-archived transactions
-    /// in the date range. Transfers and reconciliations are excluded by the calculator.
+    /// in the date range that use the planning currency.
+    /// Transfers and reconciliations are excluded by the calculator.
     /// </summary>
-    private async Task<TransactionActivityTotals> GetMonthlyActivityAsync(
+    private async Task<MonthlyActivityResult> GetMonthlyActivityAsync(
         DateOnly monthStart,
         DateOnly monthEnd,
         CancellationToken cancellationToken)
     {
-        var transactions = await TransactionsInDateRange(monthStart, monthEnd)
+        var planningCurrency = _householdScope.PlanningCurrency;
+        var rows = await TransactionsInDateRange(monthStart, monthEnd)
             .AsNoTracking()
             .Where(x => x.ArchivedAt == null)
-            .Select(x => new TransactionActivityValue(
+            .Select(x => new ActivityRow(
                 x.Amount,
                 x.Pending,
                 x.CategoryId,
@@ -115,10 +141,34 @@ public class DashboardService : IDashboardService
                 x.Category == null ? null : x.Category.Color,
                 x.Category == null ? null : x.Category.Key,
                 x.Category == null ? null : x.Category.SubGroup.Group.Key,
-                x.Provenance))
+                x.Provenance,
+                x.IsoCurrencyCode))
             .ToListAsync(cancellationToken);
 
-        return TransactionActivityCalculator.Calculate(transactions);
+        var included = new List<TransactionActivityValue>();
+        var excludedCurrencies = new List<string?>();
+        var excludedCount = 0;
+
+        foreach (var row in rows)
+        {
+            var value = row.ToValue();
+            if (PlanningCurrencyRules.IsIncluded(row.CurrencyCode, planningCurrency))
+            {
+                included.Add(value);
+                continue;
+            }
+
+            if (TransactionActivityCalculator.AffectsIncomeOrSpending(value))
+            {
+                excludedCount++;
+                excludedCurrencies.Add(row.CurrencyCode);
+            }
+        }
+
+        return new MonthlyActivityResult(
+            TransactionActivityCalculator.Calculate(included),
+            excludedCount,
+            PlanningCurrencyRules.ExcludedCodes(excludedCurrencies, planningCurrency));
     }
 
     /// <summary>

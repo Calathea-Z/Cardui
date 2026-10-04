@@ -5,6 +5,7 @@ import type {
   GroupDto,
   SubGroupDto,
 } from "@/lib/api/types";
+import { CurrencyExclusionNotice } from "@/features/household/CurrencyExclusionNotice";
 import { dashboardWidgets } from "./dashboard-widgets";
 
 type DashboardViewProps = {
@@ -32,6 +33,14 @@ export function DashboardView({
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
+      <CurrencyExclusionNotice
+        exclusion={{
+          planningCurrency: dashboardSummary.planningCurrency,
+          excludedAccountCount: dashboardSummary.excludedAccountCount,
+          excludedTransactionCount: dashboardSummary.excludedTransactionCount,
+          excludedCurrencies: dashboardSummary.excludedCurrencies,
+        }}
+      />
       {dashboardWidgets.map((widget) => (
         <div key={widget.id}>{widget.render(widgetProps)}</div>
       ))}

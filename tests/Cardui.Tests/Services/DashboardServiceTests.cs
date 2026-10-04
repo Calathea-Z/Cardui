@@ -84,6 +84,91 @@ public class DashboardServiceTests
         var category = Assert.Single(dashboard.SpendingByCategory);
         Assert.Equal("Uncategorized", category.CategoryName);
         Assert.Equal(400m, category.Amount);
+        Assert.Equal("USD", dashboard.PlanningCurrency);
+        Assert.Equal(0, dashboard.ExcludedAccountCount);
+        Assert.Equal(0, dashboard.ExcludedTransactionCount);
+    }
+
+    [Fact]
+    public async Task GetSummary_LeavesOtherCurrenciesOutOfTotals()
+    {
+        await using var dbContext = CreateDbContext();
+        var (checkingId, incomeCategoryId, _) = await SeedFinancialDataAsync(dbContext);
+        dbContext.Transactions.AddRange(
+            CreateTransaction(
+                checkingId,
+                "income",
+                new DateOnly(2026, 10, 1),
+                -3_000m,
+                incomeCategoryId),
+            CreateTransaction(checkingId, "groceries", new DateOnly(2026, 10, 2), 500m),
+            CreateTransaction(checkingId, "refund", new DateOnly(2026, 10, 2), -100m));
+        var checking = await dbContext.Accounts.SingleAsync(x => x.Id == checkingId);
+        var cadAccountId = Guid.NewGuid();
+
+        dbContext.Accounts.Add(new Account
+        {
+            Id = cadAccountId,
+            PlaidItemId = checking.PlaidItemId,
+            PlaidAccountId = "account-cad",
+            Name = "cad-cash",
+            Type = AccountTypes.Depository,
+            CurrentBalance = 80m,
+            IsoCurrencyCode = "CAD",
+            IsActive = true,
+            CreatedAt = Now,
+            UpdatedAt = Now
+        });
+        dbContext.Transactions.Add(new Transaction
+        {
+            Id = Guid.NewGuid(),
+            AccountId = cadAccountId,
+            PlaidTransactionId = "transaction-cad",
+            Date = new DateOnly(2026, 10, 2),
+            Name = "cad-spend",
+            Amount = 30m,
+            IsoCurrencyCode = "CAD",
+            CreatedAt = Now,
+            UpdatedAt = Now
+        });
+        dbContext.AccountBalanceSnapshots.Add(new AccountBalanceSnapshot
+        {
+            Id = Guid.NewGuid(),
+            AccountId = cadAccountId,
+            Date = new DateOnly(2026, 10, 2),
+            CurrentBalance = 5_000m,
+            IsoCurrencyCode = "CAD",
+            CreatedAt = Now
+        });
+        await dbContext.SaveChangesAsync();
+
+        var scope = new HouseholdScope();
+        scope.Bind(TestHouseholdId);
+        var timeProvider = new FakeTimeProvider(Now);
+        var dashboard = await new DashboardService(
+            dbContext,
+            timeProvider,
+            scope).GetSummaryAsync();
+        var accounts = await new AccountsService(
+            dbContext,
+            timeProvider,
+            scope).GetAccountsSummaryAsync();
+
+        Assert.Equal(1_000m, dashboard.CashBalance);
+        Assert.Equal(3_000m, dashboard.MonthlyIncome);
+        Assert.Equal(400m, dashboard.MonthlySpending);
+        Assert.Equal(1, dashboard.ExcludedAccountCount);
+        Assert.Equal(1, dashboard.ExcludedTransactionCount);
+        Assert.Equal("CAD", Assert.Single(dashboard.ExcludedCurrencies));
+        Assert.Equal(dashboard.NetWorth, accounts.NetWorth);
+        Assert.Equal(1, accounts.ExcludedAccountCount);
+        var historyPoint = Assert.Single(accounts.History);
+        Assert.Equal(1_000m, historyPoint.Cash);
+        var cadAccount = accounts.Groups
+            .Single(group => group.Key == AccountGroupKeys.Cash)
+            .Accounts
+            .Single(account => account.Id == cadAccountId);
+        Assert.False(cadAccount.CountsInPlanningTotals);
     }
 
     private static CarduiDBContext CreateDbContext()

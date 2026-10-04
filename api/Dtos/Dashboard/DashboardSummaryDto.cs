@@ -11,6 +11,10 @@ public class DashboardSummaryDto
     public decimal NetWorth { get; set; }
     public decimal MonthlyIncome { get; set; }
     public decimal MonthlySpending { get; set; }
+    public string PlanningCurrency { get; set; } = "USD";
+    public int ExcludedAccountCount { get; set; }
+    public int ExcludedTransactionCount { get; set; }
+    public IReadOnlyList<string> ExcludedCurrencies { get; set; } = [];
     public IReadOnlyList<TransactionDto> RecentTransactions { get; set; } = [];
     public IReadOnlyList<SpendingByCategoryDto> SpendingByCategory { get; set; } = [];
 }

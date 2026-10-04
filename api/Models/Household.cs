@@ -1,3 +1,5 @@
+using Cardui.Api.Domain;
+
 namespace Cardui.Api.Models;
 
 public class Household
@@ -11,7 +13,14 @@ public class Household
 
     public required string DisplayName { get; set; }
 
+    public string PlanningCurrency { get; set; } = PlanningCurrencyRules.DefaultCode;
+
+    public string TimeZoneId { get; set; } = HouseholdTime.DefaultTimeZoneId;
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset UpdatedAt { get; set; }
+
+    public ICollection<HouseholdContributor> Contributors { get; init; } =
+        new List<HouseholdContributor>();
 }

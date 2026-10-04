@@ -9,6 +9,7 @@
   currentBalance: number;
   availableBalance: number | null;
   isoCurrencyCode: string | null;
+  countsInPlanningTotals: boolean;
   isActive: boolean;
   source: string;
   provenance: string;
@@ -153,6 +154,10 @@ export type DashboardSummaryDto = {
   netWorth: number;
   monthlyIncome: number;
   monthlySpending: number;
+  planningCurrency: string;
+  excludedAccountCount: number;
+  excludedTransactionCount: number;
+  excludedCurrencies: string[];
   recentTransactions: TransactionDto[];
   spendingByCategory: SpendingByCategoryDto[];
 };
@@ -228,6 +233,9 @@ export type AccountBalanceHistoryPointDto = {
 
 export type AccountSummaryDto = {
   netWorth: number;
+  planningCurrency: string;
+  excludedAccountCount: number;
+  excludedCurrencies: string[];
   groups: AccountGroupDto[];
   history: AccountBalanceHistoryPointDto[];
   archivedAccounts: AccountDto[];
@@ -280,4 +288,26 @@ export type HouseholdDto = {
   id: string;
   displayName: string;
   createdAt: string;
+};
+
+export type HouseholdContributorDto = {
+  id: string;
+  name: string;
+  isVisible: boolean;
+};
+
+export type FinancialProfileDto = {
+  planningCurrency: string;
+  timeZoneId: string;
+  contributors: HouseholdContributorDto[];
+};
+
+export type UpdateFinancialProfileDto = {
+  planningCurrency: string;
+  timeZoneId: string;
+};
+
+export type UpsertHouseholdContributorDto = {
+  name: string;
+  isVisible: boolean;
 };

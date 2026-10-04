@@ -280,6 +280,27 @@ public class ManualFinancialRecordTests
                 }));
     }
 
+    [Fact]
+    public async Task CreateManualAccount_DefaultsToThePlanningCurrency()
+    {
+        await using var dbContext = CreateDbContext();
+        var scope = new HouseholdScope();
+        scope.Bind(HouseholdA, "CAD", HouseholdTime.DefaultTimeZoneId);
+        var created = await new AccountsService(
+            dbContext,
+            new FakeTimeProvider(Now),
+            scope).CreateManualAccountAsync(new CreateManualAccountDto
+        {
+            Name = "Wallet",
+            Type = "Depository",
+            OpeningBalance = 10m,
+            OpeningBalanceDate = new DateOnly(2026, 10, 3)
+        });
+
+        Assert.Equal("CAD", created.IsoCurrencyCode);
+        Assert.True(created.CountsInPlanningTotals);
+    }
+
     private static HouseholdScope Bind(Guid householdId)
     {
         var scope = new HouseholdScope();

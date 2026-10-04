@@ -2,6 +2,7 @@ using Cardui.Api.Configuration;
 using Cardui.Api.Data;
 using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
+using Cardui.Api.Services.Plaid;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,7 +12,7 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddCarduiDatabase(builder.Configuration);
 builder.Services.AddCarduiPlaid(builder.Configuration);
-builder.Services.AddCarduiApplicationServices(builder.Configuration);
+builder.Services.AddCarduiApplicationServices(builder.Configuration, builder.Environment);
 
 using var host = builder.Build();
 using var scope = host.Services.CreateScope();
@@ -19,6 +20,9 @@ using var scope = host.Services.CreateScope();
 var logger = scope.ServiceProvider
     .GetRequiredService<ILoggerFactory>()
     .CreateLogger("PlaidDailySyncWorker");
+var migrator = scope.ServiceProvider.GetRequiredService<PlaidAccessTokenStoreMigrator>();
+await migrator.MigrateAsync();
+
 var dbContext = scope.ServiceProvider.GetRequiredService<CarduiDBContext>();
 var householdScope = scope.ServiceProvider.GetRequiredService<HouseholdScope>();
 
@@ -43,14 +47,15 @@ var cancellationToken = CancellationToken.None;
 
 foreach (var plaidItem in plaidItems)
 {
-    if (plaidItem.HouseholdId is Guid householdId)
+    if (plaidItem.HouseholdId is not Guid householdId)
     {
-        householdScope.Bind(householdId);
+        logger.LogWarning(
+            "Skipping Plaid item {PlaidItemId} because it has no household.",
+            plaidItem.Id);
+        continue;
     }
-    else
-    {
-        householdScope.BindUnassigned();
-    }
+
+    householdScope.Bind(householdId);
 
     try
     {
@@ -68,7 +73,10 @@ foreach (var plaidItem in plaidItems)
     catch (Exception ex)
     {
         failureCount++;
-        logger.LogError(ex, "Failed to sync Plaid item {PlaidItemId}.", plaidItem.Id);
+        logger.LogError(
+            "Failed to sync Plaid item {PlaidItemId}. {ErrorType}",
+            plaidItem.Id,
+            ex.GetType().Name);
     }
 }
 

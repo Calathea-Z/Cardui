@@ -33,6 +33,7 @@ public static class DatabaseConnectionString
 
     /// <summary>
     /// Converts a postgres:// URL into an Npgsql connection string.
+    /// sslmode is kept. Any other query parameter is rejected so it is not dropped.
     /// </summary>
     private static string ConvertDatabaseUrl(string databaseUrl)
     {
@@ -48,7 +49,53 @@ public static class DatabaseConnectionString
             Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty
         };
 
+        ApplyQuery(builder, uri.Query);
         return builder.ConnectionString;
+    }
+
+    /// <summary>
+    /// Copies sslmode and other known query parameters onto the Npgsql connection.
+    /// </summary>
+    private static void ApplyQuery(NpgsqlConnectionStringBuilder builder, string query)
+    {
+        var trimmed = query.TrimStart('?');
+        if (trimmed.Length == 0)
+        {
+            return;
+        }
+
+        foreach (var pair in trimmed.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = pair.Split('=', 2);
+            var key = Uri.UnescapeDataString(parts[0]);
+            var value = parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : string.Empty;
+            if (key.Equals("sslmode", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.SslMode = ParseSslMode(value);
+                continue;
+            }
+
+            throw new InvalidOperationException(
+                $"DATABASE_URL parameter '{key}' is not supported.");
+        }
+    }
+
+    /// <summary>
+    /// Maps a postgres sslmode value onto the Npgsql SSL mode.
+    /// </summary>
+    private static SslMode ParseSslMode(string value)
+    {
+        return value.ToLowerInvariant() switch
+        {
+            "disable" => SslMode.Disable,
+            "allow" => SslMode.Allow,
+            "prefer" => SslMode.Prefer,
+            "require" => SslMode.Require,
+            "verify-ca" => SslMode.VerifyCA,
+            "verify-full" => SslMode.VerifyFull,
+            _ => throw new InvalidOperationException(
+                $"DATABASE_URL sslmode '{value}' is not supported.")
+        };
     }
 
     #endregion

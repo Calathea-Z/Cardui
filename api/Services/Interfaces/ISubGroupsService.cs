@@ -21,7 +21,7 @@ public interface ISubGroupsService
 
     /// <summary>
     /// Creates a household sub-group at the end of a group's sort order.
-    /// The name must be unique within the group, and the derived key must be unique.
+    /// The name and derived key must be unique among system rows and this household.
     /// </summary>
     Task<SubGroupDto> CreateSubGroupAsync(
         CreateSubGroupDto dto,

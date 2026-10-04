@@ -54,7 +54,9 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Plaid API request failed");
+            _logger.LogError(
+                "Plaid API request failed. {ErrorType}",
+                ex.GetType().Name);
             throw new PlaidSyncException(
                 "Unable to reach Plaid. Please try again.",
                 innerException: ex);

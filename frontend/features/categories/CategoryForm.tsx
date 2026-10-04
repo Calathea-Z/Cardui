@@ -66,8 +66,7 @@ export function CategoryForm({
 
       {editingCategory?.isSystem ? (
         <p className="mt-2 text-sm text-muted-foreground">
-          You can customize the display name, color, and icon. System categories
-          cannot be deleted.
+          System categories are shared and cannot be changed.
         </p>
       ) : null}
 

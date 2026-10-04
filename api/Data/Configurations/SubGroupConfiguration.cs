@@ -34,7 +34,24 @@ public class SubGroupConfiguration : IEntityTypeConfiguration<SubGroup>
             .IsRequired();
 
         entity.HasIndex(x => x.Key)
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"IsSystem\"")
+            .HasDatabaseName("IX_SubGroups_System_Key");
+
+        entity.HasIndex(x => new { x.HouseholdId, x.Key })
+            .IsUnique()
+            .HasFilter("NOT \"IsSystem\"")
+            .HasDatabaseName("IX_SubGroups_Household_Key");
+
+        entity.HasIndex(x => new { x.GroupId, x.Name })
+            .IsUnique()
+            .HasFilter("\"IsSystem\"")
+            .HasDatabaseName("IX_SubGroups_System_Group_Name");
+
+        entity.HasIndex(x => new { x.HouseholdId, x.GroupId, x.Name })
+            .IsUnique()
+            .HasFilter("NOT \"IsSystem\"")
+            .HasDatabaseName("IX_SubGroups_Household_Group_Name");
 
         entity.HasIndex(x => x.HouseholdId);
 
@@ -42,9 +59,6 @@ public class SubGroupConfiguration : IEntityTypeConfiguration<SubGroup>
             .WithMany()
             .HasForeignKey(x => x.HouseholdId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        entity.HasIndex(x => new { x.GroupId, x.Name })
-            .IsUnique();
 
         entity.HasOne(x => x.Group)
             .WithMany(x => x.SubGroups)

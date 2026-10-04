@@ -1,10 +1,12 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
+using Cardui.Api.Dtos.Category;
 using Cardui.Api.Dtos.SubGroup;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;
 using Cardui.Api.Security;
 using Cardui.Api.Services.Implementations;
+using Cardui.Api.Services.Plaid;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -276,6 +278,79 @@ public class HouseholdFinancialScopeTests
     }
 
     [Fact]
+    public async Task UpdateCategory_RejectsSystemCategory()
+    {
+        await using var dbContext = CreateDbContext();
+        var groupId = Guid.NewGuid();
+        var subGroupId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        dbContext.Groups.Add(CreateGroup(groupId));
+        dbContext.SubGroups.Add(CreateSubGroup(
+            subGroupId,
+            groupId,
+            "shopping",
+            "Shopping",
+            isSystem: true,
+            householdId: null));
+        dbContext.Categories.Add(CreateCategory(
+            categoryId,
+            subGroupId,
+            "shopping",
+            "Shopping",
+            isSystem: true,
+            householdId: null));
+        await dbContext.SaveChangesAsync();
+
+        var categories = new CategoriesService(
+            dbContext,
+            TimeProvider.System,
+            Bind(HouseholdA));
+
+        await Assert.ThrowsAsync<BadRequestException>(() =>
+            categories.UpdateCategoryAsync(categoryId, new UpdateCategoryDto
+            {
+                Name = "Renamed",
+                SubGroupId = subGroupId
+            }));
+
+        Assert.Equal("Shopping", (await dbContext.Categories.SingleAsync(x => x.Id == categoryId)).Name);
+    }
+
+    [Fact]
+    public async Task CreateCategory_AllowsANameUsedByAnotherHousehold()
+    {
+        await using var dbContext = CreateDbContext();
+        var groupId = Guid.NewGuid();
+        var subGroupId = Guid.NewGuid();
+        dbContext.Groups.Add(CreateGroup(groupId));
+        dbContext.SubGroups.Add(CreateSubGroup(
+            subGroupId,
+            groupId,
+            "shopping",
+            "Shopping",
+            isSystem: true,
+            householdId: null));
+        dbContext.Categories.Add(CreateCategory(
+            Guid.NewGuid(),
+            subGroupId,
+            "pet-care",
+            "Pet Care",
+            isSystem: false,
+            householdId: HouseholdA));
+        await dbContext.SaveChangesAsync();
+
+        var scope = Bind(HouseholdB);
+        var categories = new CategoriesService(dbContext, TimeProvider.System, scope);
+        var created = await categories.CreateCategoryAsync(new CreateCategoryDto
+        {
+            Name = "Pet Care",
+            SubGroupId = subGroupId
+        });
+
+        Assert.Equal(HouseholdB, (await dbContext.Categories.SingleAsync(x => x.Id == created.Id)).HouseholdId);
+    }
+
+    [Fact]
     public async Task TransferPairing_DoesNotCrossHouseholds()
     {
         await using var dbContext = CreateDbContext();
@@ -361,6 +436,7 @@ public class HouseholdFinancialScopeTests
             null!,
             null!,
             null!,
+            new PlaidItemRemoval(dbContext, TimeProvider.System),
             scope,
             NullLogger<PlaidService>.Instance,
             TimeProvider.System);

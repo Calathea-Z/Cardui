@@ -8,8 +8,7 @@ public interface IPlaidAccessTokenProtector
     string Protect(string accessToken);
 
     /// <summary>
-    /// Decrypts a stored access token. A value without the protection prefix
-    /// is returned unchanged so older plaintext tokens still work.
+    /// Decrypts a stored access token. Plaintext and unreadable values are rejected.
     /// </summary>
     string Unprotect(string storedAccessToken);
 }

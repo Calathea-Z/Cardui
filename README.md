@@ -32,7 +32,7 @@ docker compose ps
 ```
 
 The Compose service stores its data in the `cardui_pgdata` volume and exposes PostgreSQL
-on local port `5433`.
+on `127.0.0.1:5433`. It does not listen on other network interfaces.
 
 ### 2. Configure the API
 
@@ -54,6 +54,15 @@ User Secret can hold Clerk's PEM public key when the API should verify tokens
 without calling Clerk. API routes other than `/api/health` require that
 session. Financial reads and writes use the household id resolved on the
 server for the signed-in owner.
+
+Plaid access tokens are encrypted with ASP.NET Data Protection before they are
+stored. Local API and worker processes share the gitignored
+`.data-protection-keys` directory. Production must set
+`DataProtection:KeysPath` and `DataProtection:CertificatePath`. Set
+`Plaid:WebhookUrl` to the public `https` URL of `POST /api/plaid/webhook`
+when Plaid should report a revoked bank connection. Production also requires
+public `https` values for `AllowedHosts`, `Cors:AllowedOrigins`, and
+`Clerk:AuthorizedParties`.
 
 Use the local database values defined by `docker-compose.yml` when constructing the
 connection string. Do not paste the resulting connection string into source files,

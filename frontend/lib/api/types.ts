@@ -255,7 +255,6 @@ export type SyncTransactionsResponseDto = {
   added: number;
   modified: number;
   removed: number;
-  nextCursor: string | null;
 };
 
 export type SyncPlaidItemResponseDto = {

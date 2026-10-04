@@ -94,8 +94,7 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         {
             Added = syncResult.Added,
             Modified = syncResult.Modified,
-            Removed = syncResult.Removed,
-            NextCursor = cursor
+            Removed = syncResult.Removed
         };
     }
 

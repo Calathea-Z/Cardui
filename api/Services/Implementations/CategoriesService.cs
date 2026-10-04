@@ -58,7 +58,7 @@ public class CategoriesService : ICategoriesService
             throw new BadRequestException("Category name is required.");
         }
 
-        var nameExists = await _dbContext.Categories
+        var nameExists = await NamesInHousehold()
             .AnyAsync(x => EF.Functions.ILike(x.Name, name), cancellationToken);
 
         if (nameExists)
@@ -70,7 +70,7 @@ public class CategoriesService : ICategoriesService
 
         var key = CategoryKeys.CreateFromName(name);
 
-        var keyExists = await _dbContext.Categories
+        var keyExists = await NamesInHousehold()
             .AnyAsync(x => x.Key == key, cancellationToken);
 
         if (keyExists)
@@ -115,6 +115,11 @@ public class CategoriesService : ICategoriesService
             throw new NotFoundException($"Category '{id}' was not found.");
         }
 
+        if (category.IsSystem)
+        {
+            throw new BadRequestException("System categories cannot be changed.");
+        }
+
         var name = dto.Name.Trim();
 
         if (string.IsNullOrWhiteSpace(name))
@@ -122,7 +127,7 @@ public class CategoriesService : ICategoriesService
             throw new BadRequestException("Category name is required.");
         }
 
-        var nameExists = await _dbContext.Categories
+        var nameExists = await NamesInHousehold()
             .AnyAsync(x => x.Id != id && EF.Functions.ILike(x.Name, name), cancellationToken);
 
         if (nameExists)
@@ -181,6 +186,17 @@ public class CategoriesService : ICategoriesService
     }
 
     #region Private Methods
+
+    /// <summary>
+    /// Keeps system categories and categories owned by this household.
+    /// Another household's custom names are excluded.
+    /// </summary>
+    private IQueryable<Category> NamesInHousehold()
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        return _dbContext.Categories.Where(category =>
+            category.IsSystem || category.HouseholdId == householdId);
+    }
 
     /// <summary>
     /// Rejects a sub-group the household cannot see.

@@ -19,15 +19,15 @@ public interface ICategoriesService
 
     /// <summary>
     /// Creates a household category under a visible sub-group.
-    /// The name and derived key must be unique.
+    /// The name and derived key must be unique among system categories and this household.
     /// </summary>
     Task<CategoryDto> CreateCategoryAsync(
         CreateCategoryDto createCategoryDto,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Renames a visible category and updates its sub-group, color, and icon.
-    /// The stored key is left unchanged.
+    /// Renames a household category and updates its sub-group, color, and icon.
+    /// System categories cannot be changed. The stored key is left unchanged.
     /// </summary>
     Task<CategoryDto> UpdateCategoryAsync(
         Guid id,

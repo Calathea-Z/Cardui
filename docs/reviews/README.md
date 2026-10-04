@@ -2,7 +2,8 @@
 
 Newest first:
 
-- [2026-10-04 — DotRush solution pin](2026-10-04-007-dotrush-solution-pin.md)
+- [2026-10-04 — DotRush solution pin](2026-10-04-008-dotrush-solution-pin.md)
+- [2026-10-04 — Security hardening](2026-10-04-007-security-hardening.md)
 - [2026-10-04 — Clerk page protection](2026-10-04-006-clerk-page-protection.md)
 - [2026-10-04 — Frontend conventions](2026-10-04-005-frontend-conventions.md)
 - [2026-10-04 — Frontend cleanup](2026-10-04-004-frontend-cleanup.md)

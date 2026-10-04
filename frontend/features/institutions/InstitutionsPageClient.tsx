@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/navigation/page-header";
 import { useSetMobileHeaderLeading } from "@/components/navigation/mobile-header-actions";
 import { Alert } from "@/components/ui/alert";
 import { EmptyState } from "@/components/ui/empty-state";
-import { syncPlaidItem } from "@/lib/api/browser";
+import { disconnectPlaidItem, syncPlaidItem } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
   AccountDto,
@@ -42,6 +42,9 @@ export function InstitutionsPageClient({
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [syncingItemId, setSyncingItemId] = useState<string | null>(null);
+  const [disconnectingItemId, setDisconnectingItemId] = useState<string | null>(
+    null,
+  );
   const [lastResult, setLastResult] = useState<SyncPlaidItemResponseDto | null>(
     null,
   );
@@ -93,6 +96,26 @@ export function InstitutionsPageClient({
     }
   }
 
+  async function handleDisconnect(plaidItemId: string) {
+    setDisconnectingItemId(plaidItemId);
+    setLastResult(null);
+    setSyncError(null);
+
+    try {
+      await disconnectPlaidItem(plaidItemId);
+      setItems((currentItems) =>
+        currentItems.filter((item) => item.id !== plaidItemId),
+      );
+      router.refresh();
+    } catch (error) {
+      setSyncError(
+        getApiErrorMessage(error, "Could not disconnect this institution."),
+      );
+    } finally {
+      setDisconnectingItemId(null);
+    }
+  }
+
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <PageHeader
@@ -128,7 +151,9 @@ export function InstitutionsPageClient({
               item={item}
               accounts={accountsByInstitution.get(item.id) ?? []}
               isSyncing={syncingItemId === item.id}
+              isDisconnecting={disconnectingItemId === item.id}
               onSync={() => handleSync(item.id)}
+              onDisconnect={() => handleDisconnect(item.id)}
             />
           ))}
         </div>

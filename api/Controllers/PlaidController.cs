@@ -1,18 +1,25 @@
+using Cardui.Api.Configuration;
 using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Services.Interfaces;
+using Cardui.Api.Services.Plaid;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cardui.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting(CarduiRateLimiting.PlaidPolicy)]
 [Route("api/plaid")]
 public class PlaidController : ControllerBase
 {
     private readonly IPlaidService _plaidService;
+    private readonly IPlaidWebhookService _webhookService;
 
-    public PlaidController(IPlaidService plaidService)
+    public PlaidController(IPlaidService plaidService, IPlaidWebhookService webhookService)
     {
         _plaidService = plaidService;
+        _webhookService = webhookService;
     }
 
     /// <summary>
@@ -102,5 +109,38 @@ public class PlaidController : ControllerBase
             plaidItemId,
             cancellationToken);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// DELETE /api/plaid/{plaidItemId}
+    /// Removes the bank login at Plaid and deletes the stored access token.
+    /// Accounts and transactions stay in Cardui.
+    /// </summary>
+    [HttpDelete("{plaidItemId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemovePlaidItem(
+        Guid plaidItemId,
+        CancellationToken cancellationToken)
+    {
+        await _plaidService.RemovePlaidItemAsync(plaidItemId, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// POST /api/plaid/webhook
+    /// Accepts a signed Plaid webhook for revoked consent or a connection warning.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("webhook")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ReceiveWebhook(CancellationToken cancellationToken)
+    {
+        using var buffer = new MemoryStream();
+        await Request.Body.CopyToAsync(buffer, cancellationToken);
+        var jwt = Request.Headers["Plaid-Verification"].ToString();
+        await _webhookService.AcceptAsync(jwt, buffer.ToArray(), cancellationToken);
+        return Ok();
     }
 }

@@ -72,10 +72,8 @@ public class SubGroupsService : ISubGroupsService
             throw new BadRequestException($"Group '{dto.GroupId}' was not found.");
         }
 
-        var nameExists = await _dbContext.SubGroups
-            .AnyAsync(
-                x => x.GroupId == dto.GroupId && EF.Functions.ILike(x.Name, name),
-                cancellationToken);
+        var nameExists = await NamesInHousehold(dto.GroupId)
+            .AnyAsync(x => EF.Functions.ILike(x.Name, name), cancellationToken);
 
         if (nameExists)
         {
@@ -83,7 +81,7 @@ public class SubGroupsService : ISubGroupsService
         }
 
         var key = CategoryKeys.CreateFromName(name);
-        var keyExists = await _dbContext.SubGroups
+        var keyExists = await KeysInHousehold()
             .AnyAsync(x => x.Key == key, cancellationToken);
 
         if (keyExists)
@@ -142,11 +140,9 @@ public class SubGroupsService : ISubGroupsService
             throw new BadRequestException("Sub-group name is required.");
         }
 
-        var nameExists = await _dbContext.SubGroups
+        var nameExists = await NamesInHousehold(subGroup.GroupId)
             .AnyAsync(
-                x => x.Id != id
-                    && x.GroupId == subGroup.GroupId
-                    && EF.Functions.ILike(x.Name, name),
+                x => x.Id != id && EF.Functions.ILike(x.Name, name),
                 cancellationToken);
 
         if (nameExists)
@@ -181,8 +177,12 @@ public class SubGroupsService : ISubGroupsService
             throw new BadRequestException("System sub-groups cannot be deleted.");
         }
 
+        var householdId = _householdScope.RequireHouseholdId();
         var hasCategories = await _dbContext.Categories
-            .AnyAsync(x => x.SubGroupId == id, cancellationToken);
+            .AnyAsync(
+                x => x.SubGroupId == id
+                    && (x.HouseholdId == null || x.HouseholdId == householdId || x.IsSystem),
+                cancellationToken);
 
         if (hasCategories)
         {
@@ -195,6 +195,27 @@ public class SubGroupsService : ISubGroupsService
     }
 
     #region Private Methods
+
+    /// <summary>
+    /// Keeps system sub-groups and this household's sub-groups in one group.
+    /// </summary>
+    private IQueryable<SubGroup> NamesInHousehold(Guid groupId)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        return _dbContext.SubGroups.Where(subGroup =>
+            subGroup.GroupId == groupId
+            && (subGroup.IsSystem || subGroup.HouseholdId == householdId));
+    }
+
+    /// <summary>
+    /// Keeps system sub-group keys and this household's sub-group keys.
+    /// </summary>
+    private IQueryable<SubGroup> KeysInHousehold()
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        return _dbContext.SubGroups.Where(subGroup =>
+            subGroup.IsSystem || subGroup.HouseholdId == householdId);
+    }
 
     /// <summary>
     /// Loads one visible sub-group, or throws when it is missing.

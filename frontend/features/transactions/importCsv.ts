@@ -67,6 +67,29 @@ export function mappingError(columns: ImportColumnState) {
   return null;
 }
 
+export const importSteps = ["account", "columns", "rows", "import"] as const;
+
+export type ImportStep = (typeof importSteps)[number];
+
+const importStepHeadings: Record<ImportStep, string> = {
+  account: "Choose the account and file",
+  columns: "Map columns",
+  rows: "Preview and choose rows",
+  import: "Import",
+};
+
+export function importStepHeading(step: ImportStep) {
+  return importStepHeadings[step];
+}
+
+export function previousImportStep(step: ImportStep) {
+  return adjacentImportStep(step, -1);
+}
+
+export function nextImportStep(step: ImportStep) {
+  return adjacentImportStep(step, 1);
+}
+
 export function appendTransactionImport(
   form: FormData,
   file: File,
@@ -94,6 +117,16 @@ export function appendTransactionImport(
   if (includedLineNumbers) {
     form.append("includedLineNumbers", includedLineNumbers.join(","));
   }
+}
+
+function adjacentImportStep(step: ImportStep, direction: -1 | 1) {
+  const index = importSteps.indexOf(step);
+  const next = index + direction;
+  if (index < 0 || next < 0 || next >= importSteps.length) {
+    return null;
+  }
+
+  return importSteps[next];
 }
 
 function columnValue(column: number | null) {

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getMerchantHistory } from "@/lib/api/browser";
-import { getApiErrorMessage } from "@/lib/api/errors";
+import { useState } from "react";
 import type { TransactionDto } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { MerchantHistoryDrawer } from "./MerchantHistoryDrawer";
+import { useMerchantHistory } from "./useMerchantHistory";
 
 type TransactionHistoryFieldProps = {
   transactionId: string;
@@ -32,56 +31,26 @@ export function TransactionHistoryField({
   onOpenChange,
   onSelectTransaction,
 }: TransactionHistoryFieldProps) {
-  const [totalCount, setTotalCount] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const history = useMerchantHistory(transactionId);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    /**
-     * Loads how many transactions share this merchant.
-     * A newer transaction id drops the result from an older request.
-     */
-    async function loadCount() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const result = await getMerchantHistory(transactionId, {
-          granularity: "monthly",
-        });
-
-        if (!cancelled) {
-          setTotalCount(result.totalTransactionCount);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setTotalCount(null);
-          setError(getApiErrorMessage(err, "Could not load history."));
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadCount();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [transactionId]);
-
+  /**
+   * Opens or closes the history sheet.
+   * Closing returns the chart range to monthly.
+   */
   function setOpen(open: boolean) {
     setIsOpen(open);
+    if (!open) {
+      history.resetGranularity();
+    }
     onOpenChange?.(open);
   }
 
-  const count = totalCount ?? 0;
-  const canOpen = !disabled && !isLoading && !error && count > 0;
+  const count = history.monthlyCount ?? 0;
+  const monthlyLoading = history.isLoading && history.granularity === "monthly";
+  const monthlyFailed =
+    history.error !== null && history.granularity === "monthly";
+  const canOpen = !disabled && !monthlyLoading && !monthlyFailed && count > 0;
 
   return (
     <>
@@ -98,9 +67,9 @@ export function TransactionHistoryField({
           History
         </span>
         <span className="min-w-0 flex-1 truncate text-right text-sm font-medium text-transfer">
-          {isLoading
+          {monthlyLoading
             ? "Loading…"
-            : error
+            : monthlyFailed
               ? "Unavailable"
               : formatHistoryCount(count)}
         </span>
@@ -109,7 +78,14 @@ export function TransactionHistoryField({
       {isOpen ? (
         <MerchantHistoryDrawer
           open={isOpen}
-          transactionId={transactionId}
+          history={history.history}
+          error={history.error}
+          isLoading={history.isLoading}
+          granularity={history.granularity}
+          selectedPeriodKey={history.selectedPeriodKey}
+          selected={history.selected}
+          onGranularityChange={history.setGranularity}
+          onSelectPeriod={history.setSelectedPeriodKey}
           onClose={() => setOpen(false)}
           onSelectTransaction={(transaction) => {
             setOpen(false);

@@ -72,3 +72,24 @@ export function getSelectedMerchantPeriod(
     transactions: periodTransactions,
   };
 }
+
+/** The period summary the history sheet renders. */
+export type SelectedMerchantPeriod = ReturnType<
+  typeof getSelectedMerchantPeriod
+>;
+
+/**
+ * Chooses the currency for a period's totals.
+ * The first row's code is used when every row maps to the same code, and mixed codes use USD.
+ */
+export function periodCurrency(transactions: TransactionDto[]) {
+  const codes = new Set(
+    transactions.map((transaction) => transaction.isoCurrencyCode ?? "USD"),
+  );
+
+  if (codes.size === 1) {
+    return transactions[0]?.isoCurrencyCode;
+  }
+
+  return "USD";
+}

@@ -7,11 +7,10 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/features/categories/ColorPicker";
 import { EmojiPicker } from "@/features/categories/EmojiPicker";
-import { createCategory } from "@/lib/api/browser";
-import { getApiErrorMessage } from "@/lib/api/errors";
 import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
+import { useAddCategoryDrawer } from "./useAddCategoryDrawer";
 
 type AddCategoryDrawerProps = {
   open: boolean;
@@ -22,51 +21,7 @@ type AddCategoryDrawerProps = {
   onCreated: (category: CategoryDto) => void;
 };
 
-type FormState = {
-  name: string;
-  emoji: string;
-  color: string;
-  groupId: string;
-  subGroupId: string;
-};
-
 type PickerKind = "emoji" | "color" | "group" | "subgroup" | null;
-
-/**
- * Orders items by sort order, then by name.
- * The input list is left unchanged.
- */
-function sortByOrderThenName<T extends { sortOrder: number; name: string }>(
-  items: T[],
-) {
-  return items
-    .slice()
-    .sort(
-      (left, right) =>
-        left.sortOrder - right.sortOrder || left.name.localeCompare(right.name),
-    );
-}
-
-/**
- * Builds a blank category form.
- * A known starting subgroup also selects its group.
- */
-function createInitialForm(
-  initialSubGroupId: string,
-  subGroups: SubGroupDto[],
-): FormState {
-  const initialSubGroup = subGroups.find(
-    (subGroup) => subGroup.id === initialSubGroupId,
-  );
-
-  return {
-    name: "",
-    emoji: "",
-    color: "",
-    groupId: initialSubGroup?.groupId ?? "",
-    subGroupId: initialSubGroupId,
-  };
-}
 
 /**
  * Opens the add-category sheet.
@@ -116,44 +71,13 @@ function AddCategoryDrawerSession({
   onCreated,
 }: AddCategoryDrawerProps) {
   const formId = useId();
-  const initialForm = createInitialForm(initialSubGroupId, subGroups);
-  const [form, setForm] = useState<FormState>(initialForm);
-  const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const draft = useAddCategoryDrawer({
+    groups,
+    subGroups,
+    initialSubGroupId,
+    onCreated,
+  });
   const [openPicker, setOpenPicker] = useState<PickerKind>(null);
-
-  const sortedGroups = sortByOrderThenName(groups);
-  const visibleSubGroups = sortByOrderThenName(
-    subGroups.filter((subGroup) => subGroup.groupId === form.groupId),
-  );
-
-  const effectiveSubGroupId =
-    form.subGroupId &&
-    visibleSubGroups.some((subGroup) => subGroup.id === form.subGroupId)
-      ? form.subGroupId
-      : "";
-
-  const selectedGroupName =
-    sortedGroups.find((group) => group.id === form.groupId)?.name ?? "Select";
-  const selectedSubGroupName =
-    visibleSubGroups.find((subGroup) => subGroup.id === effectiveSubGroupId)
-      ?.name ?? "Select";
-
-  const isDirty =
-    form.name !== initialForm.name ||
-    form.emoji !== initialForm.emoji ||
-    form.color !== initialForm.color ||
-    form.groupId !== initialForm.groupId ||
-    form.subGroupId !== initialForm.subGroupId;
-
-  const isComplete =
-    form.name.trim().length > 0 &&
-    form.emoji.length > 0 &&
-    form.color.length > 0 &&
-    form.groupId.length > 0 &&
-    effectiveSubGroupId.length > 0;
-
-  const canSave = isDirty && isComplete && !isSaving;
 
   /**
    * Closes an open picker and then the form.
@@ -177,32 +101,12 @@ function AddCategoryDrawerSession({
   }
 
   /**
-   * Creates the category when the form is complete and has been changed.
-   * The name is trimmed, and the subgroup must still belong to the chosen group.
+   * Creates the category from the draft.
+   * The draft ignores a save that is still incomplete.
    */
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!canSave) {
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      const category = await createCategory({
-        name: form.name.trim(),
-        subGroupId: effectiveSubGroupId,
-        color: form.color,
-        icon: form.emoji,
-      });
-      onCreated(category);
-    } catch (err) {
-      setError(getApiErrorMessage(err, "Could not create category."));
-    } finally {
-      setIsSaving(false);
-    }
+    void draft.submit();
   }
 
   return (
@@ -220,10 +124,10 @@ function AddCategoryDrawerSession({
             type="submit"
             form={formId}
             variant="ghost"
-            disabled={!canSave}
+            disabled={!draft.canSave}
             className="h-9 px-2 text-sm font-semibold text-transfer disabled:text-muted-foreground"
           >
-            {isSaving ? "Saving" : "Save"}
+            {draft.isSaving ? "Saving" : "Save"}
           </Button>
         }
       >
@@ -236,7 +140,7 @@ function AddCategoryDrawerSession({
             <label
               className={cn(
                 "flex min-h-12 items-center gap-3",
-                isSaving && "opacity-50",
+                draft.isSaving && "opacity-50",
               )}
             >
               <span className="shrink-0 text-sm font-medium text-foreground">
@@ -244,14 +148,14 @@ function AddCategoryDrawerSession({
               </span>
               <input
                 type="text"
-                value={form.name}
+                value={draft.form.name}
                 onChange={(event) =>
-                  setForm((current) => ({
+                  draft.setForm((current) => ({
                     ...current,
                     name: event.target.value,
                   }))
                 }
-                disabled={isSaving}
+                disabled={draft.isSaving}
                 placeholder="Pets"
                 autoFocus
                 required
@@ -266,11 +170,11 @@ function AddCategoryDrawerSession({
 
             <button
               type="button"
-              disabled={isSaving}
+              disabled={draft.isSaving}
               onClick={() => setOpenPicker("emoji")}
               className={cn(
                 "flex min-h-12 w-full items-center gap-3 text-left",
-                isSaving && "opacity-50",
+                draft.isSaving && "opacity-50",
               )}
             >
               <span className="shrink-0 text-sm font-medium text-foreground">
@@ -278,7 +182,7 @@ function AddCategoryDrawerSession({
               </span>
               <span className="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm text-muted-foreground">
                 <span className="truncate text-base">
-                  {form.emoji || "Select"}
+                  {draft.form.emoji || "Select"}
                 </span>
                 <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
               </span>
@@ -286,26 +190,26 @@ function AddCategoryDrawerSession({
 
             <button
               type="button"
-              disabled={isSaving}
+              disabled={draft.isSaving}
               onClick={() => setOpenPicker("color")}
               className={cn(
                 "flex min-h-12 w-full items-center gap-3 text-left",
-                isSaving && "opacity-50",
+                draft.isSaving && "opacity-50",
               )}
             >
               <span className="shrink-0 text-sm font-medium text-foreground">
                 Color
               </span>
               <span className="flex min-w-0 flex-1 items-center justify-end gap-2 text-sm text-muted-foreground">
-                {form.color ? (
+                {draft.form.color ? (
                   <span
                     className="size-5 shrink-0 rounded-full border border-border/70"
-                    style={{ backgroundColor: form.color }}
+                    style={{ backgroundColor: draft.form.color }}
                     aria-hidden="true"
                   />
                 ) : null}
                 <span className="truncate">
-                  {form.color ? form.color.toUpperCase() : "Select"}
+                  {draft.form.color ? draft.form.color.toUpperCase() : "Select"}
                 </span>
                 <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
               </span>
@@ -313,42 +217,44 @@ function AddCategoryDrawerSession({
 
             <button
               type="button"
-              disabled={isSaving}
+              disabled={draft.isSaving}
               onClick={() => setOpenPicker("group")}
               className={cn(
                 "flex min-h-12 w-full items-center gap-3 text-left",
-                isSaving && "opacity-50",
+                draft.isSaving && "opacity-50",
               )}
             >
               <span className="shrink-0 text-sm font-medium text-foreground">
                 Group
               </span>
               <span className="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm text-muted-foreground">
-                <span className="truncate">{selectedGroupName}</span>
+                <span className="truncate">{draft.selectedGroupName}</span>
                 <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
               </span>
             </button>
 
             <button
               type="button"
-              disabled={isSaving || !form.groupId}
+              disabled={draft.isSaving || !draft.form.groupId}
               onClick={() => setOpenPicker("subgroup")}
               className={cn(
                 "flex min-h-12 w-full items-center gap-3 text-left",
-                (isSaving || !form.groupId) && "opacity-50",
+                (draft.isSaving || !draft.form.groupId) && "opacity-50",
               )}
             >
               <span className="shrink-0 text-sm font-medium text-foreground">
                 Sub-group
               </span>
               <span className="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm text-muted-foreground">
-                <span className="truncate">{selectedSubGroupName}</span>
+                <span className="truncate">{draft.selectedSubGroupName}</span>
                 <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
               </span>
             </button>
           </div>
 
-          {error ? <Alert variant="destructive">{error}</Alert> : null}
+          {draft.error ? (
+            <Alert variant="destructive">{draft.error}</Alert>
+          ) : null}
         </form>
       </BottomSheet>
 
@@ -361,9 +267,9 @@ function AddCategoryDrawerSession({
         className="max-h-[70vh]"
       >
         <EmojiPicker
-          value={form.emoji}
+          value={draft.form.emoji}
           onChange={(emoji) => {
-            setForm((current) => ({ ...current, emoji }));
+            draft.setForm((current) => ({ ...current, emoji }));
             setOpenPicker(null);
           }}
         />
@@ -378,9 +284,9 @@ function AddCategoryDrawerSession({
         className="max-h-[70vh]"
       >
         <ColorPicker
-          value={form.color}
+          value={draft.form.color}
           onChange={(color) => {
-            setForm((current) => ({ ...current, color }));
+            draft.setForm((current) => ({ ...current, color }));
             setOpenPicker(null);
           }}
         />
@@ -395,13 +301,13 @@ function AddCategoryDrawerSession({
         className="max-h-[70vh]"
       >
         <OptionList
-          options={sortedGroups.map((group) => ({
+          options={draft.sortedGroups.map((group) => ({
             value: group.id,
             label: group.name,
           }))}
-          value={form.groupId}
+          value={draft.form.groupId}
           onChange={(groupId) => {
-            setForm((current) => ({
+            draft.setForm((current) => ({
               ...current,
               groupId,
               subGroupId: "",
@@ -420,13 +326,13 @@ function AddCategoryDrawerSession({
         className="max-h-[70vh]"
       >
         <OptionList
-          options={visibleSubGroups.map((subGroup) => ({
+          options={draft.visibleSubGroups.map((subGroup) => ({
             value: subGroup.id,
             label: subGroup.name,
           }))}
-          value={effectiveSubGroupId}
+          value={draft.effectiveSubGroupId}
           onChange={(subGroupId) => {
-            setForm((current) => ({ ...current, subGroupId }));
+            draft.setForm((current) => ({ ...current, subGroupId }));
             setOpenPicker(null);
           }}
         />

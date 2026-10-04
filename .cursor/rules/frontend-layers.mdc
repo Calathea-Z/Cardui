@@ -1,0 +1,26 @@
+---
+description: Frontend display, hook, rule, and service layers
+alwaysApply: true
+---
+
+# Frontend layers
+
+When adding or changing the frontend, keep each layer to one job.
+
+- A route in `app` protects the page, loads it, and renders the client.
+- A server load in `features/*/server` assembles that page's data.
+- `lib/api/browser` and `lib/api/server` are the only HTTP calls.
+- A hook owns client state, effects, and those API calls.
+- A camelCase module holds a pure rule. It does not use React or fetch.
+- A component renders props and calls the handlers it was given.
+- A component that saves, archives, or loads on its own gets a hook.
+- The same request belongs in one hook. Two components that need it share that hook.
+- A sheet with one form and one submit may call the API from that submit.
+
+```tsx
+const details = useTransactionDetails({ transaction, categories, onSaved });
+
+return (
+  <Input value={details.form.name} onChange={(event) => details.setName(event.target.value)} />
+);
+```

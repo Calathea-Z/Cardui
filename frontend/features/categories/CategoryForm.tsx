@@ -6,6 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { Select } from "@/components/ui/select";
 import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import type { CategoryFormState } from "@/lib/categoryForm";
+import { sortByOrderThenName } from "./categorySort";
 
 type CategoryFormProps = {
   form: CategoryFormState;
@@ -34,27 +35,18 @@ export function CategoryForm({
   onSubmit,
   onCancel,
 }: CategoryFormProps) {
-  const sortedGroups = groups
-    .slice()
-    .sort(
-      (left, right) =>
-        left.sortOrder - right.sortOrder || left.name.localeCompare(right.name),
-    );
+  const sortedGroups = sortByOrderThenName(groups);
 
   const selectedSubGroup = subGroups.find(
     (subGroup) => subGroup.id === form.subGroupId,
   );
   const selectedGroupId = selectedSubGroup?.groupId ?? "";
 
-  const visibleSubGroups = subGroups
-    .filter((subGroup) =>
+  const visibleSubGroups = sortByOrderThenName(
+    subGroups.filter((subGroup) =>
       selectedGroupId ? subGroup.groupId === selectedGroupId : false,
-    )
-    .slice()
-    .sort(
-      (left, right) =>
-        left.sortOrder - right.sortOrder || left.name.localeCompare(right.name),
-    );
+    ),
+  );
 
   const lockHierarchy = isSaving || Boolean(editingCategory?.isSystem);
 

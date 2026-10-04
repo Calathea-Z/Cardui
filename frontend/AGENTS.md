@@ -14,6 +14,12 @@ primitive is enough or a library is the better fit, and ask before adding
 that dependency. Choice lists use `Select` from `components/ui/select.tsx`.
 Do not use a native `<select>`. See `.cursor/rules/ui-primitives.mdc`.
 
+A route loads the page. A server load assembles its data. `lib/api` is the
+only HTTP. A hook owns client state and those calls. A camelCase module
+holds a pure rule. A component renders. A sheet with one form and one
+submit may call the API from that submit. See
+`.cursor/rules/frontend-layers.mdc`.
+
 Shared component files use kebab-case. A feature barrel exports only the
 route component. An API client function exists because a screen calls it.
 Prettier stays in CI. See `.cursor/rules/frontend-conventions.mdc`.

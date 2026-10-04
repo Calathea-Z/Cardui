@@ -7,6 +7,12 @@ import type { TransactionImportSuggestedMapDto } from "@/lib/api/types";
 export type AmountMode = "amount" | "split";
 
 /**
+ * Largest CSV the import sheet will accept.
+ * A larger file is rejected before it is read.
+ */
+export const maxCsvBytes = 1_048_576;
+
+/**
  * Column mapping the import sheet sends to the API.
  * Empty strings mean that column is not used.
  */
@@ -21,6 +27,23 @@ export type ImportColumnState = {
   notesColumn: string;
   amountSign: string;
   dateOrder: string;
+};
+
+/**
+ * Column mapping used before a file has been read.
+ * A positive amount starts as money out, and dates start as month first.
+ */
+export const emptyImportColumns: ImportColumnState = {
+  dateColumn: "",
+  nameColumn: "",
+  amountMode: "amount",
+  amountColumn: "",
+  debitColumn: "",
+  creditColumn: "",
+  categoryColumn: "",
+  notesColumn: "",
+  amountSign: "PositiveOut",
+  dateOrder: "MonthFirst",
 };
 
 /**
@@ -94,6 +117,9 @@ export const importSteps = ["account", "columns", "rows", "import"] as const;
 
 /** One step in the import sheet. */
 export type ImportStep = (typeof importSteps)[number];
+
+/** Which import request is in flight. Null means the sheet is idle. */
+export type ImportBusy = "inspect" | "preview" | "import" | "undo" | null;
 
 const importStepHeadings: Record<ImportStep, string> = {
   account: "Choose the account and file",

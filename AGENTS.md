@@ -72,6 +72,14 @@ adding that dependency. Choice lists use `Select` in
 `frontend/components/ui/select.tsx`. Do not use a native `<select>`. See
 `.cursor/rules/ui-primitives.mdc`.
 
+## Frontend layers
+
+A route loads the page. A server load assembles its data. `lib/api` is the
+only HTTP. A hook owns client state and those calls. A camelCase module
+holds a pure rule. A component renders. A sheet with one form and one
+submit may call the API from that submit. See
+`.cursor/rules/frontend-layers.mdc`.
+
 ## Frontend conventions
 
 Shared component files use kebab-case. A feature barrel exports only the

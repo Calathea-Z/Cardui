@@ -161,9 +161,9 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
             }))}
           />
           <span className="font-normal text-muted-foreground">
-            Totals use this currency only. An account or transaction in
-            another currency stays listed and is left out until conversion is
-            available. A blank currency stays in these totals.
+            Totals use this currency only. An account or transaction in another
+            currency stays listed and is left out until conversion is available.
+            A blank currency stays in these totals.
           </span>
         </div>
 
@@ -215,9 +215,7 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
                 contributor={contributor}
                 onChange={(next) =>
                   setContributors((current) =>
-                    current.map((item) =>
-                      item.id === next.id ? next : item,
-                    ),
+                    current.map((item) => (item.id === next.id ? next : item)),
                   )
                 }
                 onSave={() => void saveContributor(contributor)}
@@ -312,4 +310,3 @@ function ContributorRow({
     </li>
   );
 }
-

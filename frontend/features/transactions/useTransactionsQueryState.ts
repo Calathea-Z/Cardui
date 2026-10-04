@@ -63,4 +63,6 @@ export function useTransactionsQueryState() {
   };
 }
 
-export type TransactionsQueryState = ReturnType<typeof useTransactionsQueryState>;
+export type TransactionsQueryState = ReturnType<
+  typeof useTransactionsQueryState
+>;

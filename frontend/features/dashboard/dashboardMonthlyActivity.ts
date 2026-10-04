@@ -7,8 +7,7 @@ export function formatDashboardPeriod(start: string, end: string): string {
   }
 
   const sameYear = startDate.getFullYear() === endDate.getFullYear();
-  const sameMonth =
-    sameYear && startDate.getMonth() === endDate.getMonth();
+  const sameMonth = sameYear && startDate.getMonth() === endDate.getMonth();
 
   if (startDate.getTime() === endDate.getTime()) {
     return new Intl.DateTimeFormat("en-US", {

@@ -1,0 +1,23 @@
+---
+description: Format Cardui money with this repo's currency helpers
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend currency
+
+This rule is for Cardui only. It names this repo's formatters. Do not
+copy it to another project as a general frontend rule.
+
+When showing a money amount in the frontend, use `formatCurrency` from
+`frontend/features/accounts/formatCurrency.ts`. Pass the currency code
+for that amount.
+
+Chart labels use `formatChartCurrency` and `formatChartAxisCurrency`
+in `frontend/features/accounts/chartTimeRange.ts`. Those drop cents or
+compact the axis. Do not add another `Intl.NumberFormat` currency
+helper.
+
+```tsx
+formatCurrency(transaction.amount, transaction.isoCurrencyCode);
+```

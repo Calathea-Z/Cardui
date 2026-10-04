@@ -1,4 +1,4 @@
-import { ApiUnavailableBanner } from "@/components/ApiUnavailableBanner";
+import { ApiUnavailableBanner } from "@/components/api-unavailable-banner";
 
 type PageApiErrorBannerProps = {
   message: string;

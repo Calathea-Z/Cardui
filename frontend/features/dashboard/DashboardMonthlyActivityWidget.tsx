@@ -88,7 +88,10 @@ export function DashboardMonthlyActivityWidget({
                       {category.categoryName}
                     </span>
                     <span className="font-mono text-sm font-medium tabular-nums">
-                      {formatCurrency(category.amount, summary.planningCurrency)}
+                      {formatCurrency(
+                        category.amount,
+                        summary.planningCurrency,
+                      )}
                     </span>
                   </div>
                   <div

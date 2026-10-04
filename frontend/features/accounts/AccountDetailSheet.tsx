@@ -14,11 +14,7 @@ import {
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type { AccountDto } from "@/lib/api/types";
 import { formatCurrency } from "./formatCurrency";
-import {
-  isManualAccount,
-  parseMoney,
-  todayDateInput,
-} from "./manualAccount";
+import { isManualAccount, parseMoney, todayDateInput } from "./manualAccount";
 import {
   ManualAccountForm,
   type ManualAccountFormValues,
@@ -69,7 +65,11 @@ function AccountDetailContent({
 
   async function saveAccount() {
     const openingBalance = parseMoney(form.openingBalance);
-    if (!form.name.trim() || openingBalance === null || !form.openingBalanceDate) {
+    if (
+      !form.name.trim() ||
+      openingBalance === null ||
+      !form.openingBalanceDate
+    ) {
       setErrorMessage("Enter a name, opening balance, and opening date.");
       return;
     }
@@ -88,7 +88,9 @@ function AccountDetailContent({
       onChanged();
       onClose();
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, "Could not save this account."));
+      setErrorMessage(
+        getApiErrorMessage(error, "Could not save this account."),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -164,8 +166,8 @@ function AccountDetailContent({
         />
       ) : (
         <p className="text-sm text-muted-foreground">
-          This account is linked. Its name and balance come from the bank.
-          You can archive it without removing the connection.
+          This account is linked. Its name and balance come from the bank. You
+          can archive it without removing the connection.
         </p>
       )}
 
@@ -206,7 +208,9 @@ function AccountDetailContent({
         </div>
       ) : null}
 
-      {errorMessage ? <Alert variant="destructive">{errorMessage}</Alert> : null}
+      {errorMessage ? (
+        <Alert variant="destructive">{errorMessage}</Alert>
+      ) : null}
 
       {confirmArchive ? (
         <div className="flex gap-2">

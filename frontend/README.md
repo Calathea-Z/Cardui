@@ -35,6 +35,7 @@ Verification:
 ```powershell
 pnpm test
 pnpm lint
+pnpm format:check
 pnpm build
 ```
 

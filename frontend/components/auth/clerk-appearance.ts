@@ -16,12 +16,16 @@ export const clerkAppearance = {
     card: "border border-border bg-popover! text-popover-foreground! shadow-xl",
     headerTitle: "text-foreground!",
     headerSubtitle: "text-muted-foreground!",
+    identityPreviewText: "text-popover-foreground!",
+    identityPreviewEditButton: "text-primary!",
+    identityPreviewEditButtonIcon: "text-primary!",
     socialButtonsBlockButton:
       "border border-border bg-card! text-foreground! hover:bg-accent",
     socialButtonsBlockButtonText: "text-foreground!",
     dividerText: "text-muted-foreground!",
     formFieldLabel: "text-foreground!",
-    formFieldInput: "border-border bg-input! text-foreground!",
+    formFieldInput:
+      "border-border bg-input! text-foreground! placeholder:text-muted-foreground!",
     formButtonPrimary: "bg-primary! text-primary-foreground!",
     footerActionText: "text-muted-foreground!",
     footerActionLink: "text-primary!",

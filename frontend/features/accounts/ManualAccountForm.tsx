@@ -3,10 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import {
-  ACCOUNT_TYPE_OPTIONS,
-  openingBalanceHelp,
-} from "./manualAccount";
+import { ACCOUNT_TYPE_OPTIONS, openingBalanceHelp } from "./manualAccount";
 
 export type ManualAccountFormValues = {
   name: string;

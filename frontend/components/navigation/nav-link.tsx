@@ -38,10 +38,7 @@ export function NavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={cn(
-        className,
-        isActive ? activeClassName : inactiveClassName,
-      )}
+      className={cn(className, isActive ? activeClassName : inactiveClassName)}
     >
       {showIcon && <NavIcon href={item.href} />}
       <span>{item.label}</span>

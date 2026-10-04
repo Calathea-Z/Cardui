@@ -71,11 +71,7 @@ export function useSetMobileHeaderLeading(leading: ReactNode) {
   }, [leading, setLeading]);
 }
 
-export function MobileHeaderLeadingSlot({
-  fallback,
-}: {
-  fallback: ReactNode;
-}) {
+export function MobileHeaderLeadingSlot({ fallback }: { fallback: ReactNode }) {
   const context = useContext(MobileHeaderActionsContext);
 
   if (context?.leading) {
@@ -93,8 +89,6 @@ export function MobileHeaderActionsSlot() {
   }
 
   return (
-    <div className="flex shrink-0 items-center gap-1">
-      {context.actions}
-    </div>
+    <div className="flex shrink-0 items-center gap-1">{context.actions}</div>
   );
 }

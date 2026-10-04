@@ -40,13 +40,3 @@ export function getApiErrorMessage(
 
   return fallback;
 }
-
-/** Narrow unknown rejection into ApiError shape when useful for callers. */
-export function isApiError(error: unknown): error is ApiError {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "message" in error &&
-    typeof (error as ApiError).message === "string"
-  );
-}

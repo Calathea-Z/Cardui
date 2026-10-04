@@ -87,7 +87,10 @@ test("formatDateSectionHeader formats other dates in the current year", () => {
   const dateKey = `${currentYear}-03-15`;
   const label = grouping.formatDateSectionHeader(dateKey);
 
-  assert.match(label, /Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday/);
+  assert.match(
+    label,
+    /Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday/,
+  );
   assert.match(label, /March/);
   assert.match(label, /15/);
   assert.doesNotMatch(label, new RegExp(String(currentYear)));

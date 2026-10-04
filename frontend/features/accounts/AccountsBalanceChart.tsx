@@ -125,10 +125,7 @@ export function AccountsBalanceChart({
     [filteredHistory, metric],
   );
 
-  const dateTickFormatter = useMemo(
-    () => getDateTickFormatter(range),
-    [range],
-  );
+  const dateTickFormatter = useMemo(() => getDateTickFormatter(range), [range]);
 
   const xTicks = useMemo(
     () => getRangeTicks(timeWindow, compact ? 4 : 6),
@@ -173,26 +170,16 @@ export function AccountsBalanceChart({
               y2="1"
             >
               <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.28} />
-              <stop
-                offset="55%"
-                stopColor="var(--chart-1)"
-                stopOpacity={0.1}
-              />
-              <stop
-                offset="100%"
-                stopColor="var(--chart-1)"
-                stopOpacity={0}
-              />
+              <stop offset="55%" stopColor="var(--chart-1)" stopOpacity={0.1} />
+              <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
             </linearGradient>
           </defs>
-
           <CartesianGrid
             vertical={false}
             stroke="var(--muted-foreground)"
             strokeOpacity={0.18}
             strokeDasharray="0"
           />
-
           <XAxis
             type="number"
             dataKey="timestamp"
@@ -205,7 +192,6 @@ export function AccountsBalanceChart({
             axisLine={false}
             dy={8}
           />
-
           <YAxis
             domain={yDomain}
             tickFormatter={(value) => formatChartAxisCurrency(value, currency)}
@@ -217,7 +203,6 @@ export function AccountsBalanceChart({
             tickCount={compact ? 5 : 6}
             dx={-4}
           />
-
           <Tooltip
             content={<ChartTooltip currency={currency} />}
             cursor={{
@@ -226,7 +211,6 @@ export function AccountsBalanceChart({
               strokeOpacity: 0.45,
             }}
           />
-
           <Area
             type="linear"
             dataKey={metricOption.historyKey}
@@ -243,7 +227,8 @@ export function AccountsBalanceChart({
             }}
             isAnimationActive
             animationDuration={450}
-          />        </AreaChart>
+          />{" "}
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

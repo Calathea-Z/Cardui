@@ -1,6 +1,7 @@
+import { auth } from "@clerk/nextjs/server";
 import { SessionTokenRegistration } from "@/components/auth/session-token-registration";
-import { AppShell } from "@/components/appShell";
-import { PageApiErrorBanner } from "@/components/PageApiErrorBanner";
+import { AppShell } from "@/components/app-shell";
+import { PageApiErrorBanner } from "@/components/page-api-error-banner";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { ensureCurrentHousehold } from "@/lib/api/server/households";
 
@@ -11,6 +12,8 @@ export default async function SignedInLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await auth.protect();
+
   let householdError: string | null = null;
 
   try {

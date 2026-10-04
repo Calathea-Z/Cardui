@@ -71,3 +71,15 @@ a small primitive is enough or a library is the better fit, and ask before
 adding that dependency. Choice lists use `Select` in
 `frontend/components/ui/select.tsx`. Do not use a native `<select>`. See
 `.cursor/rules/ui-primitives.mdc`.
+
+## Frontend conventions
+
+Shared component files use kebab-case. A feature barrel exports only the
+route component. An API client function exists because a screen calls it.
+Prettier stays in CI. See `.cursor/rules/frontend-conventions.mdc`.
+
+## Frontend currency
+
+Cardui money text uses `formatCurrency`. Chart labels use the chart
+formatters. This rule stays in this repo. See
+`.cursor/rules/frontend-currency.mdc`.

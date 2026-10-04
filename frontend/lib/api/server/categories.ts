@@ -6,11 +6,3 @@ export async function getCategories(): Promise<CategoryDto[]> {
 
   return response.data;
 }
-
-export async function getCategoryById(id: string): Promise<CategoryDto> {
-  const response = await serverClient.get<CategoryDto>(
-    `/api/categories/${id}`,
-  );
-
-  return response.data;
-}

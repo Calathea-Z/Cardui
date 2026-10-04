@@ -6,6 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { getMerchantHistory } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
@@ -34,11 +35,16 @@ const GRANULARITY_OPTIONS: Array<{
   { value: "yearly", label: "Yearly" },
 ];
 
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
+function periodCurrency(transactions: TransactionDto[]) {
+  const codes = new Set(
+    transactions.map((transaction) => transaction.isoCurrencyCode ?? "USD"),
+  );
+
+  if (codes.size === 1) {
+    return transactions[0]?.isoCurrencyCode;
+  }
+
+  return "USD";
 }
 
 export function MerchantHistoryDrawer({
@@ -168,11 +174,17 @@ export function MerchantHistoryDrawer({
                   />
                   <SummaryRow
                     label="Average Transaction"
-                    value={formatCurrency(selected.averageAmount)}
+                    value={formatCurrency(
+                      selected.averageAmount,
+                      periodCurrency(selected.transactions),
+                    )}
                   />
                   <SummaryRow
                     label="Total Amount"
-                    value={formatCurrency(selected.totalAmount)}
+                    value={formatCurrency(
+                      selected.totalAmount,
+                      periodCurrency(selected.transactions),
+                    )}
                   />
                 </div>
               </section>

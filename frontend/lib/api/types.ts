@@ -72,10 +72,6 @@ export type PagedResultDto<T> = {
   hasPreviousPage: boolean;
 };
 
-export type UpdateTransactionCategoryDto = {
-  categoryId: string | null;
-};
-
 export type UpdateTransactionDetailsDto = {
   date: string;
   categoryId: string | null;
@@ -202,19 +198,6 @@ export type SubGroupDto = {
   sortOrder: number;
 };
 
-export type GroupDetailDto = GroupDto & {
-  subGroups: SubGroupDto[];
-};
-
-export type CreateSubGroupDto = {
-  groupId: string;
-  name: string;
-};
-
-export type UpdateSubGroupDto = {
-  name: string;
-};
-
 export type AccountGroupDto = {
   key: string;
   name: string;
@@ -278,10 +261,6 @@ export type SyncTransactionsResponseDto = {
 export type SyncPlaidItemResponseDto = {
   plaidItemId: string;
   transactions: SyncTransactionsResponseDto;
-};
-
-export type ApiHealthDto = {
-  status: string;
 };
 
 export type HouseholdDto = {

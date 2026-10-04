@@ -26,7 +26,10 @@ import { TransactionDateField } from "./TransactionDateField";
 import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
 import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
-import { isManualEntry, useTransactionDetails } from "./useTransactionDetails";
+import {
+  canEditTransactionEntry,
+  useTransactionDetails,
+} from "./useTransactionDetails";
 
 type TransactionDetailDrawerProps = {
   transaction: TransactionDto | null;
@@ -109,7 +112,7 @@ function TransactionDetailDrawerContent({
   const amount = getTransactionAmountDisplay(transaction);
   const isTransfer = isTransferTransaction(transaction);
   const isAdjustment = isBalanceReconciliation(transaction);
-  const canEditEntry = isManualEntry(transaction);
+  const canEditEntry = canEditTransactionEntry(transaction);
 
   async function handleArchive() {
     setIsArchiving(true);

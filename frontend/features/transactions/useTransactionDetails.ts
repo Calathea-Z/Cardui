@@ -29,9 +29,11 @@ type UseTransactionDetailsOptions = {
 
 const TEXT_SAVE_DELAY_MS = 400;
 
-export function isManualEntry(transaction: TransactionDto) {
+export function canEditTransactionEntry(transaction: TransactionDto) {
   return (
-    transaction.source === "Manual" && transaction.provenance === "ManualEntry"
+    (transaction.source === "Manual" &&
+      transaction.provenance === "ManualEntry") ||
+    (transaction.source === "Csv" && transaction.provenance === "CsvImport")
   );
 }
 
@@ -94,7 +96,7 @@ function toOptimisticTransaction(
     notes: form.notes.trim() || null,
   };
 
-  if (!isManualEntry(transaction)) {
+  if (!canEditTransactionEntry(transaction)) {
     return next;
   }
 
@@ -118,7 +120,7 @@ function toUpdateDto(
     notes: form.notes.trim() || null,
   };
 
-  if (!isManualEntry(transaction)) {
+  if (!canEditTransactionEntry(transaction)) {
     return dto;
   }
 

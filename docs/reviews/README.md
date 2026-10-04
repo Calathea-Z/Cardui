@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-04 — CSV import](2026-10-04-008-csv-import.md)
 - [2026-10-04 — DotRush solution pin](2026-10-04-008-dotrush-solution-pin.md)
 - [2026-10-04 — Security hardening](2026-10-04-007-security-hardening.md)
 - [2026-10-04 — Clerk page protection](2026-10-04-006-clerk-page-protection.md)

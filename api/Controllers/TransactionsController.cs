@@ -69,7 +69,7 @@ public class TransactionsController : ControllerBase
     /// <summary>
     /// PATCH /api/transactions/{id}
     /// Updates a transaction's date, category, notes, and, for a manual
-    /// entry, its name and amount.
+    /// entry or CSV import, its name and amount.
     /// </summary>
     [HttpPatch("{id:guid}")]
     [ProducesResponseType<TransactionDto>(StatusCodes.Status200OK)]

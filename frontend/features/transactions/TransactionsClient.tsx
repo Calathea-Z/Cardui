@@ -15,6 +15,7 @@ import type {
   TransactionDto,
 } from "@/lib/api/types";
 import { AddTransactionSheet } from "./AddTransactionSheet";
+import { ImportCsvSheet } from "./ImportCsvSheet";
 import { TransactionDateGroup } from "./TransactionDateGroup";
 import { TransactionDetailDrawer } from "./TransactionDetailDrawer";
 import { TransactionsFilters } from "./TransactionsFilters";
@@ -63,6 +64,7 @@ export function TransactionsClient({
   const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionDto | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   const transactionsByDate = useMemo(
     () => groupTransactionsByDate(transactions),
@@ -87,7 +89,14 @@ export function TransactionsClient({
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsImportOpen(true)}
+          >
+            Import CSV
+          </Button>
           <Button type="button" onClick={() => setIsAddOpen(true)}>
             Add transaction
           </Button>
@@ -166,6 +175,13 @@ export function TransactionsClient({
         categories={categories}
         onClose={() => setIsAddOpen(false)}
         onCreated={() => void loadPage(1)}
+      />
+
+      <ImportCsvSheet
+        open={isImportOpen}
+        accounts={accounts}
+        onClose={() => setIsImportOpen(false)}
+        onImported={() => void loadPage(1)}
       />
     </main>
   );

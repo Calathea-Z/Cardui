@@ -13,6 +13,8 @@ public class Transaction
 
     public string Provenance { get; set; } = FinancialRecordProvenance.PlaidSync;
 
+    public Guid? ImportId { get; set; }
+
     public DateOnly Date { get; set; }
     public bool IsDateUserEdited { get; set; }
     public DateOnly? AuthorizedDate { get; set; }

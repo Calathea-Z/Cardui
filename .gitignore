@@ -5,7 +5,8 @@ bin/
 obj/
 node_modules/
 .next/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 .codex-tmp/
 .pnpm-store/

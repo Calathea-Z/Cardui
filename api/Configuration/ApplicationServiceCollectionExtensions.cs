@@ -28,6 +28,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IFinancialProfileService, FinancialProfileService>();
         services.AddScoped<IAccountsService, AccountsService>();
         services.AddScoped<ITransactionsService, TransactionsService>();
+        services.AddScoped<ITransactionImportService, TransactionImportService>();
         services.AddScoped<IGroupsService, GroupsService>();
         services.AddScoped<ISubGroupsService, SubGroupsService>();
         services.AddScoped<ICategoriesService, CategoriesService>();

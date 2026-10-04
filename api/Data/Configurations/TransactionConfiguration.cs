@@ -64,6 +64,15 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .HasFilter("\"CategoryId\" IS NULL")
             .HasDatabaseName("IX_Transactions_AccountId_Uncategorized");
 
+        entity.HasIndex(x => x.ImportId)
+            .HasFilter("\"ImportId\" IS NOT NULL")
+            .HasDatabaseName("IX_Transactions_ImportId");
+
+        entity.HasOne<TransactionImport>()
+            .WithMany(x => x.Transactions)
+            .HasForeignKey(x => x.ImportId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         entity.HasOne(x => x.Category)
             .WithMany(x => x.Transactions)
             .HasForeignKey(x => x.CategoryId)

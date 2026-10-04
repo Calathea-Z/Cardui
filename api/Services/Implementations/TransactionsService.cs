@@ -187,8 +187,8 @@ public class TransactionsService : ITransactionsService
         var account = await LoadAccountAsync(transaction.AccountId, cancellationToken);
         RequireDateOnOrAfterOpening(account, dto.Date);
 
-        var manualEntry = IsManualEntry(transaction);
-        if (manualEntry)
+        var canEditEntry = CanEditEntry(transaction);
+        if (canEditEntry)
         {
             if (dto.Name is not null)
             {
@@ -539,11 +539,14 @@ public class TransactionsService : ITransactionsService
     }
 
     /// <summary>
-    /// True when the transaction was entered in Cardui and is not a reconciliation.
+    /// True when the user can change the name, amount, and pending flag.
+    /// Manual entries and CSV imports can. Linked and reconciliation rows cannot.
     /// </summary>
-    private static bool IsManualEntry(Transaction transaction) =>
-        transaction.Source == FinancialRecordSource.Manual
-        && transaction.Provenance == FinancialRecordProvenance.ManualEntry;
+    private static bool CanEditEntry(Transaction transaction) =>
+        (transaction.Source == FinancialRecordSource.Manual
+            && transaction.Provenance == FinancialRecordProvenance.ManualEntry)
+        || (transaction.Source == FinancialRecordSource.Csv
+            && transaction.Provenance == FinancialRecordProvenance.CsvImport);
 
     /// <summary>
     /// Trims a required name and rejects an empty value or one longer than 300 characters.

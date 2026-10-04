@@ -41,7 +41,8 @@ public interface ITransactionsService
 
     /// <summary>
     /// Updates the date, category, and notes. Name, amount, and pending
-    /// change only on a manual entry. A manual account's balance is recalculated.
+    /// change only on a manual entry or a CSV import. A manual account's
+    /// balance is recalculated.
     /// </summary>
     Task<TransactionDto> UpdateTransactionDetailsAsync(
         Guid transactionId,

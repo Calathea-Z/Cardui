@@ -289,3 +289,50 @@ export type UpsertHouseholdContributorDto = {
   name: string;
   isVisible: boolean;
 };
+
+export type TransactionImportSuggestedMapDto = {
+  dateColumn: number | null;
+  nameColumn: number | null;
+  amountColumn: number | null;
+  debitColumn: number | null;
+  creditColumn: number | null;
+  categoryColumn: number | null;
+  notesColumn: number | null;
+  amountSign: string;
+  dateOrder: string;
+};
+
+export type TransactionImportInspectDto = {
+  fileName: string;
+  headers: string[];
+  sampleRows: string[][];
+  dataRowCount: number;
+  suggested: TransactionImportSuggestedMapDto;
+};
+
+export type TransactionImportPreviewRowDto = {
+  lineNumber: number;
+  date: string | null;
+  name: string | null;
+  amount: number | null;
+  categoryName: string | null;
+  status: "Ready" | "Duplicate" | "Error";
+  message: string | null;
+};
+
+export type TransactionImportPreviewDto = {
+  readyCount: number;
+  duplicateCount: number;
+  errorCount: number;
+  rows: TransactionImportPreviewRowDto[];
+};
+
+export type TransactionImportBatchDto = {
+  id: string;
+  accountId: string;
+  accountName: string;
+  fileName: string;
+  importedCount: number;
+  createdAt: string;
+  undoneAt: string | null;
+};

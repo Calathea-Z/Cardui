@@ -7,6 +7,8 @@ public static class FinancialRecordSource
     public const string Plaid = "Plaid";
 
     public const string Manual = "Manual";
+
+    public const string Csv = "Csv";
 }
 
 public static class FinancialRecordProvenance
@@ -16,6 +18,8 @@ public static class FinancialRecordProvenance
     public const string PlaidSync = "PlaidSync";
 
     public const string ManualEntry = "ManualEntry";
+
+    public const string CsvImport = "CsvImport";
 
     public const string BalanceReconciliation = "BalanceReconciliation";
 

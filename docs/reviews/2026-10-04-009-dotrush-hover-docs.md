@@ -48,8 +48,11 @@ implementation.
   review 008.
 - Confirmed `api`, `worker`, and `tests/Cardui.Tests` did not generate
   XML docs before this change.
-- `dotnet build .\Cardui.sln -c Release` after the props file: see
-  the PR notes if a later commit records the result.
+- `dotnet build ./Cardui.sln -c Release`: succeeded, 0 warnings, 0
+  errors. `api.xml`, `worker.xml`, and `Cardui.Tests.xml` were written
+  under each project's `bin/Release/net10.0/`. `api.xml` includes the
+  `IAccountsService.GetAccountsAsync` summary; the implementation
+  member keeps `<inheritdoc />` for Quick Info to expand.
 
 ## Manual verification
 

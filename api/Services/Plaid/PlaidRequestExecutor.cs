@@ -52,6 +52,10 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
         {
             throw;
         }
+        catch (PlaidNotConfiguredException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(

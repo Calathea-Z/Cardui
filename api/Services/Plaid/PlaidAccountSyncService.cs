@@ -2,7 +2,6 @@ using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Models;
 using Cardui.Api.Security;
-using Going.Plaid;
 using Going.Plaid.Accounts;
 using Going.Plaid.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +13,7 @@ namespace Cardui.Api.Services.Plaid;
 public class PlaidAccountSyncService : IPlaidAccountSyncService
 {
     private readonly CarduiDBContext _dbContext;
-    private readonly PlaidClient _plaidClient;
+    private readonly IPlaidClientSource _clientSource;
     private readonly IPlaidRequestExecutor _requestExecutor;
     private readonly IPlaidAccessTokenProtector _accessTokenProtector;
     private readonly ILogger<PlaidAccountSyncService> _logger;
@@ -22,14 +21,14 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
 
     public PlaidAccountSyncService(
         CarduiDBContext dbContext,
-        PlaidClient plaidClient,
+        IPlaidClientSource clientSource,
         IPlaidRequestExecutor requestExecutor,
         IPlaidAccessTokenProtector accessTokenProtector,
         ILogger<PlaidAccountSyncService> logger,
         TimeProvider timeProvider)
     {
         _dbContext = dbContext;
-        _plaidClient = plaidClient;
+        _clientSource = clientSource;
         _requestExecutor = requestExecutor;
         _accessTokenProtector = accessTokenProtector;
         _logger = logger;
@@ -86,13 +85,14 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
     /// </summary>
     private async Task<AccountsGetResponse> FetchAccountsAsync(PlaidItem plaidItem)
     {
+        var client = _clientSource.GetClient();
         var accessToken = _accessTokenProtector.Unprotect(plaidItem.AccessToken);
         var request = _requestExecutor.WithCredentials(
             new AccountsGetRequest(),
             accessToken);
 
         return await _requestExecutor.ExecuteAsync(
-            () => _plaidClient.AccountsGetAsync(request));
+            () => client.AccountsGetAsync(request));
     }
 
     /// <summary>

@@ -5,7 +5,6 @@ using Cardui.Api.Models;
 using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
 using Cardui.Api.Services.Plaid;
-using Going.Plaid;
 using Going.Plaid.Entity;
 using Going.Plaid.Item;
 using Going.Plaid.Link;
@@ -18,7 +17,7 @@ namespace Cardui.Api.Services.Implementations;
 public class PlaidService : IPlaidService
 {
     private readonly CarduiDBContext _dbContext;
-    private readonly PlaidClient _plaidClient;
+    private readonly IPlaidClientSource _clientSource;
     private readonly PlaidConfig _plaidOptions;
     private readonly IPlaidRequestExecutor _requestExecutor;
     private readonly IPlaidAccountSyncService _accountSyncService;
@@ -31,7 +30,7 @@ public class PlaidService : IPlaidService
 
     public PlaidService(
         CarduiDBContext dbContext,
-        PlaidClient plaidClient,
+        IPlaidClientSource clientSource,
         IOptions<PlaidConfig> plaidOptions,
         IPlaidRequestExecutor requestExecutor,
         IPlaidAccountSyncService accountSyncService,
@@ -43,7 +42,7 @@ public class PlaidService : IPlaidService
         TimeProvider timeProvider)
     {
         _dbContext = dbContext;
-        _plaidClient = plaidClient;
+        _clientSource = clientSource;
         _plaidOptions = plaidOptions.Value;
         _requestExecutor = requestExecutor;
         _accountSyncService = accountSyncService;
@@ -60,6 +59,7 @@ public class PlaidService : IPlaidService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var client = _clientSource.GetClient();
 
         var request = _requestExecutor.WithCredentials(new LinkTokenCreateRequest
         {
@@ -81,7 +81,7 @@ public class PlaidService : IPlaidService
         });
 
         var response = await _requestExecutor.ExecuteAsync(
-            () => _plaidClient.LinkTokenCreateAsync(request));
+            () => client.LinkTokenCreateAsync(request));
 
         return new CreateLinkTokenResponseDto
         {
@@ -95,6 +95,7 @@ public class PlaidService : IPlaidService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var client = _clientSource.GetClient();
 
         var request = _requestExecutor.WithCredentials(new ItemPublicTokenExchangeRequest
         {
@@ -102,7 +103,7 @@ public class PlaidService : IPlaidService
         });
 
         var response = await _requestExecutor.ExecuteAsync(
-            () => _plaidClient.ItemPublicTokenExchangeAsync(request));
+            () => client.ItemPublicTokenExchangeAsync(request));
 
         var now = _timeProvider.GetUtcNow();
 
@@ -291,10 +292,16 @@ public class PlaidService : IPlaidService
     }
 
     /// <summary>
-    /// Returns a Plaid error code for a PlaidSyncException, or a generic message otherwise.
+    /// Returns the not-configured message, a Plaid error code for a
+    /// PlaidSyncException, or a generic message otherwise.
     /// </summary>
     private static string FormatSyncError(Exception ex)
     {
+        if (ex is PlaidNotConfiguredException notConfigured)
+        {
+            return notConfigured.Message;
+        }
+
         if (ex is not PlaidSyncException plaidSyncException) return "Sync failed. Please try again.";
         if (!string.IsNullOrWhiteSpace(plaidSyncException.PlaidErrorCode))
         {
@@ -322,6 +329,7 @@ public class PlaidService : IPlaidService
 
         try
         {
+            var client = _clientSource.GetClient();
             var accessToken = _accessTokenProtector.Unprotect(plaidItem.AccessToken);
             var request = _requestExecutor.WithCredentials(
                 new ItemWebhookUpdateRequest
@@ -330,7 +338,7 @@ public class PlaidService : IPlaidService
                 },
                 accessToken);
             await _requestExecutor.ExecuteAsync(
-                () => _plaidClient.ItemWebhookUpdateAsync(request));
+                () => client.ItemWebhookUpdateAsync(request));
         }
         catch (PlaidSyncException exception)
         {
@@ -351,6 +359,7 @@ public class PlaidService : IPlaidService
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var client = _clientSource.GetClient();
         var accessToken = _accessTokenProtector.Unprotect(plaidItem.AccessToken);
         var request = _requestExecutor.WithCredentials(
             new ItemRemoveRequest(),
@@ -358,7 +367,7 @@ public class PlaidService : IPlaidService
 
         try
         {
-            await _requestExecutor.ExecuteAsync(() => _plaidClient.ItemRemoveAsync(request));
+            await _requestExecutor.ExecuteAsync(() => client.ItemRemoveAsync(request));
         }
         catch (PlaidSyncException exception) when (
             exception.PlaidErrorCode is "ITEM_NOT_FOUND" or "INVALID_ACCESS_TOKEN")

@@ -1,174 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { updateTransactionDetails } from "@/lib/api/browser";
+import {
+  archiveTransaction,
+  restoreTransaction,
+  updateTransactionDetails,
+} from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
-import type {
-  CategoryDto,
-  TransactionCategoryDto,
-  TransactionDto,
-  UpdateTransactionDetailsDto,
-} from "@/lib/api/types";
-
-type AmountDirection = "out" | "in";
-
-type TransactionDetailsFormState = {
-  date: string;
-  categoryId: string;
-  notes: string;
-  name: string;
-  amount: string;
-  direction: AmountDirection;
-};
+import type { CategoryDto, TransactionDto } from "@/lib/api/types";
+import {
+  toFormState,
+  toOptimisticTransaction,
+  toUpdateDto,
+  type AmountDirection,
+  type TransactionDetailsFormState,
+} from "./transactionEntry";
 
 type UseTransactionDetailsOptions = {
   transaction: TransactionDto;
   categories: CategoryDto[];
   onSaved: (transaction: TransactionDto) => void;
+  onArchived: (transactionId: string) => void;
+  onRestored: () => void;
 };
 
 /**
  * How long a notes, name, or amount edit waits before it is saved.
  */
 const TEXT_SAVE_DELAY_MS = 400;
-
-/**
- * True when the household can change the name and amount.
- * A manual entry with manual provenance, or a CSV import, can be edited.
- */
-export function canEditTransactionEntry(transaction: TransactionDto) {
-  return (
-    (transaction.source === "Manual" &&
-      transaction.provenance === "ManualEntry") ||
-    (transaction.source === "Csv" && transaction.provenance === "CsvImport")
-  );
-}
-
-/**
- * Reads a stored amount as money in or money out.
- * A negative amount is money in, and zero or a positive amount is money out.
- */
-function directionFor(amount: number): AmountDirection {
-  return amount < 0 ? "in" : "out";
-}
-
-/**
- * Turns the typed amount and direction into the number that will be stored.
- * Money in is negative, money out is positive, and an unreadable amount returns null.
- */
-function toSignedAmount(amount: string, direction: AmountDirection) {
-  const parsed = Number(amount);
-  if (!Number.isFinite(parsed)) {
-    return null;
-  }
-
-  const absolute = Math.abs(parsed);
-  return direction === "in" ? -absolute : absolute;
-}
-
-/**
- * Copies a transaction into the detail form.
- * The amount is the absolute value, and a missing category is an empty id.
- */
-function toFormState(transaction: TransactionDto): TransactionDetailsFormState {
-  return {
-    date: transaction.date,
-    categoryId: transaction.category?.id ?? "",
-    notes: transaction.notes ?? "",
-    name: transaction.name,
-    amount: String(Math.abs(transaction.amount)),
-    direction: directionFor(transaction.amount),
-  };
-}
-
-/**
- * Builds the category shown on an unsaved transaction.
- * An empty id or an id missing from the list becomes null.
- */
-function toCategoryDto(
-  categories: CategoryDto[],
-  categoryId: string,
-): TransactionCategoryDto | null {
-  if (!categoryId) {
-    return null;
-  }
-
-  const category = categories.find((item) => item.id === categoryId);
-  if (!category) {
-    return null;
-  }
-
-  return {
-    id: category.id,
-    name: category.name,
-    key: category.key,
-    color: category.color,
-    icon: category.icon,
-  };
-}
-
-/**
- * Builds the transaction the list shows before the save returns.
- * Name and amount change for an editable entry, and a blank name keeps the current name.
- */
-function toOptimisticTransaction(
-  transaction: TransactionDto,
-  form: TransactionDetailsFormState,
-  categories: CategoryDto[],
-): TransactionDto {
-  const next: TransactionDto = {
-    ...transaction,
-    date: form.date,
-    category: toCategoryDto(categories, form.categoryId),
-    notes: form.notes.trim() || null,
-  };
-
-  if (!canEditTransactionEntry(transaction)) {
-    return next;
-  }
-
-  const name = form.name.trim();
-  const amount = toSignedAmount(form.amount, form.direction);
-  return {
-    ...next,
-    name: name || transaction.name,
-    merchantName: name || transaction.merchantName,
-    amount: amount ?? transaction.amount,
-  };
-}
-
-/**
- * Builds the payload sent when the detail form is saved.
- * Name and amount are included for an editable entry, and a blank name or unreadable amount stops the save.
- */
-function toUpdateDto(
-  form: TransactionDetailsFormState,
-  transaction: TransactionDto,
-): UpdateTransactionDetailsDto {
-  const dto: UpdateTransactionDetailsDto = {
-    date: form.date,
-    categoryId: form.categoryId || null,
-    notes: form.notes.trim() || null,
-  };
-
-  if (!canEditTransactionEntry(transaction)) {
-    return dto;
-  }
-
-  const amount = toSignedAmount(form.amount, form.direction);
-  if (amount === null) {
-    throw new Error("Enter an amount.");
-  }
-
-  const name = form.name.trim();
-  if (!name) {
-    throw new Error("Enter a name.");
-  }
-
-  dto.name = name;
-  dto.amount = amount;
-  return dto;
-}
 
 /**
  * Keeps the transaction detail form and saves each change.
@@ -178,11 +37,16 @@ export function useTransactionDetails({
   transaction,
   categories,
   onSaved,
+  onArchived,
+  onRestored,
 }: UseTransactionDetailsOptions) {
   const [form, setForm] = useState<TransactionDetailsFormState>(() =>
     toFormState(transaction),
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
 
   const formRef = useRef(form);
   const committedRef = useRef(transaction);
@@ -190,6 +54,9 @@ export function useTransactionDetails({
   const textTimeoutRef = useRef<number | null>(null);
   const categoriesRef = useRef(categories);
   const onSavedRef = useRef(onSaved);
+  const onArchivedRef = useRef(onArchived);
+  const onRestoredRef = useRef(onRestored);
+  const flushRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     categoriesRef.current = categories;
@@ -200,10 +67,16 @@ export function useTransactionDetails({
   }, [onSaved]);
 
   useEffect(() => {
+    onArchivedRef.current = onArchived;
+  }, [onArchived]);
+
+  useEffect(() => {
+    onRestoredRef.current = onRestored;
+  }, [onRestored]);
+
+  useEffect(() => {
     return () => {
-      if (textTimeoutRef.current !== null) {
-        window.clearTimeout(textTimeoutRef.current);
-      }
+      flushRef.current();
     };
   }, []);
 
@@ -345,6 +218,48 @@ export function useTransactionDetails({
     void persist(formRef.current, editVersionRef.current);
   }
 
+  useEffect(() => {
+    flushRef.current = flushPendingSave;
+  });
+
+  /**
+   * Archives a live transaction or restores one that is already archived.
+   * A failure stays on the detail, and the archive confirmation closes either way.
+   */
+  async function archiveOrRestore() {
+    setIsArchiving(true);
+    setArchiveError(null);
+    try {
+      if (transaction.archivedAt) {
+        await restoreTransaction(transaction.id);
+        onRestoredRef.current();
+        return;
+      }
+
+      await archiveTransaction(transaction.id);
+      onArchivedRef.current(transaction.id);
+    } catch (error) {
+      setArchiveError(
+        getApiErrorMessage(error, "Could not update this transaction."),
+      );
+    } finally {
+      setIsArchiving(false);
+      setConfirmArchive(false);
+    }
+  }
+
+  /**
+   * Restores an archived transaction immediately, or asks before archiving a live one.
+   */
+  function beginArchive() {
+    if (transaction.archivedAt) {
+      void archiveOrRestore();
+      return;
+    }
+
+    setConfirmArchive(true);
+  }
+
   return {
     form,
     errorMessage,
@@ -356,6 +271,11 @@ export function useTransactionDetails({
     setAmount,
     setDirection,
     registerCategory,
-    flushPendingSave,
+    archiveError,
+    isArchiving,
+    confirmArchive,
+    beginArchive,
+    cancelArchive: () => setConfirmArchive(false),
+    archiveOrRestore,
   };
 }

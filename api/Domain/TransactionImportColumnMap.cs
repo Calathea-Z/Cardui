@@ -8,5 +8,5 @@ public sealed record TransactionImportColumnMap(
     int? CreditColumn,
     int? CategoryColumn,
     int? NotesColumn,
-    string AmountSign,
-    string DateOrder);
+    CsvAmountSign AmountSign,
+    CsvDateOrder DateOrder);

@@ -60,16 +60,6 @@ public static class TransactionImportColumnMapRules
             return "Use either one amount column or separate debit and credit columns.";
         }
 
-        if (map.AmountSign is not (CsvAmountSign.PositiveOut or CsvAmountSign.PositiveIn))
-        {
-            return "Choose how positive amounts are signed.";
-        }
-
-        if (map.DateOrder is not (CsvDateOrder.MonthFirst or CsvDateOrder.DayFirst))
-        {
-            return "Choose a date order.";
-        }
-
         var used = new List<int> { map.DateColumn, map.NameColumn };
         AddUsed(used, map.AmountColumn);
         AddUsed(used, map.DebitColumn);

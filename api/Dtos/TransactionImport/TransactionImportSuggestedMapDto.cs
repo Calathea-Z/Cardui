@@ -1,3 +1,5 @@
+using Cardui.Api.Domain;
+
 namespace Cardui.Api.Dtos.TransactionImport;
 
 public class TransactionImportSuggestedMapDto
@@ -16,7 +18,7 @@ public class TransactionImportSuggestedMapDto
 
     public int? NotesColumn { get; set; }
 
-    public required string AmountSign { get; set; }
+    public required CsvAmountSign AmountSign { get; set; }
 
-    public required string DateOrder { get; set; }
+    public required CsvDateOrder DateOrder { get; set; }
 }

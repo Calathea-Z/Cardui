@@ -1,10 +1,12 @@
 namespace Cardui.Api.Domain;
 
-public static class TransactionImportRowStatus
+/// <summary>
+/// Whether a preview row can be saved.
+/// Duplicate rows match a saved transaction or an earlier row. Error rows are skipped.
+/// </summary>
+public enum TransactionImportRowStatus
 {
-    public const string Ready = "Ready";
-
-    public const string Duplicate = "Duplicate";
-
-    public const string Error = "Error";
+    Ready,
+    Duplicate,
+    Error
 }

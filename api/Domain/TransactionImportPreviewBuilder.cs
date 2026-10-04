@@ -88,7 +88,7 @@ public static class TransactionImportPreviewBuilder
         }
 
         var key = TransactionImportDuplicateKey.Create(date.Value, amount.Value, name);
-        string status;
+        TransactionImportRowStatus status;
         if (existingKeys.Contains(key))
         {
             status = TransactionImportRowStatus.Duplicate;

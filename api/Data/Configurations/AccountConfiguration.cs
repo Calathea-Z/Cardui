@@ -18,11 +18,13 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         entity.Property(x => x.Source)
             .IsRequired()
-            .HasMaxLength(FinancialRecordSource.MaxLength);
+            .HasConversion<string>()
+            .HasMaxLength(32);
 
         entity.Property(x => x.Provenance)
             .IsRequired()
-            .HasMaxLength(FinancialRecordProvenance.MaxLength);
+            .HasConversion<string>()
+            .HasMaxLength(64);
 
         entity.Property(x => x.Name)
             .IsRequired()

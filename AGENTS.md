@@ -43,6 +43,13 @@ calculator, and do not declare it in the same file as that behavior. A
 type used by only one caller may be `internal`. See
 `.cursor/rules/backend-type-files.mdc`.
 
+## Backend enums
+
+A closed set that Cardui defines and branches on is an enum in its own
+file. Store and return the member name, not the number. A value an outside
+system can extend, a user-defined key, or a slug stays a string. See
+`.cursor/rules/backend-enums.mdc`.
+
 ## Backend domain rules
 
 Put a pure business rule in `Domain`. Put work that loads or saves rows in
@@ -72,6 +79,14 @@ adding that dependency. Choice lists use `Select` in
 `frontend/components/ui/select.tsx`. Do not use a native `<select>`. See
 `.cursor/rules/ui-primitives.mdc`.
 
+## Frontend layers
+
+A route loads the page. A server load assembles its data. `lib/api` is the
+only HTTP. A hook owns client state and those calls. A camelCase module
+holds a pure rule. A component renders. A sheet with one form and one
+submit may call the API from that submit. See
+`.cursor/rules/frontend-layers.mdc`.
+
 ## Frontend conventions
 
 Shared component files use kebab-case. A feature barrel exports only the
@@ -83,6 +98,16 @@ Prettier stays in CI. See `.cursor/rules/frontend-conventions.mdc`.
 Cardui money text uses `formatCurrency`. Chart labels use the chart
 formatters. This rule stays in this repo. See
 `.cursor/rules/frontend-currency.mdc`.
+
+## Frontend types
+
+Use `type` for object shapes, unions, and aliases. A fixed set of values
+is a union, derived from the const array when that array is the list. A
+value the screen sends or branches on uses that union. One shape has one
+name. Component props stay next to the component. Form state stays with
+its rule, separate from the API payload. API payloads for one feature
+live in `frontend/lib/api/types/<feature>.ts` and are re-exported from
+the types index. See `.cursor/rules/frontend-types.mdc`.
 
 ## Frontend method comments
 

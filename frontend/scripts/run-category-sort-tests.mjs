@@ -42,6 +42,25 @@ test("sortCategoriesByName sorts alphabetically without mutating input", () => {
   );
 });
 
+test("sortByOrderThenName orders by sort order, then name", () => {
+  const input = [
+    { sortOrder: 2, name: "Bills" },
+    { sortOrder: 1, name: "Zebra" },
+    { sortOrder: 1, name: "Apple" },
+  ];
+
+  const sorted = categorySort.sortByOrderThenName(input);
+
+  assert.deepEqual(
+    sorted.map((item) => item.name),
+    ["Apple", "Zebra", "Bills"],
+  );
+  assert.deepEqual(
+    input.map((item) => item.name),
+    ["Bills", "Zebra", "Apple"],
+  );
+});
+
 test("sortCategoriesByName returns a new array for empty input", () => {
   const input = [];
   const sorted = categorySort.sortCategoriesByName(input);

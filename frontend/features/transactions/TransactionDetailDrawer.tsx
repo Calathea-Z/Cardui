@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { archiveTransaction, restoreTransaction } from "@/lib/api/browser";
-import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
   CategoryDto,
   GroupDto,
@@ -26,10 +24,8 @@ import { TransactionDateField } from "./TransactionDateField";
 import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
 import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
-import {
-  canEditTransactionEntry,
-  useTransactionDetails,
-} from "./useTransactionDetails";
+import { canEditTransactionEntry } from "./transactionEntry";
+import { useTransactionDetails } from "./useTransactionDetails";
 
 type TransactionDetailDrawerProps = {
   transaction: TransactionDto | null;
@@ -95,58 +91,24 @@ function TransactionDetailDrawerContent({
     setAmount,
     setDirection,
     registerCategory,
-    flushPendingSave,
+    archiveError,
+    isArchiving,
+    confirmArchive,
+    beginArchive,
+    cancelArchive,
+    archiveOrRestore,
   } = useTransactionDetails({
     transaction,
     categories,
     onSaved,
+    onArchived,
+    onRestored,
   });
 
-  const flushPendingSaveRef = useRef(flushPendingSave);
-
-  useEffect(() => {
-    flushPendingSaveRef.current = flushPendingSave;
-  }, [flushPendingSave]);
-
-  useEffect(() => {
-    return () => {
-      flushPendingSaveRef.current();
-    };
-  }, []);
-
-  const [archiveError, setArchiveError] = useState<string | null>(null);
-  const [isArchiving, setIsArchiving] = useState(false);
-  const [confirmArchive, setConfirmArchive] = useState(false);
   const amount = getTransactionAmountDisplay(transaction);
   const isTransfer = isTransferTransaction(transaction);
   const isAdjustment = isBalanceReconciliation(transaction);
   const canEditEntry = canEditTransactionEntry(transaction);
-
-  /**
-   * Archives a live transaction or restores one that is already archived.
-   * A failure stays on the detail, and the archive confirmation closes either way.
-   */
-  async function handleArchive() {
-    setIsArchiving(true);
-    setArchiveError(null);
-    try {
-      if (transaction.archivedAt) {
-        await restoreTransaction(transaction.id);
-        onRestored();
-        return;
-      }
-
-      await archiveTransaction(transaction.id);
-      onArchived(transaction.id);
-    } catch (error) {
-      setArchiveError(
-        getApiErrorMessage(error, "Could not update this transaction."),
-      );
-    } finally {
-      setIsArchiving(false);
-      setConfirmArchive(false);
-    }
-  }
 
   /**
    * Adds a new category to this transaction and to the page list.
@@ -297,7 +259,7 @@ function TransactionDetailDrawerContent({
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => setConfirmArchive(false)}
+              onClick={cancelArchive}
             >
               Cancel
             </Button>
@@ -306,7 +268,7 @@ function TransactionDetailDrawerContent({
               variant="destructive"
               className="flex-1"
               disabled={isArchiving}
-              onClick={() => void handleArchive()}
+              onClick={() => void archiveOrRestore()}
             >
               {isArchiving ? "Archiving" : "Archive"}
             </Button>
@@ -317,13 +279,7 @@ function TransactionDetailDrawerContent({
           type="button"
           variant={transaction.archivedAt ? "outline" : "destructive"}
           disabled={isArchiving}
-          onClick={() => {
-            if (transaction.archivedAt) {
-              void handleArchive();
-              return;
-            }
-            setConfirmArchive(true);
-          }}
+          onClick={beginArchive}
         >
           {transaction.archivedAt
             ? "Restore transaction"

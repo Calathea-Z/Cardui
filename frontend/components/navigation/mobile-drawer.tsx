@@ -20,13 +20,13 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
         <button
           type="button"
           aria-label="Close navigation menu"
-          className="fixed inset-0 z-[60] bg-black/40 md:hidden"
+          className="fixed inset-0 z-60 bg-black/40 md:hidden"
           onClick={onClose}
         />
       ) : null}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-[70] flex h-dvh max-h-dvh w-[85vw] max-w-sm flex-col overflow-hidden overscroll-none border-r border-sidebar-border bg-sidebar px-5 pb-7 pt-[calc(4.5rem+env(safe-area-inset-top))] text-sidebar-foreground transition-transform duration-300 ease-in-out md:hidden",
+          "fixed top-0 left-0 z-70 flex h-dvh max-h-dvh w-[85vw] max-w-sm flex-col overflow-hidden overscroll-none border-r border-sidebar-border bg-sidebar px-5 pb-7 pt-[calc(4.5rem+env(safe-area-inset-top))] text-sidebar-foreground transition-transform duration-300 ease-in-out md:hidden",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-hidden={!isOpen}

@@ -1,13 +1,39 @@
+import { MANUAL_ACCOUNT_TYPES, type ManualAccountType } from "@/lib/api/types";
+
+/**
+ * Labels for the manual account types, in the same order as the API list.
+ * Every manual account type needs a label.
+ */
+const ACCOUNT_TYPE_LABELS: Record<ManualAccountType, string> = {
+  depository: "Cash",
+  investment: "Investment",
+  credit: "Credit card",
+  loan: "Loan",
+};
+
 /**
  * Account types a household can create by hand.
  * The labels are the words on the form. The values match the API.
  */
-export const ACCOUNT_TYPE_OPTIONS = [
-  { value: "depository", label: "Cash" },
-  { value: "investment", label: "Investment" },
-  { value: "credit", label: "Credit card" },
-  { value: "loan", label: "Loan" },
-] as const;
+export const ACCOUNT_TYPE_OPTIONS = MANUAL_ACCOUNT_TYPES.map((value) => ({
+  value,
+  label: ACCOUNT_TYPE_LABELS[value],
+}));
+
+/**
+ * True when the value is a type the manual account form can save.
+ */
+export function isManualAccountType(value: string): value is ManualAccountType {
+  return MANUAL_ACCOUNT_TYPES.some((type) => type === value);
+}
+
+/**
+ * Keeps a stored account type when the manual form offers it.
+ * Any other stored type starts as cash so the type list still has a selection.
+ */
+export function toManualAccountType(value: string): ManualAccountType {
+  return isManualAccountType(value) ? value : "depository";
+}
 
 /**
  * Today's date as a value for a date input, in the browser's local calendar.
@@ -41,7 +67,7 @@ export function parseMoney(value: string) {
  * Explains the opening balance for the selected account type.
  * Credit and loan balances are amounts already owed.
  */
-export function openingBalanceHelp(type: string) {
+export function openingBalanceHelp(type: ManualAccountType) {
   if (type === "credit" || type === "loan") {
     return "The amount already owed. It is not a purchase, a payment, or income.";
   }

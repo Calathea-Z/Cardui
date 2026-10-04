@@ -1,8 +1,11 @@
 namespace Cardui.Api.Domain;
 
-public static class CsvAmountSign
+/// <summary>
+/// How a positive amount in one amount column is read.
+/// PositiveOut means money left the account.
+/// </summary>
+public enum CsvAmountSign
 {
-    public const string PositiveOut = "PositiveOut";
-
-    public const string PositiveIn = "PositiveIn";
+    PositiveOut,
+    PositiveIn
 }

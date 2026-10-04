@@ -3,7 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { ACCOUNT_TYPE_OPTIONS, openingBalanceHelp } from "./manualAccount";
+import type { ManualAccountType } from "@/lib/api/types";
+import {
+  ACCOUNT_TYPE_OPTIONS,
+  isManualAccountType,
+  openingBalanceHelp,
+} from "./manualAccount";
 
 /**
  * Editable fields for a manual account.
@@ -11,7 +16,7 @@ import { ACCOUNT_TYPE_OPTIONS, openingBalanceHelp } from "./manualAccount";
  */
 export type ManualAccountFormValues = {
   name: string;
-  type: string;
+  type: ManualAccountType;
   subtype: string;
   openingBalance: string;
   openingBalanceDate: string;
@@ -68,7 +73,11 @@ export function ManualAccountForm({
         <Select
           title="Account type"
           value={values.type}
-          onChange={(type) => update({ type })}
+          onChange={(type) => {
+            if (isManualAccountType(type)) {
+              update({ type });
+            }
+          }}
           onOpenChange={onPickerOpenChange}
           className="h-9"
           options={ACCOUNT_TYPE_OPTIONS.map((option) => ({

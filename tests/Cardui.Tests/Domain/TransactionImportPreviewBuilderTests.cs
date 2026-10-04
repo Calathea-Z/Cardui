@@ -122,7 +122,7 @@ public class TransactionImportPreviewBuilderTests
         int? debitColumn = null,
         int? creditColumn = null,
         int? categoryColumn = null,
-        string amountSign = CsvAmountSign.PositiveOut)
+        CsvAmountSign amountSign = CsvAmountSign.PositiveOut)
     {
         return new TransactionImportColumnMap(
             DateColumn: 0,

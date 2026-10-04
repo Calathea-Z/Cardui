@@ -1,8 +1,11 @@
 namespace Cardui.Api.Domain;
 
-public static class CsvDateOrder
+/// <summary>
+/// Which number is the month when a numeric date is ambiguous.
+/// A number above 12 is always the day.
+/// </summary>
+public enum CsvDateOrder
 {
-    public const string MonthFirst = "MonthFirst";
-
-    public const string DayFirst = "DayFirst";
+    MonthFirst,
+    DayFirst
 }

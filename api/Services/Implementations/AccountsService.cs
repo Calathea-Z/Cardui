@@ -318,8 +318,8 @@ public class AccountsService : IAccountsService
             Source = FinancialRecordSource.Manual,
             Provenance = FinancialRecordProvenance.BalanceReconciliation,
             Date = asOfDate,
-            Name = FinancialRecordProvenance.BalanceReconciliationName,
-            MerchantName = FinancialRecordProvenance.BalanceReconciliationName,
+            Name = BalanceReconciliation.Name,
+            MerchantName = BalanceReconciliation.Name,
             Amount = AccountLedger.TransactionAmountForBalanceChange(
                 account.Type,
                 adjustment),

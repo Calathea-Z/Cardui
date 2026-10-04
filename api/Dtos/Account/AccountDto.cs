@@ -1,3 +1,5 @@
+using Cardui.Api.Models;
+
 namespace Cardui.Api.Dtos.Account;
 
 public class AccountDto
@@ -14,8 +16,8 @@ public class AccountDto
     public string? IsoCurrencyCode { get; set; }
     public bool CountsInPlanningTotals { get; set; } = true;
     public bool IsActive { get; set; }
-    public required string Source { get; set; }
-    public required string Provenance { get; set; }
+    public required FinancialRecordSource Source { get; set; }
+    public required FinancialRecordProvenance Provenance { get; set; }
     public decimal OpeningBalance { get; set; }
     public DateOnly? OpeningBalanceDate { get; set; }
     public DateTimeOffset? ArchivedAt { get; set; }

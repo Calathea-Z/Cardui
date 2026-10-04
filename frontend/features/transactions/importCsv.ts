@@ -1,10 +1,20 @@
-import type { TransactionImportSuggestedMapDto } from "@/lib/api/types";
+import type {
+  CsvAmountSign,
+  CsvDateOrder,
+  TransactionImportSuggestedMapDto,
+} from "@/lib/api/types";
 
 /**
  * How a CSV writes money.
  * `amount` is one signed column. `split` is separate debit and credit columns.
  */
 export type AmountMode = "amount" | "split";
+
+/**
+ * Largest CSV the import sheet will accept.
+ * A larger file is rejected before it is read.
+ */
+export const maxCsvBytes = 1_048_576;
 
 /**
  * Column mapping the import sheet sends to the API.
@@ -19,8 +29,25 @@ export type ImportColumnState = {
   creditColumn: string;
   categoryColumn: string;
   notesColumn: string;
-  amountSign: string;
-  dateOrder: string;
+  amountSign: CsvAmountSign;
+  dateOrder: CsvDateOrder;
+};
+
+/**
+ * Column mapping used before a file has been read.
+ * A positive amount starts as money out, and dates start as month first.
+ */
+export const emptyImportColumns: ImportColumnState = {
+  dateColumn: "",
+  nameColumn: "",
+  amountMode: "amount",
+  amountColumn: "",
+  debitColumn: "",
+  creditColumn: "",
+  categoryColumn: "",
+  notesColumn: "",
+  amountSign: "PositiveOut",
+  dateOrder: "MonthFirst",
 };
 
 /**
@@ -43,8 +70,8 @@ export function columnStateFromSuggestion(
     creditColumn: columnValue(suggested.creditColumn),
     categoryColumn: columnValue(suggested.categoryColumn),
     notesColumn: columnValue(suggested.notesColumn),
-    amountSign: suggested.amountSign || "PositiveOut",
-    dateOrder: suggested.dateOrder || "MonthFirst",
+    amountSign: amountSignFromSelect(suggested.amountSign),
+    dateOrder: dateOrderFromSelect(suggested.dateOrder),
   };
 }
 
@@ -88,12 +115,31 @@ export function mappingError(columns: ImportColumnState) {
 }
 
 /**
+ * Reads the date-order choice from a select.
+ * An unrecognized value stays month first, which is how a new import starts.
+ */
+export function dateOrderFromSelect(value: string): CsvDateOrder {
+  return value === "DayFirst" ? "DayFirst" : "MonthFirst";
+}
+
+/**
+ * Reads the amount-sign choice from a select.
+ * An unrecognized value stays money out, which is how a new import starts.
+ */
+export function amountSignFromSelect(value: string): CsvAmountSign {
+  return value === "PositiveIn" ? "PositiveIn" : "PositiveOut";
+}
+
+/**
  * Import sheet steps, in the order the household walks them.
  */
 export const importSteps = ["account", "columns", "rows", "import"] as const;
 
 /** One step in the import sheet. */
 export type ImportStep = (typeof importSteps)[number];
+
+/** Which import request is in flight. Null means the sheet is idle. */
+export type ImportBusy = "inspect" | "preview" | "import" | "undo" | null;
 
 const importStepHeadings: Record<ImportStep, string> = {
   account: "Choose the account and file",

@@ -1,0 +1,21 @@
+---
+description: Frontend type aliases, unions, and where they live
+alwaysApply: true
+---
+
+# Frontend types
+
+When adding or changing TypeScript in `frontend/`, use `type` and give each shape one home.
+
+- Use `type` for object shapes, unions, and aliases. Use `interface` only when a later declaration must merge into this one.
+- A fixed set of values is a union. When a `const` array is that list, derive the union from the array.
+- A value the screen sends or branches on uses that union. Free text stays `string`.
+- One shape has one name. Do not alias it, and do not copy its fields into a second type.
+- Component props stay next to the component. Form state stays with the rule that reads it, and it stays separate from the API payload.
+- API payloads for one feature live in `frontend/lib/api/types/<feature>.ts`. Re-export them from `frontend/lib/api/types/index.ts`. Match the feature names already used by `lib/api/browser` and `lib/api/server`.
+
+```ts
+export const importSteps = ["account", "columns", "rows", "import"] as const;
+
+export type ImportStep = (typeof importSteps)[number];
+```

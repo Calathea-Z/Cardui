@@ -15,29 +15,13 @@ import type {
   SyncPlaidItemResponseDto,
 } from "@/lib/api/types";
 import { PlaidLinkButton } from "@/features/plaid/PlaidLinkButton";
+import { groupAccountsByInstitution } from "./groupAccountsByInstitution";
 import { InstitutionCard } from "./InstitutionCard";
 
 type InstitutionsPageClientProps = {
   initialItems: PlaidItemDto[];
   accounts: AccountDto[];
 };
-
-/**
- * Groups active accounts under the bank that synced them.
- * Only accounts with a Plaid item id are included.
- */
-function groupAccountsByInstitution(accounts: AccountDto[]) {
-  return accounts.reduce<Map<string, AccountDto[]>>((groups, account) => {
-    if (!account.plaidItemId || !account.isActive) {
-      return groups;
-    }
-
-    const existing = groups.get(account.plaidItemId) ?? [];
-    existing.push(account);
-    groups.set(account.plaidItemId, existing);
-    return groups;
-  }, new Map());
-}
 
 /**
  * Lists linked banks and lets the user connect, sync, or disconnect them.

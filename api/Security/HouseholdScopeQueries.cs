@@ -1,3 +1,4 @@
+using Cardui.Api.Data;
 using Cardui.Api.Models;
 
 namespace Cardui.Api.Security;
@@ -38,38 +39,28 @@ public static class HouseholdScopeQueries
 
     /// <summary>
     /// Keeps transactions whose account belongs to the bound household.
+    /// The household rule runs on accounts, then transactions are limited to those account ids.
     /// </summary>
     public static IQueryable<Transaction> InHousehold(
         this IQueryable<Transaction> query,
+        CarduiDBContext dbContext,
         HouseholdScope scope)
     {
-        scope.EnsureBound();
-
-        return scope.HouseholdId is Guid householdId
-            ? query.Where(x =>
-                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == householdId)
-                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == householdId))
-            : query.Where(x =>
-                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == null)
-                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == null));
+        var accountIds = dbContext.Accounts.InHousehold(scope).Select(account => account.Id);
+        return query.Where(transaction => accountIds.Contains(transaction.AccountId));
     }
 
     /// <summary>
     /// Keeps balance snapshots whose account belongs to the bound household.
+    /// The household rule runs on accounts, then snapshots are limited to those account ids.
     /// </summary>
     public static IQueryable<AccountBalanceSnapshot> InHousehold(
         this IQueryable<AccountBalanceSnapshot> query,
+        CarduiDBContext dbContext,
         HouseholdScope scope)
     {
-        scope.EnsureBound();
-
-        return scope.HouseholdId is Guid householdId
-            ? query.Where(x =>
-                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == householdId)
-                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == householdId))
-            : query.Where(x =>
-                (x.Account.PlaidItemId != null && x.Account.PlaidItem!.HouseholdId == null)
-                || (x.Account.PlaidItemId == null && x.Account.HouseholdId == null));
+        var accountIds = dbContext.Accounts.InHousehold(scope).Select(account => account.Id);
+        return query.Where(snapshot => accountIds.Contains(snapshot.AccountId));
     }
 
     /// <summary>

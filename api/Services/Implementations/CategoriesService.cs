@@ -165,7 +165,7 @@ public class CategoriesService : ICategoriesService
         var now = _timeProvider.GetUtcNow();
 
         var transactions = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.CategoryId == id)
             .ToListAsync(cancellationToken);
 

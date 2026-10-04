@@ -84,7 +84,9 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         plaidItem.UpdatedAt = now;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await CategorizeUncategorizedForPlaidItemAsync(plaidItem.Id, cancellationToken);
+        await CategorizeUncategorizedForPlaidItemAsync(
+            accountsByPlaidId.Values.Select(account => account.Id).ToList(),
+            cancellationToken);
 
         await _transferPairingService.PairOwnedAccountTransfersAsync(cancellationToken);
 
@@ -102,16 +104,22 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
     /// <summary>
     /// Assigns a keyword category to this item's transactions that have no
     /// category and were not edited by the user.
+    /// The account ids are the item's stored accounts, so the lookup seeks by account.
     /// </summary>
     private async Task CategorizeUncategorizedForPlaidItemAsync(
-        Guid plaidItemId,
+        IReadOnlyList<Guid> accountIds,
         CancellationToken cancellationToken)
     {
+        if (accountIds.Count == 0)
+        {
+            return;
+        }
+
         var uncategorized = await _dbContext.Transactions
             .Where(x =>
-                x.CategoryId == null
-                && !x.IsCategoryUserEdited
-                && x.Account.PlaidItemId == plaidItemId)
+                accountIds.Contains(x.AccountId)
+                && x.CategoryId == null
+                && !x.IsCategoryUserEdited)
             .ToListAsync(cancellationToken);
 
         if (uncategorized.Count == 0)

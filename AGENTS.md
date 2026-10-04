@@ -55,3 +55,10 @@ Each method in `api/` and `worker/` does one job. A method that sequences
 several jobs calls one method per job. A pure calculation goes in `Domain`.
 Skip generated EF Core migrations. See
 `.cursor/rules/backend-method-responsibility.mdc`.
+
+## Backend query access
+
+A read that does not update rows uses `AsNoTracking` or `Select`. Project
+the columns the caller needs. Filter transactions and balance snapshots by
+account id, and index a growing table by the columns that lookup uses. Ask
+before an index migration. See `.cursor/rules/backend-query-access.mdc`.

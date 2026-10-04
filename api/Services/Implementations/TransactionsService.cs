@@ -38,7 +38,7 @@ public class TransactionsService : ITransactionsService
         var (page, pageSize) = NormalizePagination(query);
 
         var transactionsQuery = ApplyFilters(
-            _dbContext.Transactions.AsNoTracking().InHousehold(_householdScope),
+            _dbContext.Transactions.AsNoTracking().InHousehold(_dbContext, _householdScope),
             query);
 
         var totalCount = await transactionsQuery.CountAsync(cancellationToken);
@@ -79,7 +79,7 @@ public class TransactionsService : ITransactionsService
     {
         var source = await _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Id == transactionId)
             .Select(x => new { x.Name, x.MerchantName })
             .FirstOrDefaultAsync(cancellationToken);
@@ -125,7 +125,7 @@ public class TransactionsService : ITransactionsService
         CancellationToken cancellationToken = default)
     {
         var transaction = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)
@@ -161,7 +161,7 @@ public class TransactionsService : ITransactionsService
         CancellationToken cancellationToken = default)
     {
         var transaction = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)
@@ -335,7 +335,7 @@ public class TransactionsService : ITransactionsService
         var matchKeyLower = match.DisplayName.ToLowerInvariant();
         var historyQuery = _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(transaction => transaction.ArchivedAt == null);
 
         if (match.MatchesMerchantName)
@@ -453,7 +453,7 @@ public class TransactionsService : ITransactionsService
     {
         var transaction = await _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Id == id)
             .Select(TransactionDtoMapper.Projection)
             .FirstOrDefaultAsync(cancellationToken);
@@ -493,7 +493,7 @@ public class TransactionsService : ITransactionsService
         CancellationToken cancellationToken)
     {
         var transaction = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)

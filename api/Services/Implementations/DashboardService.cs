@@ -123,15 +123,17 @@ public class DashboardService : IDashboardService
 
     /// <summary>
     /// Returns the eight most recent non-archived transactions.
+    /// Transactions on the same date are ordered by when they were created.
     /// </summary>
     private async Task<IReadOnlyList<TransactionDto>> GetRecentTransactionsAsync(
         CancellationToken cancellationToken)
     {
         return await _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.ArchivedAt == null)
             .OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.CreatedAt)
             .Take(RecentTransactionCount)
             .Select(TransactionDtoMapper.Projection)
             .ToListAsync(cancellationToken);
@@ -143,7 +145,7 @@ public class DashboardService : IDashboardService
     private IQueryable<Transaction> TransactionsInDateRange(DateOnly start, DateOnly end)
     {
         return _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Date >= start && x.Date <= end);
     }
 

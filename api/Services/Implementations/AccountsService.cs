@@ -347,8 +347,8 @@ public class AccountsService : IAccountsService
     }
 
     /// <summary>
-    /// Builds daily balance history from snapshots, carrying each account's
-    /// last known balance forward.
+    /// Builds daily balance history from the snapshot columns the chart needs,
+    /// carrying each account's last known balance forward.
     /// </summary>
     private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync(
         CancellationToken cancellationToken)
@@ -356,18 +356,18 @@ public class AccountsService : IAccountsService
         var today = FinancialDate.Today(_timeProvider);
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
-            .InHousehold(_householdScope)
-            .Include(x => x.Account)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Account.IsActive && x.Account.ArchivedAt == null && x.Date <= today)
             .OrderBy(x => x.Date)
-            .ToListAsync(cancellationToken);
-
-        return AccountBalanceHistory.Build(snapshots.Select(x => new AccountSnapshotBalance(
+            .Select(x => new AccountSnapshotBalance(
                 x.AccountId,
                 x.Account.Type,
                 x.Date,
                 x.CurrentBalance,
-                x.CreatedAt)))
+                x.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+        return AccountBalanceHistory.Build(snapshots)
             .Select(point => new AccountBalanceHistoryPointDto
             {
                 Date = point.Date,

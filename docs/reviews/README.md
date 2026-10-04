@@ -2,6 +2,8 @@
 
 Newest first:
 
+- [2026-10-04 — Backend query access](2026-10-04-003-backend-query-access.md)
+- [2026-10-04 — Query and index access](2026-10-04-002-query-and-index-access.md)
 - [2026-10-04 — Clean-code follow-up](2026-10-04-001-clean-code-follow-up.md)
 - [2026-10-03 — Method responsibility](2026-10-03-017-method-responsibility.md)
 - [2026-10-03 — Domain classifiers](2026-10-03-016-domain-classifiers.md)

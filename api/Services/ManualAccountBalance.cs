@@ -90,34 +90,63 @@ public static class ManualAccountBalance
     #region Private Methods
 
     /// <summary>
-    /// Loads the account's transactions, including unsaved tracked rows, for the ledger.
+    /// Loads the account's ledger rows without tracking them, then applies unsaved changes.
     /// </summary>
     private static async Task<List<LedgerTransaction>> LoadTransactionsAsync(
         CarduiDBContext dbContext,
         Guid accountId,
         CancellationToken cancellationToken)
     {
-        var transactions = await dbContext.Transactions
+        var stored = await dbContext.Transactions
+            .AsNoTracking()
             .Where(x => x.AccountId == accountId)
-            .ToListAsync(cancellationToken);
-
-        var byId = transactions.ToDictionary(x => x.Id);
-
-        foreach (var local in dbContext.Transactions.Local)
-        {
-            if (local.AccountId == accountId)
+            .Select(x => new
             {
-                byId[local.Id] = local;
-            }
-        }
-
-        return byId.Values
-            .Select(x => new LedgerTransaction(
+                x.Id,
                 x.Date,
                 x.Amount,
                 x.Pending,
-                x.ArchivedAt != null))
-            .ToList();
+                IsArchived = x.ArchivedAt != null
+            })
+            .ToListAsync(cancellationToken);
+
+        var byId = stored.ToDictionary(
+            x => x.Id,
+            x => new LedgerTransaction(x.Date, x.Amount, x.Pending, x.IsArchived));
+
+        ApplyTrackedTransactions(dbContext, accountId, byId);
+        return byId.Values.ToList();
+    }
+
+    /// <summary>
+    /// Replaces stored ledger rows with unsaved tracked transactions for this account.
+    /// A tracked deletion drops the row so the balance does not keep it.
+    /// </summary>
+    private static void ApplyTrackedTransactions(
+        CarduiDBContext dbContext,
+        Guid accountId,
+        Dictionary<Guid, LedgerTransaction> byId)
+    {
+        foreach (var entry in dbContext.ChangeTracker.Entries<Transaction>())
+        {
+            if (entry.Entity.AccountId != accountId)
+            {
+                continue;
+            }
+
+            if (entry.State == EntityState.Deleted)
+            {
+                byId.Remove(entry.Entity.Id);
+                continue;
+            }
+
+            var transaction = entry.Entity;
+            byId[transaction.Id] = new LedgerTransaction(
+                transaction.Date,
+                transaction.Amount,
+                transaction.Pending,
+                transaction.ArchivedAt != null);
+        }
     }
 
     #endregion

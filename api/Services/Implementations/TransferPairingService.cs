@@ -150,7 +150,7 @@ public class TransferPairingService : ITransferPairingService
 
     /// <summary>
     /// Loads non-zero transactions in the lookback window for the eligible accounts.
-    /// Balance reconciliations are excluded.
+    /// Those account ids are already limited to the household. Balance reconciliations are excluded.
     /// </summary>
     private async Task<List<Transaction>> LoadCandidateTransactionsAsync(
         IReadOnlyList<Guid> eligibleAccountIds,
@@ -160,7 +160,6 @@ public class TransferPairingService : ITransferPairingService
         var windowStart = today.AddDays(-LookbackDays);
 
         return await _dbContext.Transactions
-            .InHousehold(_householdScope)
             .Include(transaction => transaction.Category)
             .Where(transaction =>
                 eligibleAccountIds.Contains(transaction.AccountId)

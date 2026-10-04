@@ -77,9 +77,7 @@ export function getChartTimeWindow(
 
   if (range === "ALL") {
     const firstPoint = history[0];
-    const startMs = firstPoint
-      ? parseDate(firstPoint.date).getTime()
-      : endMs;
+    const startMs = firstPoint ? parseDate(firstPoint.date).getTime() : endMs;
     return { startMs, endMs };
   }
 
@@ -182,7 +180,9 @@ export function getDateTickFormatter(range: ChartTimeRange) {
     const date = resolveDate(value);
 
     if (range === "1W") {
-      return new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(date);
+      return new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(
+        date,
+      );
     }
 
     if (range === "1Y" || range === "ALL") {
@@ -234,9 +234,7 @@ export function formatChartAxisCurrency(value: number, currency = "USD") {
 
   const formatCompact = (n: number, suffix: string) => {
     const digits = n >= 100 ? 0 : 1;
-    const formatted = n
-      .toFixed(digits)
-      .replace(/\.0$/, "");
+    const formatted = n.toFixed(digits).replace(/\.0$/, "");
     return `${sign}${symbol}${formatted}${suffix}`;
   };
 

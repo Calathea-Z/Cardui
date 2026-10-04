@@ -1,0 +1,25 @@
+---
+description: Frontend file names, barrels, API clients, and formatting
+alwaysApply: true
+---
+
+# Frontend conventions
+
+When adding or changing the frontend, keep these shapes.
+
+- Shared files in `frontend/components` use kebab-case. Feature
+  components use PascalCase. Logic modules use camelCase.
+- A feature `index.ts` exports only the component the route imports.
+- Add an API client function when a screen calls it. Remove it when
+  the last caller goes away.
+- `pnpm format:check` stays in CI next to lint. Prettier is the
+  formatting source.
+- Add a primitive in `frontend/components/ui` when a screen needs it.
+  Do not leave a generated primitive that nothing imports.
+
+```tsx
+export { CategoriesClient } from "./CategoriesClient";
+```
+
+Money display is separate, and it applies only in this repo. See
+`.cursor/rules/frontend-currency.mdc`.

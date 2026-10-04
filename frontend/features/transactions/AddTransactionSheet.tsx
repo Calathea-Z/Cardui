@@ -100,104 +100,104 @@ function AddTransactionForm({
             />
           </div>
 
-              <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Name
-                <Input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  maxLength={300}
-                  required
-                />
-              </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            Name
+            <Input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              maxLength={300}
+              required
+            />
+          </label>
 
-              <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Amount
-                <Input
-                  value={amount}
-                  onChange={(event) => setAmount(event.target.value)}
-                  inputMode="decimal"
-                  required
-                />
-              </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            Amount
+            <Input
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              inputMode="decimal"
+              required
+            />
+          </label>
 
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={direction === "out" ? "default" : "outline"}
-                  className="flex-1"
-                  onClick={() => setDirection("out")}
-                >
-                  Money out
-                </Button>
-                <Button
-                  type="button"
-                  variant={direction === "in" ? "default" : "outline"}
-                  className="flex-1"
-                  onClick={() => setDirection("in")}
-                >
-                  Money in
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Money in counts as income only when you assign the Income
-                category. Put an opening balance on the account instead.
-              </p>
-              {selectedAccount?.plaidItemId ? (
-                <p className="text-xs text-muted-foreground">
-                  This account is linked. The bank still supplies its balance.
-                  The transaction counts in activity.
-                </p>
-              ) : null}
-
-              <div className="flex flex-col gap-1.5 text-sm font-medium">
-                Category
-                <Select
-                  title="Category"
-                  value={categoryId}
-                  onChange={setCategoryId}
-                  onOpenChange={onPickerOpenChange}
-                  placeholder="Uncategorized"
-                  className="h-9"
-                  options={[
-                    { value: "", label: "Uncategorized" },
-                    ...categories.map((category) => ({
-                      value: category.id,
-                      label: category.name,
-                    })),
-                  ]}
-                />
-              </div>
-
-              <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Date
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(event) => setDate(event.target.value)}
-                  required
-                />
-              </label>
-
-              <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Notes
-                <Input
-                  value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
-                  maxLength={1000}
-                />
-              </label>
-            </>
-          )}
-
-          {errorMessage ? (
-            <Alert variant="destructive">{errorMessage}</Alert>
-          ) : null}
-
-          {accounts.length > 0 ? (
-            <Button type="submit" size="lg" disabled={isSaving} className="py-3">
-              {isSaving ? "Saving" : "Add transaction"}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={direction === "out" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setDirection("out")}
+            >
+              Money out
             </Button>
+            <Button
+              type="button"
+              variant={direction === "in" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setDirection("in")}
+            >
+              Money in
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Money in counts as income only when you assign the Income category.
+            Put an opening balance on the account instead.
+          </p>
+          {selectedAccount?.plaidItemId ? (
+            <p className="text-xs text-muted-foreground">
+              This account is linked. The bank still supplies its balance. The
+              transaction counts in activity.
+            </p>
           ) : null}
+
+          <div className="flex flex-col gap-1.5 text-sm font-medium">
+            Category
+            <Select
+              title="Category"
+              value={categoryId}
+              onChange={setCategoryId}
+              onOpenChange={onPickerOpenChange}
+              placeholder="Uncategorized"
+              className="h-9"
+              options={[
+                { value: "", label: "Uncategorized" },
+                ...categories.map((category) => ({
+                  value: category.id,
+                  label: category.name,
+                })),
+              ]}
+            />
+          </div>
+
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            Date
+            <Input
+              type="date"
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              required
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            Notes
+            <Input
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              maxLength={1000}
+            />
+          </label>
+        </>
+      )}
+
+      {errorMessage ? (
+        <Alert variant="destructive">{errorMessage}</Alert>
+      ) : null}
+
+      {accounts.length > 0 ? (
+        <Button type="submit" size="lg" disabled={isSaving} className="py-3">
+          {isSaving ? "Saving" : "Add transaction"}
+        </Button>
+      ) : null}
     </form>
   );
 }

@@ -1,11 +1,10 @@
-import type { AccountBalanceHistoryPointDto, AccountGroupDto } from "@/lib/api/types";
+import type {
+  AccountBalanceHistoryPointDto,
+  AccountGroupDto,
+} from "@/lib/api/types";
 
 export type AccountChartMetric =
-  | "net-worth"
-  | "cash"
-  | "investments"
-  | "credit-cards"
-  | "loans";
+  "net-worth" | "cash" | "investments" | "credit-cards" | "loans";
 
 export type AccountChartMetricOption = {
   value: AccountChartMetric;

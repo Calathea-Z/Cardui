@@ -51,7 +51,10 @@ export function DashboardAccountsSlider({
   const showNetWorthEmptyState = !hasConnectedAccounts(summary.groups);
 
   const assetGroups = getAccountGroups(summary.groups, ASSET_GROUP_KEYS);
-  const liabilityGroups = getAccountGroups(summary.groups, LIABILITY_GROUP_KEYS);
+  const liabilityGroups = getAccountGroups(
+    summary.groups,
+    LIABILITY_GROUP_KEYS,
+  );
   const totalAssets = sumGroupTotals(assetGroups);
   const totalLiabilities = sumGroupTotals(liabilityGroups);
 

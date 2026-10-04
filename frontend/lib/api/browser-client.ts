@@ -1,10 +1,7 @@
 import "client-only";
 
 import axios from "axios";
-import {
-  getErrorMessageFromResponseData,
-  type ApiError,
-} from "./errors";
+import { getErrorMessageFromResponseData, type ApiError } from "./errors";
 import { readSessionToken } from "./session-token";
 
 export const browserClient = axios.create({

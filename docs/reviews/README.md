@@ -2,6 +2,9 @@
 
 Newest first:
 
+- [2026-10-04 — Clerk page protection](2026-10-04-006-clerk-page-protection.md)
+- [2026-10-04 — Frontend conventions](2026-10-04-005-frontend-conventions.md)
+- [2026-10-04 — Frontend cleanup](2026-10-04-004-frontend-cleanup.md)
 - [2026-10-04 — Backend query access](2026-10-04-003-backend-query-access.md)
 - [2026-10-04 — Query and index access](2026-10-04-002-query-and-index-access.md)
 - [2026-10-04 — Clean-code follow-up](2026-10-04-001-clean-code-follow-up.md)

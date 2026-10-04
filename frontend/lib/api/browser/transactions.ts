@@ -22,14 +22,6 @@ export async function getTransactions(
   return response.data;
 }
 
-export async function getTransactionById(id: string): Promise<TransactionDto> {
-  const response = await browserClient.get<TransactionDto>(
-    `/api/transactions/${id}`,
-  );
-
-  return response.data;
-}
-
 export async function getMerchantHistory(
   id: string,
   query?: {

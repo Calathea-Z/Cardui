@@ -47,7 +47,7 @@ jobs:
         run: dotnet build ./worker/worker.csproj --configuration Release
 
   frontend:
-    name: Frontend tests, lint, and build
+    name: Frontend tests, lint, format, and build
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -77,6 +77,10 @@ jobs:
       - name: Lint
         working-directory: frontend
         run: pnpm lint
+
+      - name: Format
+        working-directory: frontend
+        run: pnpm format:check
 
       - name: Build
         working-directory: frontend

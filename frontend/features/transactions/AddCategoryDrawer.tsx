@@ -200,7 +200,11 @@ function AddCategoryDrawerSession({
           </Button>
         }
       >
-        <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form
+          id={formId}
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4"
+        >
           <div className="divide-y divide-border/70 border-y border-border/70">
             <label
               className={cn(
@@ -435,7 +439,10 @@ function OptionList({
               {option.label}
             </span>
             {isSelected ? (
-              <Check className="size-4 shrink-0 text-primary" aria-hidden="true" />
+              <Check
+                className="size-4 shrink-0 text-primary"
+                aria-hidden="true"
+              />
             ) : null}
           </button>
         );

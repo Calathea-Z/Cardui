@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useSetMobileHeaderActions } from "@/components/navigation/mobile-header-actions";
 import { syncPlaidItem } from "@/lib/api/browser";
-import type { AccountDto, AccountSummaryDto, PlaidItemDto } from "@/lib/api/types";
+import type {
+  AccountDto,
+  AccountSummaryDto,
+  PlaidItemDto,
+} from "@/lib/api/types";
 import { AccountDetailSheet } from "./AccountDetailSheet";
 import { AccountsActionButtons } from "./AccountsActionButtons";
 import { AccountsView } from "./AccountsView";
@@ -105,4 +109,3 @@ export function AccountsPageClient({
     </>
   );
 }
-

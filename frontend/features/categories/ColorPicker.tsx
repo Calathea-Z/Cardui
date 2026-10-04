@@ -23,7 +23,11 @@ type ColorPickerProps = {
   disabled?: boolean;
 };
 
-export function ColorPicker({ value, onChange, disabled = false }: ColorPickerProps) {
+export function ColorPicker({
+  value,
+  onChange,
+  disabled = false,
+}: ColorPickerProps) {
   const normalized = value.trim().toLowerCase();
 
   return (
@@ -46,7 +50,8 @@ export function ColorPicker({ value, onChange, disabled = false }: ColorPickerPr
               onClick={() => onChange(color)}
               className={cn(
                 "size-11 rounded-lg border border-border/70 transition-transform",
-                selected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                selected &&
+                  "ring-2 ring-primary ring-offset-2 ring-offset-background",
                 disabled && "opacity-50",
               )}
               style={{ backgroundColor: color }}

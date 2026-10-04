@@ -169,7 +169,12 @@ export function CategoryForm({
           </Button>
 
           {editingCategory ? (
-            <Button type="button" variant="outline" size="lg" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={onCancel}
+            >
               Cancel
             </Button>
           ) : null}

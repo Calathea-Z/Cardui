@@ -43,7 +43,8 @@ const CATEGORY_ICON_EMOJIS: Record<string, string> = {
 const DEFAULT_CATEGORY_EMOJI = "❔";
 
 export function getCategoryEmoji(
-  category: Pick<TransactionCategoryDto, "key" | "icon" | "name"> | null | undefined,
+  category:
+    Pick<TransactionCategoryDto, "key" | "icon" | "name"> | null | undefined,
 ): string {
   if (!category) {
     return DEFAULT_CATEGORY_EMOJI;
@@ -73,7 +74,11 @@ export function getCategoryEmoji(
   if (name.includes("gift") || name.includes("donation")) {
     return CATEGORY_KEY_EMOJIS["gifts-donations"];
   }
-  if (name.includes("grocer") || name.includes("dining") || name.includes("food")) {
+  if (
+    name.includes("grocer") ||
+    name.includes("dining") ||
+    name.includes("food")
+  ) {
     return CATEGORY_KEY_EMOJIS["food-dining"];
   }
   if (name.includes("bill") || name.includes("utilit")) {
@@ -82,10 +87,18 @@ export function getCategoryEmoji(
   if (name.includes("auto") || name.includes("transport")) {
     return CATEGORY_KEY_EMOJIS["auto-transport"];
   }
-  if (name.includes("hous") || name.includes("rent") || name.includes("mortgage")) {
+  if (
+    name.includes("hous") ||
+    name.includes("rent") ||
+    name.includes("mortgage")
+  ) {
     return CATEGORY_KEY_EMOJIS.housing;
   }
-  if (name.includes("travel") || name.includes("lifestyle") || name.includes("entertain")) {
+  if (
+    name.includes("travel") ||
+    name.includes("lifestyle") ||
+    name.includes("entertain")
+  ) {
     return CATEGORY_KEY_EMOJIS["travel-lifestyle"];
   }
   if (name.includes("shop")) return CATEGORY_KEY_EMOJIS.shopping;

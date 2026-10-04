@@ -47,7 +47,11 @@ type EmojiPickerProps = {
   disabled?: boolean;
 };
 
-export function EmojiPicker({ value, onChange, disabled = false }: EmojiPickerProps) {
+export function EmojiPicker({
+  value,
+  onChange,
+  disabled = false,
+}: EmojiPickerProps) {
   return (
     <div
       role="listbox"

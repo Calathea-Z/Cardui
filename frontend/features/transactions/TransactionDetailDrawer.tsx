@@ -5,10 +5,7 @@ import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  archiveTransaction,
-  restoreTransaction,
-} from "@/lib/api/browser";
+import { archiveTransaction, restoreTransaction } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
   CategoryDto,
@@ -29,10 +26,7 @@ import { TransactionDateField } from "./TransactionDateField";
 import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
 import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
-import {
-  isManualEntry,
-  useTransactionDetails,
-} from "./useTransactionDetails";
+import { isManualEntry, useTransactionDetails } from "./useTransactionDetails";
 
 type TransactionDetailDrawerProps = {
   transaction: TransactionDto | null;
@@ -241,15 +235,15 @@ function TransactionDetailDrawerContent({
         />
 
         {isAdjustment ? null : (
-        <TransactionCategorySelect
-          categories={categories}
-          groups={groups}
-          subGroups={subGroups}
-          categoryId={form.categoryId}
-          onCategoryIdChange={setCategoryId}
-          onCategoryCreated={handleCategoryCreated}
-          onOpenChange={onNestedOpenChange}
-        />
+          <TransactionCategorySelect
+            categories={categories}
+            groups={groups}
+            subGroups={subGroups}
+            categoryId={form.categoryId}
+            onCategoryIdChange={setCategoryId}
+            onCategoryCreated={handleCategoryCreated}
+            onOpenChange={onNestedOpenChange}
+          />
         )}
 
         <TransactionDateField value={form.date} onChange={setDate} />
@@ -270,7 +264,9 @@ function TransactionDetailDrawerContent({
         </Alert>
       ) : null}
 
-      {archiveError ? <Alert variant="destructive">{archiveError}</Alert> : null}
+      {archiveError ? (
+        <Alert variant="destructive">{archiveError}</Alert>
+      ) : null}
 
       {confirmArchive ? (
         <div className="flex flex-col gap-2">
@@ -311,7 +307,9 @@ function TransactionDetailDrawerContent({
             setConfirmArchive(true);
           }}
         >
-          {transaction.archivedAt ? "Restore transaction" : "Archive transaction"}
+          {transaction.archivedAt
+            ? "Restore transaction"
+            : "Archive transaction"}
         </Button>
       )}
     </div>

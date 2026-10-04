@@ -33,7 +33,10 @@ export type TransactionAmountDisplay = {
 export function getTransactionAmountDisplay(
   transaction: TransactionDto,
 ): TransactionAmountDisplay {
-  if (isTransferTransaction(transaction) || isBalanceReconciliation(transaction)) {
+  if (
+    isTransferTransaction(transaction) ||
+    isBalanceReconciliation(transaction)
+  ) {
     return {
       kind: "transfer",
       label: formatAbsoluteCurrency(transaction.amount),

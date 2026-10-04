@@ -1,10 +1,13 @@
-import { PageApiErrorBanner } from "@/components/PageApiErrorBanner";
+import { auth } from "@clerk/nextjs/server";
+import { PageApiErrorBanner } from "@/components/page-api-error-banner";
 import { AccountsPageClient } from "@/features/accounts/AccountsPageClient";
 import { loadAccountsPage } from "@/features/accounts/server/loadAccountsPage";
 
 export const dynamic = "force-dynamic";
 
 export default async function AccountsPage() {
+  await auth.protect();
+
   const page = await loadAccountsPage();
 
   return (

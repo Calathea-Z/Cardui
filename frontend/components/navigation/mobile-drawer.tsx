@@ -27,22 +27,22 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
         )}
         aria-hidden={!isOpen}
       >
-      <BrandMark />
+        <BrandMark />
 
-      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-none">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.href}
-            item={item}
-            showIcon
-            onNavigate={onClose}
-            className="flex cursor-pointer items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-3 text-base font-medium transition"
-            activeClassName="border-l-sidebar-primary bg-sidebar-accent text-sidebar-primary"
-            inactiveClassName="text-sidebar-foreground/65 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
-          />
-        ))}
-      </nav>
-      <AccountMenu />
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-none">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.href}
+              item={item}
+              showIcon
+              onNavigate={onClose}
+              className="flex cursor-pointer items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-3 text-base font-medium transition"
+              activeClassName="border-l-sidebar-primary bg-sidebar-accent text-sidebar-primary"
+              inactiveClassName="text-sidebar-foreground/65 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+            />
+          ))}
+        </nav>
+        <AccountMenu />
       </aside>
     </>
   );

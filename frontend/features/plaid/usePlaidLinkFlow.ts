@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { usePlaidLink, type PlaidLinkOnSuccessMetadata } from "react-plaid-link";
+import {
+  usePlaidLink,
+  type PlaidLinkOnSuccessMetadata,
+} from "react-plaid-link";
 import {
   createPlaidLinkToken,
   exchangePlaidPublicToken,

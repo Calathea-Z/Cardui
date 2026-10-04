@@ -100,9 +100,7 @@ export function TransactionsClient({
           isLoading={isLoading}
         />
 
-        {errorMessage ? (
-          <Alert variant="panel">{errorMessage}</Alert>
-        ) : null}
+        {errorMessage ? <Alert variant="panel">{errorMessage}</Alert> : null}
 
         <div className="app-panel overflow-visible!">
           <div>

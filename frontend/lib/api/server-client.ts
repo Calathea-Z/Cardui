@@ -2,10 +2,7 @@ import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
 import axios from "axios";
-import {
-  getErrorMessageFromResponseData,
-  type ApiError,
-} from "./errors";
+import { getErrorMessageFromResponseData, type ApiError } from "./errors";
 
 const baseURL = process.env.API_BASE_URL;
 

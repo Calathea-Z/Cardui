@@ -10,9 +10,7 @@ export function AccountButton() {
 export function AccountMenu() {
   const { user } = useUser();
   const label =
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.fullName ??
-    "Account";
+    user?.primaryEmailAddress?.emailAddress ?? user?.fullName ?? "Account";
 
   return (
     <div className="mt-auto shrink-0 border-t border-sidebar-border pt-4">

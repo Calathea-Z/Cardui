@@ -446,3 +446,19 @@
   color: var(--muted-foreground) !important;
   opacity: 1 !important;
 }
+
+.cl-identityPreviewText {
+  color: var(--popover-foreground) !important;
+  opacity: 1 !important;
+}
+
+.cl-identityPreviewEditButton,
+.cl-identityPreviewEditButtonIcon {
+  color: var(--primary) !important;
+  opacity: 1 !important;
+}
+
+.cl-formFieldInput::placeholder {
+  color: var(--muted-foreground) !important;
+  opacity: 1 !important;
+}

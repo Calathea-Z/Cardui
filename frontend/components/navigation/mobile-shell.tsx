@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountButton } from "@/components/auth/account-menu";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { getActiveNavItem } from "./nav-items";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { MobileDrawer } from "./mobile-drawer";
-import { MobileHeaderActionsSlot, MobileHeaderLeadingSlot } from "./mobile-header-actions";
+import {
+  MobileHeaderActionsSlot,
+  MobileHeaderLeadingSlot,
+} from "./mobile-header-actions";
 
 type MobileShellProps = {
   children: React.ReactNode;

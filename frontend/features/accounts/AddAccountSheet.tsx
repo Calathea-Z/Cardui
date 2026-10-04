@@ -67,7 +67,11 @@ function AddAccountSheetContent({
 
   async function saveManualAccount() {
     const openingBalance = parseMoney(form.openingBalance);
-    if (!form.name.trim() || openingBalance === null || !form.openingBalanceDate) {
+    if (
+      !form.name.trim() ||
+      openingBalance === null ||
+      !form.openingBalanceDate
+    ) {
       setManualError("Enter a name, opening balance, and opening date.");
       return;
     }
@@ -152,7 +156,12 @@ function AddAccountSheetContent({
       <p className="text-sm text-muted-foreground">
         Enter an account yourself, or link one through Plaid.
       </p>
-      <Button type="button" size="lg" className="py-3" onClick={() => setMode("manual")}>
+      <Button
+        type="button"
+        size="lg"
+        className="py-3"
+        onClick={() => setMode("manual")}
+      >
         Enter manually
       </Button>
       <Button

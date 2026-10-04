@@ -1,6 +1,9 @@
+import { auth } from "@clerk/nextjs/server";
 import { EmptyState } from "@/components/ui/empty-state";
 
-export default function BudgetsPage() {
+export default async function BudgetsPage() {
+  await auth.protect();
+
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <div>

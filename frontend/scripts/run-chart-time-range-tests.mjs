@@ -24,8 +24,22 @@ const chartTimeRange = await import(pathToFileURL(compiledPath).href);
 
 test("computePeriodChange returns absolute and percentage deltas", () => {
   const change = chartTimeRange.computePeriodChange([
-    { date: "2026-07-01", netWorth: 100, cash: 100, investments: 0, creditCards: 0, loans: 0 },
-    { date: "2026-07-10", netWorth: 125, cash: 125, investments: 0, creditCards: 0, loans: 0 },
+    {
+      date: "2026-07-01",
+      netWorth: 100,
+      cash: 100,
+      investments: 0,
+      creditCards: 0,
+      loans: 0,
+    },
+    {
+      date: "2026-07-10",
+      netWorth: 125,
+      cash: 125,
+      investments: 0,
+      creditCards: 0,
+      loans: 0,
+    },
   ]);
 
   assert.deepEqual(change, {

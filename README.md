@@ -155,6 +155,7 @@ dotnet build .\worker\worker.csproj --configuration Release
 Push-Location .\frontend
 pnpm test
 pnpm lint
+pnpm format:check
 pnpm build
 Pop-Location
 ```
@@ -170,8 +171,8 @@ the .NET SDK pinned in `global.json`, Node.js 22, and the pnpm version pinned in
 
 - API tests: `dotnet test ./Cardui.sln --configuration Release`
 - Worker build: `dotnet build ./worker/worker.csproj --configuration Release`
-- Frontend: `pnpm test`, `pnpm lint`, and `pnpm build` from `frontend/` after
-  `pnpm install --frozen-lockfile`
+- Frontend: `pnpm test`, `pnpm lint`, `pnpm format:check`, and `pnpm build`
+  from `frontend/` after `pnpm install --frozen-lockfile`
 
 The frontend production build sets `API_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL`
 to `http://localhost:5235`. It also sets placeholder Clerk keys so the sign-in

@@ -6,6 +6,9 @@ namespace Cardui.Api.Data.Configurations;
 
 public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
+    /// <summary>
+    /// Maps account columns, household ownership, and the transaction relationship.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Account> entity)
     {
         entity.HasKey(x => x.Id);

@@ -499,16 +499,16 @@ namespace Cardui.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("ArchivedAt");
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("IX_Transactions_AccountId_Uncategorized")
+                        .HasFilter("\"CategoryId\" IS NULL");
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("Date");
-
                     b.HasIndex("PlaidTransactionId")
                         .IsUnique();
+
+                    b.HasIndex("AccountId", "Date");
 
                     b.ToTable("Transactions");
                 });

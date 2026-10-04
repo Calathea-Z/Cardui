@@ -1,7 +1,7 @@
-using Cardui.Api.Services;
+using Cardui.Api.Domain;
 using Xunit;
 
-namespace Cardui.Tests.Services;
+namespace Cardui.Tests.Domain;
 
 public class TransferTextClassifierTests
 {

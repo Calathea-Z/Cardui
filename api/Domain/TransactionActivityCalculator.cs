@@ -2,29 +2,12 @@ using Cardui.Api.Models;
 
 namespace Cardui.Api.Domain;
 
-public sealed record TransactionActivityValue(
-    decimal Amount,
-    bool Pending,
-    Guid? CategoryId,
-    string CategoryName,
-    string? CategoryColor,
-    string? CategoryKey,
-    string? GroupKey,
-    string? Provenance = null);
-
-public sealed record TransactionActivityCategoryTotal(
-    Guid? CategoryId,
-    string CategoryName,
-    string? CategoryColor,
-    decimal Amount);
-
-public sealed record TransactionActivityTotals(
-    decimal Income,
-    decimal Spending,
-    IReadOnlyList<TransactionActivityCategoryTotal> SpendingByCategory);
-
 public static class TransactionActivityCalculator
 {
+    /// <summary>
+    /// True when a posted transaction counts as income or spending.
+    /// Transfers and balance reconciliations are excluded.
+    /// </summary>
     public static bool AffectsIncomeOrSpending(TransactionActivityValue transaction)
     {
         return !transaction.Pending
@@ -32,6 +15,11 @@ public static class TransactionActivityCalculator
             && !IsBalanceReconciliation(transaction);
     }
 
+    /// <summary>
+    /// Totals income and spending. Pending transactions, transfers, and
+    /// balance reconciliations are excluded. Income is stored as a negative
+    /// amount and returned as a positive total.
+    /// </summary>
     public static TransactionActivityTotals Calculate(
         IEnumerable<TransactionActivityValue> transactions)
     {
@@ -77,12 +65,20 @@ public static class TransactionActivityCalculator
             SpendingByCategory: categoryTotals);
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// True when the category or its group is Transfers.
+    /// </summary>
     private static bool IsTransfer(TransactionActivityValue transaction)
     {
         return HasKey(transaction.GroupKey, SystemGroupKeys.Transfers)
             || HasKey(transaction.CategoryKey, SystemCategoryKeys.Transfers);
     }
 
+    /// <summary>
+    /// True for a statement-match adjustment, which is not income or spending.
+    /// </summary>
     private static bool IsBalanceReconciliation(TransactionActivityValue transaction)
     {
         return string.Equals(
@@ -91,19 +87,22 @@ public static class TransactionActivityCalculator
             StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// True when the category or its group is Income.
+    /// </summary>
     private static bool IsIncome(TransactionActivityValue transaction)
     {
         return HasKey(transaction.GroupKey, SystemGroupKeys.Income)
             || HasKey(transaction.CategoryKey, SystemCategoryKeys.Income);
     }
 
+    /// <summary>
+    /// Compares a category or group key without regard to case.
+    /// </summary>
     private static bool HasKey(string? actual, string expected)
     {
         return string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase);
     }
 
-    private sealed record CategoryBucket(
-        Guid? CategoryId,
-        string CategoryName,
-        string? CategoryColor);
+    #endregion
 }

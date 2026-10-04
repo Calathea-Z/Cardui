@@ -1,0 +1,28 @@
+---
+description: Keep each backend method to a single job
+alwaysApply: true
+---
+
+# Backend method responsibility
+
+When adding or changing C# in `api/` or `worker/`, each method does one job.
+Do this in the same change as the method.
+
+- A method that validates, loads, calculates, and saves in one body is too
+  big. Call one method for each of those jobs.
+- A pure calculation goes in `Domain`. See
+  `.cursor/rules/backend-domain-rules.mdc`.
+- Loading and saving stay in `Services`.
+- Assigning the fields for one write can stay in that write method.
+- Do not add these splits to generated EF Core migration files.
+
+```csharp
+public async Task<AccountDto> ReconcileAsync(...)
+{
+    var account = await FindAccountAsync(...);
+    RequireOpenAccount(account);
+    var adjustment = await CalculateAdjustmentAsync(...);
+    await SaveAdjustmentAsync(account, adjustment);
+    return await ProjectAccountAsync(account.Id);
+}
+```

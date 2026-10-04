@@ -8,6 +8,9 @@ public static class CorsServiceCollectionExtensions
         "https://localhost:3000"
     ];
 
+    /// <summary>
+    /// Allows the configured frontend origins, or localhost:3000 when none are configured.
+    /// </summary>
     public static IServiceCollection AddCarduiCors(
         this IServiceCollection services,
         IConfiguration configuration)

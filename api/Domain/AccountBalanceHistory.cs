@@ -2,6 +2,10 @@ namespace Cardui.Api.Domain;
 
 public static class AccountBalanceHistory
 {
+    /// <summary>
+    /// Builds one history point per snapshot date. An account with no new
+    /// snapshot keeps the balance from its previous point.
+    /// </summary>
     public static IReadOnlyList<AccountBalanceHistoryPoint> Build(
         IEnumerable<AccountSnapshotBalance> snapshots)
     {

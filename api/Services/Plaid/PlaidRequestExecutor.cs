@@ -19,6 +19,7 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public TRequest WithCredentials<TRequest>(
         TRequest request,
         string? accessToken = null)
@@ -35,6 +36,7 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
         return request;
     }
 
+    /// <inheritdoc />
     public async Task<TResponse> ExecuteAsync<TResponse>(Func<Task<TResponse>> action)
         where TResponse : ResponseBase
     {
@@ -59,6 +61,11 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
         }
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Logs a Plaid error and wraps it in a PlaidSyncException with a user-safe message.
+    /// </summary>
     private PlaidSyncException CreatePlaidSyncException(
         PlaidError error,
         string? requestId)
@@ -75,6 +82,9 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
             error.ErrorType);
     }
 
+    /// <summary>
+    /// Prefers Plaid's display message, then its error message, then a generic sentence.
+    /// </summary>
     private static string GetUserSafePlaidMessage(PlaidError ex)
     {
         if (!string.IsNullOrWhiteSpace(ex.DisplayMessage))
@@ -86,4 +96,6 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
             ? ex.ErrorMessage
             : "Plaid request failed. Please try again.";
     }
+
+    #endregion
 }

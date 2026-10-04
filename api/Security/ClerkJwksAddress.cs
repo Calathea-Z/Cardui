@@ -2,6 +2,10 @@ namespace Cardui.Api.Security;
 
 public static class ClerkJwksAddress
 {
+    /// <summary>
+    /// Builds the Clerk JWKS address from an https issuer origin.
+    /// The issuer must have no user info and no path.
+    /// </summary>
     public static Uri Create(string issuer)
     {
         if (!Uri.TryCreate(issuer.Trim(), UriKind.Absolute, out var uri)

@@ -22,6 +22,10 @@ public sealed class ClerkSessionTokenValidator
         _signingKeys = signingKeys;
     }
 
+    /// <summary>
+    /// Validates a Clerk session token and returns a principal whose name is the Clerk user id.
+    /// The issuer, lifetime, signature, and authorized party must match configuration.
+    /// </summary>
     public async Task<ClaimsPrincipal> ValidateAsync(
         string token,
         CancellationToken cancellationToken = default)
@@ -78,6 +82,11 @@ public sealed class ClerkSessionTokenValidator
         return new ClaimsPrincipal(identity);
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Reads a string claim, or null when it is missing or blank.
+    /// </summary>
     private static string? ReadStringClaim(TokenValidationResult result, string claimType)
     {
         if (!result.Claims.TryGetValue(claimType, out var value) || value is not string text)
@@ -88,4 +97,6 @@ public sealed class ClerkSessionTokenValidator
         var trimmed = text.Trim();
         return trimmed.Length == 0 ? null : trimmed;
     }
+
+    #endregion
 }

@@ -36,6 +36,7 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         _timeProvider = timeProvider;
     }
 
+    /// <inheritdoc />
     public async Task<SyncTransactionsResponseDto> SyncTransactionsForPlaidItemAsync(
         PlaidItem plaidItem,
         CancellationToken cancellationToken = default)
@@ -83,7 +84,9 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         plaidItem.UpdatedAt = now;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await CategorizeUncategorizedForPlaidItemAsync(plaidItem.Id, cancellationToken);
+        await CategorizeUncategorizedForPlaidItemAsync(
+            accountsByPlaidId.Values.Select(account => account.Id).ToList(),
+            cancellationToken);
 
         await _transferPairingService.PairOwnedAccountTransfersAsync(cancellationToken);
 
@@ -96,15 +99,27 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         };
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Assigns a keyword category to this item's transactions that have no
+    /// category and were not edited by the user.
+    /// The account ids are the item's stored accounts, so the lookup seeks by account.
+    /// </summary>
     private async Task CategorizeUncategorizedForPlaidItemAsync(
-        Guid plaidItemId,
+        IReadOnlyList<Guid> accountIds,
         CancellationToken cancellationToken)
     {
+        if (accountIds.Count == 0)
+        {
+            return;
+        }
+
         var uncategorized = await _dbContext.Transactions
             .Where(x =>
-                x.CategoryId == null
-                && !x.IsCategoryUserEdited
-                && x.Account.PlaidItemId == plaidItemId)
+                accountIds.Contains(x.AccountId)
+                && x.CategoryId == null
+                && !x.IsCategoryUserEdited)
             .ToListAsync(cancellationToken);
 
         if (uncategorized.Count == 0)
@@ -113,15 +128,16 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         }
 
         var now = _timeProvider.GetUtcNow();
+        var categoryIdsByKey = await _transactionCategorizationService
+            .GetSystemCategoryIdsByKeyAsync(cancellationToken);
 
         foreach (var transaction in uncategorized)
         {
-            var categoryId = await _transactionCategorizationService
-                .GetCategoryIdForStoredTransactionAsync(
-                    transaction.Name,
-                    transaction.MerchantName,
-                    transaction.Amount,
-                    cancellationToken);
+            var categoryId = _transactionCategorizationService.FindCategoryId(
+                categoryIdsByKey,
+                transaction.Name,
+                transaction.MerchantName,
+                transaction.Amount);
 
             if (!categoryId.HasValue)
             {
@@ -135,4 +151,5 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #endregion
 }

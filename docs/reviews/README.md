@@ -2,7 +2,15 @@
 
 Newest first:
 
+- [2026-10-04 — Backend query access](2026-10-04-003-backend-query-access.md)
+- [2026-10-04 — Query and index access](2026-10-04-002-query-and-index-access.md)
+- [2026-10-04 — Clean-code follow-up](2026-10-04-001-clean-code-follow-up.md)
 - [2026-10-03 — Financial profile preferences](2026-10-03-013-financial-profile.md)
+- [2026-10-03 — Method responsibility](2026-10-03-017-method-responsibility.md)
+- [2026-10-03 — Domain classifiers](2026-10-03-016-domain-classifiers.md)
+- [2026-10-03 — Backend type files](2026-10-03-015-backend-type-files.md)
+- [2026-10-03 — Private method regions](2026-10-03-014-private-method-regions.md)
+- [2026-10-03 — Backend method comments](2026-10-03-013-backend-method-comments.md)
 - [2026-10-03 — Manual accounts, transactions, and balance reconciliation](2026-10-03-012-manual-accounts-and-transactions.md)
 - [2026-10-03 — Accounts and transactions independent of Plaid](2026-10-03-011-independent-financial-records.md)
 - [2026-10-03 — Assign existing rows to the household](2026-10-03-010-assign-household-rows.md)

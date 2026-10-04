@@ -1,4 +1,4 @@
-﻿using Cardui.Api.Dtos.Plaid;
+using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +15,10 @@ public class PlaidController : ControllerBase
         _plaidService = plaidService;
     }
 
+    /// <summary>
+    /// GET /api/plaid/items
+    /// Lists the household's connected institutions and their sync status.
+    /// </summary>
     [HttpGet("items")]
     [ProducesResponseType<IReadOnlyList<PlaidItemDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<PlaidItemDto>>> GetPlaidItems(
@@ -24,6 +28,10 @@ public class PlaidController : ControllerBase
         return Ok(items);
     }
 
+    /// <summary>
+    /// POST /api/plaid/link-token
+    /// Creates a Plaid Link token for connecting a bank.
+    /// </summary>
     [HttpPost("link-token")]
     [ProducesResponseType<CreateLinkTokenResponseDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<CreateLinkTokenResponseDto>> CreateLinkToken(
@@ -33,6 +41,10 @@ public class PlaidController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// POST /api/plaid/exchange-public-token
+    /// Saves a new bank connection and runs the first account and transaction sync.
+    /// </summary>
     [HttpPost("exchange-public-token")]
     [ProducesResponseType<ExchangePublicTokenResponseDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<ExchangePublicTokenResponseDto>> ExchangePublicToken(
@@ -43,6 +55,10 @@ public class PlaidController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// POST /api/plaid/{plaidItemId}/sync-accounts
+    /// Refreshes accounts for one connected institution.
+    /// </summary>
     [HttpPost("{plaidItemId:guid}/sync-accounts")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,6 +70,10 @@ public class PlaidController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// POST /api/plaid/{plaidItemId}/sync-transactions
+    /// Pulls transaction changes for one connected institution.
+    /// </summary>
     [HttpPost("{plaidItemId:guid}/sync-transactions")]
     [ProducesResponseType<SyncTransactionsResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -67,6 +87,10 @@ public class PlaidController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// POST /api/plaid/{plaidItemId}/sync
+    /// Syncs accounts and transactions for one institution and records the result.
+    /// </summary>
     [HttpPost("{plaidItemId:guid}/sync")]
     [ProducesResponseType<SyncPlaidItemResponseDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

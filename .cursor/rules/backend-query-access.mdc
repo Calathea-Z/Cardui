@@ -1,0 +1,40 @@
+---
+description: Keep backend queries and indexes aligned with how rows are read
+alwaysApply: true
+---
+
+# Backend query access
+
+When adding or changing a query in `api/` or `worker/`, read only the rows
+and columns the caller needs, and give a growing table an index that
+matches that lookup.
+
+- A read that does not update rows uses `AsNoTracking`, or `Select`, so
+  the rows are not tracked.
+- A query that needs a few columns projects those columns. It does not
+  load a whole related row for one field.
+- A value used for every row in a loop is loaded once, before the loop.
+- A filter on transactions or balance snapshots seeks by account id. The
+  household rule stays on accounts.
+- An index on a growing table leads with the columns the query filters
+  and sorts by. A column that is almost always the same value does not
+  get its own index.
+- A comparison that wraps the column, such as `ToLower()` or a
+  leading-wildcard search, is not a seek unless an index matches that
+  expression.
+- Changing an index updates the EF model. Ask before generating or
+  applying the migration. See `.cursor/rules/migrations.mdc`.
+
+```csharp
+var accountIds = dbContext.Accounts
+    .InHousehold(scope)
+    .Select(account => account.Id);
+
+return await dbContext.Transactions
+    .AsNoTracking()
+    .Where(transaction => accountIds.Contains(transaction.AccountId))
+    .Where(transaction => transaction.ArchivedAt == null)
+    .OrderByDescending(transaction => transaction.Date)
+    .Select(TransactionDtoMapper.Projection)
+    .ToListAsync(cancellationToken);
+```

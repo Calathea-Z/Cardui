@@ -15,6 +15,11 @@ public class AccountsController : ControllerBase
         _accountsService = accountsService;
     }
 
+    /// <summary>
+    /// GET /api/accounts
+    /// Returns the household's accounts. Archived accounts are included
+    /// only when includeArchived is true.
+    /// </summary>
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<AccountDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<AccountDto>>> GetAccounts(
@@ -27,6 +32,10 @@ public class AccountsController : ControllerBase
         return Ok(accounts);
     }
 
+    /// <summary>
+    /// GET /api/accounts/summary
+    /// Returns net worth, balances by type, balance history, and archived accounts.
+    /// </summary>
     [HttpGet("summary")]
     [ProducesResponseType<AccountSummaryDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountSummaryDto>> GetAccountsSummary(
@@ -36,6 +45,10 @@ public class AccountsController : ControllerBase
         return Ok(summary);
     }
 
+    /// <summary>
+    /// POST /api/accounts
+    /// Creates a manual account from a name, type, and opening balance.
+    /// </summary>
     [HttpPost]
     [ProducesResponseType<AccountDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -47,6 +60,10 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
+    /// <summary>
+    /// PATCH /api/accounts/{id}
+    /// Updates a manual account. Linked accounts cannot be edited this way.
+    /// </summary>
     [HttpPatch("{id:guid}")]
     [ProducesResponseType<AccountDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -63,6 +80,10 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
+    /// <summary>
+    /// POST /api/accounts/{id}/archive
+    /// Archives an account so its balance leaves totals and the chart.
+    /// </summary>
     [HttpPost("{id:guid}/archive")]
     [ProducesResponseType<AccountDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -74,6 +95,10 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
+    /// <summary>
+    /// POST /api/accounts/{id}/restore
+    /// Restores an archived account so its balance counts again.
+    /// </summary>
     [HttpPost("{id:guid}/restore")]
     [ProducesResponseType<AccountDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -85,6 +110,10 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
+    /// <summary>
+    /// POST /api/accounts/{id}/reconciliation
+    /// Matches a manual account to a statement balance and records any difference.
+    /// </summary>
     [HttpPost("{id:guid}/reconciliation")]
     [ProducesResponseType<BalanceReconciliationResultDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

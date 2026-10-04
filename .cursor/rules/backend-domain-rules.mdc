@@ -1,0 +1,18 @@
+---
+description: Put pure business rules in Domain and database work in Services
+alwaysApply: true
+---
+
+# Backend domain rules
+
+When adding or changing C# in `api/` or `worker/`, put a pure business rule
+in `Domain`. Put work that loads or saves rows in `Services`.
+
+- A pure rule reads values and returns a decision or calculation. It does
+  not use the database, HTTP, a clock, or dependency injection.
+- Ledgers, activity totals, merchant history periods, category keys, and
+  transfer text classification are pure rules. They live in `Domain`.
+- A shared static operation that uses `CarduiDBContext`, such as
+  `ManualAccountBalance`, stays in `Services`.
+- Do not add a `Helpers` folder. Name the type for the rule or operation,
+  and put the file in `Domain` or `Services`.

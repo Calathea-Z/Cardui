@@ -52,6 +52,7 @@ public class PlaidService : IPlaidService
         _timeProvider = timeProvider;
     }
 
+    /// <inheritdoc />
     public async Task<CreateLinkTokenResponseDto> CreateLinkTokenAsync(
         CancellationToken cancellationToken = default)
     {
@@ -84,6 +85,7 @@ public class PlaidService : IPlaidService
         };
     }
 
+    /// <inheritdoc />
     public async Task<ExchangePublicTokenResponseDto> ExchangePublicTokenAsync(
         ExchangePublicTokenRequestDto dto,
         CancellationToken cancellationToken = default)
@@ -138,6 +140,7 @@ public class PlaidService : IPlaidService
         };
     }
 
+    /// <inheritdoc />
     public async Task SyncAccountsAsync(
         Guid plaidItemId,
         CancellationToken cancellationToken = default)
@@ -148,6 +151,7 @@ public class PlaidService : IPlaidService
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<SyncTransactionsResponseDto> SyncTransactionsAsync(
         Guid plaidItemId,
         CancellationToken cancellationToken = default)
@@ -158,6 +162,7 @@ public class PlaidService : IPlaidService
             cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<PlaidItemDto>> GetPlaidItemsAsync(
         CancellationToken cancellationToken = default)
     {
@@ -181,6 +186,7 @@ public class PlaidService : IPlaidService
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<SyncPlaidItemResponseDto> SyncPlaidItemAsync(
         Guid plaidItemId,
         CancellationToken cancellationToken = default)
@@ -236,6 +242,11 @@ public class PlaidService : IPlaidService
         }
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Loads a tracked household Plaid item, or throws when it is missing.
+    /// </summary>
     private async Task<PlaidItem> GetPlaidItemOrThrowAsync(
         Guid plaidItemId,
         CancellationToken cancellationToken = default)
@@ -247,6 +258,9 @@ public class PlaidService : IPlaidService
         return plaidItem ?? throw new NotFoundException($"Plaid item '{plaidItemId}' was not found.");
     }
 
+    /// <summary>
+    /// Stores the failure time and a short error on the item. The caller saves.
+    /// </summary>
     private void RecordSyncFailure(PlaidItem plaidItem, Exception ex)
     {
         _logger.LogError(ex, "Plaid sync failed for item {PlaidItemId}", plaidItem.Id);
@@ -257,6 +271,9 @@ public class PlaidService : IPlaidService
         plaidItem.UpdatedAt = failedAt;
     }
 
+    /// <summary>
+    /// Returns a Plaid error code for a PlaidSyncException, or a generic message otherwise.
+    /// </summary>
     private static string FormatSyncError(Exception ex)
     {
         if (ex is not PlaidSyncException plaidSyncException) return "Sync failed. Please try again.";
@@ -269,4 +286,6 @@ public class PlaidService : IPlaidService
 
         return plaidSyncException.Message;
     }
+
+    #endregion
 }

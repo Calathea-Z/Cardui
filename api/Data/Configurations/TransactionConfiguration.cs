@@ -6,6 +6,9 @@ namespace Cardui.Api.Data.Configurations;
 
 public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 {
+    /// <summary>
+    /// Maps transaction columns, the optional category, and the indexes for account-scoped reads.
+    /// </summary>
     public void Configure(EntityTypeBuilder<Transaction> entity)
     {
         entity.HasKey(x => x.Id);
@@ -46,8 +49,6 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         entity.Property(x => x.Notes)
             .HasMaxLength(1000);
 
-        entity.HasIndex(x => x.ArchivedAt);
-
         entity.Property(x => x.CreatedAt)
             .IsRequired();
 
@@ -57,9 +58,11 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         entity.HasIndex(x => x.PlaidTransactionId)
             .IsUnique();
 
-        entity.HasIndex(x => x.Date);
+        entity.HasIndex(x => new { x.AccountId, x.Date });
 
-        entity.HasIndex(x => x.AccountId);
+        entity.HasIndex(x => x.AccountId)
+            .HasFilter("\"CategoryId\" IS NULL")
+            .HasDatabaseName("IX_Transactions_AccountId_Uncategorized");
 
         entity.HasOne(x => x.Category)
             .WithMany(x => x.Transactions)

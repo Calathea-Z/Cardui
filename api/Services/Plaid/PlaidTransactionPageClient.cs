@@ -20,6 +20,7 @@ public class PlaidTransactionPageClient : IPlaidTransactionPageClient
         _requestExecutor = requestExecutor;
     }
 
+    /// <inheritdoc />
     public async Task<PlaidTransactionPageDto> GetPageAsync(
         string accessToken,
         string? cursor,

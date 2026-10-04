@@ -28,6 +28,7 @@ public class DashboardService : IDashboardService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<DashboardSummaryDto> GetSummaryAsync(
         CancellationToken cancellationToken = default)
     {
@@ -70,6 +71,11 @@ public class DashboardService : IDashboardService
         };
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Returns the first day of the local month through today.
+    /// </summary>
     private (DateOnly Start, DateOnly End) GetCurrentMonthRange()
     {
         var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
@@ -78,6 +84,10 @@ public class DashboardService : IDashboardService
         return (monthStart, today);
     }
 
+    /// <summary>
+    /// Sums cash, investments, credit cards, loans, and net worth for
+    /// active accounts that are not archived and use the planning currency.
+    /// </summary>
     private async Task<AccountTotalResult> GetActiveAccountTotalsAsync(
         CancellationToken cancellationToken)
     {
@@ -107,6 +117,11 @@ public class DashboardService : IDashboardService
                 planningCurrency));
     }
 
+    /// <summary>
+    /// Totals income and spending for posted, non-archived transactions
+    /// in the date range that use the planning currency.
+    /// Transfers and reconciliations are excluded by the calculator.
+    /// </summary>
     private async Task<MonthlyActivityResult> GetMonthlyActivityAsync(
         DateOnly monthStart,
         DateOnly monthEnd,
@@ -156,63 +171,33 @@ public class DashboardService : IDashboardService
             PlanningCurrencyRules.ExcludedCodes(excludedCurrencies, planningCurrency));
     }
 
+    /// <summary>
+    /// Returns the eight most recent non-archived transactions.
+    /// Transactions on the same date are ordered by when they were created.
+    /// </summary>
     private async Task<IReadOnlyList<TransactionDto>> GetRecentTransactionsAsync(
         CancellationToken cancellationToken)
     {
         return await _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.ArchivedAt == null)
             .OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.CreatedAt)
             .Take(RecentTransactionCount)
             .Select(TransactionDtoMapper.Projection)
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Household transactions whose date falls inside the inclusive range.
+    /// </summary>
     private IQueryable<Transaction> TransactionsInDateRange(DateOnly start, DateOnly end)
     {
         return _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Date >= start && x.Date <= end);
     }
 
-    private sealed record AccountCurrencyBalance(
-        string Type,
-        decimal CurrentBalance,
-        string? CurrencyCode);
-
-    private sealed record AccountTotalResult(
-        AccountTotals Totals,
-        int ExcludedAccountCount,
-        IReadOnlyList<string> ExcludedCurrencies);
-
-    private sealed record ActivityRow(
-        decimal Amount,
-        bool Pending,
-        Guid? CategoryId,
-        string CategoryName,
-        string? CategoryColor,
-        string? CategoryKey,
-        string? GroupKey,
-        string? Provenance,
-        string? CurrencyCode)
-    {
-        public TransactionActivityValue ToValue()
-        {
-            return new TransactionActivityValue(
-                Amount,
-                Pending,
-                CategoryId,
-                CategoryName,
-                CategoryColor,
-                CategoryKey,
-                GroupKey,
-                Provenance);
-        }
-    }
-
-    private sealed record MonthlyActivityResult(
-        TransactionActivityTotals Totals,
-        int ExcludedTransactionCount,
-        IReadOnlyList<string> ExcludedCurrencies);
+    #endregion
 }

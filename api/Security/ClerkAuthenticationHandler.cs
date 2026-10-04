@@ -18,6 +18,10 @@ public sealed class ClerkAuthenticationHandler : AuthenticationHandler<Authentic
         _validator = validator;
     }
 
+    /// <summary>
+    /// Authenticates a Bearer Clerk session token. A missing header is left
+    /// for a later challenge. An invalid token fails authentication.
+    /// </summary>
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var header = Request.Headers.Authorization.ToString();

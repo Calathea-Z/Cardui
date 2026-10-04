@@ -30,6 +30,7 @@ public class TransactionsService : ITransactionsService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<PagedResultDto<TransactionDto>> GetTransactionsAsync(
         TransactionQueryDto query,
         CancellationToken cancellationToken = default)
@@ -37,7 +38,7 @@ public class TransactionsService : ITransactionsService
         var (page, pageSize) = NormalizePagination(query);
 
         var transactionsQuery = ApplyFilters(
-            _dbContext.Transactions.AsNoTracking().InHousehold(_householdScope),
+            _dbContext.Transactions.AsNoTracking().InHousehold(_dbContext, _householdScope),
             query);
 
         var totalCount = await transactionsQuery.CountAsync(cancellationToken);
@@ -64,11 +65,13 @@ public class TransactionsService : ITransactionsService
         };
     }
 
+    /// <inheritdoc />
     public Task<TransactionDto> GetTransactionByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default) =>
         ProjectTransactionByIdAsync(id, cancellationToken);
 
+    /// <inheritdoc />
     public async Task<MerchantHistoryDto> GetMerchantHistoryAsync(
         Guid transactionId,
         string granularity = "monthly",
@@ -76,7 +79,7 @@ public class TransactionsService : ITransactionsService
     {
         var source = await _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Id == transactionId)
             .Select(x => new { x.Name, x.MerchantName })
             .FirstOrDefaultAsync(cancellationToken);
@@ -86,212 +89,43 @@ public class TransactionsService : ITransactionsService
             throw new NotFoundException($"Transaction '{transactionId}' was not found.");
         }
 
-        var merchantKey = source.MerchantName?.Trim();
-        var hasMerchantName = !string.IsNullOrWhiteSpace(merchantKey);
-        var matchKey = hasMerchantName
-            ? merchantKey!
-            : source.Name.Trim();
-        var matchKeyLower = matchKey.ToLowerInvariant();
-
-        var historyQuery = _dbContext.Transactions
-            .AsNoTracking()
-            .InHousehold(_householdScope)
-            .Where(x => x.ArchivedAt == null);
-
-        if (hasMerchantName)
-        {
-            historyQuery = historyQuery.Where(x =>
-                x.MerchantName != null &&
-                x.MerchantName.ToLower() == matchKeyLower);
-        }
-        else
-        {
-            historyQuery = historyQuery.Where(x =>
-                x.Name.ToLower() == matchKeyLower);
-        }
-
-        var transactions = await historyQuery
-            .OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.CreatedAt)
-            .Select(TransactionDtoMapper.Projection)
-            .ToListAsync(cancellationToken);
-
-        var normalizedGranularity = NormalizeGranularity(granularity);
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
-        var selectedKey = GetPeriodKey(today, normalizedGranularity);
-
-        var earliestDate = transactions.Count == 0
-            ? today
-            : transactions.Min(x => x.Date);
-
-        var periods = BuildPeriods(
-            earliestDate,
+        var match = MerchantMatchKey.Create(source.Name, source.MerchantName);
+        var transactions = await LoadMerchantTransactionsAsync(match, cancellationToken);
+        var today = Today();
+        var series = MerchantHistoryPeriods.Build(
             today,
-            normalizedGranularity,
-            transactions);
-
-        if (periods.All(period => period.Key != selectedKey))
-        {
-            periods.Add(CreateEmptyPeriod(selectedKey, normalizedGranularity));
-            periods = OrderPeriods(periods);
-        }
+            granularity,
+            transactions.Select(transaction =>
+                new MerchantHistoryActivity(transaction.Date, transaction.Amount)));
 
         return new MerchantHistoryDto
         {
-            DisplayName = matchKey,
+            DisplayName = match.DisplayName,
             TotalTransactionCount = transactions.Count,
-            Granularity = normalizedGranularity,
-            SelectedPeriodKey = selectedKey,
-            Periods = periods,
+            Granularity = series.Granularity,
+            SelectedPeriodKey = series.SelectedPeriodKey,
+            Periods = series.Periods
+                .Select(period => new MerchantHistoryPeriodDto
+                {
+                    Key = period.Key,
+                    Label = period.Label,
+                    ShortLabel = period.ShortLabel,
+                    TotalAmount = period.TotalAmount,
+                    TransactionCount = period.TransactionCount
+                })
+                .ToList(),
             Transactions = transactions
         };
     }
 
-    private static string NormalizeGranularity(string? granularity)
-    {
-        return granularity?.Trim().ToLowerInvariant() switch
-        {
-            "quarterly" => "quarterly",
-            "yearly" => "yearly",
-            _ => "monthly"
-        };
-    }
-
-    private static string GetPeriodKey(DateOnly date, string granularity)
-    {
-        return granularity switch
-        {
-            "quarterly" => $"{date.Year}-Q{(date.Month - 1) / 3 + 1}",
-            "yearly" => date.Year.ToString(),
-            _ => $"{date.Year:D4}-{date.Month:D2}"
-        };
-    }
-
-    private static (string Label, string ShortLabel) GetPeriodLabels(
-        string periodKey,
-        string granularity)
-    {
-        if (granularity == "yearly" && int.TryParse(periodKey, out var year))
-        {
-            return (year.ToString(), year.ToString());
-        }
-
-        if (granularity == "quarterly")
-        {
-            var parts = periodKey.Split("-Q");
-            if (parts.Length == 2 &&
-                int.TryParse(parts[0], out var quarterYear) &&
-                int.TryParse(parts[1], out var quarter))
-            {
-                return ($"Q{quarter} {quarterYear}", $"Q{quarter}");
-            }
-        }
-
-        if (DateOnly.TryParseExact(
-                $"{periodKey}-01",
-                "yyyy-MM-dd",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None,
-                out var monthDate))
-        {
-            return (
-                monthDate.ToString("MMMM yyyy"),
-                monthDate.ToString("MMM"));
-        }
-
-        return (periodKey, periodKey);
-    }
-
-    private static MerchantHistoryPeriodDto CreateEmptyPeriod(
-        string periodKey,
-        string granularity)
-    {
-        var (label, shortLabel) = GetPeriodLabels(periodKey, granularity);
-        return new MerchantHistoryPeriodDto
-        {
-            Key = periodKey,
-            Label = label,
-            ShortLabel = shortLabel,
-            TotalAmount = 0,
-            TransactionCount = 0
-        };
-    }
-
-    private static List<MerchantHistoryPeriodDto> BuildPeriods(
-        DateOnly startDate,
-        DateOnly endDate,
-        string granularity,
-        IReadOnlyList<TransactionDto> transactions)
-    {
-        var totals = transactions
-            .GroupBy(x => GetPeriodKey(x.Date, granularity))
-            .ToDictionary(
-                group => group.Key,
-                group => (
-                    TotalAmount: group.Sum(x => x.Amount),
-                    TransactionCount: group.Count()));
-
-        var periods = new List<MerchantHistoryPeriodDto>();
-        var cursor = AlignPeriodStart(startDate, granularity);
-        var end = AlignPeriodStart(endDate, granularity);
-
-        while (cursor <= end)
-        {
-            var key = GetPeriodKey(cursor, granularity);
-            totals.TryGetValue(key, out var stats);
-            var (label, shortLabel) = GetPeriodLabels(key, granularity);
-
-            periods.Add(new MerchantHistoryPeriodDto
-            {
-                Key = key,
-                Label = label,
-                ShortLabel = shortLabel,
-                TotalAmount = stats.TotalAmount,
-                TransactionCount = stats.TransactionCount
-            });
-
-            cursor = AdvancePeriod(cursor, granularity);
-        }
-
-        return periods;
-    }
-
-    private static List<MerchantHistoryPeriodDto> OrderPeriods(
-        List<MerchantHistoryPeriodDto> periods)
-    {
-        return periods
-            .DistinctBy(period => period.Key)
-            .OrderBy(period => period.Key, StringComparer.Ordinal)
-            .ToList();
-    }
-
-    private static DateOnly AlignPeriodStart(DateOnly date, string granularity)
-    {
-        return granularity switch
-        {
-            "quarterly" => new DateOnly(date.Year, (date.Month - 1) / 3 * 3 + 1, 1),
-            "yearly" => new DateOnly(date.Year, 1, 1),
-            _ => new DateOnly(date.Year, date.Month, 1)
-        };
-    }
-
-    private static DateOnly AdvancePeriod(DateOnly date, string granularity)
-    {
-        return granularity switch
-        {
-            "quarterly" => date.AddMonths(3),
-            "yearly" => date.AddYears(1),
-            _ => date.AddMonths(1)
-        };
-    }
-
+    /// <inheritdoc />
     public async Task<TransactionDto> UpdateTransactionCategoryAsync(
         Guid transactionId,
         UpdateTransactionCategoryDto dto,
         CancellationToken cancellationToken = default)
     {
         var transaction = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)
@@ -320,13 +154,14 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> UpdateTransactionDetailsAsync(
         Guid transactionId,
         UpdateTransactionDetailsDto dto,
         CancellationToken cancellationToken = default)
     {
         var transaction = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)
@@ -347,19 +182,10 @@ public class TransactionsService : ITransactionsService
         }
 
         var today = Today();
-        if (dto.Date > today)
-        {
-            throw new BadRequestException("The transaction date cannot be in the future.");
-        }
+        RequireTransactionDate(dto.Date, today);
 
         var account = await LoadAccountAsync(transaction.AccountId, cancellationToken);
-        if (ManualAccountBalance.UsesLedger(account)
-            && account.OpeningBalanceDate is DateOnly openingDate
-            && dto.Date < openingDate)
-        {
-            throw new BadRequestException(
-                "The transaction date cannot be before the account opening date.");
-        }
+        RequireDateOnOrAfterOpening(account, dto.Date);
 
         var manualEntry = IsManualEntry(transaction);
         if (manualEntry)
@@ -403,6 +229,7 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> CreateManualTransactionAsync(
         CreateManualTransactionDto dto,
         CancellationToken cancellationToken = default)
@@ -414,18 +241,8 @@ public class TransactionsService : ITransactionsService
         }
 
         var today = Today();
-        if (dto.Date > today)
-        {
-            throw new BadRequestException("The transaction date cannot be in the future.");
-        }
-
-        if (ManualAccountBalance.UsesLedger(account)
-            && account.OpeningBalanceDate is DateOnly openingDate
-            && dto.Date < openingDate)
-        {
-            throw new BadRequestException(
-                "The transaction date cannot be before the account opening date.");
-        }
+        RequireTransactionDate(dto.Date, today);
+        RequireDateOnOrAfterOpening(account, dto.Date);
 
         if (dto.CategoryId is Guid categoryId)
         {
@@ -476,6 +293,7 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> ArchiveTransactionAsync(
         Guid transactionId,
         CancellationToken cancellationToken = default)
@@ -490,6 +308,7 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<TransactionDto> RestoreTransactionAsync(
         Guid transactionId,
         CancellationToken cancellationToken = default)
@@ -504,6 +323,69 @@ public class TransactionsService : ITransactionsService
         return await ProjectTransactionByIdAsync(transaction.Id, cancellationToken);
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Loads non-archived transactions for the same merchant, newest first.
+    /// </summary>
+    private async Task<List<TransactionDto>> LoadMerchantTransactionsAsync(
+        MerchantMatchKey match,
+        CancellationToken cancellationToken)
+    {
+        var matchKeyLower = match.DisplayName.ToLowerInvariant();
+        var historyQuery = _dbContext.Transactions
+            .AsNoTracking()
+            .InHousehold(_dbContext, _householdScope)
+            .Where(transaction => transaction.ArchivedAt == null);
+
+        if (match.MatchesMerchantName)
+        {
+            historyQuery = historyQuery.Where(transaction =>
+                transaction.MerchantName != null &&
+                transaction.MerchantName.ToLower() == matchKeyLower);
+        }
+        else
+        {
+            historyQuery = historyQuery.Where(transaction =>
+                transaction.Name.ToLower() == matchKeyLower);
+        }
+
+        return await historyQuery
+            .OrderByDescending(transaction => transaction.Date)
+            .ThenByDescending(transaction => transaction.CreatedAt)
+            .Select(TransactionDtoMapper.Projection)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Rejects a transaction date in the future.
+    /// </summary>
+    private static void RequireTransactionDate(DateOnly date, DateOnly today)
+    {
+        if (date > today)
+        {
+            throw new BadRequestException("The transaction date cannot be in the future.");
+        }
+    }
+
+    /// <summary>
+    /// Rejects a date before the opening date of an account whose balance
+    /// comes from its transactions.
+    /// </summary>
+    private static void RequireDateOnOrAfterOpening(Account account, DateOnly date)
+    {
+        if (ManualAccountBalance.UsesLedger(account)
+            && account.OpeningBalanceDate is DateOnly openingDate
+            && date < openingDate)
+        {
+            throw new BadRequestException(
+                "The transaction date cannot be before the account opening date.");
+        }
+    }
+
+    /// <summary>
+    /// Keeps the page at 1 or higher and limits the page size to 100.
+    /// </summary>
     private static (int Page, int PageSize) NormalizePagination(TransactionQueryDto query)
     {
         var page = query.Page < 1 ? 1 : query.Page;
@@ -512,6 +394,10 @@ public class TransactionsService : ITransactionsService
         return (page, pageSize);
     }
 
+    /// <summary>
+    /// Applies search, account, category, date, pending, and archived filters.
+    /// Archived transactions are excluded unless the query asks for them.
+    /// </summary>
     private static IQueryable<Transaction> ApplyFilters(
         IQueryable<Transaction> transactionsQuery,
         TransactionQueryDto query)
@@ -558,13 +444,16 @@ public class TransactionsService : ITransactionsService
         return transactionsQuery;
     }
 
+    /// <summary>
+    /// Loads the API shape of one household transaction, or throws when it is missing.
+    /// </summary>
     private async Task<TransactionDto> ProjectTransactionByIdAsync(
         Guid id,
         CancellationToken cancellationToken)
     {
         var transaction = await _dbContext.Transactions
             .AsNoTracking()
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Id == id)
             .Select(TransactionDtoMapper.Projection)
             .FirstOrDefaultAsync(cancellationToken);
@@ -577,6 +466,9 @@ public class TransactionsService : ITransactionsService
         return transaction;
     }
 
+    /// <summary>
+    /// Loads a tracked household account, or throws when it is missing.
+    /// </summary>
     private async Task<Account> LoadAccountAsync(
         Guid accountId,
         CancellationToken cancellationToken)
@@ -593,12 +485,15 @@ public class TransactionsService : ITransactionsService
         return account;
     }
 
+    /// <summary>
+    /// Loads a tracked household transaction, or throws when it is missing.
+    /// </summary>
     private async Task<Transaction> FindTransactionAsync(
         Guid transactionId,
         CancellationToken cancellationToken)
     {
         var transaction = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .FirstOrDefaultAsync(x => x.Id == transactionId, cancellationToken);
 
         if (transaction is null)
@@ -609,6 +504,10 @@ public class TransactionsService : ITransactionsService
         return transaction;
     }
 
+    /// <summary>
+    /// Recalculates today's balance when the account uses the manual ledger.
+    /// Linked accounts are left unchanged.
+    /// </summary>
     private async Task RefreshAccountBalanceAsync(
         Guid accountId,
         DateTimeOffset now,
@@ -631,15 +530,24 @@ public class TransactionsService : ITransactionsService
             cancellationToken);
     }
 
+    /// <summary>
+    /// Today's date in the household time zone.
+    /// </summary>
     private DateOnly Today()
     {
         return FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
     }
 
+    /// <summary>
+    /// True when the transaction was entered in Cardui and is not a reconciliation.
+    /// </summary>
     private static bool IsManualEntry(Transaction transaction) =>
         transaction.Source == FinancialRecordSource.Manual
         && transaction.Provenance == FinancialRecordProvenance.ManualEntry;
 
+    /// <summary>
+    /// Trims a required name and rejects an empty value or one longer than 300 characters.
+    /// </summary>
     private static string RequireName(string name)
     {
         var trimmed = name.Trim();
@@ -651,12 +559,18 @@ public class TransactionsService : ITransactionsService
         return trimmed;
     }
 
+    /// <summary>
+    /// Trims optional text and stores blank input as null.
+    /// </summary>
     private static string? EmptyToNull(string? value)
     {
         var trimmed = value?.Trim();
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
+    /// <summary>
+    /// True when the category is a system category or belongs to this household.
+    /// </summary>
     private Task<bool> CategoryIsVisibleAsync(
         Guid categoryId,
         CancellationToken cancellationToken)
@@ -665,4 +579,6 @@ public class TransactionsService : ITransactionsService
             .VisibleToHousehold(_householdScope)
             .AnyAsync(x => x.Id == categoryId, cancellationToken);
     }
+
+    #endregion
 }

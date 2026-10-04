@@ -5,6 +5,10 @@ namespace Cardui.Api.Configuration;
 
 public static class DatabaseConnectionString
 {
+    /// <summary>
+    /// Returns ConnectionStrings:DefaultConnection, or converts DATABASE_URL
+    /// into an Npgsql connection string.
+    /// </summary>
     public static string Get(IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -25,6 +29,11 @@ public static class DatabaseConnectionString
             "Database connection is not configured. Set ConnectionStrings:DefaultConnection or DATABASE_URL.");
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Converts a postgres:// URL into an Npgsql connection string.
+    /// </summary>
     private static string ConvertDatabaseUrl(string databaseUrl)
     {
         var uri = new Uri(databaseUrl);
@@ -41,4 +50,6 @@ public static class DatabaseConnectionString
 
         return builder.ConnectionString;
     }
+
+    #endregion
 }

@@ -12,6 +12,9 @@ public sealed class HouseholdScope
 
     public string TimeZoneId { get; private set; } = HouseholdTime.DefaultTimeZoneId;
 
+    /// <summary>
+    /// Limits later queries to this household.
+    /// </summary>
     public void Bind(Guid householdId)
     {
         Bind(
@@ -20,6 +23,9 @@ public sealed class HouseholdScope
             HouseholdTime.DefaultTimeZoneId);
     }
 
+    /// <summary>
+    /// Limits later queries to this household and keeps its planning currency and time zone.
+    /// </summary>
     public void Bind(Guid householdId, string planningCurrency, string timeZoneId)
     {
         IsBound = true;
@@ -28,12 +34,18 @@ public sealed class HouseholdScope
         TimeZoneId = timeZoneId;
     }
 
+    /// <summary>
+    /// Limits later queries to rows that have no household yet.
+    /// </summary>
     public void BindUnassigned()
     {
         IsBound = true;
         HouseholdId = null;
     }
 
+    /// <summary>
+    /// Throws when the request has not been bound to a household or to unassigned rows.
+    /// </summary>
     public void EnsureBound()
     {
         if (!IsBound)
@@ -42,6 +54,9 @@ public sealed class HouseholdScope
         }
     }
 
+    /// <summary>
+    /// Returns the bound household id. Throws when the scope is missing or unassigned.
+    /// </summary>
     public Guid RequireHouseholdId()
     {
         EnsureBound();

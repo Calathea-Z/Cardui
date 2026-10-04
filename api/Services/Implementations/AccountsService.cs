@@ -26,6 +26,7 @@ public class AccountsService : IAccountsService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<AccountDto>> GetAccountsAsync(
         bool includeArchived = false,
         CancellationToken cancellationToken = default)
@@ -47,6 +48,7 @@ public class AccountsService : IAccountsService
         return result;
     }
 
+    /// <inheritdoc />
     public async Task<AccountSummaryDto> GetAccountsSummaryAsync(
         CancellationToken cancellationToken = default)
     {
@@ -110,6 +112,7 @@ public class AccountsService : IAccountsService
         };
     }
 
+    /// <inheritdoc />
     public async Task<AccountDto> CreateManualAccountAsync(
         CreateManualAccountDto dto,
         CancellationToken cancellationToken = default)
@@ -153,6 +156,7 @@ public class AccountsService : IAccountsService
         return await ProjectAccountAsync(account.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AccountDto> UpdateManualAccountAsync(
         Guid accountId,
         UpdateManualAccountDto dto,
@@ -193,6 +197,7 @@ public class AccountsService : IAccountsService
         return await ProjectAccountAsync(account.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AccountDto> ArchiveAccountAsync(
         Guid accountId,
         CancellationToken cancellationToken = default)
@@ -205,6 +210,7 @@ public class AccountsService : IAccountsService
         return await ProjectAccountAsync(account.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<AccountDto> RestoreAccountAsync(
         Guid accountId,
         CancellationToken cancellationToken = default)
@@ -217,6 +223,7 @@ public class AccountsService : IAccountsService
         return await ProjectAccountAsync(account.Id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<BalanceReconciliationResultDto> ReconcileBalanceAsync(
         Guid accountId,
         ReconcileAccountBalanceDto dto,
@@ -265,25 +272,11 @@ public class AccountsService : IAccountsService
 
         if (adjustment != 0)
         {
-            var transaction = new Transaction
-            {
-                Id = Guid.NewGuid(),
-                AccountId = account.Id,
-                PlaidTransactionId = null,
-                Source = FinancialRecordSource.Manual,
-                Provenance = FinancialRecordProvenance.BalanceReconciliation,
-                Date = dto.AsOfDate,
-                Name = FinancialRecordProvenance.BalanceReconciliationName,
-                MerchantName = FinancialRecordProvenance.BalanceReconciliationName,
-                Amount = AccountLedger.TransactionAmountForBalanceChange(
-                    account.Type,
-                    adjustment),
-                IsoCurrencyCode = account.IsoCurrencyCode,
-                Pending = false,
-                CreatedAt = now,
-                UpdatedAt = now
-            };
-
+            var transaction = CreateAdjustmentTransaction(
+                account,
+                dto.AsOfDate,
+                adjustment,
+                now);
             _dbContext.Transactions.Add(transaction);
             adjustmentTransactionId = transaction.Id;
         }
@@ -306,6 +299,41 @@ public class AccountsService : IAccountsService
         };
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Builds the unsaved transaction that moves the ledger to the statement balance.
+    /// </summary>
+    private static Transaction CreateAdjustmentTransaction(
+        Account account,
+        DateOnly asOfDate,
+        decimal adjustment,
+        DateTimeOffset now)
+    {
+        return new Transaction
+        {
+            Id = Guid.NewGuid(),
+            AccountId = account.Id,
+            PlaidTransactionId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.BalanceReconciliation,
+            Date = asOfDate,
+            Name = FinancialRecordProvenance.BalanceReconciliationName,
+            MerchantName = FinancialRecordProvenance.BalanceReconciliationName,
+            Amount = AccountLedger.TransactionAmountForBalanceChange(
+                account.Type,
+                adjustment),
+            IsoCurrencyCode = account.IsoCurrencyCode,
+            Pending = false,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+    }
+
+    /// <summary>
+    /// Builds one summary group. Net worth includes every active account.
+    /// The other groups keep only accounts of that type.
+    /// </summary>
     private static AccountGroupDto CreateGroup(
         string key,
         string name,
@@ -331,27 +359,37 @@ public class AccountsService : IAccountsService
         };
     }
 
+    /// <summary>
+    /// Builds daily balance history from the snapshot columns the chart needs.
+    /// Snapshots in another currency are left out. Each account keeps its last known balance.
+    /// </summary>
     private async Task<IReadOnlyList<AccountBalanceHistoryPointDto>> GetBalanceHistoryAsync(
         CancellationToken cancellationToken)
     {
         var today = Today();
+        var planningCurrency = _householdScope.PlanningCurrency;
         var snapshots = await _dbContext.AccountBalanceSnapshots
             .AsNoTracking()
-            .InHousehold(_householdScope)
-            .Include(x => x.Account)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.Account.IsActive && x.Account.ArchivedAt == null && x.Date <= today)
             .OrderBy(x => x.Date)
+            .Select(x => new
+            {
+                x.AccountId,
+                x.Account.Type,
+                x.Date,
+                x.CurrentBalance,
+                x.CreatedAt,
+                x.Account.IsoCurrencyCode
+            })
             .ToListAsync(cancellationToken);
 
-        var planningCurrency = _householdScope.PlanningCurrency;
-        var includedSnapshots = snapshots
-            .Where(x => PlanningCurrencyRules.IsIncluded(
-                x.Account.IsoCurrencyCode,
-                planningCurrency));
+        var includedSnapshots = snapshots.Where(x =>
+            PlanningCurrencyRules.IsIncluded(x.IsoCurrencyCode, planningCurrency));
 
         return AccountBalanceHistory.Build(includedSnapshots.Select(x => new AccountSnapshotBalance(
                 x.AccountId,
-                x.Account.Type,
+                x.Type,
                 x.Date,
                 x.CurrentBalance,
                 x.CreatedAt)))
@@ -367,6 +405,9 @@ public class AccountsService : IAccountsService
             .ToList();
     }
 
+    /// <summary>
+    /// Loads a tracked household account, or throws when it is missing.
+    /// </summary>
     private async Task<Account> FindAccountAsync(
         Guid accountId,
         CancellationToken cancellationToken)
@@ -383,6 +424,9 @@ public class AccountsService : IAccountsService
         return account;
     }
 
+    /// <summary>
+    /// Loads the API shape of one household account, or throws when it is missing.
+    /// </summary>
     private async Task<AccountDto> ProjectAccountAsync(
         Guid accountId,
         CancellationToken cancellationToken)
@@ -403,11 +447,17 @@ public class AccountsService : IAccountsService
         return account;
     }
 
+    /// <summary>
+    /// Today's date in the household time zone.
+    /// </summary>
     private DateOnly Today()
     {
         return FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
     }
 
+    /// <summary>
+    /// Marks each account that counts toward planning totals for this currency.
+    /// </summary>
     private static void MarkPlanningTotals(
         IEnumerable<AccountDto> accounts,
         string planningCurrency)
@@ -420,6 +470,9 @@ public class AccountsService : IAccountsService
         }
     }
 
+    /// <summary>
+    /// Rejects an opening date that would leave existing transactions before it.
+    /// </summary>
     private async Task RequireOpeningDateCoversTransactionsAsync(
         Guid accountId,
         DateOnly openingDate,
@@ -439,6 +492,9 @@ public class AccountsService : IAccountsService
         }
     }
 
+    /// <summary>
+    /// Rejects an opening date in the future.
+    /// </summary>
     private static DateOnly RequireOpeningDate(DateOnly openingDate, DateOnly today)
     {
         if (openingDate > today)
@@ -449,6 +505,9 @@ public class AccountsService : IAccountsService
         return openingDate;
     }
 
+    /// <summary>
+    /// Accepts depository, investment, credit, or loan, and stores the type in lowercase.
+    /// </summary>
     private static string RequireAccountType(string type)
     {
         var normalized = type.Trim().ToLowerInvariant();
@@ -465,6 +524,9 @@ public class AccountsService : IAccountsService
         return normalized;
     }
 
+    /// <summary>
+    /// Trims a required name and rejects an empty value or one past the maximum length.
+    /// </summary>
     private static string RequireName(string name, int maxLength)
     {
         var trimmed = name.Trim();
@@ -476,12 +538,18 @@ public class AccountsService : IAccountsService
         return trimmed;
     }
 
+    /// <summary>
+    /// Trims optional text and stores blank input as null.
+    /// </summary>
     private static string? EmptyToNull(string? value)
     {
         var trimmed = value?.Trim();
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
+    /// <summary>
+    /// Uses the planning currency when no currency is supplied, and rejects a code that is not 3 to 10 characters.
+    /// </summary>
     private string NormalizeCurrency(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -498,6 +566,9 @@ public class AccountsService : IAccountsService
         return currency;
     }
 
+    /// <summary>
+    /// Totals the supplied accounts by cash, investment, credit card, and loan.
+    /// </summary>
     private static AccountTotals CalculateAccountTotals(IReadOnlyList<AccountDto> accounts)
     {
         return AccountTotalsCalculator.Calculate(
@@ -505,4 +576,5 @@ public class AccountsService : IAccountsService
                 .Where(x => x.CountsInPlanningTotals)
                 .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)));
     }
+    #endregion
 }

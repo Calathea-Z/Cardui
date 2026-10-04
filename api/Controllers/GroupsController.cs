@@ -15,6 +15,10 @@ public class GroupsController : ControllerBase
         _groupsService = groupsService;
     }
 
+    /// <summary>
+    /// GET /api/groups
+    /// Lists category groups in display order.
+    /// </summary>
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<GroupDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<GroupDto>>> GetGroups(
@@ -24,6 +28,10 @@ public class GroupsController : ControllerBase
         return Ok(groups);
     }
 
+    /// <summary>
+    /// GET /api/groups/{id}
+    /// Returns one group and the sub-groups this household can see.
+    /// </summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType<GroupDetailDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

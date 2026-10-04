@@ -7,6 +7,9 @@ namespace Cardui.Api.Data.Configurations;
 public class AccountBalanceSnapshotConfiguration
     : IEntityTypeConfiguration<AccountBalanceSnapshot>
 {
+    /// <summary>
+    /// Maps a daily balance snapshot and its account. One snapshot is stored per account and date.
+    /// </summary>
     public void Configure(EntityTypeBuilder<AccountBalanceSnapshot> entity)
     {
         entity.HasKey(x => x.Id);

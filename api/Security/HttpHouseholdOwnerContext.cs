@@ -9,6 +9,7 @@ public sealed class HttpHouseholdOwnerContext : IHouseholdOwnerContext
         _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <inheritdoc />
     public string ClerkUserId
     {
         get

@@ -32,59 +32,26 @@ public class TransferPairingService : ITransferPairingService
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public async Task<int> PairOwnedAccountTransfersAsync(
         CancellationToken cancellationToken = default)
     {
-        var categoryIdsByKey = await _dbContext.Categories
-            .AsNoTracking()
-            .Where(x =>
-                x.Key == SystemCategoryKeys.Transfers
-                || x.Key == SystemCategoryKeys.Other
-                || x.Key == SystemCategoryKeys.Income)
-            .ToDictionaryAsync(x => x.Key, x => x.Id, cancellationToken);
-
-        if (!categoryIdsByKey.TryGetValue(SystemCategoryKeys.Transfers, out var transfersCategoryId))
+        var categories = await LoadPairingCategoriesAsync(cancellationToken);
+        if (categories is null)
         {
-            _logger.LogWarning(
-                "Skipping transfer pairing because the '{CategoryKey}' category was not found",
-                SystemCategoryKeys.Transfers);
             return 0;
         }
 
-        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Other, out var uncategorizedCategoryId);
-        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Income, out var incomeCategoryId);
-
-        var eligibleAccountIds = await _dbContext.Accounts
-            .AsNoTracking()
-            .InHousehold(_householdScope)
-            .Where(x =>
-                x.IsActive
-                && x.ArchivedAt == null
-                && (x.Type == AccountTypes.Depository || x.Type == AccountTypes.Investment))
-            .Select(x => x.Id)
-            .ToListAsync(cancellationToken);
-
+        var (transfersCategoryId, uncategorizedCategoryId, incomeCategoryId) = categories.Value;
+        var eligibleAccountIds = await LoadEligibleAccountIdsAsync(cancellationToken);
         if (eligibleAccountIds.Count == 0)
         {
             return 0;
         }
 
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
-        var windowStart = today.AddDays(-LookbackDays);
-
-        var candidates = await _dbContext.Transactions
-            .InHousehold(_householdScope)
-            .Include(x => x.Category)
-            .Where(x =>
-                eligibleAccountIds.Contains(x.AccountId)
-                && x.ArchivedAt == null
-                && x.Provenance != FinancialRecordProvenance.BalanceReconciliation
-                && x.Date >= windowStart
-                && x.Amount != 0)
-            .OrderBy(x => x.Date)
-            .ThenBy(x => x.Id)
-            .ToListAsync(cancellationToken);
-
+        var candidates = await LoadCandidateTransactionsAsync(
+            eligibleAccountIds,
+            cancellationToken);
         if (candidates.Count == 0)
         {
             return 0;
@@ -134,6 +101,82 @@ public class TransferPairingService : ITransferPairingService
         return pairCount + promotedCount;
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Loads the transfer, uncategorized, and income category ids.
+    /// Returns null when the Transfers category is missing.
+    /// </summary>
+    private async Task<(Guid TransfersCategoryId, Guid UncategorizedCategoryId, Guid IncomeCategoryId)?> LoadPairingCategoriesAsync(
+        CancellationToken cancellationToken)
+    {
+        var categoryIdsByKey = await _dbContext.Categories
+            .AsNoTracking()
+            .Where(category =>
+                category.Key == SystemCategoryKeys.Transfers
+                || category.Key == SystemCategoryKeys.Other
+                || category.Key == SystemCategoryKeys.Income)
+            .ToDictionaryAsync(category => category.Key, category => category.Id, cancellationToken);
+
+        if (!categoryIdsByKey.TryGetValue(SystemCategoryKeys.Transfers, out var transfersCategoryId))
+        {
+            _logger.LogWarning(
+                "Skipping transfer pairing because the '{CategoryKey}' category was not found",
+                SystemCategoryKeys.Transfers);
+            return null;
+        }
+
+        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Other, out var uncategorizedCategoryId);
+        categoryIdsByKey.TryGetValue(SystemCategoryKeys.Income, out var incomeCategoryId);
+        return (transfersCategoryId, uncategorizedCategoryId, incomeCategoryId);
+    }
+
+    /// <summary>
+    /// Loads active cash and investment accounts in the household.
+    /// </summary>
+    private async Task<List<Guid>> LoadEligibleAccountIdsAsync(
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.Accounts
+            .AsNoTracking()
+            .InHousehold(_householdScope)
+            .Where(account =>
+                account.IsActive
+                && account.ArchivedAt == null
+                && (account.Type == AccountTypes.Depository || account.Type == AccountTypes.Investment))
+            .Select(account => account.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads non-zero transactions in the lookback window for the eligible accounts.
+    /// Those account ids are already limited to the household. Balance reconciliations are excluded.
+    /// </summary>
+    private async Task<List<Transaction>> LoadCandidateTransactionsAsync(
+        IReadOnlyList<Guid> eligibleAccountIds,
+        CancellationToken cancellationToken)
+    {
+        var today = FinancialDate.Today(_timeProvider);
+        var windowStart = today.AddDays(-LookbackDays);
+
+        return await _dbContext.Transactions
+            .Include(transaction => transaction.Category)
+            .Where(transaction =>
+                eligibleAccountIds.Contains(transaction.AccountId)
+                && transaction.ArchivedAt == null
+                && transaction.Provenance != FinancialRecordProvenance.BalanceReconciliation
+                && transaction.Date >= windowStart
+                && transaction.Amount != 0)
+            .OrderBy(transaction => transaction.Date)
+            .ThenBy(transaction => transaction.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Links an outflow to an opposite inflow of the same amount within one day,
+    /// on a different owned account, when either side looks like a transfer.
+    /// Both legs are categorized as Transfers.
+    /// </summary>
     private static int PairOppositeLegs(
         List<Transaction> candidates,
         Guid uncategorizedCategoryId,
@@ -197,6 +240,10 @@ public class TransferPairingService : ITransferPairingService
         return pairCount;
     }
 
+    /// <summary>
+    /// Marks a single leg as a Transfer when its text is a bank-transfer phrase.
+    /// Those rows are kept even if they have no opposite leg.
+    /// </summary>
     private static int PromoteBankTransferNamedTransactions(
         List<Transaction> candidates,
         Guid transfersCategoryId,
@@ -240,6 +287,10 @@ public class TransferPairingService : ITransferPairingService
         return promotedCount;
     }
 
+    /// <summary>
+    /// Recategorizes Transfer rows from this window that were not paired or
+    /// promoted, using keyword categorization.
+    /// </summary>
     private async Task<int> RepairFalsePositiveTransfersAsync(
         List<Transaction> candidates,
         HashSet<Guid> keepAsTransferIds,
@@ -247,7 +298,17 @@ public class TransferPairingService : ITransferPairingService
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
+        var needsRepair = candidates.Any(transaction =>
+            transaction.CategoryId == transfersCategoryId
+            && !keepAsTransferIds.Contains(transaction.Id));
+        if (!needsRepair)
+        {
+            return 0;
+        }
+
         var repairedCount = 0;
+        var categoryIdsByKey = await _categorizationService.GetSystemCategoryIdsByKeyAsync(
+            cancellationToken);
 
         foreach (var transaction in candidates)
         {
@@ -257,11 +318,11 @@ public class TransferPairingService : ITransferPairingService
                 continue;
             }
 
-            var categoryId = await _categorizationService.GetCategoryIdForStoredTransactionAsync(
+            var categoryId = _categorizationService.FindCategoryId(
+                categoryIdsByKey,
                 transaction.Name,
                 transaction.MerchantName,
-                transaction.Amount,
-                cancellationToken);
+                transaction.Amount);
 
             if (categoryId == transfersCategoryId)
             {
@@ -277,6 +338,10 @@ public class TransferPairingService : ITransferPairingService
         return repairedCount;
     }
 
+    /// <summary>
+    /// True for an uncategorized, transfer, or income category, and for a missing category.
+    /// Other categories are left alone.
+    /// </summary>
     private static bool IsTransferCandidateCategory(
         Category? category,
         Guid uncategorizedCategoryId,
@@ -300,9 +365,14 @@ public class TransferPairingService : ITransferPairingService
             || string.Equals(category.Key, SystemCategoryKeys.Income, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// True when either transaction's text contains a transfer or payment-rail hint.
+    /// </summary>
     private static bool HasTransferPairSignal(Transaction left, Transaction right)
     {
         return TransferTextClassifier.LooksLikeTransferPairSignal(left.MerchantName, left.Name)
             || TransferTextClassifier.LooksLikeTransferPairSignal(right.MerchantName, right.Name);
     }
+
+    #endregion
 }

@@ -8,6 +8,9 @@ namespace Cardui.Api.Configuration;
 
 public static class ApplicationServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers application services, data protection for Plaid tokens, and the household scope.
+    /// </summary>
     public static IServiceCollection AddCarduiApplicationServices(
         this IServiceCollection services,
         IConfiguration configuration)

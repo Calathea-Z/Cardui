@@ -26,6 +26,7 @@ public class CategoriesService : ICategoriesService
         _householdScope = householdScope;
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync(
         CancellationToken cancellationToken = default)
     {
@@ -37,6 +38,7 @@ public class CategoriesService : ICategoriesService
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<CategoryDto> GetCategoryByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -44,6 +46,7 @@ public class CategoriesService : ICategoriesService
         return ProjectCategoryByIdAsync(id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<CategoryDto> CreateCategoryAsync(
         CreateCategoryDto createCategoryDto,
         CancellationToken cancellationToken = default)
@@ -97,6 +100,7 @@ public class CategoriesService : ICategoriesService
         return CategoryDtoMapper.MapToDto(category);
     }
 
+    /// <inheritdoc />
     public async Task<CategoryDto> UpdateCategoryAsync(
         Guid id,
         UpdateCategoryDto dto,
@@ -139,6 +143,7 @@ public class CategoriesService : ICategoriesService
         return CategoryDtoMapper.MapToDto(category);
     }
 
+    /// <inheritdoc />
     public async Task DeleteCategoryAsync(
         Guid id,
         CancellationToken cancellationToken = default)
@@ -160,7 +165,7 @@ public class CategoriesService : ICategoriesService
         var now = _timeProvider.GetUtcNow();
 
         var transactions = await _dbContext.Transactions
-            .InHousehold(_householdScope)
+            .InHousehold(_dbContext, _householdScope)
             .Where(x => x.CategoryId == id)
             .ToListAsync(cancellationToken);
 
@@ -175,6 +180,11 @@ public class CategoriesService : ICategoriesService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Rejects a sub-group the household cannot see.
+    /// </summary>
     private async Task ValidateSubGroupAsync(
         Guid subGroupId,
         CancellationToken cancellationToken)
@@ -189,6 +199,9 @@ public class CategoriesService : ICategoriesService
         }
     }
 
+    /// <summary>
+    /// Loads one visible category, or throws when it is missing.
+    /// </summary>
     private async Task<CategoryDto> ProjectCategoryByIdAsync(
         Guid id,
         CancellationToken cancellationToken)
@@ -207,4 +220,6 @@ public class CategoriesService : ICategoriesService
 
         return category;
     }
+
+    #endregion
 }

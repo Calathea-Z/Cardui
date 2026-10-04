@@ -1,0 +1,42 @@
+---
+description: Document backend methods so their purpose is clear
+alwaysApply: true
+---
+
+# Backend method comments
+
+When adding or changing C# in `api/` or `worker/`, document every method
+with an XML summary that says what it does and why. Do this in the same
+change as the method.
+
+- Put the summary on the interface for a public service method. On the
+  implementation, use `/// <inheritdoc />` and do not repeat the summary.
+- Private methods, and public methods with no interface, get their own
+  summary.
+- Do not document constructors. A constructor that only stores its
+  dependencies does not get a summary.
+- Above each controller action, name the HTTP method and route, then the
+  purpose. Example: `GET /api/accounts`.
+- Do not add these comments to generated EF Core migration files.
+- Put private methods in `#region Private Methods`. See
+  `.cursor/rules/backend-private-methods.mdc`.
+- Keep models, DTOs, and domain values in their own files. See
+  `.cursor/rules/backend-type-files.mdc`.
+
+```csharp
+/// <summary>
+/// Lists the signed-in household's accounts.
+/// Archived accounts are omitted unless includeArchived is true.
+/// </summary>
+Task<IReadOnlyList<AccountDto>> GetAccountsAsync(...);
+
+/// <inheritdoc />
+public async Task<IReadOnlyList<AccountDto>> GetAccountsAsync(...)
+
+/// <summary>
+/// GET /api/accounts
+/// Returns the household's accounts.
+/// </summary>
+[HttpGet]
+public async Task<ActionResult<IReadOnlyList<AccountDto>>> GetAccounts(...)
+```

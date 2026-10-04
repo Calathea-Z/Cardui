@@ -6,6 +6,9 @@ namespace Cardui.Api.Data;
 
 public static class DataSeeder
 {
+    /// <summary>
+    /// Inserts the system groups, sub-groups, and categories when none exist.
+    /// </summary>
     public static async Task SeedAsync(
         CarduiDBContext dbContext,
         TimeProvider timeProvider,
@@ -91,6 +94,11 @@ public static class DataSeeder
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Creates a system group row that has not been saved yet.
+    /// </summary>
     private static Group CreateGroup(
         string name,
         string key,
@@ -107,4 +115,6 @@ public static class DataSeeder
             UpdatedAt = now
         };
     }
+
+    #endregion
 }

@@ -17,6 +17,9 @@ public static class CategoryDtoMapper
         IsSystem = x.IsSystem
     };
 
+    /// <summary>
+    /// Maps a tracked category to the API response. Used after create and update.
+    /// </summary>
     public static CategoryDto MapToDto(Category category)
     {
         return new CategoryDto

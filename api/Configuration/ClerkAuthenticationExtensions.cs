@@ -6,6 +6,10 @@ namespace Cardui.Api.Configuration;
 
 public static class ClerkAuthenticationExtensions
 {
+    /// <summary>
+    /// Registers Clerk authentication. Every endpoint requires a signed-in user
+    /// unless it is marked anonymous.
+    /// </summary>
     public static IServiceCollection AddCarduiClerkAuthentication(
         this IServiceCollection services,
         IConfiguration configuration)

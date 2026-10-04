@@ -83,3 +83,13 @@ Prettier stays in CI. See `.cursor/rules/frontend-conventions.mdc`.
 Cardui money text uses `formatCurrency`. Chart labels use the chart
 formatters. This rule stays in this repo. See
 `.cursor/rules/frontend-currency.mdc`.
+
+## Frontend method comments
+
+Document functions in `frontend/` with a JSDoc block that says what the
+function does and the rule its name leaves out. Include React
+components, hooks, and helpers. An API client function names the HTTP
+method and route. Comment a type when a field carries a rule, such as
+amount sign. Skip one-line setters, JSX, obvious props, and generated
+files such as `next-env.d.ts`. See
+`.cursor/rules/frontend-method-comments.mdc`.

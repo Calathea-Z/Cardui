@@ -21,3 +21,10 @@ Prettier stays in CI. See `.cursor/rules/frontend-conventions.mdc`.
 Money text uses `formatCurrency` from `features/accounts/formatCurrency.ts`.
 Chart labels use the chart formatters. That rule is for this repo only. See
 `.cursor/rules/frontend-currency.mdc`.
+
+Document functions with a JSDoc block that says what the function does
+and the rule its name leaves out. Include components, hooks, and helpers.
+An API client function names the HTTP method and route. Comment a type
+when a field carries a rule, such as amount sign. Skip one-line setters,
+JSX, obvious props, and generated files such as `next-env.d.ts`. See
+`.cursor/rules/frontend-method-comments.mdc`.

@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-04 — Frontend comment rule](2026-10-04-012-frontend-comment-rule.md)
 - [2026-10-04 — Frontend method comments](2026-10-04-011-frontend-method-comments.md)
 - [2026-10-04 — CSV import UX](2026-10-04-010-csv-import-ux.md)
 - [2026-10-04 — Optional Plaid startup](2026-10-04-009-optional-plaid.md)

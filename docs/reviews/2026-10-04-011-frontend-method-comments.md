@@ -102,8 +102,6 @@ No screen or data change. Spot-check the comments, or waive this list.
 
 ## Pending decision
 
-Zach approved the rule below on October 4, 2026. Write it into
-`AGENTS.md`, `frontend/AGENTS.md`, and
-`.cursor/rules/frontend-method-comments.mdc`. Do not add an ESLint
-documentation plugin. Phase 2 item 1, income sources, is the next
-product increment after that rule is recorded.
+Zach approved the rule below on October 4, 2026. It was recorded in
+`docs/reviews/2026-10-04-012-frontend-comment-rule.md`. Phase 2 item 1,
+income sources, is the next product increment.

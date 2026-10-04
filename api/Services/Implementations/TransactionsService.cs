@@ -91,7 +91,7 @@ public class TransactionsService : ITransactionsService
 
         var match = MerchantMatchKey.Create(source.Name, source.MerchantName);
         var transactions = await LoadMerchantTransactionsAsync(match, cancellationToken);
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
+        var today = FinancialDate.Today(_timeProvider);
         var series = MerchantHistoryPeriods.Build(
             today,
             granularity,

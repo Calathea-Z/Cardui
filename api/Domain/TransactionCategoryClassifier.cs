@@ -15,6 +15,69 @@ public static class TransactionCategoryClassifier
         "dividend"
     ];
 
+    private static readonly (string CategoryKey, string[] Keywords)[] MerchantKeywordRules =
+    [
+        (SystemCategoryKeys.FoodDining,
+        [
+            "whole foods",
+            "trader joe",
+            "kroger",
+            "safeway",
+            "grocery",
+            "market",
+            "restaurant",
+            "cafe",
+            "coffee",
+            "starbucks",
+            "doordash",
+            "uber eats",
+            "chipotle"
+        ]),
+        (SystemCategoryKeys.AutoTransport,
+        [
+            "shell",
+            "chevron",
+            "exxon",
+            "gas",
+            "uber",
+            "lyft",
+            "parking"
+        ]),
+        (SystemCategoryKeys.TravelLifestyle,
+        [
+            "netflix",
+            "spotify",
+            "hulu",
+            "disney",
+            "amc",
+            "cinema",
+            "ticket"
+        ]),
+        (SystemCategoryKeys.Shopping,
+        [
+            "target",
+            "amazon",
+            "walmart",
+            "costco",
+            "best buy"
+        ]),
+        (SystemCategoryKeys.BillsUtilities,
+        [
+            "electric",
+            "utility",
+            "internet",
+            "phone",
+            "insurance",
+            "rent",
+            "mortgage",
+            "t-mobile",
+            "tmobile",
+            "verizon",
+            "at&t",
+            "att "
+        ])
+    ];
+
     /// <summary>
     /// Chooses a system category key. Bank transfers win first, then income
     /// hints on money coming in, then merchant keywords. Anything else is Other.
@@ -36,34 +99,12 @@ public static class TransactionCategoryClassifier
             return SystemCategoryKeys.Income;
         }
 
-        if (ContainsAny(text, "whole foods", "trader joe", "kroger", "safeway", "grocery", "market"))
+        foreach (var (categoryKey, keywords) in MerchantKeywordRules)
         {
-            return SystemCategoryKeys.FoodDining;
-        }
-
-        if (ContainsAny(text, "restaurant", "cafe", "coffee", "starbucks", "doordash", "uber eats", "chipotle"))
-        {
-            return SystemCategoryKeys.FoodDining;
-        }
-
-        if (ContainsAny(text, "shell", "chevron", "exxon", "gas", "uber", "lyft", "parking"))
-        {
-            return SystemCategoryKeys.AutoTransport;
-        }
-
-        if (ContainsAny(text, "netflix", "spotify", "hulu", "disney", "amc", "cinema", "ticket"))
-        {
-            return SystemCategoryKeys.TravelLifestyle;
-        }
-
-        if (ContainsAny(text, "target", "amazon", "walmart", "costco", "best buy"))
-        {
-            return SystemCategoryKeys.Shopping;
-        }
-
-        if (ContainsAny(text, "electric", "utility", "internet", "phone", "insurance", "rent", "mortgage", "t-mobile", "tmobile", "verizon", "at&t", "att "))
-        {
-            return SystemCategoryKeys.BillsUtilities;
+            if (ContainsAny(text, keywords))
+            {
+                return categoryKey;
+            }
         }
 
         return SystemCategoryKeys.Other;

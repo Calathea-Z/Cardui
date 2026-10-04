@@ -156,7 +156,7 @@ public class TransferPairingService : ITransferPairingService
         IReadOnlyList<Guid> eligibleAccountIds,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime);
+        var today = FinancialDate.Today(_timeProvider);
         var windowStart = today.AddDays(-LookbackDays);
 
         return await _dbContext.Transactions
@@ -299,7 +299,17 @@ public class TransferPairingService : ITransferPairingService
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
+        var needsRepair = candidates.Any(transaction =>
+            transaction.CategoryId == transfersCategoryId
+            && !keepAsTransferIds.Contains(transaction.Id));
+        if (!needsRepair)
+        {
+            return 0;
+        }
+
         var repairedCount = 0;
+        var categoryIdsByKey = await _categorizationService.GetSystemCategoryIdsByKeyAsync(
+            cancellationToken);
 
         foreach (var transaction in candidates)
         {
@@ -309,11 +319,11 @@ public class TransferPairingService : ITransferPairingService
                 continue;
             }
 
-            var categoryId = await _categorizationService.GetCategoryIdForStoredTransactionAsync(
+            var categoryId = _categorizationService.FindCategoryId(
+                categoryIdsByKey,
                 transaction.Name,
                 transaction.MerchantName,
-                transaction.Amount,
-                cancellationToken);
+                transaction.Amount);
 
             if (categoryId == transfersCategoryId)
             {

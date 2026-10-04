@@ -41,6 +41,21 @@ public class TransactionCategoryClassifierTests
         Assert.Equal(SystemCategoryKeys.Other, categoryKey);
     }
 
+    [Theory]
+    [InlineData("Trader Joe's", SystemCategoryKeys.FoodDining)]
+    [InlineData("Shell station", SystemCategoryKeys.AutoTransport)]
+    [InlineData("Netflix.com", SystemCategoryKeys.TravelLifestyle)]
+    [InlineData("City electric bill", SystemCategoryKeys.BillsUtilities)]
+    public void GetCategoryKey_MatchesTheFirstKeywordGroup(string description, string expectedKey)
+    {
+        var categoryKey = TransactionCategoryClassifier.GetCategoryKey(
+            merchantName: null,
+            description,
+            amount: 20m);
+
+        Assert.Equal(expectedKey, categoryKey);
+    }
+
     [Fact]
     public void GetCategoryKey_PrioritizesBankTransferOverIncomeText()
     {

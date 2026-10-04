@@ -42,7 +42,6 @@ public class GroupsService : IGroupsService
 
         var group = await _dbContext.Groups
             .AsNoTracking()
-            .Include(x => x.SubGroups)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (group is null)
@@ -50,15 +49,12 @@ public class GroupsService : IGroupsService
             throw new NotFoundException($"Group '{id}' was not found.");
         }
 
-        var hiddenSubGroups = group.SubGroups
-            .Where(x => !x.IsSystem && x.HouseholdId != _householdScope.HouseholdId)
-            .ToList();
+        var subGroups = await _dbContext.SubGroups
+            .AsNoTracking()
+            .VisibleToHousehold(_householdScope)
+            .Where(subGroup => subGroup.GroupId == id)
+            .ToListAsync(cancellationToken);
 
-        foreach (var subGroup in hiddenSubGroups)
-        {
-            group.SubGroups.Remove(subGroup);
-        }
-
-        return GroupDtoMapper.MapToDetailDto(group);
+        return GroupDtoMapper.MapToDetailDto(group, subGroups);
     }
 }

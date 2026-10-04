@@ -336,5 +336,16 @@ public class PlaidTransactionReconcilerTests
             decimal amount,
             CancellationToken cancellationToken = default) =>
             Task.FromResult<Guid?>(null);
+
+        public Task<IReadOnlyDictionary<string, Guid>> GetSystemCategoryIdsByKeyAsync(
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyDictionary<string, Guid>>(new Dictionary<string, Guid>());
+
+        public Guid? FindCategoryId(
+            IReadOnlyDictionary<string, Guid> categoryIdsByKey,
+            string name,
+            string? merchantName,
+            decimal amount) =>
+            null;
     }
 }

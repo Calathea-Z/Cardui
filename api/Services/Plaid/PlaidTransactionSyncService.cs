@@ -120,15 +120,16 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         }
 
         var now = _timeProvider.GetUtcNow();
+        var categoryIdsByKey = await _transactionCategorizationService
+            .GetSystemCategoryIdsByKeyAsync(cancellationToken);
 
         foreach (var transaction in uncategorized)
         {
-            var categoryId = await _transactionCategorizationService
-                .GetCategoryIdForStoredTransactionAsync(
-                    transaction.Name,
-                    transaction.MerchantName,
-                    transaction.Amount,
-                    cancellationToken);
+            var categoryId = _transactionCategorizationService.FindCategoryId(
+                categoryIdsByKey,
+                transaction.Name,
+                transaction.MerchantName,
+                transaction.Amount);
 
             if (!categoryId.HasValue)
             {

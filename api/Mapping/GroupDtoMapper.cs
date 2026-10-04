@@ -16,9 +16,11 @@ public static class GroupDtoMapper
     };
 
     /// <summary>
-    /// Maps a group and its sub-groups, ordered for display.
+    /// Maps a group and the sub-groups the caller already filtered, ordered for display.
     /// </summary>
-    public static GroupDetailDto MapToDetailDto(Group group)
+    public static GroupDetailDto MapToDetailDto(
+        Group group,
+        IEnumerable<SubGroup> subGroups)
     {
         return new GroupDetailDto
         {
@@ -26,9 +28,9 @@ public static class GroupDtoMapper
             Key = group.Key,
             Name = group.Name,
             SortOrder = group.SortOrder,
-            SubGroups = group.SubGroups
-                .OrderBy(x => x.SortOrder)
-                .ThenBy(x => x.Name)
+            SubGroups = subGroups
+                .OrderBy(subGroup => subGroup.SortOrder)
+                .ThenBy(subGroup => subGroup.Name)
                 .Select(SubGroupDtoMapper.MapToDto)
                 .ToList()
         };

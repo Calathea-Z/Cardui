@@ -39,6 +39,29 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
         return ResolveCategoryIdAsync(categoryKey, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<string, Guid>> GetSystemCategoryIdsByKeyAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Categories
+            .AsNoTracking()
+            .Where(category => category.IsSystem)
+            .ToDictionaryAsync(category => category.Key, category => category.Id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Guid? FindCategoryId(
+        IReadOnlyDictionary<string, Guid> categoryIdsByKey,
+        string name,
+        string? merchantName,
+        decimal amount)
+    {
+        var categoryKey = GetCategoryKey(merchantName, name, amount);
+        return categoryIdsByKey.TryGetValue(categoryKey, out var categoryId)
+            ? categoryId
+            : null;
+    }
+
     #region Private Methods
 
     /// <summary>

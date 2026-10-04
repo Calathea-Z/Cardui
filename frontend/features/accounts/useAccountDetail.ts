@@ -10,7 +10,11 @@ import {
 } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type { AccountDto } from "@/lib/api/types";
-import { parseMoney, todayDateInput } from "./manualAccount";
+import {
+  parseMoney,
+  todayDateInput,
+  toManualAccountType,
+} from "./manualAccount";
 import type { ManualAccountFormValues } from "./ManualAccountForm";
 
 type UseAccountDetailOptions = {
@@ -27,7 +31,7 @@ type UseAccountDetailOptions = {
 function toForm(account: AccountDto): ManualAccountFormValues {
   return {
     name: account.name,
-    type: account.type,
+    type: toManualAccountType(account.type),
     subtype: account.subtype ?? "",
     openingBalance: String(account.openingBalance ?? 0),
     openingBalanceDate: account.openingBalanceDate ?? todayDateInput(),

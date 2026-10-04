@@ -1,4 +1,8 @@
-import type { TransactionImportSuggestedMapDto } from "@/lib/api/types";
+import type {
+  CsvAmountSign,
+  CsvDateOrder,
+  TransactionImportSuggestedMapDto,
+} from "@/lib/api/types";
 
 /**
  * How a CSV writes money.
@@ -25,8 +29,8 @@ export type ImportColumnState = {
   creditColumn: string;
   categoryColumn: string;
   notesColumn: string;
-  amountSign: string;
-  dateOrder: string;
+  amountSign: CsvAmountSign;
+  dateOrder: CsvDateOrder;
 };
 
 /**
@@ -66,8 +70,8 @@ export function columnStateFromSuggestion(
     creditColumn: columnValue(suggested.creditColumn),
     categoryColumn: columnValue(suggested.categoryColumn),
     notesColumn: columnValue(suggested.notesColumn),
-    amountSign: suggested.amountSign || "PositiveOut",
-    dateOrder: suggested.dateOrder || "MonthFirst",
+    amountSign: amountSignFromSelect(suggested.amountSign),
+    dateOrder: dateOrderFromSelect(suggested.dateOrder),
   };
 }
 
@@ -108,6 +112,22 @@ export function mappingError(columns: ImportColumnState) {
   }
 
   return null;
+}
+
+/**
+ * Reads the date-order choice from a select.
+ * An unrecognized value stays month first, which is how a new import starts.
+ */
+export function dateOrderFromSelect(value: string): CsvDateOrder {
+  return value === "DayFirst" ? "DayFirst" : "MonthFirst";
+}
+
+/**
+ * Reads the amount-sign choice from a select.
+ * An unrecognized value stays money out, which is how a new import starts.
+ */
+export function amountSignFromSelect(value: string): CsvAmountSign {
+  return value === "PositiveIn" ? "PositiveIn" : "PositiveOut";
 }
 
 /**

@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-04 — Frontend types](2026-10-04-014-frontend-types.md)
 - [2026-10-04 — Frontend layers](2026-10-04-013-frontend-layers.md)
 - [2026-10-04 — Frontend comment rule](2026-10-04-012-frontend-comment-rule.md)
 - [2026-10-04 — Frontend method comments](2026-10-04-011-frontend-method-comments.md)

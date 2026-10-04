@@ -1,6 +1,11 @@
 "use client";
 
-import { columnChoices, type ImportColumnState } from "./importCsv";
+import {
+  amountSignFromSelect,
+  columnChoices,
+  dateOrderFromSelect,
+  type ImportColumnState,
+} from "./importCsv";
 import { ImportLabeledSelect } from "./ImportLabeledSelect";
 
 type ImportColumnMappingProps = {
@@ -140,7 +145,9 @@ export function ImportColumnMapping({
             label="Dates are written"
             title="How dates are written"
             value={columns.dateOrder}
-            onChange={(value) => onChange({ ...columns, dateOrder: value })}
+            onChange={(value) =>
+              onChange({ ...columns, dateOrder: dateOrderFromSelect(value) })
+            }
             onOpenChange={onOpenChange}
             hint="Month first reads 01/02/2026 as January 2. Day first reads it as February 1. A date like 2026-10-01 is the same either way."
             options={[
@@ -153,7 +160,12 @@ export function ImportColumnMapping({
               label="A positive amount is"
               title="What a positive amount means"
               value={columns.amountSign}
-              onChange={(value) => onChange({ ...columns, amountSign: value })}
+              onChange={(value) =>
+                onChange({
+                  ...columns,
+                  amountSign: amountSignFromSelect(value),
+                })
+              }
               onOpenChange={onOpenChange}
               hint="Money out was spent. Money in was received."
               options={[

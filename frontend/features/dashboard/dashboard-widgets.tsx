@@ -1,33 +1,15 @@
-import type {
-  AccountSummaryDto,
-  CategoryDto,
-  DashboardSummaryDto,
-  GroupDto,
-  SubGroupDto,
-} from "@/lib/api/types";
 import { DashboardAccountsSlider } from "./DashboardAccountsSlider";
 import { DashboardMonthlyActivityWidget } from "./DashboardMonthlyActivityWidget";
 import { DashboardRecentTransactionsWidget } from "./DashboardRecentTransactionsWidget";
-
-/**
- * Page data passed into every dashboard widget.
- * Each widget reads the summaries, categories, and groups it displays from this same set.
- */
-export type DashboardWidgetProps = {
-  dashboardSummary: DashboardSummaryDto;
-  accountsSummary: AccountSummaryDto;
-  categories: CategoryDto[];
-  groups: GroupDto[];
-  subGroups: SubGroupDto[];
-};
+import type { DashboardPageData } from "./server/loadDashboardPage";
 
 /**
  * One dashboard block and the function that renders it.
- * The render function receives the shared page data.
+ * The render function receives the same page data the route loaded.
  */
 export type DashboardWidgetDefinition = {
   id: string;
-  render: (props: DashboardWidgetProps) => React.ReactNode;
+  render: (props: DashboardPageData) => React.ReactNode;
 };
 
 /**

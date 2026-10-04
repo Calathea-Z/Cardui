@@ -12,19 +12,13 @@ import type {
 } from "../types";
 
 /**
- * Page data plus the error to show when the API call failed.
- * The fallback data lets the page render instead of crashing.
- */
-export type SafeApiResult<T> = PageLoadState<T>;
-
-/**
  * Runs a server API call and returns fallback data when it fails.
  * The page can still render, with the error passed to the banner.
  */
 export async function safeApiCall<T>(
   fn: () => Promise<T>,
   fallback: T,
-): Promise<SafeApiResult<T>> {
+): Promise<PageLoadState<T>> {
   try {
     const data = await fn();
     return { data, error: null };

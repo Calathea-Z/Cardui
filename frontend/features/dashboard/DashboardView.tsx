@@ -1,20 +1,6 @@
-import type {
-  AccountSummaryDto,
-  CategoryDto,
-  DashboardSummaryDto,
-  GroupDto,
-  SubGroupDto,
-} from "@/lib/api/types";
 import { CurrencyExclusionNotice } from "@/features/household/CurrencyExclusionNotice";
 import { dashboardWidgets } from "./dashboard-widgets";
-
-type DashboardViewProps = {
-  dashboardSummary: DashboardSummaryDto;
-  accountsSummary: AccountSummaryDto;
-  categories: CategoryDto[];
-  groups: GroupDto[];
-  subGroups: SubGroupDto[];
-};
+import type { DashboardPageData } from "./server/loadDashboardPage";
 
 /**
  * Renders the dashboard widgets in list order.
@@ -26,7 +12,7 @@ export function DashboardView({
   categories,
   groups,
   subGroups,
-}: DashboardViewProps) {
+}: DashboardPageData) {
   const widgetProps = {
     dashboardSummary,
     accountsSummary,

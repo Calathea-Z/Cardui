@@ -92,6 +92,16 @@ Cardui money text uses `formatCurrency`. Chart labels use the chart
 formatters. This rule stays in this repo. See
 `.cursor/rules/frontend-currency.mdc`.
 
+## Frontend types
+
+Use `type` for object shapes, unions, and aliases. A fixed set of values
+is a union, derived from the const array when that array is the list. A
+value the screen sends or branches on uses that union. One shape has one
+name. Component props stay next to the component. Form state stays with
+its rule, separate from the API payload. API payloads for one feature
+live in `frontend/lib/api/types/<feature>.ts` and are re-exported from
+the types index. See `.cursor/rules/frontend-types.mdc`.
+
 ## Frontend method comments
 
 Document functions in `frontend/` with a JSDoc block that says what the

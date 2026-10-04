@@ -242,6 +242,8 @@ public class PlaidService : IPlaidService
         }
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Loads a tracked household Plaid item, or throws when it is missing.
     /// </summary>
@@ -284,4 +286,6 @@ public class PlaidService : IPlaidService
 
         return plaidSyncException.Message;
     }
+
+    #endregion
 }

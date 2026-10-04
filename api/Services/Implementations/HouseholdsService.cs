@@ -67,6 +67,8 @@ public class HouseholdsService : IHouseholdsService
         }
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Loads the household for a Clerk user id, or null when that owner has none.
     /// </summary>
@@ -90,4 +92,6 @@ public class HouseholdsService : IHouseholdsService
             CreatedAt = household.CreatedAt
         };
     }
+
+    #endregion
 }

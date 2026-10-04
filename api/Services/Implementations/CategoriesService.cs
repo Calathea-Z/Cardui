@@ -180,6 +180,8 @@ public class CategoriesService : ICategoriesService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Rejects a sub-group the household cannot see.
     /// </summary>
@@ -218,4 +220,6 @@ public class CategoriesService : ICategoriesService
 
         return category;
     }
+
+    #endregion
 }

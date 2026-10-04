@@ -1,0 +1,35 @@
+---
+description: Keep backend private methods in a Private Methods region
+alwaysApply: true
+---
+
+# Backend private methods
+
+When adding or changing C# in `api/` or `worker/`, put every private method
+in one `#region Private Methods` at the end of its type. Do this in the same
+change as the method.
+
+- The region holds private methods only. Fields, constants, and constructors
+  stay above it.
+- Public and internal methods stay above the region.
+- A private nested type stays outside the region.
+- One region per type. Skip the region when the type has no private methods.
+- Do not add regions to generated EF Core migration files.
+
+```csharp
+public async Task<AccountDto> GetAccountAsync(...)
+{
+    return await ProjectAccountAsync(...);
+}
+
+#region Private Methods
+
+/// <summary>
+/// Loads the API shape of one household account.
+/// </summary>
+private async Task<AccountDto> ProjectAccountAsync(...)
+{
+}
+
+#endregion
+```

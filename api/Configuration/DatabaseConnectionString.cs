@@ -29,6 +29,8 @@ public static class DatabaseConnectionString
             "Database connection is not configured. Set ConnectionStrings:DefaultConnection or DATABASE_URL.");
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Converts a postgres:// URL into an Npgsql connection string.
     /// </summary>
@@ -48,4 +50,6 @@ public static class DatabaseConnectionString
 
         return builder.ConnectionString;
     }
+
+    #endregion
 }

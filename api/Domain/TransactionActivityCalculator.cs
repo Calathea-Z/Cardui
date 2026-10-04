@@ -86,6 +86,8 @@ public static class TransactionActivityCalculator
             SpendingByCategory: categoryTotals);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// True when the category or its group is Transfers.
     /// </summary>
@@ -122,6 +124,8 @@ public static class TransactionActivityCalculator
     {
         return string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase);
     }
+
+    #endregion
 
     /// <summary>
     /// Groups spending by category id, name, and color.

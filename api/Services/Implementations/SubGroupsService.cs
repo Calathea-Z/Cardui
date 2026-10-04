@@ -194,6 +194,8 @@ public class SubGroupsService : ISubGroupsService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Loads one visible sub-group, or throws when it is missing.
     /// </summary>
@@ -215,4 +217,6 @@ public class SubGroupsService : ISubGroupsService
 
         return subGroup;
     }
+
+    #endregion
 }

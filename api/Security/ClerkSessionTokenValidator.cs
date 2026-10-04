@@ -82,6 +82,8 @@ public sealed class ClerkSessionTokenValidator
         return new ClaimsPrincipal(identity);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Reads a string claim, or null when it is missing or blank.
     /// </summary>
@@ -95,4 +97,6 @@ public sealed class ClerkSessionTokenValidator
         var trimmed = text.Trim();
         return trimmed.Length == 0 ? null : trimmed;
     }
+
+    #endregion
 }

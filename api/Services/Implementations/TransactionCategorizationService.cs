@@ -39,6 +39,8 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
         return ResolveCategoryIdAsync(categoryKey, cancellationToken);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Looks up the seeded category id for a classifier key.
     /// </summary>
@@ -66,4 +68,6 @@ public class TransactionCategorizationService : ITransactionCategorizationServic
             description,
             amount);
     }
+
+    #endregion
 }

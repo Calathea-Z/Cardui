@@ -41,3 +41,13 @@ No screen or data change. Spot-check the comments, or waive this list.
 3. Open `api/Services/Implementations/TransactionsService.cs`.
    Expected: private helpers such as pagination, filters, and balance
    refresh have their own summaries.
+
+Zach approved this increment on October 3, 2026.
+
+## Remaining considerations
+
+- Financial profile preferences are the next Phase 1 item. Mixed-currency
+  totals are still unhandled.
+- System category edits still change the shared catalog.
+- Custom category and subgroup names and keys remain unique across every
+  household until a separate migration.

@@ -120,6 +120,8 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Creates a linked account from a Plaid account and copies the bank fields.
     /// </summary>
@@ -199,4 +201,6 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         _dbContext.AccountBalanceSnapshots.Add(snapshot);
         existingSnapshotsByAccountId[account.Id] = snapshot;
     }
+
+    #endregion
 }

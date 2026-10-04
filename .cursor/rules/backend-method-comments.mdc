@@ -18,6 +18,8 @@ change as the method.
 - Above each controller action, name the HTTP method and route, then the
   purpose. Example: `GET /api/accounts`.
 - Do not add these comments to generated EF Core migration files.
+- Put private methods in `#region Private Methods`. See
+  `.cursor/rules/backend-private-methods.mdc`.
 
 ```csharp
 /// <summary>

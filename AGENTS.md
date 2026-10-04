@@ -26,3 +26,11 @@ summary. Do not document constructors. Controller actions list the HTTP
 method and route.
 Skip generated EF Core migrations. See
 `.cursor/rules/backend-method-comments.mdc`.
+
+## Backend private methods
+
+Put every private method in `api/` and `worker/` inside
+`#region Private Methods` at the end of its type. Fields, constructors,
+and public methods stay above the region. Skip the region when a type has
+no private methods, and skip generated EF Core migrations. See
+`.cursor/rules/backend-private-methods.mdc`.

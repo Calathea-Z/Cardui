@@ -71,6 +71,8 @@ public static class TransactionCategoryClassifier
         return SystemCategoryKeys.Other;
     }
 
+    #region Private Methods
+
     /// <summary>
     /// True when the text contains any of the keywords.
     /// </summary>
@@ -78,4 +80,6 @@ public static class TransactionCategoryClassifier
     {
         return keywords.Any(text.Contains);
     }
+
+    #endregion
 }

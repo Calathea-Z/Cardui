@@ -45,6 +45,8 @@ public sealed class HouseholdScopeMiddleware
         await _next(context);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// True for the route that creates the current household.
     /// </summary>
@@ -53,4 +55,6 @@ public sealed class HouseholdScopeMiddleware
         return HttpMethods.IsPost(context.Request.Method)
             && context.Request.Path.Equals("/api/households/current", StringComparison.OrdinalIgnoreCase);
     }
+
+    #endregion
 }

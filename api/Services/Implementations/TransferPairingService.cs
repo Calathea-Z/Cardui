@@ -135,6 +135,8 @@ public class TransferPairingService : ITransferPairingService
         return pairCount + promotedCount;
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Links an outflow to an opposite inflow of the same amount within one day,
     /// on a different owned account, when either side looks like a transfer.
@@ -326,4 +328,6 @@ public class TransferPairingService : ITransferPairingService
         return TransferTextClassifier.LooksLikeTransferPairSignal(left.MerchantName, left.Name)
             || TransferTextClassifier.LooksLikeTransferPairSignal(right.MerchantName, right.Name);
     }
+
+    #endregion
 }

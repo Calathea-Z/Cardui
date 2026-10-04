@@ -61,6 +61,8 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
         }
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Logs a Plaid error and wraps it in a PlaidSyncException with a user-safe message.
     /// </summary>
@@ -94,4 +96,6 @@ public class PlaidRequestExecutor : IPlaidRequestExecutor
             ? ex.ErrorMessage
             : "Plaid request failed. Please try again.";
     }
+
+    #endregion
 }

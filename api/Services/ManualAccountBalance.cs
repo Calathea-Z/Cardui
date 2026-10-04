@@ -87,6 +87,8 @@ public static class ManualAccountBalance
         });
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Loads the account's transactions, including unsaved tracked rows, for the ledger.
     /// </summary>
@@ -117,4 +119,6 @@ public static class ManualAccountBalance
                 x.ArchivedAt != null))
             .ToList();
     }
+
+    #endregion
 }

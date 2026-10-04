@@ -300,6 +300,8 @@ public class AccountsService : IAccountsService
         };
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Builds one summary group. Net worth includes every active account.
     /// The other groups keep only accounts of that type.
@@ -508,4 +510,6 @@ public class AccountsService : IAccountsService
         return AccountTotalsCalculator.Calculate(
             accounts.Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)));
     }
+
+    #endregion
 }

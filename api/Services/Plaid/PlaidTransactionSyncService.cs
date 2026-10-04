@@ -97,6 +97,8 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         };
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Assigns a keyword category to this item's transactions that have no
     /// category and were not edited by the user.
@@ -140,4 +142,5 @@ public class PlaidTransactionSyncService : IPlaidTransactionSyncService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #endregion
 }

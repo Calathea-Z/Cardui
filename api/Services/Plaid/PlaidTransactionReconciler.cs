@@ -132,6 +132,8 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
         };
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Inserts a transaction or updates the stored row, including a pending
     /// row that Plaid has now posted. Skips a transaction whose account is unknown.
@@ -264,4 +266,6 @@ public class PlaidTransactionReconciler : IPlaidTransactionReconciler
                 break;
         }
     }
+
+    #endregion
 }

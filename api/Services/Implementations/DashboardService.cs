@@ -63,6 +63,8 @@ public class DashboardService : IDashboardService
         };
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Returns the first day of the local month through today.
     /// </summary>
@@ -144,4 +146,6 @@ public class DashboardService : IDashboardService
             .InHousehold(_householdScope)
             .Where(x => x.Date >= start && x.Date <= end);
     }
+
+    #endregion
 }

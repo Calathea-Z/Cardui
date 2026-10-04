@@ -94,6 +94,8 @@ public static class DataSeeder
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #region Private Methods
+
     /// <summary>
     /// Creates a system group row that has not been saved yet.
     /// </summary>
@@ -113,4 +115,6 @@ public static class DataSeeder
             UpdatedAt = now
         };
     }
+
+    #endregion
 }

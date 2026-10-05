@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-05 — Accounts chart header](2026-10-05-005-accounts-chart-header.md)
 - [2026-10-05 — Picker popovers](2026-10-05-004-picker-popovers.md)
 - [2026-10-05 — Detail surface](2026-10-05-003-detail-surface.md)
 - [2026-10-05 — Light shell plus Home](2026-10-05-002-light-shell-home.md)

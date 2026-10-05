@@ -1,12 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import type { AccountDto, AccountSummaryDto } from "@/lib/api/types";
-import {
-  DEFAULT_ACCOUNT_CHART_METRIC,
-  type AccountChartMetric,
-} from "./accountChartMetric";
-import { AccountChartMetricSelector } from "./AccountChartMetricSelector";
 import { AccountsBalanceChartSection } from "./AccountsBalanceChartSection";
 import { AccountsSectionList } from "./AccountsSectionList";
 import { PageHeader } from "@/components/navigation/page-header";
@@ -19,7 +13,7 @@ type AccountsViewProps = {
 };
 
 /**
- * Accounts screen with the series selector, balance chart, and grouped list.
+ * Accounts screen with the balance chart and grouped list.
  * The chart starts on net worth until another series is chosen.
  */
 export function AccountsView({
@@ -27,15 +21,9 @@ export function AccountsView({
   actions,
   onSelectAccount,
 }: AccountsViewProps) {
-  const [metric, setMetric] = useState<AccountChartMetric>(
-    DEFAULT_ACCOUNT_CHART_METRIC,
-  );
-
   return (
     <section className="flex flex-col gap-6">
       <PageHeader title="Accounts" actions={actions} />
-
-      <AccountChartMetricSelector value={metric} onChange={setMetric} />
 
       <CurrencyExclusionNotice
         exclusion={{
@@ -48,7 +36,6 @@ export function AccountsView({
       <AccountsBalanceChartSection
         history={summary.history}
         groups={summary.groups}
-        metric={metric}
         netWorth={summary.netWorth}
         currency={summary.planningCurrency}
         showPeriodDelta

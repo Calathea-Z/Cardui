@@ -14,7 +14,7 @@ type AccountChartMetricSelectorProps = {
 
 /**
  * Lets the household choose the balance series for the accounts chart.
- * The pressed button is the series the chart will show.
+ * The pressed label is the series the chart will show, in the same green as a favorable change.
  */
 export function AccountChartMetricSelector({
   value,
@@ -34,10 +34,10 @@ export function AccountChartMetricSelector({
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "min-h-9 flex-1 rounded-md px-1.5 text-center text-[11px] font-medium transition sm:text-xs",
+            "min-h-9 flex-1 px-1 text-center text-[11px] font-medium transition sm:px-2 sm:text-xs",
             value === option.value
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "bg-muted text-muted-foreground hover:text-foreground",
+              ? "text-success"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           {option.label}

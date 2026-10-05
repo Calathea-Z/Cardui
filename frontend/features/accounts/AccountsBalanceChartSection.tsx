@@ -13,6 +13,7 @@ import {
   getMetricTotal,
   type AccountChartMetric,
 } from "./accountChartMetric";
+import { AccountChartMetricSelector } from "./AccountChartMetricSelector";
 import { AccountsBalanceChart } from "./AccountsBalanceChart";
 import { ChartTimeRangeSelector } from "./ChartTimeRangeSelector";
 import {
@@ -28,7 +29,6 @@ import { formatCurrency } from "./formatCurrency";
 type AccountsBalanceChartSectionProps = {
   history: AccountBalanceHistoryPointDto[];
   groups?: AccountGroupDto[];
-  metric?: AccountChartMetric;
   netWorth?: number;
   currency?: string;
   compact?: boolean;
@@ -104,13 +104,13 @@ export function PeriodDeltaLabel({
 }
 
 /**
- * Shows the selected series total, its history, and the time-range control.
+ * Shows the selected series total, its history, and the series and range controls.
  * Net worth keeps its sign, and every other series is shown as a positive amount with formatCurrency.
+ * The controls are text. The pressed label is the series or range the chart uses, in the same green as a favorable change.
  */
 export function AccountsBalanceChartSection({
   history,
   groups = [],
-  metric = DEFAULT_ACCOUNT_CHART_METRIC,
   netWorth = 0,
   currency = "USD",
   compact = false,
@@ -118,42 +118,38 @@ export function AccountsBalanceChartSection({
   showPeriodDelta = false,
   className,
 }: AccountsBalanceChartSectionProps) {
+  const [metric, setMetric] = useState<AccountChartMetric>(
+    DEFAULT_ACCOUNT_CHART_METRIC,
+  );
   const [range, setRange] = useState<ChartTimeRange>(DEFAULT_CHART_TIME_RANGE);
   const metricOption = getAccountChartMetricOption(metric);
   const total = getMetricTotal(groups, metric, netWorth);
 
   return (
     <section className={cn("app-panel overflow-hidden", className)}>
-      <div className="px-4 pt-4">
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-            {metricOption.label}
-          </p>
-          <p
-            className={cn(
-              "ledger-amount mt-1 text-foreground",
-              compact ? "text-2xl" : "text-3xl",
-            )}
-          >
-            {formatCurrency(
-              metric === "net-worth" ? total : Math.abs(total),
-              currency,
-            )}
-          </p>
-          {showPeriodDelta ? (
-            <PeriodDeltaLabel
-              history={history}
-              range={range}
-              metric={metric}
-              currency={currency}
-              compact={compact}
-              className="mt-1.5"
-            />
-          ) : null}
-        </div>
+      <div className="app-panel-header px-4 py-4">
+        <p className="text-sm font-semibold text-foreground">
+          {metricOption.label}
+        </p>
+        <p className="ledger-amount mt-2 text-[2rem] text-foreground">
+          {formatCurrency(
+            metric === "net-worth" ? total : Math.abs(total),
+            currency,
+          )}
+        </p>
+        {showPeriodDelta ? (
+          <PeriodDeltaLabel
+            history={history}
+            range={range}
+            metric={metric}
+            currency={currency}
+            compact
+            className="mt-1"
+          />
+        ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 px-4 pt-3 pb-4">
+      <div className="flex flex-col gap-3 px-4 py-4">
         <AccountsBalanceChart
           history={history}
           range={range}
@@ -162,11 +158,10 @@ export function AccountsBalanceChartSection({
           compact={compact}
           embedded={embedded}
         />
-        <ChartTimeRangeSelector
-          value={range}
-          onChange={setRange}
-          compact={compact}
-        />
+        <div className="flex flex-col gap-1">
+          <AccountChartMetricSelector value={metric} onChange={setMetric} />
+          <ChartTimeRangeSelector value={range} onChange={setRange} />
+        </div>
       </div>
     </section>
   );

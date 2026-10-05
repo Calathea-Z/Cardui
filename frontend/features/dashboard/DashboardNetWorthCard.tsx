@@ -91,7 +91,6 @@ export function DashboardNetWorthCard({ summary }: DashboardNetWorthCardProps) {
               <ChartTimeRangeSelector
                 value={chartRange}
                 onChange={setChartRange}
-                variant="text"
               />
             </div>
           )}

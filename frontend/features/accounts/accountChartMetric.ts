@@ -32,7 +32,7 @@ export type AccountChartMetricOption = {
 export const ACCOUNT_CHART_METRICS: AccountChartMetricOption[] = [
   {
     value: "net-worth",
-    label: "Net Worth",
+    label: "Net worth",
     historyKey: "netWorth",
     groupKey: "net-worth",
     isLiability: false,
@@ -53,7 +53,7 @@ export const ACCOUNT_CHART_METRICS: AccountChartMetricOption[] = [
   },
   {
     value: "credit-cards",
-    label: "Credit Cards",
+    label: "Credit cards",
     historyKey: "creditCards",
     groupKey: "credit-cards",
     isLiability: true,

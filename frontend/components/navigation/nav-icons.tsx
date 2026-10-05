@@ -2,6 +2,7 @@ import {
   ArrowLeftRight,
   Banknote,
   Building2,
+  CreditCard,
   LayoutDashboard,
   PieChart,
   Receipt,
@@ -29,6 +30,8 @@ export function NavIcon({ href }: NavIconProps) {
       return <Banknote className={className} aria-hidden />;
     case "/bills":
       return <Receipt className={className} aria-hidden />;
+    case "/debts":
+      return <CreditCard className={className} aria-hidden />;
     case "/institutions":
       return <Building2 className={className} aria-hidden />;
     case "/budgets":

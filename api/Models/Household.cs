@@ -29,4 +29,7 @@ public class Household
 
     public ICollection<Obligation> Obligations { get; init; } =
         new List<Obligation>();
+
+    public ICollection<Debt> Debts { get; init; } =
+        new List<Debt>();
 }

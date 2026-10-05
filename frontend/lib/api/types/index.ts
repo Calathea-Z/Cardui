@@ -33,6 +33,7 @@ export type {
   ObligationSuggestionDto,
   UpsertObligationDto,
 } from "./obligations";
+export type { DebtDto, DebtKind, UpsertDebtDto } from "./debts";
 export type {
   FinancialProfileDto,
   HouseholdContributorDto,

@@ -2,6 +2,8 @@
 
 Newest first:
 
+- [2026-10-05 — Accounts action menu](2026-10-05-015-accounts-action-menu.md)
+- [2026-10-05 — Debts](2026-10-05-014-debts.md)
 - [2026-10-05 — Recurring bill suggestions](2026-10-05-013-recurring-suggestions.md)
 - [2026-10-05 — Bills](2026-10-05-012-bills.md)
 - [2026-10-05 — Paycheck schedules and gross pay](2026-10-05-011-paycheck-schedules.md)

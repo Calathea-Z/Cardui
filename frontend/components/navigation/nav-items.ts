@@ -8,8 +8,8 @@ export type NavItem = {
 
 /**
  * Primary destinations in sidebar and tab-bar order.
- * Home, Accounts, and Activity are the daily jobs. Income and Bills stay
- * routes under settings, not extra primary items.
+ * Home, Accounts, and Activity are the daily jobs. Income, Bills, and Debts
+ * stay routes under settings, not extra primary items.
  */
 export const navItems: NavItem[] = [
   {
@@ -28,7 +28,7 @@ export const navItems: NavItem[] = [
 
 /**
  * Destinations in the account block.
- * These stay off the primary nav, including Income and Bills.
+ * These stay off the primary nav, including Income, Bills, and Debts.
  */
 export const settingsItems: NavItem[] = [
   {
@@ -38,6 +38,10 @@ export const settingsItems: NavItem[] = [
   {
     label: "Bills",
     href: "/bills",
+  },
+  {
+    label: "Debts",
+    href: "/debts",
   },
   {
     label: "Categories",

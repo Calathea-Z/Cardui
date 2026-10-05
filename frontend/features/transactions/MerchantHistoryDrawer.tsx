@@ -76,7 +76,7 @@ export function MerchantHistoryDrawer({
       open={open}
       onClose={onClose}
       title={history?.displayName ?? "History"}
-      headerAction="close-leading"
+      headerAction="back"
       closeOnEscape={!rangeOpen}
       presentation="panel"
       overlayClassName="z-[120]"

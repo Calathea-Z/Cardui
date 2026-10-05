@@ -53,11 +53,12 @@ type BottomSheetProps = {
   /** When false, Escape does not close this sheet (use for sheets under a stacked sheet). */
   closeOnEscape?: boolean;
   /**
-   * `back` — left arrow, centered title.
-   * `close` — title left, X right.
+   * `back` — left arrow, centered title. For a nested step.
+   * `close` — title left, X right. For dismissing a surface.
    * `close-leading` — X left, centered title, optional trailing action.
+   * `panel` — back under 768px, close from there up. For a top-level detail panel.
    */
-  headerAction?: "close" | "back" | "close-leading";
+  headerAction?: "close" | "back" | "close-leading" | "panel";
   headerTrailing?: React.ReactNode;
 };
 
@@ -158,68 +159,214 @@ export function BottomSheet({
           className,
         )}
       >
-        {headerAction === "back" ? (
-          <div className="app-panel-header grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2 px-4 py-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              aria-label="Go back"
-              onClick={onClose}
-              className="justify-self-start"
-            >
-              <ArrowLeft className="size-5" />
-            </Button>
-            <h2
-              id={titleId}
-              className="truncate text-center text-lg font-semibold text-foreground"
-            >
-              {title}
-            </h2>
-            <span aria-hidden="true" />
-          </div>
-        ) : headerAction === "close-leading" ? (
-          <div className="app-panel-header grid grid-cols-[minmax(4.5rem,auto)_1fr_minmax(4.5rem,auto)] items-center gap-2 px-2 py-3 sm:px-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              aria-label="Close"
-              onClick={onClose}
-              className="justify-self-start"
-            >
-              <X className="size-5" />
-            </Button>
-            <h2
-              id={titleId}
-              className="truncate text-center text-lg font-semibold text-foreground"
-            >
-              {title}
-            </h2>
-            <div className="flex justify-end">{headerTrailing}</div>
-          </div>
-        ) : (
-          <div className="app-panel-header flex items-center justify-between gap-4 px-4 py-4">
-            <h2 id={titleId} className="text-lg font-semibold text-foreground">
-              {title}
-            </h2>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              aria-label="Close"
-              onClick={onClose}
-            >
-              <X className="size-5" />
-            </Button>
-          </div>
-        )}
+        <SheetHeader
+          action={headerAction}
+          title={title}
+          titleId={titleId}
+          onClose={onClose}
+          headerTrailing={headerTrailing}
+        />
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           {children}
         </div>
       </div>
     </div>
+  );
+}
+
+type SheetHeaderProps = {
+  action: NonNullable<BottomSheetProps["headerAction"]>;
+  title: string;
+  titleId: string;
+  onClose: () => void;
+  headerTrailing?: React.ReactNode;
+};
+
+/**
+ * Header for the open surface.
+ * A top-level panel uses a back arrow under 768px and a close icon from there up. A nested step keeps the back arrow.
+ */
+function SheetHeader({
+  action,
+  title,
+  titleId,
+  onClose,
+  headerTrailing,
+}: SheetHeaderProps) {
+  if (action === "panel") {
+    return (
+      <>
+        <h2 id={titleId} className="sr-only">
+          {title}
+        </h2>
+        <div className="md:hidden">
+          <BackHeader title={title} onClose={onClose} />
+        </div>
+        <div className="hidden md:block">
+          <CloseHeader title={title} onClose={onClose} />
+        </div>
+      </>
+    );
+  }
+
+  if (action === "back") {
+    return (
+      <BackHeader
+        title={title}
+        titleId={titleId}
+        onClose={onClose}
+        headerTrailing={headerTrailing}
+      />
+    );
+  }
+
+  if (action === "close-leading") {
+    return (
+      <CloseLeadingHeader
+        title={title}
+        titleId={titleId}
+        onClose={onClose}
+        headerTrailing={headerTrailing}
+      />
+    );
+  }
+
+  return <CloseHeader title={title} titleId={titleId} onClose={onClose} />;
+}
+
+/**
+ * Centered title with a back arrow on the left.
+ * The arrow returns from a nested step. A trailing action, such as Save, sits on the right when one is set.
+ */
+function BackHeader({
+  title,
+  titleId,
+  onClose,
+  headerTrailing,
+}: {
+  title: string;
+  titleId?: string;
+  onClose: () => void;
+  headerTrailing?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "app-panel-header grid items-center gap-2 px-4 py-4",
+        headerTrailing
+          ? "grid-cols-[minmax(4.5rem,auto)_1fr_minmax(4.5rem,auto)]"
+          : "grid-cols-[2.25rem_1fr_2.25rem]",
+      )}
+    >
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-lg"
+        aria-label="Go back"
+        onClick={onClose}
+        className="justify-self-start"
+      >
+        <ArrowLeft className="size-5" />
+      </Button>
+      <SheetHeading id={titleId} title={title} align="center" />
+      <div className="flex justify-end">{headerTrailing}</div>
+    </div>
+  );
+}
+
+/**
+ * Title on the left and a close icon on the right.
+ * The icon dismisses the surface.
+ */
+function CloseHeader({
+  title,
+  titleId,
+  onClose,
+}: {
+  title: string;
+  titleId?: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="app-panel-header flex items-center justify-between gap-4 px-4 py-4">
+      <SheetHeading id={titleId} title={title} align="left" />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-lg"
+        aria-label="Close"
+        onClick={onClose}
+      >
+        <X className="size-5" />
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * Close icon on the left, centered title, and an optional trailing action.
+ * The icon dismisses the surface.
+ */
+function CloseLeadingHeader({
+  title,
+  titleId,
+  onClose,
+  headerTrailing,
+}: {
+  title: string;
+  titleId?: string;
+  onClose: () => void;
+  headerTrailing?: React.ReactNode;
+}) {
+  return (
+    <div className="app-panel-header grid grid-cols-[minmax(4.5rem,auto)_1fr_minmax(4.5rem,auto)] items-center gap-2 px-2 py-3 sm:px-4">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-lg"
+        aria-label="Close"
+        onClick={onClose}
+        className="justify-self-start"
+      >
+        <X className="size-5" />
+      </Button>
+      <SheetHeading id={titleId} title={title} align="center" />
+      <div className="flex justify-end">{headerTrailing}</div>
+    </div>
+  );
+}
+
+/**
+ * Visible title, or the accessible name when an id is set.
+ * A second visual title omits the id so the dialog has one name.
+ */
+function SheetHeading({
+  id,
+  title,
+  align,
+}: {
+  id?: string;
+  title: string;
+  align: "left" | "center";
+}) {
+  const className = cn(
+    "min-w-0 truncate text-lg font-semibold text-foreground",
+    align === "center" && "text-center",
+  );
+
+  if (!id) {
+    return (
+      <p className={className} aria-hidden="true">
+        {title}
+      </p>
+    );
+  }
+
+  return (
+    <h2 id={id} className={className}>
+      {title}
+    </h2>
   );
 }
 

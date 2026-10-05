@@ -6,8 +6,8 @@ import { DashboardRecentTransactionsWidget } from "./DashboardRecentTransactions
 import type { DashboardPageData } from "./server/loadDashboardPage";
 
 /**
- * Home: net worth and this month side by side from lg, recent activity under both.
- * The currency notice sits above them and stays hidden when nothing is excluded from the planning currency.
+ * Home: net worth and this month stack until the page is wide enough for two cards.
+ * Recent activity sits under both. The currency notice stays hidden when nothing is excluded from the planning currency.
  */
 export function DashboardView({
   dashboardSummary,
@@ -27,7 +27,7 @@ export function DashboardView({
           excludedCurrencies: dashboardSummary.excludedCurrencies,
         }}
       />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <DashboardNetWorthCard summary={accountsSummary} />
         <DashboardMonthlyActivityWidget summary={dashboardSummary} />
       </div>

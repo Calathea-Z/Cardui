@@ -94,7 +94,7 @@ export function ChangeCategoryDrawer({
         open={open}
         onClose={handleSheetClose}
         title="Change Category"
-        headerAction="close"
+        headerAction="back"
         closeOnEscape={!isAddCategoryOpen}
         presentation="panel"
         overlayClassName="z-[120]"

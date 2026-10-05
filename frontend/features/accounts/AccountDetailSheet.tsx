@@ -161,7 +161,7 @@ export function AccountDetailSheet({
       open={account !== null}
       onClose={onClose}
       title={account?.name ?? "Account"}
-      headerAction="back"
+      headerAction="panel"
       closeOnEscape={!pickerOpen}
       presentation="panel"
     >

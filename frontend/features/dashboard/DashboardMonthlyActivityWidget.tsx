@@ -20,7 +20,7 @@ type MonthlyMetricProps = {
 
 /**
  * Shows income, spending, and their difference for the dashboard period.
- * Category amounts use formatCurrency, and each bar is that category's share of spending.
+ * The three amounts stay stacked until the card is wide enough for one row. Category amounts use formatCurrency, and each bar is that category's share of spending.
  */
 export function DashboardMonthlyActivityWidget({
   summary,
@@ -32,7 +32,10 @@ export function DashboardMonthlyActivityWidget({
   );
 
   return (
-    <section className="app-panel" aria-labelledby="monthly-activity-title">
+    <section
+      className="@container app-panel"
+      aria-labelledby="monthly-activity-title"
+    >
       <div className="app-panel-header p-4">
         <h2 id="monthly-activity-title" className="app-section-title">
           This month
@@ -40,7 +43,7 @@ export function DashboardMonthlyActivityWidget({
         <p className="app-section-meta">{periodLabel}</p>
       </div>
 
-      <div className="grid grid-cols-1 divide-y divide-border/70 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <div className="grid grid-cols-1 divide-y divide-border/70 @min-[40rem]:grid-cols-3 @min-[40rem]:divide-x @min-[40rem]:divide-y-0">
         <MonthlyMetric
           currency={summary.planningCurrency}
           label="Income"
@@ -135,11 +138,11 @@ function MonthlyMetric({
   tone = "default",
 }: MonthlyMetricProps) {
   return (
-    <div className="flex min-h-24 flex-col justify-center px-4 py-3">
+    <div className="flex min-h-24 min-w-0 flex-col justify-center px-4 py-3">
       <span className="text-xs text-muted-foreground">{label}</span>
       <span
         className={cn(
-          "mt-1 text-xl font-semibold tracking-tight tabular-nums",
+          "mt-1 block min-w-0 text-xl font-semibold tracking-tight tabular-nums",
           tone === "positive" && "text-success",
           tone === "negative" && "text-destructive",
         )}

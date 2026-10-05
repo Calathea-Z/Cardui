@@ -2,6 +2,9 @@
 
 Newest first:
 
+- [2026-10-05 — Signed-in layout](2026-10-05-007-signed-in-layout.md)
+- [2026-10-05 — Signed-in UI review](2026-10-05-006-signed-in-ui-review.md)
+- [2026-10-05 — UI review notes](2026-10-05-005-ui-review-notes.md)
 - [2026-10-05 — Accounts chart header](2026-10-05-005-accounts-chart-header.md)
 - [2026-10-05 — Picker popovers](2026-10-05-004-picker-popovers.md)
 - [2026-10-05 — Detail surface](2026-10-05-003-detail-surface.md)

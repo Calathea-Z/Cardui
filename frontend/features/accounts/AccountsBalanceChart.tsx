@@ -147,19 +147,14 @@ export function AccountsBalanceChart({
   const hasEnoughData = chartPoints.length >= 2;
 
   const chartContent = !hasEnoughData ? (
-    <div
-      className={cn(
-        "flex items-center justify-center text-center",
-        compact ? "h-40" : "h-72",
-      )}
-    >
+    <div className="flex h-40 items-center justify-center text-center">
       <p className="max-w-xs text-sm text-muted-foreground">
         {getInsufficientHistoryMessage(chartPoints.length, range)}
       </p>
     </div>
   ) : (
     <div
-      className={compact ? "h-44" : "h-80"}
+      className={compact ? "h-44" : "h-48"}
       role="img"
       aria-label={`${metricOption.label} balance history chart`}
     >

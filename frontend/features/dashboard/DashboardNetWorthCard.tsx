@@ -37,7 +37,7 @@ function hasConnectedAccounts(groups: AccountSummaryDto["groups"]) {
 
 /**
  * Home net-worth card: one figure, one chart, and asset and liability totals.
- * The range control is text. Assets and liabilities stay figures, not swipe panels.
+ * The range control is text. Assets and liabilities sit under the chart until the card is wide enough to place them beside it.
  */
 export function DashboardNetWorthCard({ summary }: DashboardNetWorthCardProps) {
   const router = useRouter();
@@ -53,7 +53,7 @@ export function DashboardNetWorthCard({ summary }: DashboardNetWorthCardProps) {
   );
 
   return (
-    <section className="app-panel">
+    <section className="@container app-panel">
       <div className="app-panel-header px-4 py-4">
         <p className="text-sm font-semibold text-foreground">Net worth</p>
         <p className="ledger-amount mt-2 text-[2rem] text-foreground">
@@ -70,7 +70,7 @@ export function DashboardNetWorthCard({ summary }: DashboardNetWorthCardProps) {
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-start">
+      <div className="flex flex-col gap-4 px-4 py-4 @min-[36rem]:flex-row @min-[36rem]:items-start">
         <div className="min-w-0 flex-1">
           {showEmptyState ? (
             <EmptyState
@@ -96,7 +96,7 @@ export function DashboardNetWorthCard({ summary }: DashboardNetWorthCardProps) {
           )}
         </div>
 
-        <dl className="grid w-full grid-cols-2 gap-3 sm:w-40 sm:grid-cols-1">
+        <dl className="grid w-full grid-cols-2 gap-3 @min-[36rem]:w-44 @min-[36rem]:shrink-0 @min-[36rem]:grid-cols-1">
           <div className="rounded-lg bg-muted px-3 py-2">
             <dt className="text-xs font-medium text-muted-foreground">
               Assets

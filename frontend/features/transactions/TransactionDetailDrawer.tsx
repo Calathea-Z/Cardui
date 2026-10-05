@@ -334,7 +334,7 @@ export function TransactionDetailDrawer({
       open={transaction !== null}
       onClose={handleClose}
       title={title}
-      headerAction="back"
+      headerAction="panel"
       closeOnEscape={!isNestedOpen}
       presentation="panel"
     >

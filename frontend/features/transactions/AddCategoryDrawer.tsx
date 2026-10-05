@@ -112,7 +112,7 @@ function AddCategoryDrawerSession({
         open={open}
         onClose={onClose}
         title="Add Category"
-        headerAction="close-leading"
+        headerAction="back"
         closeOnEscape={!pickerOpen}
         presentation="panel"
         overlayClassName="z-[130]"

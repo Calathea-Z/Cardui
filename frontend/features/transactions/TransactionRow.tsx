@@ -6,6 +6,10 @@ import {
   isBalanceReconciliation,
   isTransferTransaction,
 } from "./transactionAmountDisplay";
+import {
+  transactionListContext,
+  transactionListTitle,
+} from "./transactionListPresentation";
 
 type TransactionRowProps = {
   transaction: TransactionDto;
@@ -26,61 +30,70 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
 }
 
 /**
+ * Marks a transfer, balance adjustment, or pending transaction.
+ * A posted spending or income row has no mark.
+ */
+function TransactionMarks({ transaction }: { transaction: TransactionDto }) {
+  const isTransfer = isTransferTransaction(transaction);
+  const isAdjustment = isBalanceReconciliation(transaction);
+
+  if (!isTransfer && !isAdjustment && !transaction.pending) {
+    return null;
+  }
+
+  return (
+    <span className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+      {isTransfer ? (
+        <span className="ledger-stamp bg-transfer-soft text-transfer">
+          Transfer
+        </span>
+      ) : null}
+      {isAdjustment ? (
+        <span className="ledger-stamp bg-transfer-soft text-transfer">
+          Adjustment
+        </span>
+      ) : null}
+      {transaction.pending ? (
+        <span className="ledger-stamp bg-muted text-muted-foreground">
+          Pending
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+/**
  * Shows one transaction in the list.
- * A select handler turns the row into a button, and a transfer or balance adjustment gets a stamp.
+ * The title prefers a merchant name, with the account and category underneath. A select handler turns the row into a button.
  */
 export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
   const amount = getTransactionAmountDisplay(transaction);
-  const isTransfer = isTransferTransaction(transaction);
-  const isAdjustment = isBalanceReconciliation(transaction);
 
   const content = (
     <>
       <div className="flex min-w-0 items-start gap-3">
         <span
-          className="mt-0.5 shrink-0 text-base leading-none"
+          className="mt-1 shrink-0 text-base leading-none"
           aria-hidden="true"
         >
           {getCategoryEmoji(transaction.category)}
         </span>
         <div className="min-w-0 text-left">
-          <p className="truncate font-medium text-foreground">
-            {transaction.name}
+          <p className="line-clamp-2 font-medium text-foreground">
+            {transactionListTitle(transaction)}
           </p>
-          {isTransfer || transaction.pending || isAdjustment ? (
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-              {isTransfer ? (
-                <span className="ledger-stamp bg-transfer-soft text-transfer">
-                  Transfer
-                </span>
-              ) : null}
-              {isAdjustment ? (
-                <span className="ledger-stamp bg-transfer-soft text-transfer">
-                  Adjustment
-                </span>
-              ) : null}
-              {transaction.pending ? (
-                <span className="ledger-stamp bg-muted text-muted-foreground">
-                  Pending
-                </span>
-              ) : null}
-            </div>
-          ) : null}
+          <div className="mt-0.5 flex min-w-0 items-center gap-2">
+            <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+              {transactionListContext(transaction)}
+            </p>
+            <TransactionMarks transaction={transaction} />
+          </div>
         </div>
       </div>
 
-      <div className="shrink-0 text-right">
-        <p className={amountClassName(amount.kind)}>{amount.label}</p>
-        {isTransfer ? (
-          <p className="mt-0.5 text-[11px] text-transfer">
-            Moved between accounts
-          </p>
-        ) : isAdjustment ? (
-          <p className="mt-0.5 text-[11px] text-transfer">
-            Not income or spending
-          </p>
-        ) : null}
-      </div>
+      <p className={cn("shrink-0", amountClassName(amount.kind))}>
+        {amount.label}
+      </p>
     </>
   );
 
@@ -89,7 +102,7 @@ export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
       <button
         type="button"
         onClick={() => onSelect(transaction)}
-        className="flex w-full cursor-pointer items-start justify-between gap-4 px-4 py-4 text-sm transition-colors hover:bg-accent/20"
+        className="flex w-full cursor-pointer items-start justify-between gap-4 px-4 py-3 text-sm transition-colors hover:bg-accent/20"
       >
         {content}
       </button>
@@ -97,7 +110,7 @@ export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
   }
 
   return (
-    <div className="flex items-start justify-between gap-4 px-4 py-4 text-sm">
+    <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
       {content}
     </div>
   );

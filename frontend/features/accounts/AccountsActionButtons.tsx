@@ -17,7 +17,7 @@ type AccountsActionButtonsProps = {
 
 /**
  * Adds an account or opens refresh and institution actions.
- * Refresh and institution management stay disabled while a refresh is running.
+ * The add control is labeled on desktop and stays an icon on a phone. Refresh and institution management stay disabled while a refresh is running.
  */
 export function AccountsActionButtons({
   onAdd,
@@ -30,13 +30,17 @@ export function AccountsActionButtons({
   const menuContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
+      <Button type="button" onClick={onAdd} className="hidden md:inline-flex">
+        Add account
+      </Button>
       <Button
         type="button"
         variant="ghost"
         size="icon-lg"
         aria-label="Add account"
         onClick={onAdd}
+        className="md:hidden"
       >
         <Plus className="size-5" />
       </Button>

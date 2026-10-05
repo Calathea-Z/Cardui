@@ -2,8 +2,10 @@
 
 Newest first:
 
+- [2026-10-05 — Paycheck schedules and gross pay](2026-10-05-011-paycheck-schedules.md)
 - [2026-10-05 — Income form feedback](2026-10-05-010-income-form-feedback.md)
 - [2026-10-05 — Income scenarios and expected raises](2026-10-05-009-income-scenarios-and-raises.md)
+- [2026-10-05 — UI governance](2026-10-05-009-ui-governance.md)
 - [2026-10-05 — Plaid sync reconciliation tests](2026-10-05-008-plaid-sync-reconciliation-tests.md)
 - [2026-10-05 — Signed-in layout](2026-10-05-007-signed-in-layout.md)
 - [2026-10-05 — Signed-in UI review](2026-10-05-006-signed-in-ui-review.md)

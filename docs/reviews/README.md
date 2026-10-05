@@ -2,7 +2,6 @@
 
 Newest first:
 
-- [2026-10-05 — Paycheck schedules and gross pay](2026-10-05-011-paycheck-schedules.md)
 - [2026-10-05 — Income form feedback](2026-10-05-010-income-form-feedback.md)
 - [2026-10-05 — Income scenarios and expected raises](2026-10-05-009-income-scenarios-and-raises.md)
 - [2026-10-05 — UI governance](2026-10-05-009-ui-governance.md)

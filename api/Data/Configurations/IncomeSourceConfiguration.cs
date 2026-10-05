@@ -32,6 +32,9 @@ public class IncomeSourceConfiguration : IEntityTypeConfiguration<IncomeSource>
         entity.Property(x => x.StrongTakeHomeAmount)
             .HasPrecision(18, 2);
 
+        entity.Property(x => x.GrossPayAmount)
+            .HasPrecision(18, 2);
+
         entity.Property(x => x.Currency)
             .IsRequired()
             .HasMaxLength(PlanningCurrencyRules.CodeLength);

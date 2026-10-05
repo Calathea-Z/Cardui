@@ -18,6 +18,8 @@ public class IncomeSource
 
     public decimal? StrongTakeHomeAmount { get; set; }
 
+    public decimal? GrossPayAmount { get; set; }
+
     public required string Currency { get; set; }
 
     public IncomeCadence Cadence { get; set; }

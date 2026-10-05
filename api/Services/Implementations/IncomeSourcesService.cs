@@ -30,16 +30,8 @@ public class IncomeSourcesService : IIncomeSourcesService
     public async Task<IReadOnlyList<IncomeSourceDto>> GetIncomeSourcesAsync(
         CancellationToken cancellationToken = default)
     {
-        var householdId = _householdScope.RequireHouseholdId();
-        var sources = _dbContext.IncomeSources
-            .AsNoTracking()
-            .Where(source => source.HouseholdId == householdId);
-
-        return await sources
-            .OrderBy(source => source.Name)
-            .ThenBy(source => source.NextPaymentDate)
-            .Select(IncomeSourceDtoMapper.Projection)
-            .ToListAsync(cancellationToken);
+        var sources = await LoadIncomeSourcesAsync(cancellationToken);
+        return AddSchedules(sources);
     }
 
     /// <inheritdoc />
@@ -191,7 +183,7 @@ public class IncomeSourcesService : IIncomeSourcesService
     /// <summary>
     /// Inserts one income source and returns its id.
     /// Currency is the household planning currency at creation.
-    /// Low, strong, and raises are stored with it when the draft includes them.
+    /// Low, strong, gross pay, and raises are stored with it when the draft includes them.
     /// </summary>
     private async Task<Guid> SaveNewIncomeSourceAsync(
         Guid householdId,
@@ -208,6 +200,7 @@ public class IncomeSourcesService : IIncomeSourcesService
             TakeHomeAmount = draft.TakeHomeAmount,
             LowTakeHomeAmount = draft.LowTakeHomeAmount,
             StrongTakeHomeAmount = draft.StrongTakeHomeAmount,
+            GrossPayAmount = draft.GrossPayAmount,
             Currency = currency,
             Cadence = draft.Cadence,
             NextPaymentDate = draft.NextPaymentDate,
@@ -224,7 +217,7 @@ public class IncomeSourcesService : IIncomeSourcesService
     }
 
     /// <summary>
-    /// Writes the payment facts, scenarios, and raises onto an existing source.
+    /// Writes the payment facts, scenarios, gross pay, and raises onto an existing source.
     /// Currency is left as it was when the source was created.
     /// </summary>
     private async Task SaveIncomeSourceAsync(
@@ -236,6 +229,7 @@ public class IncomeSourcesService : IIncomeSourcesService
         source.TakeHomeAmount = draft.TakeHomeAmount;
         source.LowTakeHomeAmount = draft.LowTakeHomeAmount;
         source.StrongTakeHomeAmount = draft.StrongTakeHomeAmount;
+        source.GrossPayAmount = draft.GrossPayAmount;
         source.Cadence = draft.Cadence;
         source.NextPaymentDate = draft.NextPaymentDate;
         source.ContributorId = draft.ContributorId;
@@ -259,6 +253,7 @@ public class IncomeSourcesService : IIncomeSourcesService
 
     /// <summary>
     /// Loads the API shape of one household income source, including the contributor name.
+    /// Upcoming dates and the monthly average are added after the row is read.
     /// </summary>
     private async Task<IncomeSourceDto> ProjectIncomeSourceAsync(
         Guid incomeSourceId,
@@ -276,7 +271,44 @@ public class IncomeSourcesService : IIncomeSourcesService
             throw new NotFoundException("That income source was not found.");
         }
 
-        return source;
+        return AddSchedules([source])[0];
+    }
+
+    /// <summary>
+    /// Lists the household's income sources, ordered by name, without derived dates.
+    /// </summary>
+    private async Task<List<IncomeSourceDto>> LoadIncomeSourcesAsync(
+        CancellationToken cancellationToken)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        return await _dbContext.IncomeSources
+            .AsNoTracking()
+            .Where(source => source.HouseholdId == householdId)
+            .OrderBy(source => source.Name)
+            .ThenBy(source => source.NextPaymentDate)
+            .Select(IncomeSourceDtoMapper.Projection)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Adds the upcoming pay dates and the monthly average to each source.
+    /// The average is not stored and is not a payment on a date. Today uses the household time zone.
+    /// </summary>
+    private IReadOnlyList<IncomeSourceDto> AddSchedules(IReadOnlyList<IncomeSourceDto> sources)
+    {
+        var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
+        foreach (var source in sources)
+        {
+            source.UpcomingPaymentDates = PaycheckSchedule.UpcomingDates(
+                source.Cadence,
+                source.NextPaymentDate,
+                today);
+            source.AverageMonthlyAmount = PaycheckSchedule.AverageMonthlyAmount(
+                source.TakeHomeAmount,
+                source.Cadence);
+        }
+
+        return sources;
     }
 
     /// <summary>
@@ -300,7 +332,8 @@ public class IncomeSourcesService : IIncomeSourcesService
                 out var error,
                 dto.LowTakeHomeAmount,
                 dto.StrongTakeHomeAmount,
-                raises))
+                raises,
+                dto.GrossPayAmount))
         {
             throw new BadRequestException(error);
         }

@@ -14,6 +14,7 @@ public static class IncomeSourceDtoMapper
             TakeHomeAmount = source.TakeHomeAmount,
             LowTakeHomeAmount = source.LowTakeHomeAmount,
             StrongTakeHomeAmount = source.StrongTakeHomeAmount,
+            GrossPayAmount = source.GrossPayAmount,
             Currency = source.Currency,
             Cadence = source.Cadence,
             NextPaymentDate = source.NextPaymentDate,

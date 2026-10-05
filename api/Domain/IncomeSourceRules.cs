@@ -12,9 +12,10 @@ public static class IncomeSourceRules
 
     /// <summary>
     /// Checks a proposed income source and returns the values to store.
-    /// The typical amount is one take-home payment. Low and strong are optional.
+    /// The typical amount is one take-home payment. Low, strong, and gross pay are optional.
+    /// Gross pay is that same payment before deductions, and it is not estimated from net.
     /// A raise is a later typical amount, at least the current typical pay, and does not replace the current one.
-    /// A monthly equivalent is not calculated.
+    /// The stored amount stays one payment. A monthly equivalent is not stored.
     /// </summary>
     public static bool TryNormalize(
         string? name,
@@ -27,7 +28,8 @@ public static class IncomeSourceRules
         out string error,
         decimal? lowTakeHomeAmount = null,
         decimal? strongTakeHomeAmount = null,
-        IReadOnlyList<IncomeRaiseDraft>? raises = null)
+        IReadOnlyList<IncomeRaiseDraft>? raises = null,
+        decimal? grossPayAmount = null)
     {
         draft = default;
         var trimmed = name?.Trim() ?? "";
@@ -70,6 +72,17 @@ public static class IncomeSourceRules
             return false;
         }
 
+        if (!TryReadOptionalPayment(grossPayAmount, "gross pay", out var gross, out error))
+        {
+            return false;
+        }
+
+        if (gross is decimal grossAmount && grossAmount < takeHomeAmount)
+        {
+            error = "Gross pay cannot be lower than the typical net pay.";
+            return false;
+        }
+
         if (cadence is not IncomeCadence cadenceValue)
         {
             error = "Choose how often this income is paid.";
@@ -103,6 +116,7 @@ public static class IncomeSourceRules
             takeHomeAmount,
             low,
             strong,
+            gross,
             cadenceValue,
             nextPaymentDate,
             contributorId,

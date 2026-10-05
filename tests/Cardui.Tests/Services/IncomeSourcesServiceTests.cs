@@ -40,6 +40,31 @@ public class IncomeSourcesServiceTests
         Assert.Equal(alex.Id, saved.ContributorId);
         Assert.Equal("Alex", saved.ContributorName);
         Assert.Equal(IncomeReliability.Steady, saved.Reliability);
+        Assert.Null(saved.GrossPayAmount);
+        Assert.Equal(2400.50m, saved.TakeHomeAmount);
+        Assert.NotEqual(saved.AverageMonthlyAmount, saved.TakeHomeAmount);
+        Assert.Equal(new DateOnly(2026, 10, 16), saved.UpcomingPaymentDates[0]);
+    }
+
+    [Fact]
+    public async Task Create_StoresOptionalGrossPayAndRejectsGrossBelowNet()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var service = CreateService(dbContext, Bind(householdId));
+        var paycheck = Paycheck();
+        paycheck.GrossPayAmount = 3100m;
+
+        var saved = await service.CreateAsync(paycheck);
+
+        Assert.Equal(3100m, saved.GrossPayAmount);
+        Assert.Equal(2400.50m, saved.TakeHomeAmount);
+
+        var lowGross = Paycheck();
+        lowGross.Name = "Side work";
+        lowGross.GrossPayAmount = 2000m;
+        var error = await Assert.ThrowsAsync<BadRequestException>(() => service.CreateAsync(lowGross));
+        Assert.Equal("Gross pay cannot be lower than the typical net pay.", error.Message);
     }
 
     [Fact]

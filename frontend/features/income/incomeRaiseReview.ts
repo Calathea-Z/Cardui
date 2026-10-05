@@ -10,21 +10,23 @@ export type IncomeRaiseReview = {
 
 /**
  * The payment amounts on a source before a raise is confirmed.
- * Low and strong are null when that scenario is not recorded.
+ * Low, strong, and gross pay are null when that amount is not recorded.
  */
 export type IncomeRaiseReviewAmounts = {
   takeHomeAmount: number;
   lowTakeHomeAmount: number | null;
   strongTakeHomeAmount: number | null;
+  grossPayAmount: number | null;
 };
 
 /**
  * The amounts to store after the user says the raise is the pay they receive now.
- * A cleared low or strong no longer fits the new typical amount.
+ * A cleared low, strong, or gross amount no longer fits the new typical amount.
  */
 export type ConfirmedRaiseAmounts = IncomeRaiseReviewAmounts & {
   clearedLow: boolean;
   clearedStrong: boolean;
+  clearedGross: boolean;
 };
 
 /**
@@ -62,7 +64,7 @@ export function isRaiseDue(effectiveDate: string, today: string) {
 
 /**
  * Applies a confirmed raise to the typical amount.
- * Low is cleared when it would be above the new amount. Strong is cleared when it would be below it.
+ * Low is cleared when it would be above the new amount. Strong and gross pay are cleared when they would be below it.
  */
 export function amountsAfterConfirmingRaise(
   current: IncomeRaiseReviewAmounts,
@@ -74,40 +76,54 @@ export function amountsAfterConfirmingRaise(
   const clearedStrong =
     current.strongTakeHomeAmount !== null &&
     current.strongTakeHomeAmount < raiseAmount;
+  const clearedGross =
+    current.grossPayAmount !== null && current.grossPayAmount < raiseAmount;
 
   return {
     takeHomeAmount: raiseAmount,
     lowTakeHomeAmount: clearedLow ? null : current.lowTakeHomeAmount,
     strongTakeHomeAmount: clearedStrong ? null : current.strongTakeHomeAmount,
+    grossPayAmount: clearedGross ? null : current.grossPayAmount,
     clearedLow,
     clearedStrong,
+    clearedGross,
   };
 }
 
 /**
  * States the typical amount now stored after the user confirms a raise.
- * A cleared scenario is named so the change is visible.
+ * A cleared scenario or gross amount is named so the change is visible.
  */
 export function typicalPayUpdatedMessage(
   name: string,
   amount: string,
   clearedLow: boolean,
   clearedStrong: boolean,
+  clearedGross: boolean,
 ) {
   const base = `Typical pay for ${name} is now ${amount}.`;
+  const sentences = [base];
   if (clearedLow && clearedStrong) {
-    return `${base} Low and strong pay were cleared because they no longer fit that amount.`;
+    sentences.push(
+      "Low and strong pay were cleared because they no longer fit that amount.",
+    );
+  } else if (clearedLow) {
+    sentences.push(
+      "Low pay was cleared because it was higher than that amount.",
+    );
+  } else if (clearedStrong) {
+    sentences.push(
+      "Strong pay was cleared because it was lower than that amount.",
+    );
   }
 
-  if (clearedLow) {
-    return `${base} Low pay was cleared because it was higher than that amount.`;
+  if (clearedGross) {
+    sentences.push(
+      "Gross pay was cleared because it was lower than that amount.",
+    );
   }
 
-  if (clearedStrong) {
-    return `${base} Strong pay was cleared because it was lower than that amount.`;
-  }
-
-  return base;
+  return sentences.join(" ");
 }
 
 /**

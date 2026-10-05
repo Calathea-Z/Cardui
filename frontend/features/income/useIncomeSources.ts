@@ -31,8 +31,8 @@ import {
 
 /**
  * Holds the income list and the create or edit form.
- * Amounts stay as one payment. A raise does not replace the current typical amount until the user confirms it.
- * The page does not compute a monthly equivalent.
+ * Amounts stay as one payment. The form opens over the list.
+ * A raise does not replace the current typical amount until the user confirms it.
  */
 export function useIncomeSources(
   initialSources: IncomeSourceDto[],
@@ -44,6 +44,7 @@ export function useIncomeSources(
     emptyIncomeSourceForm(),
   );
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const confirm = useConfirm();
@@ -53,14 +54,16 @@ export function useIncomeSources(
 
   /**
    * Creates a source or saves the one being edited.
-   * Typical pay, cadence, date, and reliability are required. Low, strong, and raises are checked before the request.
+   * Returns true when the source was saved. Typical pay, cadence, date, and reliability are required.
    */
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<boolean> {
     event.preventDefault();
     const payload = toIncomeSourceUpsert(form);
     if (!payload.ok) {
       showIncomeError(payload.error);
-      return;
+      return false;
     }
 
     const dto = payload.dto;
@@ -81,31 +84,42 @@ export function useIncomeSources(
         setSources((current) => [...current, created]);
       }
 
-      setForm(emptyIncomeSourceForm());
-      setEditingId(null);
+      return true;
     } catch (err) {
       reportIncomeFailure(err, "That income source could not be saved.");
+      return false;
     } finally {
       setIsSaving(false);
     }
   }
 
   /**
-   * Fills the form from one active source.
+   * Opens a blank form for a new source.
+   */
+  function startAdding() {
+    toast.dismiss(incomeToastId);
+    setEditingId(null);
+    setForm(emptyIncomeSourceForm());
+    setIsFormOpen(true);
+  }
+
+  /**
+   * Opens the form with one saved source.
    */
   function startEditing(source: IncomeSourceDto) {
     toast.dismiss(incomeToastId);
     setEditingId(source.id);
     setForm(incomeSourceToForm(source));
+    setIsFormOpen(true);
   }
 
   /**
-   * Clears the form and leaves edit mode.
+   * Closes the form.
+   * The next open replaces whatever was left in the fields.
    */
-  function cancelEditing() {
+  function closeForm() {
     toast.dismiss(incomeToastId);
-    setEditingId(null);
-    setForm(emptyIncomeSourceForm());
+    setIsFormOpen(false);
   }
 
   /**
@@ -127,7 +141,7 @@ export function useIncomeSources(
       await deleteIncomeSource(source.id);
       setSources((current) => current.filter((item) => item.id !== source.id));
       if (editingId === source.id) {
-        cancelEditing();
+        closeForm();
       }
     } catch (err) {
       reportIncomeFailure(err, "That income source could not be removed.");
@@ -138,7 +152,7 @@ export function useIncomeSources(
 
   /**
    * Stores the raise amount as typical pay and removes that raise.
-   * Other raises stay. Low or strong pay is cleared only when it no longer fits.
+   * Other raises stay. Low, strong, or gross pay is cleared only when it no longer fits.
    */
   async function confirmRaise(source: IncomeSourceDto, raise: IncomeRaiseDto) {
     const amounts = amountsAfterConfirmingRaise(source, raise.takeHomeAmount);
@@ -151,6 +165,7 @@ export function useIncomeSources(
         formatCurrency(amounts.takeHomeAmount, source.currency),
         amounts.clearedLow,
         amounts.clearedStrong,
+        amounts.clearedGross,
       ),
     );
   }
@@ -167,6 +182,7 @@ export function useIncomeSources(
         takeHomeAmount: source.takeHomeAmount,
         lowTakeHomeAmount: source.lowTakeHomeAmount,
         strongTakeHomeAmount: source.strongTakeHomeAmount,
+        grossPayAmount: source.grossPayAmount,
       },
       raiseRemovedMessage(
         source.name,
@@ -186,6 +202,7 @@ export function useIncomeSources(
       takeHomeAmount: number;
       lowTakeHomeAmount: number | null;
       strongTakeHomeAmount: number | null;
+      grossPayAmount: number | null;
     },
     successNotice: string,
   ) {
@@ -214,13 +231,15 @@ export function useIncomeSources(
     form,
     setForm,
     editingId,
+    isFormOpen,
     sources: sortedSources,
     today,
     isSaving,
     busyId,
     handleSubmit,
+    startAdding,
     startEditing,
-    cancelEditing,
+    closeForm,
     remove,
     confirmRaise,
     removeRaise,
@@ -269,6 +288,7 @@ function sourceToUpsert(
     takeHomeAmount: number;
     lowTakeHomeAmount: number | null;
     strongTakeHomeAmount: number | null;
+    grossPayAmount: number | null;
   },
 ): UpsertIncomeSourceDto {
   return {
@@ -276,6 +296,7 @@ function sourceToUpsert(
     takeHomeAmount: amounts.takeHomeAmount,
     lowTakeHomeAmount: amounts.lowTakeHomeAmount,
     strongTakeHomeAmount: amounts.strongTakeHomeAmount,
+    grossPayAmount: amounts.grossPayAmount,
     cadence: source.cadence,
     nextPaymentDate: source.nextPaymentDate.slice(0, 10),
     contributorId: source.contributorId,

@@ -22,13 +22,14 @@ export type IncomeRaiseFormState = {
  * Fields the income form edits.
  * Cadence and reliability stay empty until the user chooses them.
  * `contributorId` is empty when the source is not assigned to a person.
- * Low and strong stay blank when that scenario is not recorded.
+ * Low, strong, and gross pay stay blank when that amount is not recorded.
  */
 export type IncomeSourceFormState = {
   name: string;
   takeHomeAmount: string;
   lowTakeHomeAmount: string;
   strongTakeHomeAmount: string;
+  grossPayAmount: string;
   cadence: IncomeCadence | "";
   nextPaymentDate: string;
   contributorId: string;
@@ -53,6 +54,7 @@ export function emptyIncomeSourceForm(): IncomeSourceFormState {
     takeHomeAmount: "",
     lowTakeHomeAmount: "",
     strongTakeHomeAmount: "",
+    grossPayAmount: "",
     cadence: "",
     nextPaymentDate: "",
     contributorId: "",
@@ -76,7 +78,7 @@ export function emptyIncomeRaiseForm(): IncomeRaiseFormState {
 /**
  * Copies a stored source into the form.
  * The payment date keeps the calendar day and drops any time suffix.
- * A missing low or strong amount becomes a blank field.
+ * A missing low, strong, or gross amount becomes a blank field.
  */
 export function incomeSourceToForm(
   source: IncomeSourceDto,
@@ -84,12 +86,9 @@ export function incomeSourceToForm(
   return {
     name: source.name,
     takeHomeAmount: String(source.takeHomeAmount),
-    lowTakeHomeAmount:
-      source.lowTakeHomeAmount === null ? "" : String(source.lowTakeHomeAmount),
-    strongTakeHomeAmount:
-      source.strongTakeHomeAmount === null
-        ? ""
-        : String(source.strongTakeHomeAmount),
+    lowTakeHomeAmount: optionalAmount(source.lowTakeHomeAmount),
+    strongTakeHomeAmount: optionalAmount(source.strongTakeHomeAmount),
+    grossPayAmount: optionalAmount(source.grossPayAmount),
     cadence: source.cadence,
     nextPaymentDate: source.nextPaymentDate.slice(0, 10),
     contributorId: source.contributorId ?? "",
@@ -104,7 +103,7 @@ export function incomeSourceToForm(
 
 /**
  * Builds the save payload from the form.
- * Typical pay is required. Low and strong are omitted when blank.
+ * Typical pay is required. Low, strong, and gross pay are omitted when blank.
  * A fully blank raise row is dropped. A partial row, a date before the next payment, or a repeated date is rejected.
  */
 export function toIncomeSourceUpsert(
@@ -153,6 +152,18 @@ export function toIncomeSourceUpsert(
     };
   }
 
+  const gross = readOptionalPayment(form.grossPayAmount, "gross pay");
+  if (!gross.ok) {
+    return gross;
+  }
+
+  if (gross.amount !== null && gross.amount < takeHomeAmount) {
+    return {
+      ok: false,
+      error: "Gross pay cannot be lower than the typical net pay.",
+    };
+  }
+
   const raises = readRaises(form.raises, takeHomeAmount, form.nextPaymentDate);
   if (!raises.ok) {
     return raises;
@@ -165,6 +176,7 @@ export function toIncomeSourceUpsert(
       takeHomeAmount,
       lowTakeHomeAmount: low.amount,
       strongTakeHomeAmount: strong.amount,
+      grossPayAmount: gross.amount,
       cadence: form.cadence,
       nextPaymentDate: form.nextPaymentDate,
       contributorId: form.contributorId || null,
@@ -172,6 +184,18 @@ export function toIncomeSourceUpsert(
       raises: raises.raises,
     },
   };
+}
+
+/**
+ * A stored optional amount as form text.
+ * Null and a missing value both stay blank, so the field is not filled with the word "undefined".
+ */
+function optionalAmount(value: number | null | undefined) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value);
 }
 
 /**

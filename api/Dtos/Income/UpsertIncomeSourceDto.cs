@@ -12,6 +12,8 @@ public class UpsertIncomeSourceDto
 
     public decimal? StrongTakeHomeAmount { get; set; }
 
+    public decimal? GrossPayAmount { get; set; }
+
     public IncomeCadence? Cadence { get; set; }
 
     public DateOnly NextPaymentDate { get; set; }

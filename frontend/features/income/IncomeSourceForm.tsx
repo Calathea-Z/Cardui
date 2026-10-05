@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { DateField } from "@/components/ui/date-field";
@@ -26,14 +27,14 @@ type IncomeSourceFormProps = {
   isEditing: boolean;
   isSaving: boolean;
   onChange: (form: IncomeSourceFormState) => void;
+  onPickerOpenChange: (open: boolean) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  onCancel: () => void;
 };
 
 /**
  * Form for one income source.
- * The payment comes first. Low, strong, and expected raises stay in an optional group.
- * Each amount is one net payment. A raise is a later typical amount.
+ * The payment fields come first. Gross pay, low, strong, and raises stay behind a disclosure.
+ * Each amount is one payment. A raise is a later typical amount. Gross pay is not estimated.
  */
 export function IncomeSourceForm({
   form,
@@ -43,8 +44,8 @@ export function IncomeSourceForm({
   isEditing,
   isSaving,
   onChange,
+  onPickerOpenChange,
   onSubmit,
-  onCancel,
 }: IncomeSourceFormProps) {
   /**
    * Explains which currency the amount uses.
@@ -52,15 +53,22 @@ export function IncomeSourceForm({
    */
   function currencyNote() {
     if (!isEditing) {
-      return `New amounts use ${planningCurrency}. A biweekly paycheck stays on its own dates and is not turned into a monthly amount.`;
+      return `Amounts use ${planningCurrency}. Each amount is one payment.`;
     }
 
     if (storedCurrency && storedCurrency !== planningCurrency) {
       return `These amounts stay in ${storedCurrency}.`;
     }
 
-    return "Each amount stays one payment. It is not turned into a monthly average.";
+    return "Each amount stays one payment.";
   }
+
+  const hasOptionalDetails =
+    form.grossPayAmount.trim() !== "" ||
+    form.lowTakeHomeAmount.trim() !== "" ||
+    form.strongTakeHomeAmount.trim() !== "" ||
+    form.raises.length > 0;
+  const [showMore, setShowMore] = useState(hasOptionalDetails);
 
   /**
    * Replaces one raise row.
@@ -76,126 +84,146 @@ export function IncomeSourceForm({
   }
 
   return (
-    <Form className="app-panel flex flex-col gap-4 p-4" onSubmit={onSubmit}>
-      <div>
-        <h2 className="app-section-title">
-          {isEditing ? "Edit income source" : "Add income source"}
-        </h2>
-        <p className="app-section-meta">{currencyNote()}</p>
+    <Form className="flex flex-col gap-4" onSubmit={onSubmit}>
+      <p className="text-sm text-muted-foreground">{currencyNote()}</p>
+      <div className="flex flex-col gap-4">
+        <label className="flex flex-col gap-1.5 text-sm font-medium">
+          Name
+          <Input
+            value={form.name}
+            onChange={(event) =>
+              onChange({ ...form, name: event.target.value })
+            }
+            maxLength={80}
+            autoComplete="off"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm font-medium">
+          Typical net pay
+          <Input
+            value={form.takeHomeAmount}
+            onChange={(event) =>
+              onChange({ ...form, takeHomeAmount: event.target.value })
+            }
+            inputMode="decimal"
+            autoComplete="off"
+          />
+        </label>
+
+        <div className="flex flex-col gap-1.5 text-sm font-medium">
+          How often it is paid
+          <Select
+            title="How often it is paid"
+            value={form.cadence}
+            onChange={(value) => {
+              if (isIncomeCadence(value)) {
+                onChange({ ...form, cadence: value });
+              }
+            }}
+            options={incomeCadenceOptions.map((option) => ({
+              value: option.value,
+              label: option.label,
+            }))}
+            placeholder="Select"
+            onOpenChange={onPickerOpenChange}
+          />
+          {form.cadence === "Biweekly" ? (
+            <span className="font-normal text-muted-foreground">
+              Every 14 days from the next payment. Some months include three
+              paychecks.
+            </span>
+          ) : null}
+          {form.cadence === "Semimonthly" ? (
+            <span className="font-normal text-muted-foreground">
+              Two days each month, about fifteen days apart, based on the next
+              payment date.
+            </span>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5 text-sm font-medium">
+          Next payment date
+          <DateField
+            title="Next payment date"
+            value={form.nextPaymentDate}
+            onChange={(nextPaymentDate) =>
+              onChange({ ...form, nextPaymentDate })
+            }
+            min="2000-01-01"
+            max="2100-12-31"
+            onOpenChange={onPickerOpenChange}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5 text-sm font-medium">
+          Contributor
+          <Select
+            title="Contributor"
+            value={form.contributorId}
+            onChange={(value) => onChange({ ...form, contributorId: value })}
+            options={[
+              { value: "", label: "No contributor" },
+              ...contributors.map((contributor) => ({
+                value: contributor.id,
+                label: contributor.isVisible
+                  ? contributor.name
+                  : `${contributor.name} (hidden)`,
+              })),
+            ]}
+            onOpenChange={onPickerOpenChange}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5 text-sm font-medium">
+          Reliability
+          <Select
+            title="Reliability"
+            value={form.reliability}
+            onChange={(value) => {
+              if (isIncomeReliability(value)) {
+                onChange({ ...form, reliability: value });
+              }
+            }}
+            options={incomeReliabilityOptions.map((option) => ({
+              value: option.value,
+              label: option.label,
+            }))}
+            placeholder="Select"
+            onOpenChange={onPickerOpenChange}
+          />
+          <span className="font-normal text-muted-foreground">
+            Steady is expected in full. Variable can change. Uncertain may not
+            arrive.
+          </span>
+        </div>
       </div>
 
-      <fieldset className="min-w-0 border-0 p-0">
-        <legend className="app-section-title float-none px-0">Payment</legend>
-        <p className="app-section-meta mb-4">
-          The net pay you expect for one payment, after taxes and deductions.
-        </p>
-        <div className="flex flex-col gap-4">
+      <details
+        className="rounded-lg border border-border"
+        open={showMore}
+        onToggle={(event) => setShowMore(event.currentTarget.open)}
+      >
+        <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+          Gross, low, strong, and raises
+        </summary>
+        <div className="flex flex-col gap-4 border-t border-border px-3 py-3">
           <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Name
+            Gross pay
             <Input
-              value={form.name}
+              value={form.grossPayAmount}
               onChange={(event) =>
-                onChange({ ...form, name: event.target.value })
-              }
-              maxLength={80}
-              autoComplete="off"
-            />
-          </label>
-
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Typical net pay
-            <Input
-              value={form.takeHomeAmount}
-              onChange={(event) =>
-                onChange({ ...form, takeHomeAmount: event.target.value })
+                onChange({ ...form, grossPayAmount: event.target.value })
               }
               inputMode="decimal"
               autoComplete="off"
-            />
-          </label>
-
-          <div className="flex flex-col gap-1.5 text-sm font-medium">
-            How often it is paid
-            <Select
-              title="How often it is paid"
-              value={form.cadence}
-              onChange={(value) => {
-                if (isIncomeCadence(value)) {
-                  onChange({ ...form, cadence: value });
-                }
-              }}
-              options={incomeCadenceOptions.map((option) => ({
-                value: option.value,
-                label: option.label,
-              }))}
-              placeholder="Select"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5 text-sm font-medium">
-            Next payment date
-            <DateField
-              title="Next payment date"
-              value={form.nextPaymentDate}
-              onChange={(nextPaymentDate) =>
-                onChange({ ...form, nextPaymentDate })
-              }
-              min="2000-01-01"
-              max="2100-12-31"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5 text-sm font-medium">
-            Contributor
-            <Select
-              title="Contributor"
-              value={form.contributorId}
-              onChange={(value) => onChange({ ...form, contributorId: value })}
-              options={[
-                { value: "", label: "No contributor" },
-                ...contributors.map((contributor) => ({
-                  value: contributor.id,
-                  label: contributor.isVisible
-                    ? contributor.name
-                    : `${contributor.name} (hidden)`,
-                })),
-              ]}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5 text-sm font-medium">
-            Reliability
-            <Select
-              title="Reliability"
-              value={form.reliability}
-              onChange={(value) => {
-                if (isIncomeReliability(value)) {
-                  onChange({ ...form, reliability: value });
-                }
-              }}
-              options={incomeReliabilityOptions.map((option) => ({
-                value: option.value,
-                label: option.label,
-              }))}
-              placeholder="Select"
+              placeholder="Optional"
             />
             <span className="font-normal text-muted-foreground">
-              Steady is expected in full. Variable can change. Uncertain may not
-              arrive.
+              Before taxes and deductions. Leave blank when you only know net
+              pay.
             </span>
-          </div>
-        </div>
-      </fieldset>
-
-      <fieldset className="min-w-0 rounded-lg border border-border bg-muted/40 p-4">
-        <legend className="bg-card px-1 text-sm font-semibold text-foreground">
-          Optional
-        </legend>
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground">
-            Low and strong pay, and expected raises. Leave these blank when this
-            payment stays the same.
-          </p>
+          </label>
 
           <label className="flex flex-col gap-1.5 text-sm font-medium">
             Low net pay
@@ -209,8 +237,7 @@ export function IncomeSourceForm({
               placeholder="Optional"
             />
             <span className="font-normal text-muted-foreground">
-              A lean payment. Leave this blank when pay does not drop. It cannot
-              be higher than typical.
+              A lean payment. It cannot be higher than typical.
             </span>
           </label>
 
@@ -229,8 +256,7 @@ export function IncomeSourceForm({
               placeholder="Optional"
             />
             <span className="font-normal text-muted-foreground">
-              A good payment. Leave this blank when pay does not rise. It cannot
-              be lower than typical.
+              A good payment. It cannot be lower than typical.
             </span>
           </label>
 
@@ -251,9 +277,7 @@ export function IncomeSourceForm({
               </Button>
             </div>
             <span className="text-sm text-muted-foreground">
-              The new typical net pay for one payment, starting on that date. It
-              cannot be lower than the typical net pay, and it does not change
-              the amounts above.
+              The new typical net pay for one payment, from that date.
             </span>
             {form.raises.map((raise, index) => (
               <div
@@ -270,6 +294,7 @@ export function IncomeSourceForm({
                     }
                     min={form.nextPaymentDate || "2000-01-01"}
                     max="2100-12-31"
+                    onOpenChange={onPickerOpenChange}
                   />
                 </div>
                 <label className="flex flex-1 flex-col gap-1.5 text-sm font-medium">
@@ -301,18 +326,11 @@ export function IncomeSourceForm({
             ))}
           </div>
         </div>
-      </fieldset>
+      </details>
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? "Saving…" : isEditing ? "Save changes" : "Add income"}
-        </Button>
-        {isEditing ? (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-        ) : null}
-      </div>
+      <Button type="submit" className="min-h-11" disabled={isSaving}>
+        {isSaving ? "Saving…" : isEditing ? "Save changes" : "Add income"}
+      </Button>
     </Form>
   );
 }

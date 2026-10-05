@@ -96,7 +96,8 @@ Zach approved this increment on October 5, 2026.
 
 ## Pending decision
 
-Overlapping worker and manual sync remains open. Phase 2 item 2 is the
-next income roadmap item: paycheck schedules and gross income, without
-turning a biweekly payment into a monthly amount. Which of those to do
-next is the decision.
+Phase 2 item 2 is next: paycheck schedules and gross income. A biweekly
+payment stays a dated paycheck. A monthly figure, if shown, is an average
+and is not cash on a date. Gross pay is optional and separate from net.
+No tax estimate. Overlapping worker and manual sync stays open and is not
+that chat.

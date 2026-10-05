@@ -19,3 +19,30 @@ export function formatPaymentDate(value: string) {
     timeZone: "UTC",
   }).format(new Date(Date.UTC(year, month - 1, day)));
 }
+
+/**
+ * A payday as month and day, such as Oct 9.
+ * The year is included when it is not today's year. A value that is not YYYY-MM-DD is returned unchanged.
+ */
+export function formatPayDay(value: string, today: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) {
+    return value;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  };
+  if (match[1] !== today.slice(0, 4)) {
+    options.year = "numeric";
+  }
+
+  return new Intl.DateTimeFormat("en-US", options).format(
+    new Date(Date.UTC(year, month - 1, day)),
+  );
+}

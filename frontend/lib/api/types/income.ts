@@ -46,6 +46,9 @@ export type UpsertIncomeRaiseDto = {
  * One income source stored for the household.
  * `takeHomeAmount` is the typical net amount of a single payment, not a monthly equivalent.
  * `lowTakeHomeAmount` and `strongTakeHomeAmount` are null when that scenario is not recorded.
+ * `grossPayAmount` is null when gross pay for that same payment was not entered. It is not estimated from net.
+ * `upcomingPaymentDates` are the paydays from the cadence. Empty when there is no set schedule.
+ * `averageMonthlyAmount` is null when there is no set schedule. It is an average across the year, not a paycheck on a date.
  * `currency` is the planning currency when the source was created. An edit does not change it.
  * `contributorId` is null when the source is not assigned to a person.
  * `raises` is ordered by the date each raise starts.
@@ -56,6 +59,7 @@ export type IncomeSourceDto = {
   takeHomeAmount: number;
   lowTakeHomeAmount: number | null;
   strongTakeHomeAmount: number | null;
+  grossPayAmount: number | null;
   currency: string;
   cadence: IncomeCadence;
   nextPaymentDate: string;
@@ -63,6 +67,8 @@ export type IncomeSourceDto = {
   contributorName: string | null;
   reliability: IncomeReliability;
   raises: IncomeRaiseDto[];
+  upcomingPaymentDates: string[];
+  averageMonthlyAmount: number | null;
 };
 
 export type UpsertIncomeSourceDto = {
@@ -70,6 +76,7 @@ export type UpsertIncomeSourceDto = {
   takeHomeAmount: number;
   lowTakeHomeAmount: number | null;
   strongTakeHomeAmount: number | null;
+  grossPayAmount: number | null;
   cadence: IncomeCadence;
   nextPaymentDate: string;
   contributorId: string | null;

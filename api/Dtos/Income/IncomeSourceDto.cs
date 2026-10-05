@@ -14,6 +14,8 @@ public class IncomeSourceDto
 
     public decimal? StrongTakeHomeAmount { get; set; }
 
+    public decimal? GrossPayAmount { get; set; }
+
     public required string Currency { get; set; }
 
     public IncomeCadence Cadence { get; set; }
@@ -27,4 +29,8 @@ public class IncomeSourceDto
     public IncomeReliability Reliability { get; set; }
 
     public IReadOnlyList<IncomeRaiseDto> Raises { get; set; } = [];
+
+    public IReadOnlyList<DateOnly> UpcomingPaymentDates { get; set; } = [];
+
+    public decimal? AverageMonthlyAmount { get; set; }
 }

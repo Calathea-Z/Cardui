@@ -29,6 +29,7 @@ public class IncomeSourceRulesTests
         Assert.Equal(IncomeReliability.Steady, draft.Reliability);
         Assert.Null(draft.LowTakeHomeAmount);
         Assert.Null(draft.StrongTakeHomeAmount);
+        Assert.Null(draft.GrossPayAmount);
         Assert.Empty(draft.Raises);
     }
 
@@ -74,6 +75,32 @@ public class IncomeSourceRulesTests
         Assert.Equal(
             "Enter the low net pay in dollars and cents.",
             Reject(lowTakeHomeAmount: 10.125m).error);
+        Assert.Equal(
+            "Gross pay cannot be lower than the typical net pay.",
+            Reject(grossPayAmount: 99m).error);
+        Assert.Equal(
+            "Enter the gross pay for one payment.",
+            Reject(grossPayAmount: 0m).error);
+    }
+
+    [Fact]
+    public void TryNormalize_KeepsGrossPayForTheSamePayment()
+    {
+        var ok = IncomeSourceRules.TryNormalize(
+            "Paycheck",
+            2400.50m,
+            IncomeCadence.Biweekly,
+            new DateOnly(2026, 10, 16),
+            null,
+            IncomeReliability.Steady,
+            out var draft,
+            out var error,
+            grossPayAmount: 3200m);
+
+        Assert.True(ok);
+        Assert.Equal("", error);
+        Assert.Equal(2400.50m, draft.TakeHomeAmount);
+        Assert.Equal(3200m, draft.GrossPayAmount);
     }
 
     [Fact]
@@ -189,7 +216,8 @@ public class IncomeSourceRulesTests
         DateOnly? nextPaymentDate = null,
         decimal? lowTakeHomeAmount = null,
         decimal? strongTakeHomeAmount = null,
-        IReadOnlyList<IncomeRaiseDraft>? raises = null)
+        IReadOnlyList<IncomeRaiseDraft>? raises = null,
+        decimal? grossPayAmount = null)
     {
         var ok = IncomeSourceRules.TryNormalize(
             "Paycheck",
@@ -202,7 +230,8 @@ public class IncomeSourceRulesTests
             out var error,
             lowTakeHomeAmount,
             strongTakeHomeAmount,
-            raises);
+            raises,
+            grossPayAmount);
         return (ok, error);
     }
 }

@@ -58,50 +58,75 @@ test("amountsAfterConfirmingRaise clears a scenario that no longer fits", () => 
       takeHomeAmount: 2400,
       lowTakeHomeAmount: 2200,
       strongTakeHomeAmount: 2600,
+      grossPayAmount: 3000,
     },
     2000,
   );
   assert.equal(belowLow.takeHomeAmount, 2000);
   assert.equal(belowLow.lowTakeHomeAmount, null);
   assert.equal(belowLow.strongTakeHomeAmount, 2600);
+  assert.equal(belowLow.grossPayAmount, 3000);
   assert.equal(belowLow.clearedLow, true);
   assert.equal(belowLow.clearedStrong, false);
+  assert.equal(belowLow.clearedGross, false);
 
   const aboveStrong = review.amountsAfterConfirmingRaise(
     {
       takeHomeAmount: 2400,
       lowTakeHomeAmount: 1800,
       strongTakeHomeAmount: 3000,
+      grossPayAmount: 3100,
     },
     3200,
   );
   assert.equal(aboveStrong.lowTakeHomeAmount, 1800);
   assert.equal(aboveStrong.strongTakeHomeAmount, null);
+  assert.equal(aboveStrong.grossPayAmount, null);
   assert.equal(aboveStrong.clearedLow, false);
   assert.equal(aboveStrong.clearedStrong, true);
+  assert.equal(aboveStrong.clearedGross, true);
 
   const kept = review.amountsAfterConfirmingRaise(
     {
       takeHomeAmount: 2400,
       lowTakeHomeAmount: 1800,
       strongTakeHomeAmount: 3000,
+      grossPayAmount: 3200,
     },
     2600,
   );
   assert.equal(kept.lowTakeHomeAmount, 1800);
   assert.equal(kept.strongTakeHomeAmount, 3000);
+  assert.equal(kept.grossPayAmount, 3200);
   assert.equal(kept.clearedLow, false);
   assert.equal(kept.clearedStrong, false);
+  assert.equal(kept.clearedGross, false);
 });
 
 test("raise messages name the typical amount and a cleared scenario", () => {
   assert.equal(
-    review.typicalPayUpdatedMessage("Paycheck", "$2,600.00", false, false),
+    review.typicalPayUpdatedMessage(
+      "Paycheck",
+      "$2,600.00",
+      false,
+      false,
+      false,
+    ),
     "Typical pay for Paycheck is now $2,600.00.",
   );
   assert.equal(
-    review.typicalPayUpdatedMessage("Paycheck", "$2,000.00", true, false),
+    review.typicalPayUpdatedMessage(
+      "Paycheck",
+      "$2,000.00",
+      true,
+      false,
+      false,
+    ),
     "Typical pay for Paycheck is now $2,000.00. Low pay was cleared because it was higher than that amount.",
+  );
+  assert.equal(
+    review.typicalPayUpdatedMessage("Paycheck", "$3,200.00", false, true, true),
+    "Typical pay for Paycheck is now $3,200.00. Strong pay was cleared because it was lower than that amount. Gross pay was cleared because it was lower than that amount.",
   );
   assert.equal(
     review.raiseRemovedMessage("Paycheck", "$2,400.00"),

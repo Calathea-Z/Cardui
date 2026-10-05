@@ -6,15 +6,15 @@ public interface IIncomeSourcesService
 {
     /// <summary>
     /// Lists the signed-in household's income sources, ordered by name.
-    /// Each amount is one payment, not a monthly equivalent.
-    /// Raises are ordered by the date they start.
+    /// Each stored amount is one payment. Upcoming dates follow that cadence.
+    /// The monthly average has no date. Raises are ordered by the date they start.
     /// </summary>
     Task<IReadOnlyList<IncomeSourceDto>> GetIncomeSourcesAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Records an income source in the household planning currency.
-    /// Typical net pay is one payment. Low and strong are optional.
+    /// Typical net pay is one payment. Low, strong, and gross pay are optional.
     /// An expected raise is a later typical amount and does not replace the current one.
     /// The currency is copied from the household and is not chosen on the request.
     /// </summary>
@@ -23,7 +23,7 @@ public interface IIncomeSourcesService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates an income source's payment facts, scenarios, and expected raises.
+    /// Updates an income source's payment facts, scenarios, gross pay, and expected raises.
     /// The currency stored at creation stays, so a later planning-currency change does not relabel the amounts.
     /// Raises omitted from the request are removed.
     /// </summary>

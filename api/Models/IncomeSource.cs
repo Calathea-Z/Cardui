@@ -14,6 +14,10 @@ public class IncomeSource
 
     public decimal TakeHomeAmount { get; set; }
 
+    public decimal? LowTakeHomeAmount { get; set; }
+
+    public decimal? StrongTakeHomeAmount { get; set; }
+
     public required string Currency { get; set; }
 
     public IncomeCadence Cadence { get; set; }
@@ -29,4 +33,6 @@ public class IncomeSource
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset UpdatedAt { get; set; }
+
+    public ICollection<IncomeRaise> Raises { get; init; } = new List<IncomeRaise>();
 }

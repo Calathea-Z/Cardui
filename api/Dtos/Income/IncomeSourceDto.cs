@@ -10,6 +10,10 @@ public class IncomeSourceDto
 
     public decimal TakeHomeAmount { get; set; }
 
+    public decimal? LowTakeHomeAmount { get; set; }
+
+    public decimal? StrongTakeHomeAmount { get; set; }
+
     public required string Currency { get; set; }
 
     public IncomeCadence Cadence { get; set; }
@@ -21,4 +25,6 @@ public class IncomeSourceDto
     public string? ContributorName { get; set; }
 
     public IncomeReliability Reliability { get; set; }
+
+    public IReadOnlyList<IncomeRaiseDto> Raises { get; set; } = [];
 }

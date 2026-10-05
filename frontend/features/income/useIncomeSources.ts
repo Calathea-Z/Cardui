@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { parseMoney } from "@/features/accounts/manualAccount";
+import { formatCurrency } from "@/features/accounts/formatCurrency";
 import {
   createIncomeSource,
   deleteIncomeSource,
@@ -10,22 +10,32 @@ import {
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
   HouseholdContributorDto,
+  IncomeRaiseDto,
   IncomeSourceDto,
   UpsertIncomeSourceDto,
 } from "@/lib/api/types";
 import {
   emptyIncomeSourceForm,
   incomeSourceToForm,
+  toIncomeSourceUpsert,
   type IncomeSourceFormState,
 } from "./incomeFormState";
+import {
+  amountsAfterConfirmingRaise,
+  calendarDateInTimeZone,
+  raiseRemovedMessage,
+  typicalPayUpdatedMessage,
+} from "./incomeRaiseReview";
 
 /**
  * Holds the income list and the create or edit form.
- * Amounts stay as one payment. The page does not compute a monthly equivalent.
+ * Amounts stay as one payment. A raise does not replace the current typical amount until the user confirms it.
+ * The page does not compute a monthly equivalent.
  */
 export function useIncomeSources(
   initialSources: IncomeSourceDto[],
   contributors: HouseholdContributorDto[],
+  timeZoneId: string,
 ) {
   const [sources, setSources] = useState(initialSources);
   const [form, setForm] = useState<IncomeSourceFormState>(
@@ -33,26 +43,29 @@ export function useIncomeSources(
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const sortedSources = sortSources(sources);
+  const today = calendarDateInTimeZone(timeZoneId, new Date());
 
   /**
    * Creates a source or saves the one being edited.
-   * Name, a positive take-home amount, cadence, date, and reliability are required.
+   * Typical pay, cadence, date, and reliability are required. Low, strong, and raises are checked before the request.
    */
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const dto = toUpsert(form);
-    if (!dto) {
-      setError(
-        "Enter a name, the net pay for one payment, how often it is paid, the next date, and how reliable it is.",
-      );
+    const payload = toIncomeSourceUpsert(form);
+    if (!payload.ok) {
+      setError(payload.error);
       return;
     }
 
+    const dto = payload.dto;
+
     setError(null);
+    setNotice(null);
     setIsSaving(true);
 
     try {
@@ -99,7 +112,7 @@ export function useIncomeSources(
 
   /**
    * Deletes a source after the user confirms.
-   * The row is removed. Balances stay unchanged.
+   * The row and its expected raises are removed. Balances stay unchanged.
    */
   async function remove(source: IncomeSourceDto) {
     if (
@@ -109,6 +122,7 @@ export function useIncomeSources(
     }
 
     setError(null);
+    setNotice(null);
     setBusyId(source.id);
     try {
       await deleteIncomeSource(source.id);
@@ -125,19 +139,131 @@ export function useIncomeSources(
     }
   }
 
+  /**
+   * Stores the raise amount as typical pay and removes that raise.
+   * Other raises stay. Low or strong pay is cleared only when it no longer fits.
+   */
+  async function confirmRaise(source: IncomeSourceDto, raise: IncomeRaiseDto) {
+    const amounts = amountsAfterConfirmingRaise(source, raise.takeHomeAmount);
+    await saveRaiseDecision(
+      source,
+      raise,
+      amounts,
+      typicalPayUpdatedMessage(
+        source.name,
+        formatCurrency(amounts.takeHomeAmount, source.currency),
+        amounts.clearedLow,
+        amounts.clearedStrong,
+      ),
+    );
+  }
+
+  /**
+   * Removes one expected raise.
+   * Typical pay stays the amount already stored.
+   */
+  async function removeRaise(source: IncomeSourceDto, raise: IncomeRaiseDto) {
+    await saveRaiseDecision(
+      source,
+      raise,
+      {
+        takeHomeAmount: source.takeHomeAmount,
+        lowTakeHomeAmount: source.lowTakeHomeAmount,
+        strongTakeHomeAmount: source.strongTakeHomeAmount,
+      },
+      raiseRemovedMessage(
+        source.name,
+        formatCurrency(source.takeHomeAmount, source.currency),
+      ),
+    );
+  }
+
+  /**
+   * Saves a source after one raise is resolved.
+   * The open form for that source is replaced with the saved row.
+   */
+  async function saveRaiseDecision(
+    source: IncomeSourceDto,
+    raise: IncomeRaiseDto,
+    amounts: {
+      takeHomeAmount: number;
+      lowTakeHomeAmount: number | null;
+      strongTakeHomeAmount: number | null;
+    },
+    successNotice: string,
+  ) {
+    setError(null);
+    setNotice(null);
+    setBusyId(source.id);
+    try {
+      const updated = await updateIncomeSource(
+        source.id,
+        sourceToUpsert(source, raise.id, amounts),
+      );
+      setSources((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      if (editingId === source.id) {
+        setForm(incomeSourceToForm(updated));
+      }
+      setNotice(successNotice);
+    } catch (err) {
+      setError(
+        getApiErrorMessage(err, "That expected raise could not be updated."),
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return {
     contributors,
     form,
     setForm,
     editingId,
     sources: sortedSources,
+    today,
     error,
+    notice,
     isSaving,
     busyId,
     handleSubmit,
     startEditing,
     cancelEditing,
     remove,
+    confirmRaise,
+    removeRaise,
+  };
+}
+
+/**
+ * Builds the save payload for a stored source with one raise left out.
+ * The payment date keeps the calendar day.
+ */
+function sourceToUpsert(
+  source: IncomeSourceDto,
+  omitRaiseId: string,
+  amounts: {
+    takeHomeAmount: number;
+    lowTakeHomeAmount: number | null;
+    strongTakeHomeAmount: number | null;
+  },
+): UpsertIncomeSourceDto {
+  return {
+    name: source.name,
+    takeHomeAmount: amounts.takeHomeAmount,
+    lowTakeHomeAmount: amounts.lowTakeHomeAmount,
+    strongTakeHomeAmount: amounts.strongTakeHomeAmount,
+    cadence: source.cadence,
+    nextPaymentDate: source.nextPaymentDate.slice(0, 10),
+    contributorId: source.contributorId,
+    reliability: source.reliability,
+    raises: source.raises
+      .filter((raise) => raise.id !== omitRaiseId)
+      .map((raise) => ({
+        effectiveDate: raise.effectiveDate.slice(0, 10),
+        takeHomeAmount: raise.takeHomeAmount,
+      })),
   };
 }
 
@@ -151,31 +277,4 @@ function sortSources(sources: IncomeSourceDto[]) {
       left.name.localeCompare(right.name) ||
       left.nextPaymentDate.localeCompare(right.nextPaymentDate),
   );
-}
-
-/**
- * Builds the save payload from the form.
- * A blank, zero, or incomplete form returns null so the caller can ask for the missing facts.
- */
-function toUpsert(form: IncomeSourceFormState): UpsertIncomeSourceDto | null {
-  const takeHomeAmount = parseMoney(form.takeHomeAmount);
-  if (
-    !form.name.trim() ||
-    takeHomeAmount === null ||
-    takeHomeAmount <= 0 ||
-    !form.cadence ||
-    !form.nextPaymentDate ||
-    !form.reliability
-  ) {
-    return null;
-  }
-
-  return {
-    name: form.name.trim(),
-    takeHomeAmount,
-    cadence: form.cadence,
-    nextPaymentDate: form.nextPaymentDate,
-    contributorId: form.contributorId || null,
-    reliability: form.reliability,
-  };
 }

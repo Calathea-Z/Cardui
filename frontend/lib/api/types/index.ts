@@ -20,8 +20,10 @@ export type {
 export type { DashboardSummaryDto, SpendingByCategoryDto } from "./dashboard";
 export type {
   IncomeCadence,
+  IncomeRaiseDto,
   IncomeReliability,
   IncomeSourceDto,
+  UpsertIncomeRaiseDto,
   UpsertIncomeSourceDto,
 } from "./income";
 export type {

@@ -11,14 +11,15 @@ type IncomePageClientProps = IncomePageData;
 
 /**
  * Income page.
- * The household records each source as one take-home payment, a cadence, the next date, a contributor, and reliability.
+ * The household records each source as a typical take-home payment, optional low and strong amounts, and any expected raises.
  */
 export function IncomePageClient({
   sources,
   contributors,
   planningCurrency,
+  timeZoneId,
 }: IncomePageClientProps) {
-  const income = useIncomeSources(sources, contributors);
+  const income = useIncomeSources(sources, contributors, timeZoneId);
   const editingSource = income.sources.find(
     (source) => source.id === income.editingId,
   );
@@ -27,7 +28,7 @@ export function IncomePageClient({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Income sources"
-        description="Record each place money comes in. Enter net pay for one payment, after taxes and deductions, plus how often it arrives, the next date, who it belongs to, and how reliable it is."
+        description="Record each place money comes in. Typical net pay is one payment, after taxes and deductions. Low and strong are optional. An expected raise names the new typical amount from a later date. When that date arrives, confirm the pay or remove the raise."
       />
 
       <IncomeSourceForm
@@ -45,12 +46,20 @@ export function IncomePageClient({
       {income.error ? (
         <Alert variant="destructive">{income.error}</Alert>
       ) : null}
+      {income.notice ? <Alert>{income.notice}</Alert> : null}
 
       <IncomeSourceList
         sources={income.sources}
+        today={income.today}
         busyId={income.busyId}
         onEdit={income.startEditing}
         onRemove={(source) => void income.remove(source)}
+        onConfirmRaise={(source, raise) =>
+          void income.confirmRaise(source, raise)
+        }
+        onRemoveRaise={(source, raise) =>
+          void income.removeRaise(source, raise)
+        }
       />
     </div>
   );

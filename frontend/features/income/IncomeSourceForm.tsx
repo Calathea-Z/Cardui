@@ -5,7 +5,11 @@ import { DateField } from "@/components/ui/date-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { HouseholdContributorDto } from "@/lib/api/types";
-import type { IncomeSourceFormState } from "./incomeFormState";
+import {
+  emptyIncomeRaiseForm,
+  type IncomeRaiseFormState,
+  type IncomeSourceFormState,
+} from "./incomeFormState";
 import {
   incomeCadenceOptions,
   incomeReliabilityOptions,
@@ -27,7 +31,7 @@ type IncomeSourceFormProps = {
 
 /**
  * Form for one income source.
- * The amount is net pay for a single payment, after taxes and deductions.
+ * Typical, low, and strong amounts are each one net payment. A raise is a later typical amount.
  */
 export function IncomeSourceForm({
   form,
@@ -50,10 +54,23 @@ export function IncomeSourceForm({
     }
 
     if (storedCurrency && storedCurrency !== planningCurrency) {
-      return `This amount stays in ${storedCurrency}.`;
+      return `These amounts stay in ${storedCurrency}.`;
     }
 
-    return "The amount stays one payment. It is not turned into a monthly average.";
+    return "Each amount stays one payment. It is not turned into a monthly average.";
+  }
+
+  /**
+   * Replaces one raise row.
+   * The other rows stay as the user left them.
+   */
+  function updateRaise(index: number, patch: Partial<IncomeRaiseFormState>) {
+    onChange({
+      ...form,
+      raises: form.raises.map((raise, raiseIndex) =>
+        raiseIndex === index ? { ...raise, ...patch } : raise,
+      ),
+    });
   }
 
   return (
@@ -77,7 +94,7 @@ export function IncomeSourceForm({
       </label>
 
       <label className="flex flex-col gap-1.5 text-sm font-medium">
-        Net pay
+        Typical net pay
         <Input
           value={form.takeHomeAmount}
           onChange={(event) =>
@@ -88,7 +105,41 @@ export function IncomeSourceForm({
           required
         />
         <span className="font-normal text-muted-foreground">
-          Enter net pay for one payment, after taxes and deductions.
+          The net pay you expect for one payment, after taxes and deductions.
+        </span>
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
+        Low net pay
+        <Input
+          value={form.lowTakeHomeAmount}
+          onChange={(event) =>
+            onChange({ ...form, lowTakeHomeAmount: event.target.value })
+          }
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder="Optional"
+        />
+        <span className="font-normal text-muted-foreground">
+          A lean payment. Leave this blank when pay does not drop. It cannot be
+          higher than typical.
+        </span>
+      </label>
+
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
+        Strong net pay
+        <Input
+          value={form.strongTakeHomeAmount}
+          onChange={(event) =>
+            onChange({ ...form, strongTakeHomeAmount: event.target.value })
+          }
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder="Optional"
+        />
+        <span className="font-normal text-muted-foreground">
+          A good payment. Leave this blank when pay does not rise. It cannot be
+          lower than typical.
         </span>
       </label>
 
@@ -159,6 +210,72 @@ export function IncomeSourceForm({
           Steady is expected in full. Variable can change. Uncertain may not
           arrive.
         </span>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-medium">Expected raises</span>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              onChange({
+                ...form,
+                raises: [...form.raises, emptyIncomeRaiseForm()],
+              })
+            }
+          >
+            Add raise
+          </Button>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          The new typical net pay for one payment, starting on that date. It
+          does not change the amounts above.
+        </span>
+        {form.raises.map((raise, index) => (
+          <div
+            key={raise.key}
+            className="flex flex-col gap-2 sm:flex-row sm:items-end"
+          >
+            <div className="flex flex-1 flex-col gap-1.5 text-sm font-medium">
+              Raise date
+              <DateField
+                title={`Raise date ${index + 1}`}
+                value={raise.effectiveDate}
+                onChange={(effectiveDate) =>
+                  updateRaise(index, { effectiveDate })
+                }
+                min={form.nextPaymentDate || "2000-01-01"}
+                max="2100-12-31"
+              />
+            </div>
+            <label className="flex flex-1 flex-col gap-1.5 text-sm font-medium">
+              New typical net pay
+              <Input
+                value={raise.takeHomeAmount}
+                onChange={(event) =>
+                  updateRaise(index, { takeHomeAmount: event.target.value })
+                }
+                inputMode="decimal"
+                autoComplete="off"
+              />
+            </label>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() =>
+                onChange({
+                  ...form,
+                  raises: form.raises.filter(
+                    (_, raiseIndex) => raiseIndex !== index,
+                  ),
+                })
+              }
+            >
+              Remove
+            </Button>
+          </div>
+        ))}
       </div>
 
       <div className="flex gap-2">

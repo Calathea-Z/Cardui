@@ -1,3 +1,5 @@
+Enforceable UI conventions for new screens live in `.cursor/rules/ui-governance.mdc`.
+
 # UI direction
 
 Approved October 5, 2026. This is the local UI plan. The first increment is the light shell plus Home.

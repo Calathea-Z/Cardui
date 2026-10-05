@@ -35,7 +35,7 @@ export function DashboardMonthlyActivityWidget({
     <section className="app-panel" aria-labelledby="monthly-activity-title">
       <div className="app-panel-header p-4">
         <h2 id="monthly-activity-title" className="app-section-title">
-          Monthly Activity
+          This month
         </h2>
         <p className="app-section-meta">{periodLabel}</p>
       </div>
@@ -63,7 +63,7 @@ export function DashboardMonthlyActivityWidget({
 
       <div className="border-t border-border/70">
         <div className="px-4 pt-4">
-          <h3 className="text-xs font-semibold tracking-wide text-foreground uppercase">
+          <h3 className="text-sm font-semibold text-foreground">
             Spending by category
           </h3>
         </div>
@@ -91,7 +91,7 @@ export function DashboardMonthlyActivityWidget({
                     <span className="truncate text-sm text-foreground">
                       {category.categoryName}
                     </span>
-                    <span className="font-mono text-sm font-medium tabular-nums">
+                    <span className="text-sm font-medium tabular-nums">
                       {formatCurrency(
                         category.amount,
                         summary.planningCurrency,
@@ -99,7 +99,7 @@ export function DashboardMonthlyActivityWidget({
                     </span>
                   </div>
                   <div
-                    className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
+                    className="mt-2 h-1 overflow-hidden rounded-full bg-muted"
                     role="meter"
                     aria-label={`${category.categoryName}: ${percentage.toFixed(1)}% of spending`}
                     aria-valuemin={0}
@@ -139,7 +139,7 @@ function MonthlyMetric({
       <span className="text-xs text-muted-foreground">{label}</span>
       <span
         className={cn(
-          "mt-1 font-mono text-xl font-semibold tracking-tight tabular-nums",
+          "mt-1 text-xl font-semibold tracking-tight tabular-nums",
           tone === "positive" && "text-success",
           tone === "negative" && "text-destructive",
         )}

@@ -1,9 +1,12 @@
+import { PageHeader } from "@/components/navigation/page-header";
 import { CurrencyExclusionNotice } from "@/features/household/CurrencyExclusionNotice";
-import { dashboardWidgets } from "./dashboard-widgets";
+import { DashboardMonthlyActivityWidget } from "./DashboardMonthlyActivityWidget";
+import { DashboardNetWorthCard } from "./DashboardNetWorthCard";
+import { DashboardRecentTransactionsWidget } from "./DashboardRecentTransactionsWidget";
 import type { DashboardPageData } from "./server/loadDashboardPage";
 
 /**
- * Renders the dashboard widgets in list order.
+ * Home: net worth and this month side by side from lg, recent activity under both.
  * The currency notice sits above them and stays hidden when nothing is excluded from the planning currency.
  */
 export function DashboardView({
@@ -13,16 +16,9 @@ export function DashboardView({
   groups,
   subGroups,
 }: DashboardPageData) {
-  const widgetProps = {
-    dashboardSummary,
-    accountsSummary,
-    categories,
-    groups,
-    subGroups,
-  };
-
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
+    <section className="flex w-full flex-col gap-6 px-4 py-6 md:px-8 md:py-8">
+      <PageHeader title="Home" />
       <CurrencyExclusionNotice
         exclusion={{
           planningCurrency: dashboardSummary.planningCurrency,
@@ -31,9 +27,16 @@ export function DashboardView({
           excludedCurrencies: dashboardSummary.excludedCurrencies,
         }}
       />
-      {dashboardWidgets.map((widget) => (
-        <div key={widget.id}>{widget.render(widgetProps)}</div>
-      ))}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DashboardNetWorthCard summary={accountsSummary} />
+        <DashboardMonthlyActivityWidget summary={dashboardSummary} />
+      </div>
+      <DashboardRecentTransactionsWidget
+        transactions={dashboardSummary.recentTransactions}
+        categories={categories}
+        groups={groups}
+        subGroups={subGroups}
+      />
     </section>
   );
 }

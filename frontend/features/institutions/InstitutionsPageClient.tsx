@@ -119,8 +119,8 @@ export function InstitutionsPageClient({
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <PageHeader
+        showBack
         backFallbackHref="/accounts"
-        eyebrow="Bank connections"
         title="Institutions"
         description="Manage linked banks and the accounts synced from each institution."
         actions={

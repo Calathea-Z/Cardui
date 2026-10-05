@@ -5,7 +5,7 @@ import { navItems } from "./nav-items";
 
 /**
  * Side navigation for wide screens.
- * Shows the brand, every primary destination, and the account menu, and stays hidden below the md breakpoint.
+ * Shows the brand, the three primary destinations, and the account menu, and stays hidden below the md breakpoint.
  */
 export function DesktopSidebar() {
   return (
@@ -18,9 +18,9 @@ export function DesktopSidebar() {
             key={item.href}
             item={item}
             showIcon
-            className="flex cursor-pointer items-center gap-3 rounded-lg border-l-2 border-transparent px-3 py-2.5 text-sm font-medium transition"
-            activeClassName="border-l-sidebar-primary bg-sidebar-accent text-sidebar-primary"
-            inactiveClassName="text-sidebar-foreground/65 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+            className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
+            activeClassName="bg-sidebar-accent text-primary"
+            inactiveClassName="text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
           />
         ))}
       </nav>

@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-05 — Light shell plus Home](2026-10-05-002-light-shell-home.md)
 - [2026-10-05 — UI direction](2026-10-05-001-ui-direction.md)
 - [2026-10-04 — Income sources](2026-10-04-016-income-sources.md)
 - [2026-10-04 — Backend enums](2026-10-04-015-backend-enums.md)

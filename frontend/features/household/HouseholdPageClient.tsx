@@ -23,7 +23,6 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Household"
         title="Financial profile"
         description="One planning currency, the household time zone, and the people whose finances belong here. Contributors are names you keep, not separate sign-ins."
       />

@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { useSetMobileHeaderActions } from "@/components/navigation/mobile-header-actions";
 import { syncPlaidItem } from "@/lib/api/browser";
 import type {
   AccountDto,
@@ -83,23 +82,16 @@ export function AccountsPageClient({
     ],
   );
 
-  const mobileHeaderActions = useMemo(
+  const headerActions = useMemo(
     () => <AccountsActionButtons {...actionButtonProps} />,
     [actionButtonProps],
   );
-
-  const desktopHeaderActions = useMemo(
-    () => <AccountsActionButtons {...actionButtonProps} />,
-    [actionButtonProps],
-  );
-
-  useSetMobileHeaderActions(mobileHeaderActions);
 
   return (
     <>
       <AccountsView
         summary={summary}
-        actions={desktopHeaderActions}
+        actions={headerActions}
         onSelectAccount={setSelectedAccount}
       />
 

@@ -19,3 +19,6 @@ dotnet ef database update --project .\api --startup-project .\api
 Do not use `--force`, drop a database, or wipe a volume unless Zach
 approves that separately. Raw SQL migrations need an explained exception
 and the same explicit approval.
+
+When a column, type, or API is no longer used, remove it in the same
+change. Dropping a column still uses the commands above.

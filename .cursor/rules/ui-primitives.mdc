@@ -20,4 +20,8 @@ Choice lists use `Select` from `frontend/components/ui/select.tsx`. It opens
 the themed list. Do not use a native `<select>` element. On Windows that
 menu stays the browser's white list and ignores the app theme.
 
+Date entry uses `DateField` from `frontend/components/ui/date-field.tsx`.
+It opens the themed calendar. Do not use a native date input. On Windows
+that calendar stays the browser's white widget and ignores the app theme.
+
 Action menus stay `ActionMenu`. Text entry stays `Input`.

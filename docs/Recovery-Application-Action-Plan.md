@@ -2,6 +2,8 @@
 
 Prepared September 25, 2026; direction updated October 2, 2026. Proposed development roadmap based on the current repository, original `Plan.md`, this planning conversation, and the supplied capability inventory. This document preserves the original specification rather than overwriting it. Release boundaries below are recommendations, not previously approved scope cuts.
 
+**Current local work (October 5, 2026).** Zach approved the UI direction in [`docs/ui-direction.md`](ui-direction.md). That plan is the active local work. The first increment is the light shell plus Home: a light-only theme, Inter, three primary items (Home, Accounts, Activity), budgets hidden until that screen is real, and one responsive Next.js app that stacks under 768px. Plaid sync reconciliation tests remain the next engineering increment. They are paused while this UI plan is the active local work.
+
 ## 1. Mission and first product outcome
 
 **Help people turn financial overwhelm into a clear, realistic path toward stability, breathing room and freedom.**
@@ -33,7 +35,7 @@ Recommendations must show the assumptions, tradeoffs and reason for the ordering
 
 ## 2. Audit scope and verification
 
-The original specification was found in root `Plan.md`. It describes a personal-use Monarch-inspired dashboard, an eight-item Phase 1 MVP, later budgeting and debt screens, and future enhancements. Its progress and technology sections are stale: the API now targets .NET 10, and the frontend uses Next.js 16 / React 19.
+The original specification was found in root `Plan.md`. It describes a personal-use dashboard, an eight-item Phase 1 MVP, later budgeting and debt screens, and future enhancements. Its progress and technology sections are stale: the API now targets .NET 10, and the frontend uses Next.js 16 / React 19.
 
 This is a source-code and local-check audit. It does not establish production deployment, live bank connectivity, scheduled worker execution, browser usability, or security readiness.
 
@@ -144,7 +146,7 @@ Key implementation anchors:
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
 
-**Status (October 4, 2026):** Approved. A household can record income sources: net pay for one payment, cadence, next payment date, contributor, and reliability. Remove deletes a source. `20261005025504_AddIncomeSources` and `20261005031455_DropIncomeSourceArchivedAt` are applied. The amount stays one payment and is not turned into a monthly figure. Low, typical, and strong scenarios and expected raises remain. See `docs/reviews/2026-10-04-016-income-sources.md`.
+**Status (October 4, 2026):** Approved. A household can record income sources: net pay for one payment, cadence, next payment date, contributor, and reliability. Remove deletes a source. `20261005025504_AddIncomeSources` and `20261005031455_DropIncomeSourceArchivedAt` are applied. The amount stays one payment and is not turned into a monthly figure. Low, typical, and strong scenarios and expected raises remain. See `docs/reviews/2026-10-04-016-income-sources.md`. The active local work is the UI plan in `docs/ui-direction.md`. Plaid sync reconciliation tests remain the next engineering increment and are paused while that plan is active.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 

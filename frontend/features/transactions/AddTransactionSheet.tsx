@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { DateField } from "@/components/ui/date-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { createManualTransaction } from "@/lib/api/browser";
@@ -176,15 +177,16 @@ function AddTransactionForm({
             />
           </div>
 
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
+          <div className="flex flex-col gap-1.5 text-sm font-medium">
             Date
-            <Input
-              type="date"
+            <DateField
+              title="Date"
               value={date}
-              onChange={(event) => setDate(event.target.value)}
-              required
+              onChange={setDate}
+              onOpenChange={onPickerOpenChange}
+              className="h-9"
             />
-          </label>
+          </div>
 
           <label className="flex flex-col gap-1.5 text-sm font-medium">
             Notes
@@ -212,7 +214,7 @@ function AddTransactionForm({
 
 /**
  * Opens the sheet for entering a transaction by hand.
- * Escape is ignored while the account or category list is open.
+ * Escape is ignored while the account, category, or date sheet is open.
  */
 export function AddTransactionSheet({
   open,

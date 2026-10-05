@@ -23,4 +23,7 @@ public class Household
 
     public ICollection<HouseholdContributor> Contributors { get; init; } =
         new List<HouseholdContributor>();
+
+    public ICollection<IncomeSource> IncomeSources { get; init; } =
+        new List<IncomeSource>();
 }

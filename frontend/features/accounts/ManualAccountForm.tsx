@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DateField } from "@/components/ui/date-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { ManualAccountType } from "@/lib/api/types";
@@ -112,17 +113,16 @@ export function ManualAccountForm({
         </span>
       </label>
 
-      <label className="flex flex-col gap-1.5 text-sm font-medium">
+      <div className="flex flex-col gap-1.5 text-sm font-medium">
         Opening date
-        <Input
-          type="date"
+        <DateField
+          title="Opening date"
           value={values.openingBalanceDate}
-          onChange={(event) =>
-            update({ openingBalanceDate: event.target.value })
-          }
-          required
+          onChange={(openingBalanceDate) => update({ openingBalanceDate })}
+          onOpenChange={onPickerOpenChange}
+          className="h-9"
         />
-      </label>
+      </div>
 
       {errorMessage ? (
         <p className="text-sm text-destructive" role="alert">

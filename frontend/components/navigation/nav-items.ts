@@ -23,6 +23,10 @@ export const navItems: NavItem[] = [
     href: "/accounts",
   },
   {
+    label: "Income",
+    href: "/income",
+  },
+  {
     label: "Institutions",
     href: "/institutions",
   },
@@ -52,7 +56,7 @@ export function getActiveNavItem(pathname: string): NavItem | undefined {
 
 /**
  * Phone tab-bar destinations, in navItems order.
- * The list is Dashboard, Transactions, Accounts, and Budgets.
+ * The list is Dashboard, Transactions, Accounts, Income, and Budgets.
  */
 export const bottomNavItems = navItems.filter(
   (item) => item.href !== "/categories" && item.href !== "/institutions",

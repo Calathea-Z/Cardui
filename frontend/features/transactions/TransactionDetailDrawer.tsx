@@ -226,7 +226,11 @@ function TransactionDetailDrawerContent({
           />
         )}
 
-        <TransactionDateField value={form.date} onChange={setDate} />
+        <TransactionDateField
+          value={form.date}
+          onChange={setDate}
+          onOpenChange={onNestedOpenChange}
+        />
 
         <TransactionNotesField value={form.notes} onChange={setNotes} />
       </div>

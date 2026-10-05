@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-04 — Income sources](2026-10-04-016-income-sources.md)
 - [2026-10-04 — Backend enums](2026-10-04-015-backend-enums.md)
 - [2026-10-04 — Frontend types](2026-10-04-014-frontend-types.md)
 - [2026-10-04 — Frontend layers](2026-10-04-013-frontend-layers.md)

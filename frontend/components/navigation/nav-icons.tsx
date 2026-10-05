@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  Banknote,
   Building2,
   LayoutDashboard,
   PieChart,
@@ -23,6 +24,8 @@ export function NavIcon({ href }: NavIconProps) {
       return <ArrowLeftRight className={className} aria-hidden />;
     case "/accounts":
       return <Wallet className={className} aria-hidden />;
+    case "/income":
+      return <Banknote className={className} aria-hidden />;
     case "/institutions":
       return <Building2 className={className} aria-hidden />;
     case "/budgets":

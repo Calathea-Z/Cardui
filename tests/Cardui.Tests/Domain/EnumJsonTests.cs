@@ -20,6 +20,8 @@ public class EnumJsonTests
         Assert.Equal("\"PositiveIn\"", JsonSerializer.Serialize(CsvAmountSign.PositiveIn, Options));
         Assert.Equal("\"DayFirst\"", JsonSerializer.Serialize(CsvDateOrder.DayFirst, Options));
         Assert.Equal("\"Duplicate\"", JsonSerializer.Serialize(TransactionImportRowStatus.Duplicate, Options));
+        Assert.Equal("\"Biweekly\"", JsonSerializer.Serialize(IncomeCadence.Biweekly, Options));
+        Assert.Equal("\"Uncertain\"", JsonSerializer.Serialize(IncomeReliability.Uncertain, Options));
     }
 
     [Fact]
@@ -38,6 +40,8 @@ public class EnumJsonTests
     {
         Assert.Throws<JsonException>(() =>
             JsonSerializer.Deserialize<FinancialRecordSource>("0", Options));
+        Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<IncomeCadence>("0", Options));
     }
 
     private static JsonSerializerOptions CreateOptions()

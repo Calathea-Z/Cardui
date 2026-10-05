@@ -12,7 +12,9 @@ When a control is reused, decide whether it should be a shared primitive in
 `components/ui`. For a large or specialized control, decide whether a small
 primitive is enough or a library is the better fit, and ask before adding
 that dependency. Choice lists use `Select` from `components/ui/select.tsx`.
-Do not use a native `<select>`. See `.cursor/rules/ui-primitives.mdc`.
+Do not use a native `<select>`. Date entry uses `DateField` from
+`components/ui/date-field.tsx`. Do not use a native date input. See
+`.cursor/rules/ui-primitives.mdc`.
 
 A route loads the page. A server load assembles its data. `lib/api` is the
 only HTTP. A hook owns client state and those calls. A camelCase module

@@ -129,7 +129,7 @@ Key implementation anchors:
 2. Keep the approved behavior: preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo.
 3. Leave fitting the sheet to phone and desktop, plus the broader keyboard and screen-reader pass, for Phase 6 item 4.
 
-**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/2026-10-04-010-csv-import-ux.md`. Phase 2 item 1 is next.
+**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/2026-10-04-010-csv-import-ux.md`. Income-source capture is approved in `docs/reviews/2026-10-04-016-income-sources.md`. Scenarios and expected raises remain.
 
 ### Phase 2 — Financial inventory and real budgeting
 
@@ -143,6 +143,8 @@ Key implementation anchors:
 8. Include unequal household contributions and sustainable discretionary spending for vacations, hobbies and ordinary life. Show the payoff effect of these choices without treating all nonessential spending as failure. Avoid requiring every historical transaction to be cleaned before drafting a plan.
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
+
+**Status (October 4, 2026):** Approved. A household can record income sources: net pay for one payment, cadence, next payment date, contributor, and reliability. Remove deletes a source. `20261005025504_AddIncomeSources` and `20261005031455_DropIncomeSourceArchivedAt` are applied. The amount stays one payment and is not turned into a monthly figure. Low, typical, and strong scenarios and expected raises remain. See `docs/reviews/2026-10-04-016-income-sources.md`.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 

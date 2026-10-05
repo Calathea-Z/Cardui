@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { DateField } from "@/components/ui/date-field";
 import { Input } from "@/components/ui/input";
 import type { AccountDto } from "@/lib/api/types";
 import { formatCurrency } from "./formatCurrency";
@@ -79,14 +80,16 @@ function AccountDetailContent({
               inputMode="decimal"
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
+          <div className="flex flex-col gap-1.5 text-sm font-medium">
             As of
-            <Input
-              type="date"
+            <DateField
+              title="As of"
               value={detail.asOfDate}
-              onChange={(event) => detail.setAsOfDate(event.target.value)}
+              onChange={detail.setAsOfDate}
+              onOpenChange={onPickerOpenChange}
+              className="h-9"
             />
-          </label>
+          </div>
           <Button
             type="button"
             variant="outline"
@@ -143,7 +146,7 @@ function AccountDetailContent({
 
 /**
  * Opens the detail sheet for the selected account.
- * Escape closes the sheet while the type picker is closed, and a different account remounts the form.
+ * Escape closes the sheet while a choice list or the date calendar is closed, and a different account remounts the form.
  */
 export function AccountDetailSheet({
   account,

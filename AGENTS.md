@@ -15,7 +15,8 @@ that reply.
 
 Update models and the DbContext, then ask before generating or applying an
 EF Core migration. After approval, run `dotnet ef` from `api/` in
-PowerShell. Do not drop or wipe data without a separate approval.
+PowerShell. Do not drop or wipe data without a separate approval. When a
+column, type, or API is no longer used, remove it in the same change.
 
 ## Backend method comments
 
@@ -76,8 +77,9 @@ When a control is reused, decide whether it should be a shared primitive in
 `frontend/components/ui`. For a large or specialized control, decide whether
 a small primitive is enough or a library is the better fit, and ask before
 adding that dependency. Choice lists use `Select` in
-`frontend/components/ui/select.tsx`. Do not use a native `<select>`. See
-`.cursor/rules/ui-primitives.mdc`.
+`frontend/components/ui/select.tsx`. Do not use a native `<select>`.
+Date entry uses `DateField` in `frontend/components/ui/date-field.tsx`.
+Do not use a native date input. See `.cursor/rules/ui-primitives.mdc`.
 
 ## Frontend layers
 

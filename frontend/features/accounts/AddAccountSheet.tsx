@@ -191,7 +191,7 @@ function AddAccountSheetContent({
 
 /**
  * Sheet for adding a manual account or linking one through Plaid.
- * Escape closes the sheet while the type picker is closed, and reopening starts a fresh form.
+ * Escape closes the sheet while the type list or the date calendar is closed, and reopening starts a fresh form.
  */
 export function AddAccountSheet({ open, onClose }: AddAccountSheetProps) {
   const [pickerOpen, setPickerOpen] = useState(false);

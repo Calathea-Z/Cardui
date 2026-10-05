@@ -19,6 +19,12 @@ export type {
 } from "./categories";
 export type { DashboardSummaryDto, SpendingByCategoryDto } from "./dashboard";
 export type {
+  IncomeCadence,
+  IncomeReliability,
+  IncomeSourceDto,
+  UpsertIncomeSourceDto,
+} from "./income";
+export type {
   FinancialProfileDto,
   HouseholdContributorDto,
   HouseholdDto,

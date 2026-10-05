@@ -96,15 +96,22 @@ public class FinancialProfileService : IFinancialProfileService
         return MapContributor(contributor);
     }
 
+    /// <inheritdoc />
     public async Task RemoveContributorAsync(
         Guid contributorId,
         CancellationToken cancellationToken = default)
     {
         var contributor = await FindContributorAsync(contributorId, cancellationToken);
+        await DetachIncomeSourcesAsync(contributor, cancellationToken);
         _dbContext.HouseholdContributors.Remove(contributor);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    #region Private Methods
+
+    /// <summary>
+    /// Loads the signed-in household so profile changes update that row.
+    /// </summary>
     private async Task<Household> RequireHouseholdAsync(CancellationToken cancellationToken)
     {
         var householdId = _householdScope.RequireHouseholdId();
@@ -119,6 +126,10 @@ public class FinancialProfileService : IFinancialProfileService
         return household;
     }
 
+    /// <summary>
+    /// Loads one contributor in the signed-in household.
+    /// A contributor from another household is not found.
+    /// </summary>
     private async Task<HouseholdContributor> FindContributorAsync(
         Guid contributorId,
         CancellationToken cancellationToken)
@@ -137,6 +148,9 @@ public class FinancialProfileService : IFinancialProfileService
         return contributor;
     }
 
+    /// <summary>
+    /// Rejects a contributor name the household already uses, ignoring letter case.
+    /// </summary>
     private async Task RequireUniqueNameAsync(
         Guid householdId,
         string name,
@@ -160,6 +174,9 @@ public class FinancialProfileService : IFinancialProfileService
         }
     }
 
+    /// <summary>
+    /// Lists the household's contributors by name. The rows are not tracked.
+    /// </summary>
     private Task<List<HouseholdContributor>> ListContributorsAsync(
         Guid householdId,
         CancellationToken cancellationToken)
@@ -172,6 +189,9 @@ public class FinancialProfileService : IFinancialProfileService
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Keeps a three-letter planning currency code.
+    /// </summary>
     private static string RequireCurrency(string? value)
     {
         if (!PlanningCurrencyRules.TryNormalize(value, out var code))
@@ -182,6 +202,9 @@ public class FinancialProfileService : IFinancialProfileService
         return code;
     }
 
+    /// <summary>
+    /// Keeps a time zone the household can use for today's date.
+    /// </summary>
     private static string RequireTimeZone(string? value)
     {
         if (!HouseholdTime.TryNormalizeTimeZoneId(value, out var timeZoneId))
@@ -192,6 +215,9 @@ public class FinancialProfileService : IFinancialProfileService
         return timeZoneId;
     }
 
+    /// <summary>
+    /// Trims a contributor name and rejects a blank or oversized one.
+    /// </summary>
     private static string RequireName(string? name)
     {
         var trimmed = name?.Trim() ?? "";
@@ -203,6 +229,36 @@ public class FinancialProfileService : IFinancialProfileService
         return trimmed;
     }
 
+    /// <summary>
+    /// Clears this contributor from the household's income sources.
+    /// The sources stay, with no contributor, after the person is removed.
+    /// </summary>
+    private async Task DetachIncomeSourcesAsync(
+        HouseholdContributor contributor,
+        CancellationToken cancellationToken)
+    {
+        var sources = await _dbContext.IncomeSources
+            .Where(source =>
+                source.HouseholdId == contributor.HouseholdId
+                && source.ContributorId == contributor.Id)
+            .ToListAsync(cancellationToken);
+
+        if (sources.Count == 0)
+        {
+            return;
+        }
+
+        var now = _timeProvider.GetUtcNow();
+        foreach (var source in sources)
+        {
+            source.ContributorId = null;
+            source.UpdatedAt = now;
+        }
+    }
+
+    /// <summary>
+    /// Builds the profile response from the household and its contributors.
+    /// </summary>
     private static FinancialProfileDto Map(
         Household household,
         IReadOnlyList<HouseholdContributor> contributors)
@@ -215,6 +271,9 @@ public class FinancialProfileService : IFinancialProfileService
         };
     }
 
+    /// <summary>
+    /// Builds the contributor response.
+    /// </summary>
     private static HouseholdContributorDto MapContributor(HouseholdContributor contributor)
     {
         return new HouseholdContributorDto
@@ -224,4 +283,6 @@ public class FinancialProfileService : IFinancialProfileService
             IsVisible = contributor.IsVisible
         };
     }
+
+    #endregion
 }

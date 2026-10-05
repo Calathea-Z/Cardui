@@ -19,6 +19,10 @@ public interface IFinancialProfileService
         UpsertHouseholdContributorDto dto,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Removes a contributor from the household.
+    /// Income sources that named this person stay, with no contributor.
+    /// </summary>
     Task RemoveContributorAsync(
         Guid contributorId,
         CancellationToken cancellationToken = default);

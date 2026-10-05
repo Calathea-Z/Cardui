@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { AnchoredPopover } from "@/components/ui/anchored-popover";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -31,6 +31,7 @@ type SelectProps = {
 /**
  * Choice list for a form or a detail row.
  * Under 768px it opens in a bottom sheet. From 768px up it opens in a popover anchored to the trigger. The list is portaled to document.body after the client mounts.
+ * Opening the list focuses the first option, and Tab moves through the rest.
  */
 export function Select({
   value,
@@ -47,6 +48,7 @@ export function Select({
 }: SelectProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
   const desktop = useDesktopChoiceList();
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -55,6 +57,15 @@ export function Select({
   );
   const selected = options.find((option) => option.value === value);
   const displayValue = selected?.label ?? placeholder;
+
+  useEffect(() => {
+    if (!open || desktop) {
+      return;
+    }
+
+    // The phone sheet focuses its panel. Put focus on the first option after that so Tab walks the list.
+    optionsRef.current?.querySelector<HTMLElement>("[role='option']")?.focus();
+  }, [open, desktop]);
 
   function setOpenState(next: boolean) {
     setOpen(next);
@@ -141,6 +152,7 @@ export function Select({
             options={options}
             value={value}
             layout="popover"
+            containerRef={optionsRef}
             onSelect={handleSelect}
           />
         </AnchoredPopover>
@@ -160,6 +172,7 @@ export function Select({
                 options={options}
                 value={value}
                 layout="sheet"
+                containerRef={optionsRef}
                 onSelect={handleSelect}
               />
             </BottomSheet>,
@@ -174,6 +187,7 @@ type SelectOptionsProps = {
   options: SelectOption[];
   value: string;
   layout: "sheet" | "popover";
+  containerRef: { current: HTMLDivElement | null };
   onSelect: (value: string) => void;
 };
 
@@ -185,10 +199,12 @@ function SelectOptions({
   options,
   value,
   layout,
+  containerRef,
   onSelect,
 }: SelectOptionsProps) {
   return (
     <div
+      ref={containerRef}
       className={
         layout === "sheet"
           ? "divide-y divide-border/70 border-y border-border/70"

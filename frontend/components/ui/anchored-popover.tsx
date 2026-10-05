@@ -22,7 +22,7 @@ type AnchoredPopoverProps = {
   maxHeight?: number;
   /** Keeps the popover at minWidth instead of growing with the trigger. */
   fixedWidth?: boolean;
-  /** Moves focus to the selected option, or the first button, when the popover opens. */
+  /** Moves focus to the first option when the popover opens, so Tab walks the list from the top. */
   focusSelected?: boolean;
 };
 
@@ -93,10 +93,9 @@ export function AnchoredPopover({
     }
 
     focusedOnOpen.current = true;
-    const selected = popoverRef.current?.querySelector<HTMLElement>(
-      "[aria-selected='true']",
-    );
-    (selected ?? popoverRef.current?.querySelector("button"))?.focus();
+    const firstOption =
+      popoverRef.current?.querySelector<HTMLElement>("[role='option']");
+    (firstOption ?? popoverRef.current?.querySelector("button"))?.focus();
   }, [open, placement, focusSelected]);
 
   useEffect(() => {

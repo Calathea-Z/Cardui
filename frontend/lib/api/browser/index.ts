@@ -8,6 +8,7 @@ export * from "./categories";
 export * from "./households";
 export * from "./income";
 export * from "./obligations";
+export * from "./debts";
 export * from "./plaid";
 export * from "./transactions";
 export * from "./transaction-imports";

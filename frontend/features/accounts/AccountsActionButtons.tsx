@@ -45,7 +45,7 @@ export function AccountsActionButtons({
         <Plus className="size-5" />
       </Button>
 
-      <div ref={menuContainerRef} className="relative">
+      <div ref={menuContainerRef}>
         <Button
           type="button"
           variant="ghost"
@@ -62,6 +62,7 @@ export function AccountsActionButtons({
         <ActionMenu
           open={isMenuOpen}
           onClose={() => onMenuOpenChange(false)}
+          anchorRef={menuContainerRef}
           items={[
             {
               id: "refresh-all",

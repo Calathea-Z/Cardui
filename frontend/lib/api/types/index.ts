@@ -27,6 +27,12 @@ export type {
   UpsertIncomeSourceDto,
 } from "./income";
 export type {
+  ObligationCadence,
+  ObligationDto,
+  ObligationFlexibility,
+  UpsertObligationDto,
+} from "./obligations";
+export type {
   FinancialProfileDto,
   HouseholdContributorDto,
   HouseholdDto,

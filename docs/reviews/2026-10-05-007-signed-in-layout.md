@@ -85,8 +85,6 @@ Zach approved this increment on October 5, 2026.
 
 ## Pending decision
 
-Keyboard focus in detail panels, Home category links that keep the
-reporting period, the Difference explanation, and manual-account
-onboarding stay unstarted. Which of those to do next is the decision.
-Plaid sync reconciliation tests stay paused while the UI plan is the
-active local work.
+Zach chose to leave the UI plan and resume regular engineering on
+October 5, 2026. The next increment is the Plaid sync reconciliation
+tests.

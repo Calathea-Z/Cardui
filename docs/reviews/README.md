@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-05 — Plaid sync reconciliation tests](2026-10-05-008-plaid-sync-reconciliation-tests.md)
 - [2026-10-05 — Signed-in layout](2026-10-05-007-signed-in-layout.md)
 - [2026-10-05 — Signed-in UI review](2026-10-05-006-signed-in-ui-review.md)
 - [2026-10-05 — UI review notes](2026-10-05-005-ui-review-notes.md)

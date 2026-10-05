@@ -213,6 +213,92 @@ public class PlaidTransactionReconcilerTests
     }
 
     [Fact]
+    public async Task Reconcile_UnknownAccount_SkipsThatTransactionAndKeepsTheRest()
+    {
+        await using var dbContext = CreateDbContext();
+        var (plaidItemId, account) = await SeedAccountAsync(dbContext);
+        dbContext.Transactions.Add(new StoredTransaction
+        {
+            Id = Guid.NewGuid(),
+            AccountId = account.Id,
+            PlaidTransactionId = "posted-1",
+            Date = new DateOnly(2026, 10, 1),
+            Name = "Original",
+            Amount = 10m,
+            Pending = false,
+            CreatedAt = SyncedAt.AddDays(-1),
+            UpdatedAt = SyncedAt.AddDays(-1)
+        });
+        await dbContext.SaveChangesAsync();
+
+        var unknownModified = CreatePlaidTransaction(
+            "posted-1",
+            description: "Should not apply",
+            amount: 99m,
+            accountId: "missing-account");
+        var known = CreatePlaidTransaction("known-1");
+
+        var result = await CreateReconciler(dbContext).ReconcileAsync(
+            plaidItemId,
+            Accounts(account),
+            [known],
+            [unknownModified],
+            [],
+            SyncedAt);
+
+        var stored = await dbContext.Transactions.ToListAsync();
+        var original = Assert.Single(stored, transaction => transaction.PlaidTransactionId == "posted-1");
+        Assert.Equal("Original", original.Name);
+        Assert.Equal(10m, original.Amount);
+        Assert.Contains(stored, transaction => transaction.PlaidTransactionId == "known-1");
+        Assert.Equal(1, result.Added);
+        Assert.Equal(0, result.Modified);
+        Assert.Equal(0, result.Removed);
+    }
+
+    [Fact]
+    public async Task Reconcile_AddedTransaction_LeavesManualRowOnTheSameAccount()
+    {
+        await using var dbContext = CreateDbContext();
+        var (plaidItemId, account) = await SeedAccountAsync(dbContext);
+        var manualId = Guid.NewGuid();
+
+        dbContext.Transactions.Add(new StoredTransaction
+        {
+            Id = manualId,
+            AccountId = account.Id,
+            PlaidTransactionId = null,
+            Source = FinancialRecordSource.Manual,
+            Provenance = FinancialRecordProvenance.ManualEntry,
+            Date = new DateOnly(2026, 10, 1),
+            Name = "Cash",
+            Amount = 5m,
+            Pending = false,
+            CreatedAt = SyncedAt,
+            UpdatedAt = SyncedAt
+        });
+        await dbContext.SaveChangesAsync();
+
+        var result = await CreateReconciler(dbContext).ReconcileAsync(
+            plaidItemId,
+            Accounts(account),
+            [CreatePlaidTransaction("posted-1")],
+            [],
+            [],
+            SyncedAt);
+
+        var stored = await dbContext.Transactions.ToListAsync();
+        var manual = Assert.Single(stored, transaction => transaction.Id == manualId);
+        Assert.Null(manual.PlaidTransactionId);
+        Assert.Equal("Cash", manual.Name);
+        Assert.Equal(FinancialRecordSource.Manual, manual.Source);
+        Assert.Contains(stored, transaction => transaction.PlaidTransactionId == "posted-1");
+        Assert.Equal(2, stored.Count);
+        Assert.Equal(1, result.Added);
+        Assert.Equal(0, result.Removed);
+    }
+
+    [Fact]
     public async Task Reconcile_DoesNotRemoveTransactionWithoutExternalId()
     {
         await using var dbContext = CreateDbContext();
@@ -265,12 +351,13 @@ public class PlaidTransactionReconcilerTests
         string? pendingTransactionId = null,
         DateOnly? date = null,
         string description = "Merchant",
-        decimal amount = 12.34m) =>
+        decimal amount = 12.34m,
+        string accountId = "account-1") =>
         new()
         {
             TransactionId = transactionId,
             PendingTransactionId = pendingTransactionId,
-            AccountId = "account-1",
+            AccountId = accountId,
             Date = date ?? new DateOnly(2026, 10, 1),
             OriginalDescription = description,
             Amount = amount,

@@ -8,6 +8,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+New Tortoise screens follow the light shell, the account-menu map, and the shared action, state, and accessibility conventions. See `.cursor/rules/ui-governance.mdc`.
+
 When a control is reused, decide whether it should be a shared primitive in
 `components/ui`. For a large or specialized control, decide whether a small
 primitive is enough or a library is the better fit, and ask before adding

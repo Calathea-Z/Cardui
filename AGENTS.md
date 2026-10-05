@@ -71,6 +71,10 @@ the columns the caller needs. Filter transactions and balance snapshots by
 account id, and index a growing table by the columns that lookup uses. Ask
 before an index migration. See `.cursor/rules/backend-query-access.mdc`.
 
+## UI governance
+
+New Tortoise screens follow the light shell, the account-menu map, and the shared action, state, and accessibility conventions. See `.cursor/rules/ui-governance.mdc`.
+
 ## UI primitives
 
 When a control is reused, decide whether it should be a shared primitive in

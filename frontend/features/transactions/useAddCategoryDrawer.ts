@@ -70,12 +70,6 @@ export function useAddCategoryDrawer({
       ? form.subGroupId
       : "";
 
-  const selectedGroupName =
-    sortedGroups.find((group) => group.id === form.groupId)?.name ?? "Select";
-  const selectedSubGroupName =
-    visibleSubGroups.find((subGroup) => subGroup.id === effectiveSubGroupId)
-      ?.name ?? "Select";
-
   const isDirty =
     form.name !== initialForm.name ||
     form.emoji !== initialForm.emoji ||
@@ -128,8 +122,6 @@ export function useAddCategoryDrawer({
     sortedGroups,
     visibleSubGroups,
     effectiveSubGroupId,
-    selectedGroupName,
-    selectedSubGroupName,
     submit,
   };
 }

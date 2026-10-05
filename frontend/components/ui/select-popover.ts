@@ -1,7 +1,7 @@
 const GAP = 4;
 const MARGIN = 8;
-const MIN_WIDTH = 192;
-const MAX_LIST_HEIGHT = 320;
+const DEFAULT_MIN_WIDTH = 192;
+const DEFAULT_MAX_HEIGHT = 320;
 const PREFER_BELOW_IF_AT_LEAST = 160;
 
 export type PopoverAnchor = {
@@ -31,15 +31,32 @@ export type PopoverPlacement = {
 };
 
 /**
- * Places a choice list under its trigger, or above it when the room below is small.
- * The list stays inside the viewport. It matches the trigger width, and it is at least 12rem when the viewport allows.
+ * Optional size for a popover that is wider or taller than a choice list.
+ * Width and height still shrink to the room inside the viewport.
+ */
+export type PopoverSize = {
+  minWidth?: number;
+  maxHeight?: number;
+  /** When true, the width stays at minWidth instead of growing with the trigger. */
+  fixedWidth?: boolean;
+};
+
+/**
+ * Places a popover under its trigger, or above it when the room below is small.
+ * It stays inside the viewport. It matches the trigger width, and it is at least 12rem unless a larger minimum is requested. A fixed width stays at that minimum.
  */
 export function placeSelectPopover(
   anchor: PopoverAnchor,
   viewport: PopoverViewport,
+  size?: PopoverSize,
 ): PopoverPlacement {
+  const minWidth = size?.minWidth ?? DEFAULT_MIN_WIDTH;
+  const maxHeight = size?.maxHeight ?? DEFAULT_MAX_HEIGHT;
   const availableWidth = Math.max(0, viewport.width - MARGIN * 2);
-  const width = Math.min(Math.max(anchor.width, MIN_WIDTH), availableWidth);
+  const preferredWidth = size?.fixedWidth
+    ? minWidth
+    : Math.max(anchor.width, minWidth);
+  const width = Math.min(preferredWidth, availableWidth);
   let left = anchor.left;
 
   if (left + width > viewport.width - MARGIN) {
@@ -64,6 +81,6 @@ export function placeSelectPopover(
     bottom: viewport.height - anchor.top + GAP,
     left,
     width,
-    maxHeight: Math.min(MAX_LIST_HEIGHT, room),
+    maxHeight: Math.min(maxHeight, room),
   };
 }

@@ -7,10 +7,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ChoiceSurface } from "@/components/ui/choice-surface";
 import { cn } from "@/lib/utils";
 import {
   addDays,
@@ -24,6 +23,11 @@ import {
   todayDateInput,
   weekdayLabels,
 } from "./date-field-calendar";
+
+/** Month grid is seven day buttons wide, plus the month controls. */
+const CALENDAR_POPOVER_MIN_WIDTH = 320;
+/** Header, six weeks, and the clear/today row, plus the popover padding. */
+const CALENDAR_POPOVER_MAX_HEIGHT = 460;
 
 type DateFieldProps = {
   value: string;
@@ -43,8 +47,8 @@ type DateFieldProps = {
 };
 
 /**
- * Date control that opens a month calendar in the themed bottom sheet.
- * The value is `YYYY-MM-DD`. An empty value shows the placeholder.
+ * Date control that opens a month calendar.
+ * Under 768px the calendar is a bottom sheet. From 768px up it is a popover anchored to the trigger. The value is `YYYY-MM-DD`. An empty value shows the placeholder.
  */
 export function DateField({
   value,
@@ -66,11 +70,7 @@ export function DateField({
   const [visibleMonth, setVisibleMonth] = useState(
     () => visibleMonthFor(value).month,
   );
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const labelText = formatDateLabel(value);
 
   function setOpenState(next: boolean) {
@@ -101,8 +101,11 @@ export function DateField({
       {variant === "row" ? (
         <button
           type="button"
+          ref={triggerRef}
           disabled={disabled}
           onClick={openCalendar}
+          aria-expanded={open}
+          aria-haspopup="dialog"
           className={cn(
             "flex min-h-12 w-full items-center gap-3 text-left",
             disabled && "opacity-50",
@@ -122,9 +125,12 @@ export function DateField({
       ) : (
         <button
           type="button"
+          ref={triggerRef}
           disabled={disabled}
           onClick={openCalendar}
           aria-label={title}
+          aria-expanded={open}
+          aria-haspopup="dialog"
           className={cn(
             "flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm transition-colors outline-none",
             "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -147,34 +153,30 @@ export function DateField({
         </button>
       )}
 
-      {mounted
-        ? createPortal(
-            <BottomSheet
-              open={open}
-              onClose={() => setOpenState(false)}
-              title={title}
-              headerAction="close"
-              overlayClassName="z-[110]"
-              className="z-[110]"
-            >
-              <DateFieldCalendar
-                visibleYear={visibleYear}
-                visibleMonth={visibleMonth}
-                onVisibleMonthChange={(year, month) => {
-                  setVisibleYear(year);
-                  setVisibleMonth(month);
-                }}
-                value={value}
-                min={min}
-                max={max}
-                onSelect={selectDate}
-                onClear={() => selectDate("")}
-                onToday={() => selectDate(todayDateInput())}
-              />
-            </BottomSheet>,
-            document.body,
-          )
-        : null}
+      <ChoiceSurface
+        open={open}
+        title={title}
+        triggerRef={triggerRef}
+        onClose={() => setOpenState(false)}
+        minWidth={CALENDAR_POPOVER_MIN_WIDTH}
+        maxHeight={CALENDAR_POPOVER_MAX_HEIGHT}
+        fixedWidth
+      >
+        <DateFieldCalendar
+          visibleYear={visibleYear}
+          visibleMonth={visibleMonth}
+          onVisibleMonthChange={(year, month) => {
+            setVisibleYear(year);
+            setVisibleMonth(month);
+          }}
+          value={value}
+          min={min}
+          max={max}
+          onSelect={selectDate}
+          onClear={() => selectDate("")}
+          onToday={() => selectDate(todayDateInput())}
+        />
+      </ChoiceSurface>
     </>
   );
 }
@@ -192,7 +194,7 @@ type DateFieldCalendarProps = {
 };
 
 /**
- * Month grid inside the date sheet.
+ * Month grid inside the date popover or sheet.
  * Arrow keys move by day or week. A day outside the bounds cannot be chosen.
  */
 function DateFieldCalendar({

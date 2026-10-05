@@ -1,19 +1,11 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { AnchoredPopover } from "@/components/ui/anchored-popover";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import {
-  placeSelectPopover,
-  type PopoverPlacement,
-} from "@/components/ui/select-popover";
+import { useDesktopChoiceList } from "@/components/ui/use-desktop-choice-list";
 import { cn } from "@/lib/utils";
 
 export type SelectOption = {
@@ -35,30 +27,6 @@ type SelectProps = {
   className?: string;
   onOpenChange?: (open: boolean) => void;
 };
-
-/** Matches the `md` breakpoint. The choice list is a popover from this width up. */
-const DESKTOP_CHOICE_LIST_QUERY = "(min-width: 768px)";
-
-/**
- * Subscribes to the desktop choice-list breakpoint.
- */
-function subscribeDesktopChoiceList(onChange: () => void) {
-  const media = window.matchMedia(DESKTOP_CHOICE_LIST_QUERY);
-  media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
-}
-
-/**
- * Reports whether the choice list should open as a popover.
- * The server render is the phone sheet. The client switches at 768px.
- */
-function useDesktopChoiceList() {
-  return useSyncExternalStore(
-    subscribeDesktopChoiceList,
-    () => window.matchMedia(DESKTOP_CHOICE_LIST_QUERY).matches,
-    () => false,
-  );
-}
 
 /**
  * Choice list for a form or a detail row.
@@ -160,16 +128,22 @@ export function Select({
       </button>
 
       {mounted && desktop ? (
-        <SelectPopover
+        <AnchoredPopover
           open={open}
-          title={title}
-          value={value}
-          options={options}
+          label={title}
+          role="listbox"
           triggerRef={triggerRef}
-          className={overlayClassName}
+          className={cn("py-1", overlayClassName)}
           onClose={() => setOpenState(false)}
-          onSelect={handleSelect}
-        />
+          focusSelected
+        >
+          <SelectOptions
+            options={options}
+            value={value}
+            layout="popover"
+            onSelect={handleSelect}
+          />
+        </AnchoredPopover>
       ) : null}
 
       {mounted && !desktop
@@ -193,158 +167,6 @@ export function Select({
           )
         : null}
     </>
-  );
-}
-
-type SelectPopoverProps = {
-  open: boolean;
-  title: string;
-  value: string;
-  options: SelectOption[];
-  triggerRef: React.RefObject<HTMLButtonElement | null>;
-  className?: string;
-  onClose: () => void;
-  onSelect: (value: string) => void;
-};
-
-/**
- * Choice list anchored to its trigger.
- * It closes on Escape or a press outside the list and the trigger, and it moves with the trigger while the page scrolls.
- */
-function SelectPopover({
-  open,
-  title,
-  value,
-  options,
-  triggerRef,
-  className,
-  onClose,
-  onSelect,
-}: SelectPopoverProps) {
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [placement, setPlacement] = useState<PopoverPlacement | null>(null);
-  const focusedOnOpen = useRef(false);
-
-  useLayoutEffect(() => {
-    if (!open) {
-      focusedOnOpen.current = false;
-      return;
-    }
-
-    /**
-     * Reads the trigger and stores the list position.
-     */
-    function updatePlacement() {
-      const trigger = triggerRef.current;
-      if (!trigger) {
-        return;
-      }
-
-      const rect = trigger.getBoundingClientRect();
-      setPlacement(
-        placeSelectPopover(
-          {
-            top: rect.top,
-            bottom: rect.bottom,
-            left: rect.left,
-            width: rect.width,
-          },
-          { width: window.innerWidth, height: window.innerHeight },
-        ),
-      );
-    }
-
-    updatePlacement();
-    window.addEventListener("resize", updatePlacement);
-    document.addEventListener("scroll", updatePlacement, true);
-
-    return () => {
-      window.removeEventListener("resize", updatePlacement);
-      document.removeEventListener("scroll", updatePlacement, true);
-    };
-  }, [open, triggerRef]);
-
-  useLayoutEffect(() => {
-    if (!open || !placement || focusedOnOpen.current) {
-      return;
-    }
-
-    focusedOnOpen.current = true;
-    const selected = popoverRef.current?.querySelector<HTMLElement>(
-      "[aria-selected='true']",
-    );
-    (selected ?? popoverRef.current?.querySelector("button"))?.focus();
-  }, [open, placement]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    /**
-     * Closes the list when the press lands outside the list and the trigger.
-     */
-    function handlePointerDown(event: MouseEvent) {
-      const target = event.target as Node;
-      if (popoverRef.current?.contains(target)) {
-        return;
-      }
-
-      if (triggerRef.current?.contains(target)) {
-        return;
-      }
-
-      onClose();
-    }
-
-    /**
-     * Closes the list when the key is Escape.
-     */
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        onClose();
-      }
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, onClose, triggerRef]);
-
-  if (!open || !placement) {
-    return null;
-  }
-
-  return createPortal(
-    <div
-      ref={popoverRef}
-      role="listbox"
-      aria-label={title}
-      style={{
-        top: placement.side === "below" ? placement.top : undefined,
-        bottom: placement.side === "above" ? placement.bottom : undefined,
-        left: placement.left,
-        width: placement.width,
-        maxHeight: placement.maxHeight,
-      }}
-      className={cn(
-        "fixed z-[110] overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-xl",
-        className,
-      )}
-    >
-      <SelectOptions
-        options={options}
-        value={value}
-        layout="popover"
-        onSelect={onSelect}
-      />
-    </div>,
-    document.body,
   );
 }
 

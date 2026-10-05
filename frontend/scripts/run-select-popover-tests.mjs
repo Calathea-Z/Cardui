@@ -56,6 +56,40 @@ test("shifts left when the trigger is near the right edge", () => {
   assert.equal(placement.left, 600);
 });
 
+test("uses a requested width and height when the viewport allows", () => {
+  const placement = popover.placeSelectPopover(
+    { top: 100, bottom: 140, left: 10, width: 120 },
+    { width: 800, height: 700 },
+    { minWidth: 320, maxHeight: 448 },
+  );
+
+  assert.equal(placement.width, 320);
+  assert.equal(placement.left, 10);
+  assert.equal(placement.maxHeight, 448);
+});
+
+test("keeps a fixed width when the trigger is wider", () => {
+  const placement = popover.placeSelectPopover(
+    { top: 100, bottom: 140, left: 40, width: 400 },
+    { width: 800, height: 600 },
+    { minWidth: 320, fixedWidth: true },
+  );
+
+  assert.equal(placement.width, 320);
+  assert.equal(placement.left, 40);
+});
+
+test("shrinks a fixed width to the viewport", () => {
+  const placement = popover.placeSelectPopover(
+    { top: 10, bottom: 40, left: 10, width: 40 },
+    { width: 100, height: 400 },
+    { minWidth: 320, fixedWidth: true },
+  );
+
+  assert.equal(placement.width, 84);
+  assert.equal(placement.left, 8);
+});
+
 test("shrinks to the viewport when it is narrower than 12rem", () => {
   const placement = popover.placeSelectPopover(
     { top: 10, bottom: 40, left: 10, width: 40 },

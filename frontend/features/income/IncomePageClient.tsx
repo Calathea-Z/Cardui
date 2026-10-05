@@ -1,7 +1,6 @@
 "use client";
 
 import { PageHeader } from "@/components/navigation/page-header";
-import { Alert } from "@/components/ui/alert";
 import type { IncomePageData } from "./incomePageData";
 import { IncomeSourceForm } from "./IncomeSourceForm";
 import { IncomeSourceList } from "./IncomeSourceList";
@@ -42,11 +41,6 @@ export function IncomePageClient({
         onSubmit={(event) => void income.handleSubmit(event)}
         onCancel={income.cancelEditing}
       />
-
-      {income.error ? (
-        <Alert variant="destructive">{income.error}</Alert>
-      ) : null}
-      {income.notice ? <Alert>{income.notice}</Alert> : null}
 
       <IncomeSourceList
         sources={income.sources}

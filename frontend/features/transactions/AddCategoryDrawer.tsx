@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useId, useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { Form } from "@/components/ui/form";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { ChoiceSurface } from "@/components/ui/choice-surface";
@@ -99,7 +100,7 @@ function AddCategoryDrawerSession({
 
   /**
    * Creates the category from the draft.
-   * The draft ignores a save that is still incomplete.
+   * An incomplete draft shows the missing facts in the form alert.
    */
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -128,7 +129,7 @@ function AddCategoryDrawerSession({
           </Button>
         }
       >
-        <form
+        <Form
           id={formId}
           onSubmit={handleSubmit}
           className="flex flex-col gap-4"
@@ -155,7 +156,6 @@ function AddCategoryDrawerSession({
                 disabled={draft.isSaving}
                 placeholder="Pets"
                 autoFocus
-                required
                 className={cn(
                   "min-w-0 flex-1 border-0 bg-transparent py-0 text-right text-sm text-muted-foreground outline-none",
                   "placeholder:text-muted-foreground/70",
@@ -262,7 +262,7 @@ function AddCategoryDrawerSession({
           {draft.error ? (
             <Alert variant="destructive">{draft.error}</Alert>
           ) : null}
-        </form>
+        </Form>
       </BottomSheet>
 
       <ChoiceSurface

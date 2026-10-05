@@ -92,6 +92,9 @@ public class IncomeSourceRulesTests
         Assert.Equal(
             "Enter the raise date.",
             Reject(raises: [new IncomeRaiseDraft(new DateOnly(1999, 1, 1), 120m)]).error);
+        Assert.Equal(
+            "A raise cannot be lower than the typical net pay.",
+            Reject(raises: [new IncomeRaiseDraft(new DateOnly(2026, 11, 1), 99m)]).error);
     }
 
     [Theory]

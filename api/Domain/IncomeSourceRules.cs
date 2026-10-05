@@ -13,7 +13,7 @@ public static class IncomeSourceRules
     /// <summary>
     /// Checks a proposed income source and returns the values to store.
     /// The typical amount is one take-home payment. Low and strong are optional.
-    /// A raise is a later typical amount and does not replace the current one.
+    /// A raise is a later typical amount, at least the current typical pay, and does not replace the current one.
     /// A monthly equivalent is not calculated.
     /// </summary>
     public static bool TryNormalize(
@@ -88,7 +88,7 @@ public static class IncomeSourceRules
             return false;
         }
 
-        if (!TryReadRaises(nextPaymentDate, raises, out var raiseDrafts, out error))
+        if (!TryReadRaises(takeHomeAmount, nextPaymentDate, raises, out var raiseDrafts, out error))
         {
             return false;
         }
@@ -170,9 +170,10 @@ public static class IncomeSourceRules
 
     /// <summary>
     /// Accepts expected raises on or after the next payment, each on its own date.
-    /// The list is ordered by date. An empty list means no raise is expected.
+    /// A raise amount cannot be lower than the typical pay. The list is ordered by date. An empty list means no raise is expected.
     /// </summary>
     private static bool TryReadRaises(
+        decimal takeHomeAmount,
         DateOnly nextPaymentDate,
         IReadOnlyList<IncomeRaiseDraft>? raises,
         out IReadOnlyList<IncomeRaiseDraft> normalized,
@@ -191,6 +192,12 @@ public static class IncomeSourceRules
         {
             if (!TryReadPayment(raise.TakeHomeAmount, "net pay", out error))
             {
+                return false;
+            }
+
+            if (raise.TakeHomeAmount < takeHomeAmount)
+            {
+                error = "A raise cannot be lower than the typical net pay.";
                 return false;
             }
 

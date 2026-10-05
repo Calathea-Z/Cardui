@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { Form } from "@/components/ui/form";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { DateField } from "@/components/ui/date-field";
@@ -81,7 +82,7 @@ function AddTransactionForm({
   const selectedAccount = accounts.find((account) => account.id === accountId);
 
   return (
-    <form
+    <Form
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
@@ -115,7 +116,6 @@ function AddTransactionForm({
               value={name}
               onChange={(event) => setName(event.target.value)}
               maxLength={300}
-              required
             />
           </label>
 
@@ -125,7 +125,6 @@ function AddTransactionForm({
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               inputMode="decimal"
-              required
             />
           </label>
 
@@ -208,7 +207,7 @@ function AddTransactionForm({
           {isSaving ? "Saving" : "Add transaction"}
         </Button>
       ) : null}
-    </form>
+    </Form>
   );
 }
 

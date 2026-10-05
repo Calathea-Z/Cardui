@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   createCategory,
   deleteCategory,
@@ -25,6 +26,7 @@ export function useCategoriesManager(
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const confirm = useConfirm();
 
   const sortedCategories = useMemo(
     () => sortCategoriesByName(categories),
@@ -118,9 +120,12 @@ export function useCategoriesManager(
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete ${category.name}? Transactions using this category will become uncategorized.`,
-    );
+    const confirmed = await confirm({
+      title: `Delete ${category.name}?`,
+      description:
+        "Transactions using this category will become uncategorized.",
+      confirmLabel: "Delete",
+    });
 
     if (!confirmed) {
       return;

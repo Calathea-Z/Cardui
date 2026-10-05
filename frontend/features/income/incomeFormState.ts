@@ -153,7 +153,7 @@ export function toIncomeSourceUpsert(
     };
   }
 
-  const raises = readRaises(form.raises, form.nextPaymentDate);
+  const raises = readRaises(form.raises, takeHomeAmount, form.nextPaymentDate);
   if (!raises.ok) {
     return raises;
   }
@@ -196,10 +196,11 @@ function readOptionalPayment(
 
 /**
  * Reads the raise rows that should be saved.
- * A row with neither a date nor an amount is ignored. Dates are sent in calendar order.
+ * A row with neither a date nor an amount is ignored. A raise cannot be lower than the typical pay. Dates are sent in calendar order.
  */
 function readRaises(
   rows: IncomeRaiseFormState[],
+  typicalAmount: number,
   nextPaymentDate: string,
 ): { ok: true; raises: UpsertIncomeRaiseDto[] } | { ok: false; error: string } {
   const raises: UpsertIncomeRaiseDto[] = [];
@@ -224,6 +225,13 @@ function readRaises(
       return {
         ok: false,
         error: "Enter a raise date on or after the next payment.",
+      };
+    }
+
+    if (amount < typicalAmount) {
+      return {
+        ok: false,
+        error: "A raise cannot be lower than the typical net pay.",
       };
     }
 

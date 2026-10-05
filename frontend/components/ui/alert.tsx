@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * Class names for an alert variant.
  * An omitted variant uses the muted default panel.
  */
-const alertVariants = cva("rounded-lg text-sm", {
+const alertVariants = cva("rounded-lg text-sm whitespace-pre-line", {
   variants: {
     variant: {
       default: "app-panel p-4 text-muted-foreground",
@@ -24,6 +24,7 @@ const alertVariants = cva("rounded-lg text-sm", {
 /**
  * Status message announced as an alert.
  * variant default is a muted panel, destructive is inline danger text, and panel is a danger panel.
+ * A line break in the text stays on its own line.
  */
 function Alert({
   className,

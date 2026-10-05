@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 import {
   createIncomeSource,
   deleteIncomeSource,
   updateIncomeSource,
 } from "@/lib/api/browser";
-import { getApiErrorMessage } from "@/lib/api/errors";
+import { describeApiError } from "@/lib/api/errors";
 import type {
   HouseholdContributorDto,
   IncomeRaiseDto,
@@ -42,10 +44,9 @@ export function useIncomeSources(
     emptyIncomeSourceForm(),
   );
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   const sortedSources = sortSources(sources);
   const today = calendarDateInTimeZone(timeZoneId, new Date());
@@ -58,14 +59,13 @@ export function useIncomeSources(
     event.preventDefault();
     const payload = toIncomeSourceUpsert(form);
     if (!payload.ok) {
-      setError(payload.error);
+      showIncomeError(payload.error);
       return;
     }
 
     const dto = payload.dto;
 
-    setError(null);
-    setNotice(null);
+    toast.dismiss(incomeToastId);
     setIsSaving(true);
 
     try {
@@ -84,9 +84,7 @@ export function useIncomeSources(
       setForm(emptyIncomeSourceForm());
       setEditingId(null);
     } catch (err) {
-      setError(
-        getApiErrorMessage(err, "That income source could not be saved."),
-      );
+      reportIncomeFailure(err, "That income source could not be saved.");
     } finally {
       setIsSaving(false);
     }
@@ -96,7 +94,7 @@ export function useIncomeSources(
    * Fills the form from one active source.
    */
   function startEditing(source: IncomeSourceDto) {
-    setError(null);
+    toast.dismiss(incomeToastId);
     setEditingId(source.id);
     setForm(incomeSourceToForm(source));
   }
@@ -105,7 +103,7 @@ export function useIncomeSources(
    * Clears the form and leaves edit mode.
    */
   function cancelEditing() {
-    setError(null);
+    toast.dismiss(incomeToastId);
     setEditingId(null);
     setForm(emptyIncomeSourceForm());
   }
@@ -115,14 +113,15 @@ export function useIncomeSources(
    * The row and its expected raises are removed. Balances stay unchanged.
    */
   async function remove(source: IncomeSourceDto) {
-    if (
-      !window.confirm(`Remove ${source.name}? This deletes the income source.`)
-    ) {
+    const confirmed = await confirm({
+      title: `Remove ${source.name}?`,
+      description: "This deletes the income source.",
+      confirmLabel: "Remove",
+    });
+    if (!confirmed) {
       return;
     }
 
-    setError(null);
-    setNotice(null);
     setBusyId(source.id);
     try {
       await deleteIncomeSource(source.id);
@@ -131,9 +130,7 @@ export function useIncomeSources(
         cancelEditing();
       }
     } catch (err) {
-      setError(
-        getApiErrorMessage(err, "That income source could not be removed."),
-      );
+      reportIncomeFailure(err, "That income source could not be removed.");
     } finally {
       setBusyId(null);
     }
@@ -192,8 +189,6 @@ export function useIncomeSources(
     },
     successNotice: string,
   ) {
-    setError(null);
-    setNotice(null);
     setBusyId(source.id);
     try {
       const updated = await updateIncomeSource(
@@ -206,11 +201,9 @@ export function useIncomeSources(
       if (editingId === source.id) {
         setForm(incomeSourceToForm(updated));
       }
-      setNotice(successNotice);
+      reportIncomeNotice(successNotice);
     } catch (err) {
-      setError(
-        getApiErrorMessage(err, "That expected raise could not be updated."),
-      );
+      reportIncomeFailure(err, "That expected raise could not be updated.");
     } finally {
       setBusyId(null);
     }
@@ -223,8 +216,6 @@ export function useIncomeSources(
     editingId,
     sources: sortedSources,
     today,
-    error,
-    notice,
     isSaving,
     busyId,
     handleSubmit,
@@ -234,6 +225,37 @@ export function useIncomeSources(
     confirmRaise,
     removeRaise,
   };
+}
+
+const incomeToastId = "income-action";
+
+/**
+ * Shows an income failure as a toast.
+ * A 500 uses the sentence about the action, and in development the exception is the second line.
+ * Validation text stays as the toast message.
+ */
+function reportIncomeFailure(error: unknown, action: string) {
+  const text = describeApiError(error, action);
+  showIncomeError(text.message, text.detail);
+}
+
+/**
+ * Shows one income error toast.
+ * A later income action replaces this toast.
+ */
+function showIncomeError(message: string, detail?: string) {
+  toast.error(message, {
+    id: incomeToastId,
+    ...(detail ? { description: detail } : {}),
+  });
+}
+
+/**
+ * Shows the result of confirming or removing a raise.
+ * A later income action replaces this toast.
+ */
+function reportIncomeNotice(message: string) {
+  toast.success(message, { id: incomeToastId });
 }
 
 /**

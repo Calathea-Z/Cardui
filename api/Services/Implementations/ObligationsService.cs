@@ -34,12 +34,40 @@ public class ObligationsService : IObligationsService
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<ObligationSuggestionDto>> GetSuggestionsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var context = await LoadSuggestionContextAsync(cancellationToken);
+        var charges = await LoadSuggestionChargesAsync(context.Today, cancellationToken);
+        var blocked = await LoadBlockedSuggestionKeysAsync(cancellationToken);
+        var suggestions = RecurringSuggestions.Find(
+            charges,
+            blocked.BillNames,
+            blocked.BillKeys,
+            blocked.DismissedKeys,
+            context.PlanningCurrency,
+            context.Today);
+        return MapSuggestions(suggestions, context.PlanningCurrency);
+    }
+
+    /// <inheritdoc />
+    public async Task DismissSuggestionAsync(
+        string? key,
+        CancellationToken cancellationToken = default)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        var normalized = RequireDismissalKey(key);
+        await SaveDismissalAsync(householdId, normalized, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<ObligationDto> CreateAsync(
         UpsertObligationDto dto,
         CancellationToken cancellationToken = default)
     {
         var householdId = _householdScope.RequireHouseholdId();
         var draft = RequireDraft(dto);
+        var suggestionKey = ReadStoredSuggestionKey(dto.SuggestionKey);
         var currency = await RequirePlanningCurrencyAsync(householdId, cancellationToken);
         await RequireAccountAsync(householdId, draft.AccountId, cancellationToken);
         await RequireUniqueNameAsync(householdId, draft.Name, null, cancellationToken);
@@ -47,6 +75,7 @@ public class ObligationsService : IObligationsService
             householdId,
             currency,
             draft,
+            suggestionKey,
             cancellationToken);
         return await ProjectObligationAsync(obligationId, cancellationToken);
     }
@@ -181,11 +210,13 @@ public class ObligationsService : IObligationsService
     /// <summary>
     /// Inserts one bill and returns its id.
     /// Currency is the household planning currency at creation. The amount stays one payment.
+    /// SuggestionKey is stored when the bill was added from a pattern. A hand-entered bill leaves it empty.
     /// </summary>
     private async Task<Guid> SaveNewObligationAsync(
         Guid householdId,
         string currency,
         ObligationDraft draft,
+        string? suggestionKey,
         CancellationToken cancellationToken)
     {
         var now = _timeProvider.GetUtcNow();
@@ -200,6 +231,7 @@ public class ObligationsService : IObligationsService
             NextDueDate = draft.NextDueDate,
             AccountId = draft.AccountId,
             Flexibility = draft.Flexibility,
+            SuggestionKey = suggestionKey,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -275,6 +307,177 @@ public class ObligationsService : IObligationsService
             .ThenBy(obligation => obligation.NextDueDate)
             .Select(ObligationDtoMapper.Projection)
             .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Reads the household planning currency and today's date in the household time zone.
+    /// Suggestions use that currency and that calendar day.
+    /// </summary>
+    private async Task<(string PlanningCurrency, DateOnly Today)> LoadSuggestionContextAsync(
+        CancellationToken cancellationToken)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        var profile = await _dbContext.Households
+            .AsNoTracking()
+            .Where(household => household.Id == householdId)
+            .Select(household => new
+            {
+                household.PlanningCurrency,
+                household.TimeZoneId
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (profile is null || string.IsNullOrWhiteSpace(profile.PlanningCurrency))
+        {
+            throw new NotFoundException("No household exists for the signed-in owner.");
+        }
+
+        return (
+            profile.PlanningCurrency,
+            FinancialDate.Today(_timeProvider, profile.TimeZoneId));
+    }
+
+    /// <summary>
+    /// Loads spending rows the finder can consider.
+    /// The household rule stays on accounts. Pending, archived, and non-positive amounts stay in the database.
+    /// </summary>
+    private async Task<List<RecurringSuggestionCharge>> LoadSuggestionChargesAsync(
+        DateOnly today,
+        CancellationToken cancellationToken)
+    {
+        var historyStart = today.AddYears(-RecurringSuggestions.HistoryYears);
+        return await _dbContext.Transactions
+            .AsNoTracking()
+            .InHousehold(_dbContext, _householdScope)
+            .Where(transaction => transaction.ArchivedAt == null)
+            .Where(transaction => !transaction.Pending)
+            .Where(transaction => transaction.Amount > 0)
+            .Where(transaction => transaction.Date >= historyStart && transaction.Date <= today)
+            .Select(transaction => new RecurringSuggestionCharge(
+                transaction.Date,
+                transaction.Amount,
+                transaction.Name,
+                transaction.MerchantName,
+                transaction.AccountId,
+                transaction.Account.Name,
+                transaction.IsoCurrencyCode,
+                transaction.Pending,
+                transaction.ArchivedAt != null,
+                transaction.Category == null ? null : transaction.Category.Key,
+                transaction.Category == null ? null : transaction.Category.SubGroup.Group.Key,
+                transaction.Provenance))
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads the bill names, stored pattern keys, and dismissals that hide a suggestion.
+    /// </summary>
+    private async Task<(List<string> BillNames, List<string?> BillKeys, List<string> DismissedKeys)>
+        LoadBlockedSuggestionKeysAsync(CancellationToken cancellationToken)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        var bills = await _dbContext.Obligations
+            .AsNoTracking()
+            .Where(obligation => obligation.HouseholdId == householdId)
+            .Select(obligation => new
+            {
+                obligation.Name,
+                obligation.SuggestionKey
+            })
+            .ToListAsync(cancellationToken);
+        var dismissed = await _dbContext.ObligationSuggestionDismissals
+            .AsNoTracking()
+            .Where(dismissal => dismissal.HouseholdId == householdId)
+            .Select(dismissal => dismissal.Key)
+            .ToListAsync(cancellationToken);
+
+        return (
+            bills.Select(bill => bill.Name).ToList(),
+            bills.Select(bill => bill.SuggestionKey).ToList(),
+            dismissed);
+    }
+
+    /// <summary>
+    /// Copies suggestions into the API shape and labels each amount with the planning currency.
+    /// </summary>
+    private static List<ObligationSuggestionDto> MapSuggestions(
+        IReadOnlyList<RecurringSuggestion> suggestions,
+        string planningCurrency)
+    {
+        return suggestions
+            .Select(suggestion => new ObligationSuggestionDto
+            {
+                Key = suggestion.Key,
+                Name = suggestion.Name,
+                Amount = suggestion.Amount,
+                Currency = planningCurrency,
+                Cadence = suggestion.Cadence,
+                NextDueDate = suggestion.NextDueDate,
+                AccountId = suggestion.AccountId,
+                AccountName = suggestion.AccountName
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// Stores a dismissal when this household has not already left that pattern out.
+    /// A second request for the same key changes nothing.
+    /// </summary>
+    private async Task SaveDismissalAsync(
+        Guid householdId,
+        string key,
+        CancellationToken cancellationToken)
+    {
+        var alreadyDismissed = await _dbContext.ObligationSuggestionDismissals
+            .AsNoTracking()
+            .AnyAsync(
+                dismissal => dismissal.HouseholdId == householdId && dismissal.Key == key,
+                cancellationToken);
+        if (alreadyDismissed)
+        {
+            return;
+        }
+
+        _dbContext.ObligationSuggestionDismissals.Add(new ObligationSuggestionDismissal
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = householdId,
+            Key = key,
+            DismissedAt = _timeProvider.GetUtcNow()
+        });
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Reads the pattern key stored on a bill that was added from a suggestion.
+    /// A blank key means the bill was entered by hand.
+    /// </summary>
+    private static string? ReadStoredSuggestionKey(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return null;
+        }
+
+        if (!RecurringSuggestions.TryNormalizeKey(key, out var normalized, out var error))
+        {
+            throw new BadRequestException(error);
+        }
+
+        return normalized;
+    }
+
+    /// <summary>
+    /// Requires a pattern key to dismiss. A blank or oversized key is rejected.
+    /// </summary>
+    private static string RequireDismissalKey(string? key)
+    {
+        if (!RecurringSuggestions.TryNormalizeKey(key, out var normalized, out var error))
+        {
+            throw new BadRequestException(error);
+        }
+
+        return normalized;
     }
 
     /// <summary>

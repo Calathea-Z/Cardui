@@ -1,5 +1,9 @@
 import { browserClient } from "../browser-client";
-import type { ObligationDto, UpsertObligationDto } from "../types";
+import type {
+  ObligationDto,
+  ObligationSuggestionDto,
+  UpsertObligationDto,
+} from "../types";
 
 /**
  * POST /api/obligations
@@ -37,4 +41,25 @@ export async function updateObligation(
  */
 export async function deleteObligation(id: string): Promise<void> {
   await browserClient.delete(`/api/obligations/${id}`);
+}
+
+/**
+ * GET /api/obligations/suggestions
+ * Loads recurring payments noticed in activity. They are not bills.
+ */
+export async function getObligationSuggestions(): Promise<
+  ObligationSuggestionDto[]
+> {
+  const response = await browserClient.get<ObligationSuggestionDto[]>(
+    "/api/obligations/suggestions",
+  );
+  return response.data;
+}
+
+/**
+ * POST /api/obligations/suggestions/dismiss
+ * Leaves a suggested payment out of bills. The pattern is not suggested again.
+ */
+export async function dismissObligationSuggestion(key: string): Promise<void> {
+  await browserClient.post("/api/obligations/suggestions/dismiss", { key });
 }

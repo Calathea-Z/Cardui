@@ -21,6 +21,7 @@ type BillFormProps = {
   planningCurrency: string;
   storedCurrency: string | null;
   isEditing: boolean;
+  fromSuggestion: boolean;
   isSaving: boolean;
   onChange: (form: BillFormState) => void;
   onPickerOpenChange: (open: boolean) => void;
@@ -30,6 +31,7 @@ type BillFormProps = {
 /**
  * Form for one bill.
  * The amount is one payment. Cadence and flexibility start unset on a new bill.
+ * A suggestion fills the facts activity showed and still asks whether the bill is essential or flexible.
  * The source account can stay blank.
  */
 export function BillForm({
@@ -39,6 +41,7 @@ export function BillForm({
   planningCurrency,
   storedCurrency,
   isEditing,
+  fromSuggestion,
   isSaving,
   onChange,
   onPickerOpenChange,
@@ -49,6 +52,10 @@ export function BillForm({
    * An edit keeps the currency from when the bill was created.
    */
   function currencyNote() {
+    if (fromSuggestion) {
+      return `This is a suggestion from activity. It becomes a bill when you add it. The amount uses ${planningCurrency}. It is one payment.`;
+    }
+
     if (!isEditing) {
       return `The amount uses ${planningCurrency}. It is one payment.`;
     }

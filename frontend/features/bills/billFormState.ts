@@ -3,6 +3,7 @@ import type {
   ObligationCadence,
   ObligationDto,
   ObligationFlexibility,
+  ObligationSuggestionDto,
   UpsertObligationDto,
 } from "@/lib/api/types";
 
@@ -10,6 +11,7 @@ import type {
  * Fields the bill form edits.
  * Cadence and flexibility stay empty until the user chooses them.
  * `accountId` is empty when the bill is not paid from a household account.
+ * `suggestionKey` is set when the form was opened from a suggestion. It stays null for a bill entered by hand.
  */
 export type BillFormState = {
   name: string;
@@ -18,6 +20,7 @@ export type BillFormState = {
   nextDueDate: string;
   accountId: string;
   flexibility: ObligationFlexibility | "";
+  suggestionKey: string | null;
 };
 
 /**
@@ -39,6 +42,7 @@ export function emptyBillForm(): BillFormState {
     nextDueDate: "",
     accountId: "",
     flexibility: "",
+    suggestionKey: null,
   };
 }
 
@@ -55,6 +59,26 @@ export function obligationToForm(obligation: ObligationDto): BillFormState {
     nextDueDate: obligation.nextDueDate.slice(0, 10),
     accountId: obligation.accountId ?? "",
     flexibility: obligation.flexibility,
+    suggestionKey: null,
+  };
+}
+
+/**
+ * Copies a suggestion into the form.
+ * Cadence, amount, date, and account are filled in. Essential or flexible stays unset so the person chooses it.
+ * The suggestion is not a bill until the form is saved.
+ */
+export function suggestionToForm(
+  suggestion: ObligationSuggestionDto,
+): BillFormState {
+  return {
+    name: suggestion.name,
+    amount: String(suggestion.amount),
+    cadence: suggestion.cadence,
+    nextDueDate: suggestion.nextDueDate.slice(0, 10),
+    accountId: suggestion.accountId ?? "",
+    flexibility: "",
+    suggestionKey: suggestion.key,
   };
 }
 
@@ -105,6 +129,7 @@ export function toObligationUpsert(form: BillFormState): BillUpsertResult {
       nextDueDate: form.nextDueDate,
       accountId: form.accountId || null,
       flexibility: form.flexibility,
+      suggestionKey: form.suggestionKey,
     },
   };
 }

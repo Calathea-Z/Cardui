@@ -29,9 +29,38 @@ public class ObligationsController : ControllerBase
     }
 
     /// <summary>
+    /// GET /api/obligations/suggestions
+    /// Returns recurring payments noticed in activity. They are not bills.
+    /// </summary>
+    [HttpGet("suggestions")]
+    [ProducesResponseType<IReadOnlyList<ObligationSuggestionDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ObligationSuggestionDto>>> GetSuggestions(
+        CancellationToken cancellationToken = default)
+    {
+        var suggestions = await _obligationsService.GetSuggestionsAsync(cancellationToken);
+        return Ok(suggestions);
+    }
+
+    /// <summary>
+    /// POST /api/obligations/suggestions/dismiss
+    /// Leaves a suggested payment out of bills. The pattern is not suggested again.
+    /// </summary>
+    [HttpPost("suggestions/dismiss")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DismissSuggestion(
+        [FromBody] DismissObligationSuggestionDto dto,
+        CancellationToken cancellationToken)
+    {
+        await _obligationsService.DismissSuggestionAsync(dto.Key, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
     /// POST /api/obligations
     /// Records a bill: one payment, cadence, next due date, optional source account,
     /// and whether it is essential or flexible.
+    /// A suggestion key records that the bill came from a pattern. The bill is confirmed by this save.
     /// </summary>
     [HttpPost]
     [ProducesResponseType<ObligationDto>(StatusCodes.Status200OK)]

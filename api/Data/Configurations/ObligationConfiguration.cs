@@ -10,6 +10,7 @@ public class ObligationConfiguration : IEntityTypeConfiguration<Obligation>
     /// <summary>
     /// Maps a bill to its household, optional source account, and lookup indexes.
     /// Cadence and flexibility are stored as their member names.
+    /// SuggestionKey is set when the bill was added from a recurring pattern.
     /// Deleting the household deletes the bill. Deleting the account clears the link.
     /// </summary>
     public void Configure(EntityTypeBuilder<Obligation> entity)
@@ -43,6 +44,9 @@ public class ObligationConfiguration : IEntityTypeConfiguration<Obligation>
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(32);
+
+        entity.Property(x => x.SuggestionKey)
+            .HasMaxLength(ObligationSuggestionDismissal.KeyMaxLength);
 
         entity.Property(x => x.CreatedAt)
             .IsRequired();

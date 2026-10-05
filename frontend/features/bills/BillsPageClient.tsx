@@ -6,6 +6,7 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { BillForm } from "./BillForm";
 import { BillList } from "./BillList";
+import { BillSuggestions } from "./BillSuggestions";
 import type { BillsPageData } from "./billPageData";
 import { useBills } from "./useBills";
 
@@ -14,18 +15,23 @@ type BillsPageClientProps = BillsPageData;
 /**
  * Bills page.
  * Saved bills stay on the page. Adding or editing one opens a panel.
+ * A suggestion stays off the list until it is added or left out.
  */
 export function BillsPageClient({
   obligations,
+  suggestions,
   accounts,
   planningCurrency,
 }: BillsPageClientProps) {
-  const bills = useBills(obligations);
+  const bills = useBills(obligations, suggestions);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [openPickerCount, setOpenPickerCount] = useState(0);
   const editing = bills.obligations.find(
     (obligation) => obligation.id === bills.editingId,
+  );
+  const suggesting = bills.suggestions.find(
+    (suggestion) => suggestion.key === bills.form.suggestionKey,
   );
 
   /**
@@ -80,8 +86,18 @@ export function BillsPageClient({
         }
       />
 
+      <BillSuggestions
+        suggestions={bills.suggestions}
+        busyKey={bills.busySuggestionKey}
+        onAdd={(suggestion, opener) =>
+          openForm(opener, () => bills.startFromSuggestion(suggestion))
+        }
+        onDismiss={(suggestion) => void bills.dismissSuggestion(suggestion)}
+      />
+
       <BillList
         obligations={bills.obligations}
+        hasSuggestions={bills.suggestions.length > 0}
         busyId={bills.busyId}
         onAdd={(opener) => openForm(opener, bills.startAdding)}
         onEdit={(obligation, opener) =>
@@ -93,19 +109,28 @@ export function BillsPageClient({
       <BottomSheet
         open={bills.isFormOpen}
         onClose={closeForm}
-        title={bills.editingId ? "Edit bill" : "Add bill"}
+        title={
+          bills.editingId
+            ? "Edit bill"
+            : bills.form.suggestionKey
+              ? "Add suggested bill"
+              : "Add bill"
+        }
         presentation="panel"
         headerAction="panel"
         closeOnEscape={openPickerCount === 0}
       >
         <BillForm
-          key={bills.editingId ?? "new"}
+          key={bills.editingId ?? bills.form.suggestionKey ?? "new"}
           form={bills.form}
           accounts={accounts}
-          savedAccountName={editing?.accountName ?? null}
+          savedAccountName={
+            editing?.accountName ?? suggesting?.accountName ?? null
+          }
           planningCurrency={planningCurrency}
           storedCurrency={editing?.currency ?? null}
           isEditing={bills.editingId !== null}
+          fromSuggestion={bills.form.suggestionKey !== null}
           isSaving={bills.isSaving}
           onChange={bills.setForm}
           onPickerOpenChange={handlePickerOpenChange}

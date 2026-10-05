@@ -15,4 +15,6 @@ public class UpsertObligationDto
     public Guid? AccountId { get; set; }
 
     public ObligationFlexibility? Flexibility { get; set; }
+
+    public string? SuggestionKey { get; set; }
 }

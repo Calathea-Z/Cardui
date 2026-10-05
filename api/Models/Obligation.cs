@@ -26,6 +26,8 @@ public class Obligation
 
     public ObligationFlexibility Flexibility { get; set; }
 
+    public string? SuggestionKey { get; set; }
+
     public DateTimeOffset CreatedAt { get; init; }
 
     public DateTimeOffset UpdatedAt { get; set; }

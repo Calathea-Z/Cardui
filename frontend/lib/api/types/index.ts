@@ -30,6 +30,7 @@ export type {
   ObligationCadence,
   ObligationDto,
   ObligationFlexibility,
+  ObligationSuggestionDto,
   UpsertObligationDto,
 } from "./obligations";
 export type {

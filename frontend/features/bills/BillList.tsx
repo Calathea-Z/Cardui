@@ -12,6 +12,7 @@ import {
 
 type BillListProps = {
   obligations: ObligationDto[];
+  hasSuggestions: boolean;
   busyId: string | null;
   onAdd: (opener: HTMLElement) => void;
   onEdit: (obligation: ObligationDto, opener: HTMLElement) => void;
@@ -24,6 +25,7 @@ type BillListProps = {
  */
 export function BillList({
   obligations,
+  hasSuggestions,
   busyId,
   onAdd,
   onEdit,
@@ -31,10 +33,17 @@ export function BillList({
 }: BillListProps) {
   return (
     <section className="flex flex-col gap-3">
+      {hasSuggestions && obligations.length > 0 ? (
+        <h2 className="app-section-title">Saved bills</h2>
+      ) : null}
       {obligations.length === 0 ? (
         <EmptyState
           title="No bills yet"
-          description="Add a bill or other payment you make on a schedule. Enter the amount of one payment."
+          description={
+            hasSuggestions
+              ? "None of the suggestions above are bills until you add them."
+              : "Add a bill or other payment you make on a schedule. Enter the amount of one payment."
+          }
           action={
             <Button
               type="button"

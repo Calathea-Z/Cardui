@@ -40,6 +40,28 @@ export type ObligationDto = {
   flexibility: ObligationFlexibility;
 };
 
+/**
+ * A recurring payment noticed in activity.
+ * It is not a bill. `amount` is one typical payment.
+ * `accountId` is null when the charges did not all leave one account.
+ * `key` is the normalized merchant text. Saving a bill with that key keeps the pattern from being suggested again.
+ */
+export type ObligationSuggestionDto = {
+  key: string;
+  name: string;
+  amount: number;
+  currency: string;
+  cadence: ObligationCadence;
+  nextDueDate: string;
+  accountId: string | null;
+  accountName: string | null;
+};
+
+/**
+ * Fields saved for a bill.
+ * `suggestionKey` is set when the bill was added from a suggestion.
+ * It is null for a bill entered by hand, and an edit does not change the stored key.
+ */
 export type UpsertObligationDto = {
   name: string;
   amount: number;
@@ -47,4 +69,5 @@ export type UpsertObligationDto = {
   nextDueDate: string;
   accountId: string | null;
   flexibility: ObligationFlexibility;
+  suggestionKey: string | null;
 };

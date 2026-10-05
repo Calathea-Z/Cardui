@@ -20,6 +20,9 @@ public class CarduiDBContext : DbContext
 
     public DbSet<Obligation> Obligations => Set<Obligation>();
 
+    public DbSet<ObligationSuggestionDismissal> ObligationSuggestionDismissals =>
+        Set<ObligationSuggestionDismissal>();
+
     public DbSet<PlaidItem> PlaidItems => Set<PlaidItem>();
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();

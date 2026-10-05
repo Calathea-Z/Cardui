@@ -3,7 +3,7 @@ import { serverClient } from "../server-client";
 
 /**
  * GET /api/income-sources
- * Loads the household's income sources.
+ * Loads the household's income sources, including scenarios and expected raises.
  */
 export async function getIncomeSources(): Promise<IncomeSourceDto[]> {
   const response = await serverClient.get<IncomeSourceDto[]>(

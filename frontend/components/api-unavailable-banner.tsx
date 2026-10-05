@@ -13,6 +13,7 @@ type ApiUnavailableBannerProps = {
 /**
  * Banner that says the API cannot be reached.
  * Retry refreshes the current route, and a missing message says the backend may be offline, browsing still works, and data loads when the API is back.
+ * A line break in the message stays on its own line.
  */
 export function ApiUnavailableBanner({
   message,
@@ -33,7 +34,7 @@ export function ApiUnavailableBanner({
         <p className="text-sm font-medium text-foreground">
           Can&apos;t reach the API
         </p>
-        <p className="mt-0.5 text-sm text-muted-foreground">
+        <p className="mt-0.5 text-sm whitespace-pre-line text-muted-foreground">
           {message ??
             "The backend may be offline. You can still browse the app; data will load when it comes back."}
         </p>

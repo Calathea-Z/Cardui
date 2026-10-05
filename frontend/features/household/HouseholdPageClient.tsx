@@ -1,6 +1,7 @@
 "use client";
 
 import { Alert } from "@/components/ui/alert";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -27,7 +28,7 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
         description="One planning currency, the household time zone, and the people whose finances belong here. Contributors are names you keep, not separate sign-ins."
       />
 
-      <form
+      <Form
         className="app-panel flex flex-col gap-4 p-4"
         onSubmit={(event) => {
           event.preventDefault();
@@ -77,7 +78,7 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
             {household.isSavingProfile ? "Saving…" : "Save profile"}
           </Button>
         </div>
-      </form>
+      </Form>
 
       <section className="app-panel flex flex-col gap-4 p-4">
         <div>
@@ -108,7 +109,7 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
           </ul>
         )}
 
-        <form
+        <Form
           className="flex flex-col gap-3 border-t border-border/70 pt-4"
           onSubmit={(event) => {
             event.preventDefault();
@@ -147,7 +148,7 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
               {household.isAdding ? "Adding…" : "Add contributor"}
             </Button>
           </div>
-        </form>
+        </Form>
       </section>
     </div>
   );

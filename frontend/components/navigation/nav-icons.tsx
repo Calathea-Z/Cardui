@@ -4,6 +4,7 @@ import {
   Building2,
   LayoutDashboard,
   PieChart,
+  Receipt,
   Tags,
   Wallet,
 } from "lucide-react";
@@ -26,6 +27,8 @@ export function NavIcon({ href }: NavIconProps) {
       return <Wallet className={className} aria-hidden />;
     case "/income":
       return <Banknote className={className} aria-hidden />;
+    case "/bills":
+      return <Receipt className={className} aria-hidden />;
     case "/institutions":
       return <Building2 className={className} aria-hidden />;
     case "/budgets":

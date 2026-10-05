@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { ChoiceSurface } from "@/components/ui/choice-surface";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,7 @@ export function CategoryForm({
   const iconGlyph = iconOnTheControl(form.icon);
 
   return (
-    <form onSubmit={onSubmit} className="app-panel p-5">
+    <Form onSubmit={onSubmit} className="app-panel p-5">
       <h2 className="font-semibold">
         {editingCategory
           ? editingCategory.isSystem
@@ -263,7 +264,7 @@ export function CategoryForm({
           }}
         />
       </ChoiceSurface>
-    </form>
+    </Form>
   );
 }
 

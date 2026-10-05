@@ -2,7 +2,7 @@
 
 Prepared September 25, 2026; direction updated October 2, 2026. Proposed development roadmap based on the current repository, original `Plan.md`, this planning conversation, and the supplied capability inventory. This document preserves the original specification rather than overwriting it. Release boundaries below are recommendations, not previously approved scope cuts.
 
-**Current local work (October 5, 2026).** The signed-in UI plan through the layout pass is approved. See [`docs/reviews/2026-10-05-007-signed-in-layout.md`](reviews/2026-10-05-007-signed-in-layout.md). Plaid sync reconciliation tests are the active engineering increment.
+**Current local work (October 5, 2026).** Manual bills are approved in [`docs/reviews/2026-10-05-012-bills.md`](reviews/2026-10-05-012-bills.md). Recurring suggestions remain the rest of Phase 2 item 3. Overlapping worker and manual sync remains open.
 
 ## 1. Mission and first product outcome
 
@@ -131,7 +131,7 @@ Key implementation anchors:
 2. Keep the approved behavior: preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo.
 3. Leave fitting the sheet to phone and desktop, plus the broader keyboard and screen-reader pass, for Phase 6 item 4.
 
-**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/2026-10-04-010-csv-import-ux.md`. Income-source capture is approved in `docs/reviews/2026-10-04-016-income-sources.md`. Scenarios and expected raises remain.
+**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/2026-10-04-010-csv-import-ux.md`. Income-source capture is approved in `docs/reviews/2026-10-04-016-income-sources.md`. Scenarios and expected raises are approved in `docs/reviews/2026-10-05-009-income-scenarios-and-raises.md`.
 
 ### Phase 2 — Financial inventory and real budgeting
 
@@ -146,7 +146,7 @@ Key implementation anchors:
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
 
-**Status (October 4, 2026):** Approved. A household can record income sources: net pay for one payment, cadence, next payment date, contributor, and reliability. Remove deletes a source. `20261005025504_AddIncomeSources` and `20261005031455_DropIncomeSourceArchivedAt` are applied. The amount stays one payment and is not turned into a monthly figure. Low, typical, and strong scenarios and expected raises remain. See `docs/reviews/2026-10-04-016-income-sources.md`. The signed-in UI plan through the layout pass is approved. Plaid sync reconciliation tests are the active engineering increment.
+**Status (October 5, 2026):** A household can record income sources: typical net pay for one payment, cadence, next payment date, contributor, and reliability. Low and strong are optional. An expected raise is a later typical amount. When that date arrives, the Income page asks the person to update typical pay or remove the raise. The current amount stays until they answer. Remove deletes a source and its raises. `20261005025504_AddIncomeSources`, `20261005031455_DropIncomeSourceArchivedAt`, and `20261005150122_AddIncomeScenariosAndRaises` are applied. The amount stays one payment and is not turned into a monthly figure. This capture is approved in `docs/reviews/2026-10-05-009-income-scenarios-and-raises.md`. Friendly errors, Sonner toasts, the income form groups, and the rule that a raise cannot be lower than typical pay are approved in `docs/reviews/2026-10-05-010-income-form-feedback.md`. Paycheck schedules and optional gross pay are approved in `docs/reviews/2026-10-05-011-paycheck-schedules.md`. A biweekly payment stays a dated paycheck. A monthly figure is a yearly average, not cash on a date. `20261005180946_AddIncomeGrossPay` is applied. A household can record a bill: one payment, cadence, next due date, an optional source account, and essential or flexible. The amount stays one payment. `20261005183259_AddObligations` is applied. This capture is approved in `docs/reviews/2026-10-05-012-bills.md`. Recurring suggestions remain the rest of item 3. Overlapping worker and manual sync remains open.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 

@@ -330,6 +330,30 @@ namespace Cardui.Api.Migrations
                     b.ToTable("HouseholdContributors");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.IncomeRaise", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("IncomeSourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("TakeHomeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncomeSourceId", "EffectiveDate")
+                        .IsUnique();
+
+                    b.ToTable("IncomeRaises");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.IncomeSource", b =>
                 {
                     b.Property<Guid>("Id")
@@ -352,8 +376,16 @@ namespace Cardui.Api.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
 
+                    b.Property<decimal?>("GrossPayAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal?>("LowTakeHomeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -367,6 +399,10 @@ namespace Cardui.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
+
+                    b.Property<decimal?>("StrongTakeHomeAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("TakeHomeAmount")
                         .HasPrecision(18, 2)
@@ -382,6 +418,60 @@ namespace Cardui.Api.Migrations
                     b.HasIndex("HouseholdId", "Name");
 
                     b.ToTable("IncomeSources");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.Obligation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Cadence")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("Flexibility")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateOnly>("NextDueDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("HouseholdId", "Name");
+
+                    b.ToTable("Obligations");
                 });
 
             modelBuilder.Entity("Cardui.Api.Models.PlaidItem", b =>
@@ -690,6 +780,17 @@ namespace Cardui.Api.Migrations
                     b.Navigation("Household");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.IncomeRaise", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.IncomeSource", "IncomeSource")
+                        .WithMany("Raises")
+                        .HasForeignKey("IncomeSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IncomeSource");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.IncomeSource", b =>
                 {
                     b.HasOne("Cardui.Api.Models.HouseholdContributor", "Contributor")
@@ -704,6 +805,24 @@ namespace Cardui.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Contributor");
+
+                    b.Navigation("Household");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.Obligation", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Cardui.Api.Models.Household", "Household")
+                        .WithMany("Obligations")
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
 
                     b.Navigation("Household");
                 });
@@ -794,6 +913,13 @@ namespace Cardui.Api.Migrations
                     b.Navigation("Contributors");
 
                     b.Navigation("IncomeSources");
+
+                    b.Navigation("Obligations");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.IncomeSource", b =>
+                {
+                    b.Navigation("Raises");
                 });
 
             modelBuilder.Entity("Cardui.Api.Models.PlaidItem", b =>

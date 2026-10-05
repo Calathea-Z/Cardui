@@ -6,8 +6,8 @@ import { emptyFinancialProfile } from "@/features/household/server/loadHousehold
 import type { IncomePageData } from "../incomePageData";
 
 /**
- * Loads income sources and household contributors for the income page.
- * A failed request still returns a page, with the error for the banner.
+ * Loads income sources, contributors, and the household time zone for the income page.
+ * The time zone decides when a raise date has arrived. A failed request still returns a page, with the error for the banner.
  */
 export async function loadIncomePage(): Promise<PageLoadState<IncomePageData>> {
   const sources = await safeApiCall(getIncomeSources, []);
@@ -21,6 +21,7 @@ export async function loadIncomePage(): Promise<PageLoadState<IncomePageData>> {
       sources: sources.data,
       contributors: profile.data.contributors,
       planningCurrency: profile.data.planningCurrency,
+      timeZoneId: profile.data.timeZoneId,
     },
     error: firstApiError(sources, profile),
   };

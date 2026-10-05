@@ -15,6 +15,11 @@ public class CarduiDBContext : DbContext
     public DbSet<HouseholdContributor> HouseholdContributors => Set<HouseholdContributor>();
 
     public DbSet<IncomeSource> IncomeSources => Set<IncomeSource>();
+
+    public DbSet<IncomeRaise> IncomeRaises => Set<IncomeRaise>();
+
+    public DbSet<Obligation> Obligations => Set<Obligation>();
+
     public DbSet<PlaidItem> PlaidItems => Set<PlaidItem>();
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();

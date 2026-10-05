@@ -1,5 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { clerkAppearance } from "@/components/auth/clerk-appearance";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -44,7 +46,10 @@ export default function RootLayout({
           signUpUrl="/sign-up"
           appearance={clerkAppearance}
         >
-          {children}
+          <ConfirmProvider>
+            {children}
+            <Toaster />
+          </ConfirmProvider>
         </ClerkProvider>
       </body>
     </html>

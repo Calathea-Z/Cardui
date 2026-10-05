@@ -8,6 +8,12 @@ public class UpsertIncomeSourceDto
 
     public decimal TakeHomeAmount { get; set; }
 
+    public decimal? LowTakeHomeAmount { get; set; }
+
+    public decimal? StrongTakeHomeAmount { get; set; }
+
+    public decimal? GrossPayAmount { get; set; }
+
     public IncomeCadence? Cadence { get; set; }
 
     public DateOnly NextPaymentDate { get; set; }
@@ -15,4 +21,6 @@ public class UpsertIncomeSourceDto
     public Guid? ContributorId { get; set; }
 
     public IncomeReliability? Reliability { get; set; }
+
+    public IReadOnlyList<UpsertIncomeRaiseDto>? Raises { get; set; }
 }

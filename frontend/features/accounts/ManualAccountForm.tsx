@@ -1,6 +1,8 @@
 "use client";
 
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import { DateField } from "@/components/ui/date-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -51,7 +53,7 @@ export function ManualAccountForm({
   }
 
   return (
-    <form
+    <Form
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
@@ -63,7 +65,6 @@ export function ManualAccountForm({
         <Input
           value={values.name}
           onChange={(event) => update({ name: event.target.value })}
-          required
           maxLength={200}
           autoComplete="off"
         />
@@ -105,7 +106,6 @@ export function ManualAccountForm({
           value={values.openingBalance}
           onChange={(event) => update({ openingBalance: event.target.value })}
           inputMode="decimal"
-          required
           autoComplete="off"
         />
         <span className="text-xs font-normal text-muted-foreground">
@@ -125,14 +125,12 @@ export function ManualAccountForm({
       </div>
 
       {errorMessage ? (
-        <p className="text-sm text-destructive" role="alert">
-          {errorMessage}
-        </p>
+        <Alert variant="destructive">{errorMessage}</Alert>
       ) : null}
 
       <Button type="submit" size="lg" disabled={isSaving} className="py-3">
         {isSaving ? "Saving" : submitLabel}
       </Button>
-    </form>
+    </Form>
   );
 }

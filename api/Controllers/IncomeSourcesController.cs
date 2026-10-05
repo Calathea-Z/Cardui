@@ -30,8 +30,9 @@ public class IncomeSourcesController : ControllerBase
 
     /// <summary>
     /// POST /api/income-sources
-    /// Records an income source: take-home for one payment, cadence, next date,
-    /// contributor, and reliability.
+    /// Records an income source: typical take-home for one payment, optional low
+    /// and strong amounts, cadence, next date, contributor, reliability, and
+    /// expected raises.
     /// </summary>
     [HttpPost]
     [ProducesResponseType<IncomeSourceDto>(StatusCodes.Status200OK)]
@@ -46,7 +47,8 @@ public class IncomeSourcesController : ControllerBase
 
     /// <summary>
     /// PUT /api/income-sources/{id}
-    /// Updates an income source's payment facts. The stored currency stays.
+    /// Updates an income source's payment facts, scenarios, and expected raises.
+    /// The stored currency stays. Raises omitted from the request are removed.
     /// </summary>
     [HttpPut("{id:guid}")]
     [ProducesResponseType<IncomeSourceDto>(StatusCodes.Status200OK)]
@@ -63,7 +65,7 @@ public class IncomeSourcesController : ControllerBase
 
     /// <summary>
     /// DELETE /api/income-sources/{id}
-    /// Deletes an income source. Balances stay unchanged.
+    /// Deletes an income source and its expected raises. Balances stay unchanged.
     /// </summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

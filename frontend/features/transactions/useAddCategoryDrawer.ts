@@ -88,9 +88,14 @@ export function useAddCategoryDrawer({
 
   /**
    * Creates the category when the form is complete and has been changed.
-   * The name is trimmed, and the subgroup must still belong to the chosen group.
+   * An incomplete form shows the missing facts and skips the request. The name is trimmed, and the subgroup must still belong to the chosen group.
    */
   async function submit() {
+    if (!isComplete) {
+      setError("Enter a name, emoji, color, group, and sub-group.");
+      return;
+    }
+
     if (!canSave) {
       return;
     }

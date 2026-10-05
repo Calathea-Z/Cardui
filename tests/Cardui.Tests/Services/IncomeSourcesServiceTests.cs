@@ -40,6 +40,31 @@ public class IncomeSourcesServiceTests
         Assert.Equal(alex.Id, saved.ContributorId);
         Assert.Equal("Alex", saved.ContributorName);
         Assert.Equal(IncomeReliability.Steady, saved.Reliability);
+        Assert.Null(saved.GrossPayAmount);
+        Assert.Equal(2400.50m, saved.TakeHomeAmount);
+        Assert.NotEqual(saved.AverageMonthlyAmount, saved.TakeHomeAmount);
+        Assert.Equal(new DateOnly(2026, 10, 16), saved.UpcomingPaymentDates[0]);
+    }
+
+    [Fact]
+    public async Task Create_StoresOptionalGrossPayAndRejectsGrossBelowNet()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var service = CreateService(dbContext, Bind(householdId));
+        var paycheck = Paycheck();
+        paycheck.GrossPayAmount = 3100m;
+
+        var saved = await service.CreateAsync(paycheck);
+
+        Assert.Equal(3100m, saved.GrossPayAmount);
+        Assert.Equal(2400.50m, saved.TakeHomeAmount);
+
+        var lowGross = Paycheck();
+        lowGross.Name = "Side work";
+        lowGross.GrossPayAmount = 2000m;
+        var error = await Assert.ThrowsAsync<BadRequestException>(() => service.CreateAsync(lowGross));
+        Assert.Equal("Gross pay cannot be lower than the typical net pay.", error.Message);
     }
 
     [Fact]
@@ -146,6 +171,127 @@ public class IncomeSourcesServiceTests
         Assert.Equal(2400.50m, listed.TakeHomeAmount);
     }
 
+    [Fact]
+    public async Task Create_StoresScenariosAndRaisesWithoutReplacingTypical()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var service = CreateService(dbContext, Bind(householdId));
+
+        var saved = await service.CreateAsync(PaycheckWithRange());
+
+        Assert.Equal(2400.50m, saved.TakeHomeAmount);
+        Assert.Equal(1800m, saved.LowTakeHomeAmount);
+        Assert.Equal(3000m, saved.StrongTakeHomeAmount);
+        Assert.Equal(2, saved.Raises.Count);
+        Assert.Equal(new DateOnly(2026, 10, 16), saved.Raises[0].EffectiveDate);
+        Assert.Equal(2500m, saved.Raises[0].TakeHomeAmount);
+        Assert.Equal(new DateOnly(2027, 1, 1), saved.Raises[1].EffectiveDate);
+        Assert.Equal(2600m, saved.Raises[1].TakeHomeAmount);
+        Assert.NotEqual(Guid.Empty, saved.Raises[0].Id);
+    }
+
+    [Fact]
+    public async Task Update_AddsARaiseToASourceThatHadNone()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var service = CreateService(dbContext, Bind(householdId));
+        var saved = await service.CreateAsync(Paycheck());
+
+        var updated = Paycheck();
+        updated.NextPaymentDate = new DateOnly(2026, 10, 5);
+        updated.Raises =
+        [
+            new UpsertIncomeRaiseDto
+            {
+                EffectiveDate = new DateOnly(2026, 10, 5),
+                TakeHomeAmount = 2500m
+            }
+        ];
+
+        var result = await service.UpdateAsync(saved.Id, updated);
+
+        var raise = Assert.Single(result.Raises);
+        Assert.Equal(new DateOnly(2026, 10, 5), raise.EffectiveDate);
+        Assert.Equal(2500m, raise.TakeHomeAmount);
+        Assert.Equal(2400.50m, result.TakeHomeAmount);
+    }
+
+    [Fact]
+    public async Task Update_ReplacesRaisesAndClearsStrong()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var service = CreateService(dbContext, Bind(householdId));
+        var saved = await service.CreateAsync(PaycheckWithRange());
+
+        var updated = Paycheck();
+        updated.LowTakeHomeAmount = 1900m;
+        updated.Raises =
+        [
+            new UpsertIncomeRaiseDto
+            {
+                EffectiveDate = new DateOnly(2026, 10, 16),
+                TakeHomeAmount = 2550m
+            }
+        ];
+        var result = await service.UpdateAsync(saved.Id, updated);
+
+        Assert.Equal(2400.50m, result.TakeHomeAmount);
+        Assert.Equal(1900m, result.LowTakeHomeAmount);
+        Assert.Null(result.StrongTakeHomeAmount);
+        Assert.Equal("USD", result.Currency);
+        var raise = Assert.Single(result.Raises);
+        Assert.Equal(saved.Raises[0].Id, raise.Id);
+        Assert.Equal(2550m, raise.TakeHomeAmount);
+        Assert.Equal(1, await dbContext.IncomeRaises.CountAsync());
+    }
+
+    [Fact]
+    public async Task Create_RejectsAScenarioOrRaiseThatBreaksThePaymentRules()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var service = CreateService(dbContext, Bind(householdId));
+
+        var low = Paycheck();
+        low.LowTakeHomeAmount = 3000m;
+        var lowError = await Assert.ThrowsAsync<BadRequestException>(() => service.CreateAsync(low));
+        Assert.Equal("Low net pay cannot be higher than the typical amount.", lowError.Message);
+
+        var early = Paycheck();
+        early.Name = "Side work";
+        early.Raises =
+        [
+            new UpsertIncomeRaiseDto
+            {
+                EffectiveDate = new DateOnly(2026, 10, 1),
+                TakeHomeAmount = 2600m
+            }
+        ];
+        var earlyError = await Assert.ThrowsAsync<BadRequestException>(() => service.CreateAsync(early));
+        Assert.Equal("Enter a raise date on or after the next payment.", earlyError.Message);
+        Assert.Empty(await service.GetIncomeSourcesAsync());
+    }
+
+    [Fact]
+    public async Task Delete_RemovesTheRaisesAndFreesTheName()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var service = CreateService(dbContext, Bind(householdId));
+        var saved = await service.CreateAsync(PaycheckWithRange());
+
+        await service.DeleteAsync(saved.Id);
+
+        Assert.Empty(await service.GetIncomeSourcesAsync());
+        Assert.Empty(dbContext.IncomeRaises);
+        var again = await service.CreateAsync(Paycheck());
+        Assert.Equal("Paycheck", again.Name);
+        Assert.Empty(again.Raises);
+    }
+
     private static UpsertIncomeSourceDto Paycheck(Guid? contributorId = null)
     {
         return new UpsertIncomeSourceDto
@@ -157,6 +303,27 @@ public class IncomeSourcesServiceTests
             ContributorId = contributorId,
             Reliability = IncomeReliability.Steady
         };
+    }
+
+    private static UpsertIncomeSourceDto PaycheckWithRange()
+    {
+        var dto = Paycheck();
+        dto.LowTakeHomeAmount = 1800m;
+        dto.StrongTakeHomeAmount = 3000m;
+        dto.Raises =
+        [
+            new UpsertIncomeRaiseDto
+            {
+                EffectiveDate = new DateOnly(2027, 1, 1),
+                TakeHomeAmount = 2600m
+            },
+            new UpsertIncomeRaiseDto
+            {
+                EffectiveDate = new DateOnly(2026, 10, 16),
+                TakeHomeAmount = 2500m
+            }
+        ];
+        return dto;
     }
 
     private static IncomeSourcesService CreateService(

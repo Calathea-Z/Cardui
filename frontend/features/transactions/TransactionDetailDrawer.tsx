@@ -17,7 +17,6 @@ import {
   isBalanceReconciliation,
   isTransferTransaction,
 } from "./transactionAmountDisplay";
-import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 import { TransactionAccountField } from "./TransactionAccountField";
 import { TransactionCategorySelect } from "./TransactionCategorySelect";
 import { TransactionDateField } from "./TransactionDateField";
@@ -337,7 +336,7 @@ export function TransactionDetailDrawer({
       title={title}
       headerAction="back"
       closeOnEscape={!isNestedOpen}
-      className={FULL_SCREEN_SHEET_CLASSNAME}
+      presentation="panel"
     >
       {activeTransaction ? (
         <TransactionDetailDrawerContent

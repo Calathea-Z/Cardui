@@ -8,7 +8,6 @@ import { getCategoryEmoji } from "@/features/categories/categoryEmoji";
 import { sortCategoriesByName } from "@/features/categories/categorySort";
 import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import { AddCategoryDrawer } from "./AddCategoryDrawer";
-import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 
 type ChangeCategoryDrawerProps = {
   open: boolean;
@@ -97,8 +96,8 @@ export function ChangeCategoryDrawer({
         title="Change Category"
         headerAction="close"
         closeOnEscape={!isAddCategoryOpen}
-        overlayClassName="z-70"
-        className={FULL_SCREEN_SHEET_CLASSNAME}
+        presentation="panel"
+        overlayClassName="z-[120]"
       >
         <ChangeCategoryDrawerContent
           categories={categories}

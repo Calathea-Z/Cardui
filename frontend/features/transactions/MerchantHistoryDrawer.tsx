@@ -12,7 +12,6 @@ import type {
   MerchantHistoryGranularity,
   TransactionDto,
 } from "@/lib/api/types";
-import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 import {
   periodCurrency,
   type SelectedMerchantPeriod,
@@ -83,8 +82,8 @@ export function MerchantHistoryDrawer({
         title={history?.displayName ?? "History"}
         headerAction="close-leading"
         closeOnEscape={!isSettingsOpen}
-        overlayClassName="z-70"
-        className={FULL_SCREEN_SHEET_CLASSNAME}
+        presentation="panel"
+        overlayClassName="z-[120]"
         headerTrailing={
           <Button
             type="button"
@@ -173,7 +172,7 @@ export function MerchantHistoryDrawer({
         onClose={() => setIsSettingsOpen(false)}
         title="Chart Range"
         headerAction="close"
-        overlayClassName="z-80"
+        overlayClassName="z-[140]"
         className="max-h-[50vh]"
       >
         <div className="divide-y divide-border/70 border-y border-border/70">

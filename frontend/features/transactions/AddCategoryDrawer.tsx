@@ -9,7 +9,6 @@ import { ColorPicker } from "@/features/categories/ColorPicker";
 import { EmojiPicker } from "@/features/categories/EmojiPicker";
 import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 import { useAddCategoryDrawer } from "./useAddCategoryDrawer";
 
 type AddCategoryDrawerProps = {
@@ -117,8 +116,8 @@ function AddCategoryDrawerSession({
         title="Add Category"
         headerAction="close-leading"
         closeOnEscape={openPicker === null}
-        overlayClassName="z-80"
-        className={FULL_SCREEN_SHEET_CLASSNAME}
+        presentation="panel"
+        overlayClassName="z-[130]"
         headerTrailing={
           <Button
             type="submit"
@@ -263,7 +262,7 @@ function AddCategoryDrawerSession({
         onClose={() => setOpenPicker(null)}
         title="Choose Emoji"
         headerAction="close"
-        overlayClassName="z-90"
+        overlayClassName="z-[140]"
         className="max-h-[70vh]"
       >
         <EmojiPicker
@@ -280,7 +279,7 @@ function AddCategoryDrawerSession({
         onClose={() => setOpenPicker(null)}
         title="Choose Color"
         headerAction="close"
-        overlayClassName="z-90"
+        overlayClassName="z-[140]"
         className="max-h-[70vh]"
       >
         <ColorPicker
@@ -297,7 +296,7 @@ function AddCategoryDrawerSession({
         onClose={() => setOpenPicker(null)}
         title="Group"
         headerAction="close"
-        overlayClassName="z-90"
+        overlayClassName="z-[140]"
         className="max-h-[70vh]"
       >
         <OptionList
@@ -322,7 +321,7 @@ function AddCategoryDrawerSession({
         onClose={() => setOpenPicker(null)}
         title="Sub-group"
         headerAction="close"
-        overlayClassName="z-90"
+        overlayClassName="z-[140]"
         className="max-h-[70vh]"
       >
         <OptionList

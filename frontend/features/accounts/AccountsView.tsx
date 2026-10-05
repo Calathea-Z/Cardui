@@ -9,6 +9,7 @@ import {
 import { AccountChartMetricSelector } from "./AccountChartMetricSelector";
 import { AccountsBalanceChartSection } from "./AccountsBalanceChartSection";
 import { AccountsSectionList } from "./AccountsSectionList";
+import { PageHeader } from "@/components/navigation/page-header";
 import { CurrencyExclusionNotice } from "@/features/household/CurrencyExclusionNotice";
 
 type AccountsViewProps = {
@@ -32,9 +33,7 @@ export function AccountsView({
 
   return (
     <section className="flex flex-col gap-6">
-      {actions ? (
-        <div className="hidden justify-end md:flex">{actions}</div>
-      ) : null}
+      <PageHeader title="Accounts" actions={actions} />
 
       <AccountChartMetricSelector value={metric} onChange={setMetric} />
 

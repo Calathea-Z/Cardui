@@ -26,7 +26,6 @@ export function IncomePageClient({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Income"
         title="Income sources"
         description="Record each place money comes in. Enter net pay for one payment, after taxes and deductions, plus how often it arrives, the next date, who it belongs to, and how reliable it is."
       />

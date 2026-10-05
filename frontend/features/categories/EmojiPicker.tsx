@@ -41,6 +41,12 @@ const CATEGORY_EMOJI_OPTIONS = [
   "❤️",
 ] as const;
 
+/** Popover size for the six-column emoji grid, including its padding. */
+export const emojiPickerPopoverSize = {
+  minWidth: 336,
+  maxHeight: 420,
+} as const;
+
 type EmojiPickerProps = {
   value: string;
   onChange: (emoji: string) => void;
@@ -60,7 +66,7 @@ export function EmojiPicker({
     <div
       role="listbox"
       aria-label="Choose an emoji"
-      className="grid grid-cols-6 gap-2 sm:grid-cols-8"
+      className="grid grid-cols-6 gap-2"
     >
       {CATEGORY_EMOJI_OPTIONS.map((emoji) => {
         const selected = value === emoji;

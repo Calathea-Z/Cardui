@@ -1,18 +1,16 @@
 "use client";
 
-import { Settings } from "lucide-react";
 import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Select } from "@/components/ui/select";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 import type {
   MerchantHistoryDto,
   MerchantHistoryGranularity,
   TransactionDto,
 } from "@/lib/api/types";
-import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 import {
   periodCurrency,
   type SelectedMerchantPeriod,
@@ -45,7 +43,7 @@ const GRANULARITY_OPTIONS: Array<{
 
 /**
  * Shows the merchant's history as a chart, a period summary, and the period's transactions.
- * Monthly is the starting range, and closing the chart-range sheet leaves the history open.
+ * Monthly is the starting range. The chart range uses Select, and Escape closes that list before the history.
  */
 export function MerchantHistoryDrawer({
   open,
@@ -60,148 +58,111 @@ export function MerchantHistoryDrawer({
   onClose,
   onSelectTransaction,
 }: MerchantHistoryDrawerProps) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [rangeOpen, setRangeOpen] = useState(false);
 
   /**
-   * Closes the history sheet.
-   * An open chart-range sheet closes first and leaves the history open.
+   * Applies a chart range the list knows.
+   * An unknown value is ignored.
    */
-  function handleClose() {
-    if (isSettingsOpen) {
-      setIsSettingsOpen(false);
-      return;
+  function handleGranularityChange(value: string) {
+    const next = GRANULARITY_OPTIONS.find((option) => option.value === value);
+    if (next) {
+      onGranularityChange(next.value);
     }
-
-    onClose();
   }
 
   return (
-    <>
-      <BottomSheet
-        open={open}
-        onClose={handleClose}
-        title={history?.displayName ?? "History"}
-        headerAction="close-leading"
-        closeOnEscape={!isSettingsOpen}
-        overlayClassName="z-70"
-        className={FULL_SCREEN_SHEET_CLASSNAME}
-        headerTrailing={
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-lg"
-            aria-label="Chart settings"
-            onClick={() => setIsSettingsOpen(true)}
-          >
-            <Settings className="size-5" />
-          </Button>
-        }
-      >
-        {error ? <Alert variant="destructive">{error}</Alert> : null}
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title={history?.displayName ?? "History"}
+      headerAction="close-leading"
+      closeOnEscape={!rangeOpen}
+      presentation="panel"
+      overlayClassName="z-[120]"
+    >
+      <div className="mb-5 border-b border-border/70">
+        <Select
+          variant="row"
+          label="Chart range"
+          title="Chart range"
+          value={granularity}
+          options={GRANULARITY_OPTIONS}
+          onChange={handleGranularityChange}
+          onOpenChange={setRangeOpen}
+          overlayClassName="z-[140]"
+        />
+      </div>
+      {error ? <Alert variant="destructive">{error}</Alert> : null}
 
-        {isLoading && !history ? (
-          <p className="text-sm text-muted-foreground">Loading history…</p>
-        ) : null}
+      {isLoading && !history ? (
+        <p className="text-sm text-muted-foreground">Loading history…</p>
+      ) : null}
 
-        {history && selectedPeriodKey ? (
-          <div className="flex flex-col gap-5">
-            <MerchantHistoryChart
-              periods={history.periods}
-              selectedPeriodKey={selectedPeriodKey}
-              onSelectPeriod={onSelectPeriod}
-            />
+      {history && selectedPeriodKey ? (
+        <div className="flex flex-col gap-5">
+          <MerchantHistoryChart
+            periods={history.periods}
+            selectedPeriodKey={selectedPeriodKey}
+            onSelectPeriod={onSelectPeriod}
+          />
 
-            {selected ? (
-              <section className="app-panel p-4">
-                <h3 className="text-base font-semibold text-foreground">
-                  {selected.label}
-                </h3>
-                <div className="mt-4 grid gap-3">
-                  <SummaryRow
-                    label="Total Transactions"
-                    value={String(selected.transactionCount)}
-                  />
-                  <SummaryRow
-                    label="Average Transaction"
-                    value={formatCurrency(
-                      selected.averageAmount,
-                      periodCurrency(selected.transactions),
-                    )}
-                  />
-                  <SummaryRow
-                    label="Total Amount"
-                    value={formatCurrency(
-                      selected.totalAmount,
-                      periodCurrency(selected.transactions),
-                    )}
-                  />
-                </div>
-              </section>
-            ) : null}
-
-            <section>
-              <h3 className="mb-2 text-sm font-medium text-muted-foreground">
-                Transactions
+          {selected ? (
+            <section className="app-panel p-4">
+              <h3 className="text-base font-semibold text-foreground">
+                {selected.label}
               </h3>
-              {selected && selected.transactions.length > 0 ? (
-                <div className="divide-y divide-border/70 border-y border-border/70">
-                  {selected.transactions.map((transaction) => (
-                    <TransactionRow
-                      key={transaction.id}
-                      transaction={transaction}
-                      onSelect={(item) => {
-                        onClose();
-                        onSelectTransaction(item);
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No transactions"
-                  description="Nothing for this retailer in the selected period."
-                  className="py-8 [&_p]:text-sm [&_p]:font-normal"
+              <div className="mt-4 grid gap-3">
+                <SummaryRow
+                  label="Total Transactions"
+                  value={String(selected.transactionCount)}
                 />
-              )}
+                <SummaryRow
+                  label="Average Transaction"
+                  value={formatCurrency(
+                    selected.averageAmount,
+                    periodCurrency(selected.transactions),
+                  )}
+                />
+                <SummaryRow
+                  label="Total Amount"
+                  value={formatCurrency(
+                    selected.totalAmount,
+                    periodCurrency(selected.transactions),
+                  )}
+                />
+              </div>
             </section>
-          </div>
-        ) : null}
-      </BottomSheet>
+          ) : null}
 
-      <BottomSheet
-        open={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        title="Chart Range"
-        headerAction="close"
-        overlayClassName="z-80"
-        className="max-h-[50vh]"
-      >
-        <div className="divide-y divide-border/70 border-y border-border/70">
-          {GRANULARITY_OPTIONS.map((option) => {
-            const selectedOption = option.value === granularity;
-
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onGranularityChange(option.value);
-                  setIsSettingsOpen(false);
-                }}
-                className="flex min-h-12 w-full items-center justify-between gap-3 py-3 text-left"
-              >
-                <span className="text-sm font-medium text-foreground">
-                  {option.label}
-                </span>
-                {selectedOption ? (
-                  <span className="text-sm text-transfer">Selected</span>
-                ) : null}
-              </button>
-            );
-          })}
+          <section>
+            <h3 className="mb-2 text-sm font-medium text-muted-foreground">
+              Transactions
+            </h3>
+            {selected && selected.transactions.length > 0 ? (
+              <div className="divide-y divide-border/70 border-y border-border/70">
+                {selected.transactions.map((transaction) => (
+                  <TransactionRow
+                    key={transaction.id}
+                    transaction={transaction}
+                    onSelect={(item) => {
+                      onClose();
+                      onSelectTransaction(item);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="No transactions"
+                description="Nothing for this retailer in the selected period."
+                className="py-8 [&_p]:text-sm [&_p]:font-normal"
+              />
+            )}
+          </section>
         </div>
-      </BottomSheet>
-    </>
+      ) : null}
+    </BottomSheet>
   );
 }
 

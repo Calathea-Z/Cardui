@@ -67,7 +67,7 @@ export function DashboardRecentTransactionsWidget({
     <>
       <section className="app-panel">
         <div className="app-panel-header p-4">
-          <h2 className="app-section-title">Recent Transactions</h2>
+          <h2 className="app-section-title">Recent activity</h2>
         </div>
 
         <div className="divide-y divide-border/70">

@@ -14,10 +14,10 @@ export const clerkAppearance = {
     colorInput: "var(--input)",
     colorInputForeground: "var(--foreground)",
     borderRadius: "var(--radius)",
-    fontFamily: "var(--font-sora), Segoe UI, sans-serif",
+    fontFamily: "var(--font-inter), Segoe UI, sans-serif",
   },
   elements: {
-    card: "border border-border bg-popover! text-popover-foreground! shadow-xl",
+    card: "border border-border bg-popover! text-popover-foreground!",
     headerTitle: "text-foreground!",
     headerSubtitle: "text-muted-foreground!",
     identityPreviewText: "text-popover-foreground!",
@@ -35,7 +35,7 @@ export const clerkAppearance = {
     footerActionLink: "text-primary!",
     footer: "text-muted-foreground!",
     userButtonPopoverCard:
-      "border border-border bg-popover! text-popover-foreground! shadow-xl",
+      "border border-border bg-popover! text-popover-foreground!",
     userButtonPopoverActionButton:
       "border-t border-border text-popover-foreground! hover:bg-accent!",
     userButtonPopoverActionButtonText: "text-popover-foreground!",

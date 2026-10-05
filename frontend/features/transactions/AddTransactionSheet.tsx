@@ -231,6 +231,7 @@ export function AddTransactionSheet({
       onClose={onClose}
       title="Add transaction"
       closeOnEscape={!pickerOpen}
+      presentation="panel"
     >
       {open ? (
         <AddTransactionForm

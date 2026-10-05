@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { PageHeader } from "@/components/navigation/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -99,19 +100,24 @@ export function TransactionsClient({
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8">
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsImportOpen(true)}
-          >
-            Import CSV
-          </Button>
-          <Button type="button" onClick={() => setIsAddOpen(true)}>
-            Add transaction
-          </Button>
-        </div>
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 md:px-8 md:py-8">
+        <PageHeader
+          title="Activity"
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsImportOpen(true)}
+              >
+                Import CSV
+              </Button>
+              <Button type="button" onClick={() => setIsAddOpen(true)}>
+                Add transaction
+              </Button>
+            </div>
+          }
+        />
 
         <TransactionsFilters
           query={query}

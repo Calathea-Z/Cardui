@@ -7,17 +7,20 @@ type ChartTimeRangeSelectorProps = {
   value: ChartTimeRange;
   onChange: (range: ChartTimeRange) => void;
   compact?: boolean;
+  variant?: "pills" | "text";
   className?: string;
 };
 
 /**
  * Lets the household pick the balance chart's time window.
- * The pressed button is the range the chart filters to.
+ * The pressed button is the range the chart filters to. The text variant
+ * marks the active range in the primary color without a filled pill.
  */
 export function ChartTimeRangeSelector({
   value,
   onChange,
   compact = false,
+  variant = "pills",
   className,
 }: ChartTimeRangeSelectorProps) {
   return (
@@ -37,13 +40,20 @@ export function ChartTimeRangeSelector({
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "flex-1 rounded-md font-medium transition",
+            "flex-1 font-medium transition",
             compact
               ? "min-h-8 px-1 text-center text-[11px]"
               : "min-h-9 px-2 text-center text-xs",
-            value === option.value
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "bg-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+            variant === "text"
+              ? value === option.value
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+              : cn(
+                  "rounded-md",
+                  value === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-transparent text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                ),
           )}
         >
           {option.label}

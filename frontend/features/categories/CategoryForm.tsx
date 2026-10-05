@@ -1,12 +1,25 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ChevronDown } from "lucide-react";
+import { useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { ChoiceSurface } from "@/components/ui/choice-surface";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import type { CategoryFormState } from "@/lib/categoryForm";
+import { cn } from "@/lib/utils";
+import { getCategoryEmoji } from "./categoryEmoji";
 import { sortByOrderThenName } from "./categorySort";
+import { ColorPicker, colorPickerPopoverSize } from "./ColorPicker";
+import { EmojiPicker, emojiPickerPopoverSize } from "./EmojiPicker";
+
+const fieldTriggerClassName = cn(
+  "mt-2 flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm transition-colors outline-none",
+  "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+  "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+);
 
 type CategoryFormProps = {
   form: CategoryFormState;
@@ -22,7 +35,7 @@ type CategoryFormProps = {
 
 /**
  * Form for creating or editing a category.
- * The group and sub-group lock while saving or when the category is a system category, and a save needs a name and sub-group.
+ * The group and sub-group lock while saving or when the category is a system category, and a save needs a name and sub-group. Color and icon open the same pickers as add category.
  */
 export function CategoryForm({
   form,
@@ -49,6 +62,11 @@ export function CategoryForm({
   );
 
   const lockHierarchy = isSaving || Boolean(editingCategory?.isSystem);
+  const [colorOpen, setColorOpen] = useState(false);
+  const [iconOpen, setIconOpen] = useState(false);
+  const colorTriggerRef = useRef<HTMLButtonElement>(null);
+  const iconTriggerRef = useRef<HTMLButtonElement>(null);
+  const iconGlyph = iconOnTheControl(form.icon);
 
   return (
     <form onSubmit={onSubmit} className="app-panel p-5">
@@ -124,29 +142,63 @@ export function CategoryForm({
           />
         </label>
 
-        <label className="block">
+        <div className="block">
           <span className="text-sm text-muted-foreground">Color</span>
-          <Input
-            value={form.color}
-            onChange={(event) =>
-              onFormChange({ ...form, color: event.target.value })
-            }
-            className="mt-2 h-10"
-            placeholder="#22c55e"
-          />
-        </label>
+          <button
+            type="button"
+            ref={colorTriggerRef}
+            disabled={isSaving}
+            aria-expanded={colorOpen}
+            aria-haspopup="dialog"
+            aria-label="Color"
+            onClick={() => setColorOpen((open) => !open)}
+            className={fieldTriggerClassName}
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <span
+                className="size-5 shrink-0 rounded-full border border-border/70"
+                style={{ backgroundColor: form.color || "transparent" }}
+                aria-hidden="true"
+              />
+              <span className="truncate text-foreground">
+                {form.color ? form.color.toUpperCase() : "Select"}
+              </span>
+            </span>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
 
-        <label className="block">
+        <div className="block">
           <span className="text-sm text-muted-foreground">Icon</span>
-          <Input
-            value={form.icon}
-            onChange={(event) =>
-              onFormChange({ ...form, icon: event.target.value })
-            }
-            className="mt-2 h-10"
-            placeholder="tag"
-          />
-        </label>
+          <button
+            type="button"
+            ref={iconTriggerRef}
+            disabled={isSaving}
+            aria-expanded={iconOpen}
+            aria-haspopup="dialog"
+            aria-label="Icon"
+            onClick={() => setIconOpen((open) => !open)}
+            className={fieldTriggerClassName}
+          >
+            <span
+              className={cn(
+                "min-w-0 truncate",
+                iconGlyph
+                  ? "text-base text-foreground"
+                  : "text-muted-foreground",
+              )}
+            >
+              {iconGlyph || "Select"}
+            </span>
+            <ChevronDown
+              className="size-4 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
 
         {error ? <Alert variant="destructive">{error}</Alert> : null}
 
@@ -175,6 +227,55 @@ export function CategoryForm({
           ) : null}
         </div>
       </div>
+
+      <ChoiceSurface
+        open={colorOpen}
+        title="Choose Color"
+        triggerRef={colorTriggerRef}
+        onClose={() => setColorOpen(false)}
+        minWidth={colorPickerPopoverSize.minWidth}
+        maxHeight={colorPickerPopoverSize.maxHeight}
+        fixedWidth
+      >
+        <ColorPicker
+          value={form.color}
+          disabled={isSaving}
+          onChange={(color) => onFormChange({ ...form, color })}
+          onCommit={() => setColorOpen(false)}
+        />
+      </ChoiceSurface>
+
+      <ChoiceSurface
+        open={iconOpen}
+        title="Choose Icon"
+        triggerRef={iconTriggerRef}
+        onClose={() => setIconOpen(false)}
+        minWidth={emojiPickerPopoverSize.minWidth}
+        maxHeight={emojiPickerPopoverSize.maxHeight}
+        fixedWidth
+      >
+        <EmojiPicker
+          value={form.icon}
+          disabled={isSaving}
+          onChange={(icon) => {
+            onFormChange({ ...form, icon });
+            setIconOpen(false);
+          }}
+        />
+      </ChoiceSurface>
     </form>
   );
+}
+
+/**
+ * Emoji shown on the icon control.
+ * An empty icon stays blank. A stored slug uses the same emoji as the category list.
+ */
+function iconOnTheControl(icon: string) {
+  const trimmed = icon.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  return getCategoryEmoji({ key: null, icon: trimmed, name: "" });
 }

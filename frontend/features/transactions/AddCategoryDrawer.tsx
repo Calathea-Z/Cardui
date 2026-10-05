@@ -1,15 +1,22 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
-import { useId, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { useId, useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { ColorPicker } from "@/features/categories/ColorPicker";
-import { EmojiPicker } from "@/features/categories/EmojiPicker";
+import { ChoiceSurface } from "@/components/ui/choice-surface";
+import { Select } from "@/components/ui/select";
+import {
+  ColorPicker,
+  colorPickerPopoverSize,
+} from "@/features/categories/ColorPicker";
+import {
+  EmojiPicker,
+  emojiPickerPopoverSize,
+} from "@/features/categories/EmojiPicker";
 import type { CategoryDto, GroupDto, SubGroupDto } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 import { useAddCategoryDrawer } from "./useAddCategoryDrawer";
 
 type AddCategoryDrawerProps = {
@@ -20,8 +27,6 @@ type AddCategoryDrawerProps = {
   onClose: () => void;
   onCreated: (category: CategoryDto) => void;
 };
-
-type PickerKind = "emoji" | "color" | "group" | "subgroup" | null;
 
 /**
  * Opens the add-category sheet.
@@ -60,7 +65,7 @@ export function AddCategoryDrawer({
 
 /**
  * Collects a name, emoji, color, group, and subgroup, then creates the category.
- * Save stays off until every field is filled and the form differs from its start, and choosing a group clears the subgroup.
+ * Save stays off until every field is filled and the form differs from its start. Choosing a group clears the subgroup. Escape closes an open picker before the form.
  */
 function AddCategoryDrawerSession({
   open,
@@ -77,27 +82,19 @@ function AddCategoryDrawerSession({
     initialSubGroupId,
     onCreated,
   });
-  const [openPicker, setOpenPicker] = useState<PickerKind>(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [colorOpen, setColorOpen] = useState(false);
+  const [openLists, setOpenLists] = useState(0);
+  const emojiTriggerRef = useRef<HTMLButtonElement>(null);
+  const colorTriggerRef = useRef<HTMLButtonElement>(null);
+  const pickerOpen = emojiOpen || colorOpen || openLists > 0;
 
   /**
-   * Closes an open picker and then the form.
+   * Tracks how many group or subgroup lists are open.
+   * The form stays up while that count is above zero.
    */
-  function handleClose() {
-    setOpenPicker(null);
-    onClose();
-  }
-
-  /**
-   * Closes the sheet the household is looking at.
-   * An open emoji, color, group, or subgroup picker closes first and leaves the form open.
-   */
-  function handleSheetClose() {
-    if (openPicker) {
-      setOpenPicker(null);
-      return;
-    }
-
-    handleClose();
+  function handleListOpenChange(open: boolean) {
+    setOpenLists((count) => Math.max(0, count + (open ? 1 : -1)));
   }
 
   /**
@@ -113,12 +110,12 @@ function AddCategoryDrawerSession({
     <>
       <BottomSheet
         open={open}
-        onClose={handleSheetClose}
+        onClose={onClose}
         title="Add Category"
         headerAction="close-leading"
-        closeOnEscape={openPicker === null}
-        overlayClassName="z-80"
-        className={FULL_SCREEN_SHEET_CLASSNAME}
+        closeOnEscape={!pickerOpen}
+        presentation="panel"
+        overlayClassName="z-[130]"
         headerTrailing={
           <Button
             type="submit"
@@ -170,8 +167,11 @@ function AddCategoryDrawerSession({
 
             <button
               type="button"
+              ref={emojiTriggerRef}
               disabled={draft.isSaving}
-              onClick={() => setOpenPicker("emoji")}
+              aria-expanded={emojiOpen}
+              aria-haspopup="dialog"
+              onClick={() => setEmojiOpen((open) => !open)}
               className={cn(
                 "flex min-h-12 w-full items-center gap-3 text-left",
                 draft.isSaving && "opacity-50",
@@ -190,8 +190,11 @@ function AddCategoryDrawerSession({
 
             <button
               type="button"
+              ref={colorTriggerRef}
               disabled={draft.isSaving}
-              onClick={() => setOpenPicker("color")}
+              aria-expanded={colorOpen}
+              aria-haspopup="dialog"
+              onClick={() => setColorOpen((open) => !open)}
               className={cn(
                 "flex min-h-12 w-full items-center gap-3 text-left",
                 draft.isSaving && "opacity-50",
@@ -215,41 +218,45 @@ function AddCategoryDrawerSession({
               </span>
             </button>
 
-            <button
-              type="button"
+            <Select
+              variant="row"
+              label="Group"
+              title="Group"
+              value={draft.form.groupId}
               disabled={draft.isSaving}
-              onClick={() => setOpenPicker("group")}
-              className={cn(
-                "flex min-h-12 w-full items-center gap-3 text-left",
-                draft.isSaving && "opacity-50",
-              )}
-            >
-              <span className="shrink-0 text-sm font-medium text-foreground">
-                Group
-              </span>
-              <span className="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm text-muted-foreground">
-                <span className="truncate">{draft.selectedGroupName}</span>
-                <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
-              </span>
-            </button>
+              placeholder="Select"
+              overlayClassName="z-[140]"
+              onOpenChange={handleListOpenChange}
+              onChange={(groupId) => {
+                draft.setForm((current) => ({
+                  ...current,
+                  groupId,
+                  subGroupId: "",
+                }));
+              }}
+              options={draft.sortedGroups.map((group) => ({
+                value: group.id,
+                label: group.name,
+              }))}
+            />
 
-            <button
-              type="button"
+            <Select
+              variant="row"
+              label="Sub-group"
+              title="Sub-group"
+              value={draft.effectiveSubGroupId}
               disabled={draft.isSaving || !draft.form.groupId}
-              onClick={() => setOpenPicker("subgroup")}
-              className={cn(
-                "flex min-h-12 w-full items-center gap-3 text-left",
-                (draft.isSaving || !draft.form.groupId) && "opacity-50",
-              )}
-            >
-              <span className="shrink-0 text-sm font-medium text-foreground">
-                Sub-group
-              </span>
-              <span className="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm text-muted-foreground">
-                <span className="truncate">{draft.selectedSubGroupName}</span>
-                <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
-              </span>
-            </button>
+              placeholder="Select"
+              overlayClassName="z-[140]"
+              onOpenChange={handleListOpenChange}
+              onChange={(subGroupId) => {
+                draft.setForm((current) => ({ ...current, subGroupId }));
+              }}
+              options={draft.visibleSubGroups.map((subGroup) => ({
+                value: subGroup.id,
+                label: subGroup.name,
+              }))}
+            />
           </div>
 
           {draft.error ? (
@@ -258,132 +265,43 @@ function AddCategoryDrawerSession({
         </form>
       </BottomSheet>
 
-      <BottomSheet
-        open={openPicker === "emoji"}
-        onClose={() => setOpenPicker(null)}
+      <ChoiceSurface
+        open={emojiOpen}
         title="Choose Emoji"
-        headerAction="close"
-        overlayClassName="z-90"
-        className="max-h-[70vh]"
+        triggerRef={emojiTriggerRef}
+        onClose={() => setEmojiOpen(false)}
+        overlayClassName="z-[140]"
+        minWidth={emojiPickerPopoverSize.minWidth}
+        maxHeight={emojiPickerPopoverSize.maxHeight}
+        fixedWidth
       >
         <EmojiPicker
           value={draft.form.emoji}
           onChange={(emoji) => {
             draft.setForm((current) => ({ ...current, emoji }));
-            setOpenPicker(null);
+            setEmojiOpen(false);
           }}
         />
-      </BottomSheet>
+      </ChoiceSurface>
 
-      <BottomSheet
-        open={openPicker === "color"}
-        onClose={() => setOpenPicker(null)}
+      <ChoiceSurface
+        open={colorOpen}
         title="Choose Color"
-        headerAction="close"
-        overlayClassName="z-90"
-        className="max-h-[70vh]"
+        triggerRef={colorTriggerRef}
+        onClose={() => setColorOpen(false)}
+        overlayClassName="z-[140]"
+        minWidth={colorPickerPopoverSize.minWidth}
+        maxHeight={colorPickerPopoverSize.maxHeight}
+        fixedWidth
       >
         <ColorPicker
           value={draft.form.color}
           onChange={(color) => {
             draft.setForm((current) => ({ ...current, color }));
-            setOpenPicker(null);
           }}
+          onCommit={() => setColorOpen(false)}
         />
-      </BottomSheet>
-
-      <BottomSheet
-        open={openPicker === "group"}
-        onClose={() => setOpenPicker(null)}
-        title="Group"
-        headerAction="close"
-        overlayClassName="z-90"
-        className="max-h-[70vh]"
-      >
-        <OptionList
-          options={draft.sortedGroups.map((group) => ({
-            value: group.id,
-            label: group.name,
-          }))}
-          value={draft.form.groupId}
-          onChange={(groupId) => {
-            draft.setForm((current) => ({
-              ...current,
-              groupId,
-              subGroupId: "",
-            }));
-            setOpenPicker(null);
-          }}
-        />
-      </BottomSheet>
-
-      <BottomSheet
-        open={openPicker === "subgroup"}
-        onClose={() => setOpenPicker(null)}
-        title="Sub-group"
-        headerAction="close"
-        overlayClassName="z-90"
-        className="max-h-[70vh]"
-      >
-        <OptionList
-          options={draft.visibleSubGroups.map((subGroup) => ({
-            value: subGroup.id,
-            label: subGroup.name,
-          }))}
-          value={draft.effectiveSubGroupId}
-          onChange={(subGroupId) => {
-            draft.setForm((current) => ({ ...current, subGroupId }));
-            setOpenPicker(null);
-          }}
-        />
-      </BottomSheet>
+      </ChoiceSurface>
     </>
-  );
-}
-
-/**
- * Shows a single-choice list and marks the current value.
- * An empty list tells the household that no options are available.
- */
-function OptionList({
-  options,
-  value,
-  onChange,
-}: {
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  if (options.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">No options available.</p>
-    );
-  }
-
-  return (
-    <div className="divide-y divide-border/70 border-y border-border/70">
-      {options.map((option) => {
-        const isSelected = option.value === value;
-
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className="flex min-h-12 w-full items-center gap-3 py-3 text-left"
-          >
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-              {option.label}
-            </span>
-            {isSelected ? (
-              <Check
-                className="size-4 shrink-0 text-primary"
-                aria-hidden="true"
-              />
-            ) : null}
-          </button>
-        );
-      })}
-    </div>
   );
 }

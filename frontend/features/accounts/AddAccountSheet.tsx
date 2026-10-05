@@ -202,6 +202,7 @@ export function AddAccountSheet({ open, onClose }: AddAccountSheetProps) {
       onClose={onClose}
       title="Add account"
       closeOnEscape={!pickerOpen}
+      presentation="panel"
     >
       {open ? (
         <AddAccountSheetContent

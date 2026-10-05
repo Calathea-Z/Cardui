@@ -2,43 +2,40 @@ import type { ReactNode } from "react";
 import { BackButton } from "./back-button";
 
 type PageHeaderProps = {
-  eyebrow?: string;
   title: string;
   description?: string;
   backFallbackHref?: string;
+  showBack?: boolean;
   actions?: ReactNode;
 };
 
 /**
- * Title block for a page, with an optional eyebrow, description, and actions.
- * The back button shows on desktop and receives backFallbackHref, which defaults to `/`.
+ * Title row for a page, with optional description and actions.
+ * Primary pages omit the back control. Actions wrap under the title on a narrow row.
  */
 export function PageHeader({
-  eyebrow,
   title,
   description,
   backFallbackHref = "/",
+  showBack = false,
   actions,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div className="flex items-start gap-3">
-        <BackButton
-          fallbackHref={backFallbackHref}
-          className="mt-0.5 hidden md:inline-flex"
-        />
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex min-w-0 items-start gap-3">
+        {showBack ? (
+          <BackButton
+            fallbackHref={backFallbackHref}
+            className="mt-0.5 hidden md:inline-flex"
+          />
+        ) : null}
 
-        <div>
-          {eyebrow ? (
-            <p className="text-[11px] font-medium tracking-[0.18em] text-primary uppercase">
-              {eyebrow}
-            </p>
-          ) : null}
-          <h1 className="font-brand mt-1 text-[2.15rem] leading-none tracking-tight text-foreground">
-            <span className="ink-underline">{title}</span>
+        <div className="min-w-0">
+          <h1 className="text-[1.75rem] font-semibold leading-none tracking-[-0.02em] text-foreground">
+            {title}
           </h1>
           {description ? (
-            <p className="mt-2.5 max-w-xl text-sm text-muted-foreground">
+            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
               {description}
             </p>
           ) : null}

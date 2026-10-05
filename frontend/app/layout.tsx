@@ -1,24 +1,12 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { clerkAppearance } from "@/components/auth/clerk-appearance";
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Shantell_Sans, Sora } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const shantell = Shantell_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-shantell",
-  display: "swap",
-});
-
-const sora = Sora({
-  subsets: ["latin"],
-  variable: "--font-sora",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -41,7 +29,7 @@ export const viewport: Viewport = {
 
 /**
  * Root layout for Tortoise.
- * Applies the dark theme, brand fonts, and Clerk sign-in and sign-up routes.
+ * Applies the light theme, Inter, and Clerk sign-in and sign-up routes.
  */
 export default function RootLayout({
   children,
@@ -49,11 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`dark ${shantell.variable} ${sora.variable} ${jetbrainsMono.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ClerkProvider
           signInUrl="/sign-in"

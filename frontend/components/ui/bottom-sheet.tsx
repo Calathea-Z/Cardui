@@ -36,6 +36,8 @@ function unlockBodyScroll() {
   }
 }
 
+type SheetPresentation = "sheet" | "panel";
+
 type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
@@ -43,6 +45,11 @@ type BottomSheetProps = {
   children: React.ReactNode;
   className?: string;
   overlayClassName?: string;
+  /**
+   * `sheet` slides up from the bottom.
+   * `panel` fills the screen under 768px and sits on the right from there up.
+   */
+  presentation?: SheetPresentation;
   /** When false, Escape does not close this sheet (use for sheets under a stacked sheet). */
   closeOnEscape?: boolean;
   /**
@@ -55,8 +62,8 @@ type BottomSheetProps = {
 };
 
 /**
- * Panel that slides up from the bottom of the screen.
- * It stays mounted through the close animation, locks page scroll while shown, and closes on Escape when closeOnEscape is set.
+ * Detail surface for a form or a record.
+ * `sheet` slides up from the bottom. `panel` fills the screen under 768px and slides in from the right from there up. It stays mounted through the close animation, locks page scroll while shown, and closes on Escape when closeOnEscape is set.
  */
 export function BottomSheet({
   open,
@@ -65,6 +72,7 @@ export function BottomSheet({
   children,
   className,
   overlayClassName,
+  presentation = "sheet",
   closeOnEscape = true,
   headerAction = "close",
   headerTrailing,
@@ -125,7 +133,7 @@ export function BottomSheet({
   }
 
   return (
-    <div className={cn("fixed inset-0 z-60", overlayClassName)}>
+    <div className={sheetOverlayClassName(presentation, overlayClassName)}>
       <button
         type="button"
         aria-label="Close"
@@ -144,10 +152,9 @@ export function BottomSheet({
         aria-labelledby={titleId}
         tabIndex={-1}
         className={cn(
-          "absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-2xl border border-border bg-background shadow-2xl outline-none",
-          "pb-[max(1rem,env(safe-area-inset-bottom))]",
+          sheetSurfaceClassName(presentation),
           "motion-reduce:animate-none",
-          open ? "animate-sheet-in" : "animate-sheet-out",
+          sheetMotionClassName(presentation, open),
           className,
         )}
       >
@@ -214,4 +221,45 @@ export function BottomSheet({
       </div>
     </div>
   );
+}
+
+/**
+ * Overlay stack for the surface.
+ * A panel sits above the phone header. A later overlay class can raise a nested surface further.
+ */
+function sheetOverlayClassName(
+  presentation: SheetPresentation,
+  overlayClassName?: string,
+) {
+  return cn(
+    "fixed inset-0",
+    presentation === "panel" ? "z-[100]" : "z-60",
+    overlayClassName,
+  );
+}
+
+/**
+ * Frame for the surface.
+ * A panel is a white full-screen sheet under 768px and a right-hand column from there up.
+ */
+function sheetSurfaceClassName(presentation: SheetPresentation) {
+  if (presentation === "panel") {
+    return "absolute inset-0 flex max-h-none flex-col border-0 bg-card pt-[env(safe-area-inset-top)] pb-[max(1rem,env(safe-area-inset-bottom))] outline-none md:left-auto md:h-auto md:w-[min(28rem,100%)] md:border-l md:border-border md:pt-0";
+  }
+
+  return "absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col rounded-t-2xl border border-border bg-background pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none";
+}
+
+/**
+ * Enter and leave motion for the surface.
+ * A panel rises on a phone and slides in from the right from 768px up.
+ */
+function sheetMotionClassName(presentation: SheetPresentation, open: boolean) {
+  if (presentation === "panel") {
+    return open
+      ? "max-md:animate-sheet-in md:animate-panel-in"
+      : "max-md:animate-sheet-out md:animate-panel-out";
+  }
+
+  return open ? "animate-sheet-in" : "animate-sheet-out";
 }

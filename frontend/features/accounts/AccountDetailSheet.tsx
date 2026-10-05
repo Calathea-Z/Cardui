@@ -163,6 +163,7 @@ export function AccountDetailSheet({
       title={account?.name ?? "Account"}
       headerAction="back"
       closeOnEscape={!pickerOpen}
+      presentation="panel"
     >
       {account ? (
         <AccountDetailContent

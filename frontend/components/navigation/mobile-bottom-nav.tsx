@@ -30,7 +30,7 @@ export function MobileBottomNav() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background pb-[env(safe-area-inset-bottom)]"
       aria-label="Main navigation"
     >
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-3">
         {bottomNavItems.map((item) => {
           const isActive = isActiveRoute(pathname, item.href);
 
@@ -39,7 +39,7 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2 text-[10px] transition",
+                "flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-medium transition",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground",

@@ -30,8 +30,8 @@ function EmptyState({
       )}
     >
       {icon}
-      <p className="font-brand text-xl leading-none text-foreground">
-        <span className="ink-underline">{title}</span>
+      <p className="text-xl font-semibold leading-none text-foreground">
+        {title}
       </p>
       {description ? (
         <p className="max-w-sm text-sm text-muted-foreground">{description}</p>

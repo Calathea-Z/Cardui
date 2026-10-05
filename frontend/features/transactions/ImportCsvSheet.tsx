@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import type { AccountDto } from "@/lib/api/types";
-import { FULL_SCREEN_SHEET_CLASSNAME } from "./fullScreenSheet";
 import { ImportColumnMapping } from "./ImportColumnMapping";
 import { ImportLabeledSelect } from "./ImportLabeledSelect";
 import { ImportPreviewRows } from "./ImportPreviewRows";
@@ -288,10 +286,8 @@ export function ImportCsvSheet({
       open={open}
       onClose={onClose}
       title="Import CSV"
-      className={cn(
-        FULL_SCREEN_SHEET_CLASSNAME,
-        "md:inset-x-auto md:left-1/2 md:w-full md:max-w-3xl md:-translate-x-1/2",
-      )}
+      presentation="panel"
+      className="md:w-[min(48rem,100%)]"
       closeOnEscape={!pickerOpen}
     >
       {open ? (

@@ -8,21 +8,7 @@ Tortoise should look like one light finance product. The phone layout is the sam
 
 The signed-in app is branded **Tortoise** (`frontend/app/layout.tsx`). The repo and roadmap call it Cardui. This note is about the Next.js app in `frontend/` (Next.js 16, React 19, Tailwind 4). Zach approved this direction on October 5, 2026. It is the local UI plan, not a design-system spec and not an implementation.
 
-I did not run Tortoise. The workspace has no env files, and every signed-in route calls Clerk `auth.protect()`. Starting it would need secrets. The layout notes below are from the components. I opened the reference pages in Chrome on October 5, 2026, and I did not sign in anywhere.
-
-## What I could actually see
-
-| Page | What loaded | What I did not see |
-| --- | --- | --- |
-| [monarch.com](https://www.monarch.com/) | Public marketing. Warm page, product cards, sign-in link to `app.monarch.com/login`. | The logged-in Monarch app. |
-| [monarch.com/features/tracking](https://www.monarch.com/features/tracking) | Public feature page with a net-worth mock. | A real household's accounts. |
-| [monarch.com/features/budgeting](https://www.monarch.com/features/budgeting) | Public feature page with category rows and budget bars. | Flex-vs-category budgeting inside the app. |
-| [mercury.com/insights](https://mercury.com/insights) | Public marketing. Light page, email form, product frames further down. Log in goes to `app.mercury.com/login`. | A signed-in Mercury account. |
-| [demo.mercury.com/dashboard](https://demo.mercury.com/dashboard) | Public demo, no account created. Light app chrome, "Welcome, Jane", a long banking sidebar. | Personal-finance insights. This demo is startup banking. |
-| [linear.app/insights](https://linear.app/insights) | Public marketing, dark, with product screenshots of charts and a sidebar. Log in goes to `linear.app/login`. | A Linear workspace. |
-| [ramp.com/reporting](https://ramp.com/reporting) | Public marketing. The two viewports I captured stayed on the hero: headline, email field, logo strip. Sign in goes to `app.ramp.com/sign-in`. | Ramp's reporting product. |
-
-The notes below are from those public pages, not Tortoise.
+I did not run Tortoise. The workspace has no env files, and every signed-in route calls Clerk `auth.protect()`. Starting it would need secrets. The layout notes below are from the components.
 
 ## 1. Where the UI is split
 
@@ -57,43 +43,33 @@ A few inner layouts do use width (`sm` for the income/spending/difference row, `
 
 The October 2 roadmap points the product at debt recovery. The screens above are still a spending and net-worth ledger. This direction does not design the recovery flows.
 
-## 2. What to borrow
+## 2. What the product should feel like
 
-The mix is: **Monarch for the picture of the money, Mercury for the quiet chrome, Linear for how few places a person has to go.** Ramp's public reporting page did not show a product UI worth copying.
+Tortoise is one light finance product. The picture of the money, the chrome, and the map are the same choices at every width.
 
-### Monarch — the picture
+### The picture
 
-Borrow the tracking mock, not the marketing site.
+Home leads with one number and one chart: net worth over time, with the accounts gathered under it. The other picture is the one Tortoise already has data for: a category name, a thin bar, and the amount spent.
 
-The tracking page (`rgb(246, 245, 243)` ground, `rgb(34, 32, 29)` text, ABC Oracle) leads with one number and one chart: net worth over time, accounts gathered under it. The budgeting page then shows the other picture Tortoise already has data for: category name, a thin bar, spent against a budget.
+Home is that pair. One net-worth chart. One this-month block with money in, money out, and a short category list. Recent activity sits under both, as rows, not as a third product.
 
-Home should be that pair. One net-worth chart. One this-month block with money in, money out, and a short category list. Recent activity under both, as rows, not as a third product.
+Leave these out: a serif display face, cream as a brand, a promo banner, a download-an-app path, and a second budgeting mode. Tortoise has no budget data yet. Do not invent one.
 
-Leave these out: the serif marketing headlines (Copernicus / ABC Otto on the public site), the cream-as-a-brand, the promo banner, the download-an-app path, and flex budgeting. Tortoise has no budget data yet. Do not invent a second budgeting mode.
+### The chrome
 
-### Mercury — the chrome
+The page is a light canvas and a left sidebar. Active navigation uses one accent. There is no paper texture, no script wordmark, and no highlighter behind a number.
 
-Borrow the demo's restraint, not its product list.
+Money in, money out, and a short category list use that same light frame.
 
-`demo.mercury.com/dashboard` opened without an account. The heading "Welcome, Jane" is Arcadia Display at 28px, weight 380, color `rgb(30, 30, 42)`. The page is a light canvas, a left sidebar, a search field, and one large balance. Active navigation uses a single saturated accent. There is no paper texture, no script wordmark, and no highlighter on the number.
+Leave these out: a second brand color that fills the room, a display face used only for headings, and a long catalog of products in the sidebar. Tortoise has three daily jobs. Extra destinations would make the split worse.
 
-The insights marketing page is the same idea aimed at cash flow: one chart, money in and money out, a short category list, a light frame. I did not open `app.mercury.com`.
+### The map
 
-Leave these out: Mercury's purple (it is their bank), Arcadia (it is their face), and the demo's sidebar. The DOM text on that demo runs through Home, Accounts, Transactions, Insights, Cards, Payments, Invoicing, and more. Tortoise has three daily jobs. A banking catalog would make the split worse.
+Home, Accounts, and Activity are the objects. Categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
 
-### Linear — the map
+The dark canvas goes away. Tortoise is dark today, and that theme is part of what is being retired. One light theme. No second theme in the same pass.
 
-Borrow the object list and the "one chart, then the rows" page. Leave the dark theme.
-
-The page background is `rgb(8, 9, 10)`, text `rgb(247, 248, 248)`, type Inter. The product screenshot is a sidebar of a few objects, one chart with a plain title, and the work listed under it. Filters change that view. They do not open a second app.
-
-That is the information architecture. Home, Accounts, and Activity are the objects. Categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Linear's custom dashboards, issue measures, and 64px marketing headlines stay on their site.
-
-Do not adopt this dark canvas. Monarch and Mercury, the two finance references, are light. Tortoise is dark today, and that theme is part of what is being retired. One light theme. No second theme in the same pass.
-
-### Ramp — studied, not a source
-
-`ramp.com/reporting` is a light marketing page (Lausanne, near-black text, a 64px headline, an email field). My screenshots never reached a reporting UI. The copy argues for pre-built views and clicking a chart to reach the underlying transactions. Monarch, Mercury, and Linear already show that more clearly. Leave the AI prompt, the logo wall, team budgets, and AP reporting.
+Leave these out: a custom dashboard builder, a pile of measures, marketing-size headlines, an AI prompt, a logo wall, and team or payables reporting. Clicking a chart later can open the rows underneath. It does not need a new viewer in this pass.
 
 ## 3. Visual system
 
@@ -101,7 +77,7 @@ Change tokens and type. Keep the Tailwind token names (`--background`, `--card`,
 
 ### Type
 
-Use **Inter**, loaded with `next/font/google` the same way Sora is loaded now. No new package. Inter is the face on the Linear page, and it is the practical stand-in for Mercury's and Monarch's product sans. Those two use proprietary families (Arcadia, ABC Oracle). Do not chase them.
+Use **Inter**, loaded with `next/font/google` the same way Sora is loaded now. No new package. Inter is the one product sans for titles, navigation, and money.
 
 Remove Shantell Sans and JetBrains Mono from `layout.tsx`. Page titles stop using `font-brand`. Money uses the same sans with `tabular-nums`. A code face on every balance is why the ledger feels like a terminal.
 
@@ -135,7 +111,7 @@ Light only. Stop forcing `class="dark"` on `<html>`.
 | `--chart-2` | `#c4b8a5` | The second series, when a chart compares two things. |
 | `--radius` | `0.5rem` | Cards and fields. Sheets stop at `rounded-t-2xl` on desktop later. |
 
-Green stays as the accent so Tortoise is not a Mercury clone. It no longer fills the background. Category colors stay the household's colors, and they appear only on that category's bar.
+Green stays as the accent. It no longer fills the background. Category colors stay the household's colors, and they appear only on that category's bar.
 
 Delete the body wallpaper (the three radial gradients and the 40px ruled lines). Delete the panel rail, the gradient header, the animated underline, the ink stroke under the wordmark, and the `.ledger-amount` highlight. The wordmark is "Tortoise" in Inter at the page-title size, with "Personal ledger" in meta type under it. No script, no SVG flourish.
 

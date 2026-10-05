@@ -35,7 +35,7 @@ Recommendations must show the assumptions, tradeoffs and reason for the ordering
 
 ## 2. Audit scope and verification
 
-The original specification was found in root `Plan.md`. It describes a personal-use Monarch-inspired dashboard, an eight-item Phase 1 MVP, later budgeting and debt screens, and future enhancements. Its progress and technology sections are stale: the API now targets .NET 10, and the frontend uses Next.js 16 / React 19.
+The original specification was found in root `Plan.md`. It describes a personal-use dashboard, an eight-item Phase 1 MVP, later budgeting and debt screens, and future enhancements. Its progress and technology sections are stale: the API now targets .NET 10, and the frontend uses Next.js 16 / React 19.
 
 This is a source-code and local-check audit. It does not establish production deployment, live bank connectivity, scheduled worker execution, browser usability, or security readiness.
 

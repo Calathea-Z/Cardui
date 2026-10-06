@@ -111,7 +111,7 @@ export function DebtForm({
             placeholder="Optional"
           />
           <span className="font-normal text-muted-foreground">
-            What you owe. Leave blank if you don't know it.
+            What you owe. Leave blank if you don&apos;t know it.
           </span>
         </label>
 
@@ -218,7 +218,7 @@ export function DebtForm({
               placeholder="Optional"
             />
             <span className="font-normal text-muted-foreground">
-              How many months are left. Leave blank if you don't know.
+              How many months are left. Leave blank if you don&apos;t know.
             </span>
           </label>
         ) : null}

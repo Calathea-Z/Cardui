@@ -227,6 +227,106 @@ public class DebtsServiceTests
         Assert.Equal(900m, await AccountBalanceAsync(dbContext, accountId));
     }
 
+    [Fact]
+    public async Task Summary_ShowsBothBalancesAndKeepsTheDebtBalanceUntilChosen()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddAccountAsync(
+            dbContext,
+            householdId,
+            "Store card",
+            950m,
+            currency: "USD");
+        await AddSnapshotAsync(dbContext, accountId, new DateOnly(2026, 9, 1), 800m, "USD");
+        await AddSnapshotAsync(dbContext, accountId, new DateOnly(2026, 10, 5), 900m, "USD");
+        var service = CreateService(dbContext, Bind(householdId));
+        var card = Card(accountId);
+        card.Apr = 19.99m;
+        var saved = await service.CreateAsync(card);
+
+        var summary = await service.GetSummaryAsync();
+        var item = Assert.Single(summary.Debts);
+        Assert.Equal(saved.Id, item.DebtId);
+        Assert.Equal(14.03m, item.MonthlyInterest);
+        Assert.NotNull(item.BalanceComparison);
+        Assert.Equal(900m, item.BalanceComparison.AccountBalance);
+        Assert.Equal(new DateOnly(2026, 10, 5), item.BalanceComparison.AccountBalanceAsOf);
+        Assert.True(item.BalanceComparison.CanUseAccountBalance);
+        var totals = Assert.Single(summary.Currencies);
+        Assert.Equal(842.50m, totals.RecordedBalance);
+
+        var chosen = await service.UseAccountBalanceAsync(saved.Id);
+
+        Assert.Equal(900m, chosen.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 5), chosen.BalanceAsOf);
+        Assert.Equal(19.99m, chosen.Apr);
+        Assert.Null(chosen.MinimumPayment);
+        Assert.Null(chosen.NextDueDate);
+        Assert.Equal(950m, await AccountBalanceAsync(dbContext, accountId));
+
+        var after = Assert.Single((await service.GetSummaryAsync()).Debts);
+        Assert.Equal(14.99m, after.MonthlyInterest);
+        Assert.Null(after.BalanceComparison);
+    }
+
+    [Fact]
+    public async Task Summary_DoesNotCreateADebtFromAnAccount()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var otherId = await CreateHouseholdAsync(dbContext, "user_owner_b");
+        var accountId = await AddAccountAsync(dbContext, householdId, "Store card", 900m, currency: "USD");
+        await AddSnapshotAsync(dbContext, accountId, new DateOnly(2026, 10, 5), 900m, "USD");
+        var service = CreateService(dbContext, Bind(householdId));
+
+        var summary = await service.GetSummaryAsync();
+
+        Assert.Empty(summary.Debts);
+        Assert.Empty(await service.GetDebtsAsync());
+
+        var cashId = await AddAccountAsync(
+            dbContext,
+            householdId,
+            "Checking",
+            100m,
+            AccountTypes.Depository,
+            "USD");
+        var debt = await service.CreateAsync(Card(cashId));
+        var compared = Assert.Single((await service.GetSummaryAsync()).Debts);
+        Assert.Null(compared.BalanceComparison);
+
+        var cashError = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.UseAccountBalanceAsync(debt.Id));
+        Assert.Equal(
+            "That account balance is not an amount owed, so it is not copied.",
+            cashError.Message);
+        Assert.Equal(842.50m, (await service.GetDebtsAsync()).Single().Balance);
+
+        var undatedId = await AddAccountAsync(
+            dbContext,
+            householdId,
+            "Other card",
+            700m,
+            currency: "USD");
+        var undatedDebt = Card(undatedId);
+        undatedDebt.Name = "Other card";
+        var undated = await service.CreateAsync(undatedDebt);
+        var blocked = Assert.Single(
+            (await service.GetSummaryAsync()).Debts,
+            item => item.DebtId == undated.Id);
+        Assert.NotNull(blocked.BalanceComparison);
+        Assert.Equal(DebtAccountBalanceBlock.DateUnknown, blocked.BalanceComparison.Block);
+        var dateError = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.UseAccountBalanceAsync(undated.Id));
+        Assert.Equal("That account balance has no date, so it is not copied.", dateError.Message);
+
+        var other = CreateService(dbContext, Bind(otherId));
+        await Assert.ThrowsAsync<NotFoundException>(
+            () => other.UseAccountBalanceAsync(debt.Id));
+        Assert.Empty((await other.GetSummaryAsync()).Debts);
+    }
+
     private static UpsertDebtDto Card(Guid? accountId)
     {
         return new UpsertDebtDto
@@ -272,7 +372,9 @@ public class DebtsServiceTests
         CarduiDBContext dbContext,
         Guid householdId,
         string name,
-        decimal currentBalance)
+        decimal currentBalance,
+        string type = AccountTypes.Credit,
+        string? currency = null)
     {
         var account = new Account
         {
@@ -281,7 +383,8 @@ public class DebtsServiceTests
             Source = FinancialRecordSource.Manual,
             Provenance = FinancialRecordProvenance.ManualEntry,
             Name = name,
-            Type = AccountTypes.Credit,
+            Type = type,
+            IsoCurrencyCode = currency,
             IsActive = true,
             CurrentBalance = currentBalance,
             CreatedAt = Now,
@@ -290,6 +393,25 @@ public class DebtsServiceTests
         dbContext.Accounts.Add(account);
         await dbContext.SaveChangesAsync();
         return account.Id;
+    }
+
+    private static async Task AddSnapshotAsync(
+        CarduiDBContext dbContext,
+        Guid accountId,
+        DateOnly date,
+        decimal currentBalance,
+        string currency)
+    {
+        dbContext.AccountBalanceSnapshots.Add(new AccountBalanceSnapshot
+        {
+            Id = Guid.NewGuid(),
+            AccountId = accountId,
+            Date = date,
+            CurrentBalance = currentBalance,
+            IsoCurrencyCode = currency,
+            CreatedAt = Now
+        });
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task<decimal> AccountBalanceAsync(CarduiDBContext dbContext, Guid accountId)

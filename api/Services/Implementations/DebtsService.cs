@@ -70,6 +70,26 @@ public class DebtsService : IDebtsService
         await DeleteDebtAsync(debt, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<DebtSummaryReportDto> GetSummaryAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var inputs = await LoadSummaryInputsAsync(cancellationToken);
+        var report = DebtSummary.Calculate(inputs, Today());
+        return DebtSummaryDtoMapper.Map(report);
+    }
+
+    /// <inheritdoc />
+    public async Task<DebtDto> UseAccountBalanceAsync(
+        Guid debtId,
+        CancellationToken cancellationToken = default)
+    {
+        var debt = await FindDebtAsync(debtId, cancellationToken);
+        var chosen = await ReadChosenBalanceAsync(debt, cancellationToken);
+        await SaveChosenBalanceAsync(debt, chosen.Balance, chosen.AsOf, cancellationToken);
+        return await ProjectDebtAsync(debt.Id, cancellationToken);
+    }
+
     #region Private Methods
 
     /// <summary>
@@ -290,6 +310,222 @@ public class DebtsService : IDebtsService
     {
         debt.Utilization = DebtRules.Utilization(debt.Balance, debt.CreditLimit);
         return debt;
+    }
+
+    /// <summary>
+    /// Today's date in the household time zone.
+    /// A due date and a promotion are compared with this day.
+    /// </summary>
+    private DateOnly Today()
+    {
+        return FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
+    }
+
+    /// <summary>
+    /// Loads each debt with the latest balance of its linked account, when it has one.
+    /// An account that is not linked is omitted. The debt balance is not replaced here.
+    /// </summary>
+    private async Task<List<DebtSummaryInput>> LoadSummaryInputsAsync(
+        CancellationToken cancellationToken)
+    {
+        var debts = await LoadDebtsAsync(cancellationToken);
+        var accountIds = debts
+            .Where(debt => debt.AccountId is Guid)
+            .Select(debt => debt.AccountId!.Value)
+            .Distinct()
+            .ToList();
+        var links = await LoadLinkedBalancesAsync(accountIds, cancellationToken);
+
+        return debts
+            .Select(debt => ToSummaryInput(
+                debt,
+                debt.AccountId is Guid accountId && links.TryGetValue(accountId, out var linked)
+                    ? linked
+                    : null))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Loads the dated balance for each linked account.
+    /// The latest snapshot is the dated figure. Without one, the current balance is kept and its date stays unknown.
+    /// </summary>
+    private async Task<Dictionary<Guid, DebtLinkedBalance>> LoadLinkedBalancesAsync(
+        IReadOnlyList<Guid> accountIds,
+        CancellationToken cancellationToken)
+    {
+        if (accountIds.Count == 0)
+        {
+            return [];
+        }
+
+        var householdId = _householdScope.RequireHouseholdId();
+        var accounts = await _dbContext.Accounts
+            .AsNoTracking()
+            .Where(account => account.HouseholdId == householdId && accountIds.Contains(account.Id))
+            .Select(account => new
+            {
+                account.Id,
+                account.Type,
+                account.CurrentBalance,
+                account.IsoCurrencyCode
+            })
+            .ToListAsync(cancellationToken);
+
+        var snapshots = await _dbContext.AccountBalanceSnapshots
+            .AsNoTracking()
+            .Where(snapshot => accountIds.Contains(snapshot.AccountId))
+            .Select(snapshot => new
+            {
+                snapshot.AccountId,
+                snapshot.Date,
+                snapshot.CurrentBalance,
+                snapshot.IsoCurrencyCode,
+                snapshot.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        var latestByAccount = snapshots
+            .GroupBy(snapshot => snapshot.AccountId)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderByDescending(snapshot => snapshot.Date)
+                    .ThenByDescending(snapshot => snapshot.CreatedAt)
+                    .First());
+
+        var links = new Dictionary<Guid, DebtLinkedBalance>();
+        foreach (var account in accounts)
+        {
+            latestByAccount.TryGetValue(account.Id, out var snapshot);
+            links[account.Id] = ToLinkedBalance(
+                account.Type,
+                account.CurrentBalance,
+                account.IsoCurrencyCode,
+                snapshot?.Date,
+                snapshot?.CurrentBalance,
+                snapshot?.IsoCurrencyCode);
+        }
+
+        return links;
+    }
+
+    /// <summary>
+    /// Reads the account balance the person chose, or rejects a balance the debt cannot store.
+    /// </summary>
+    private async Task<(decimal Balance, DateOnly AsOf)> ReadChosenBalanceAsync(
+        Debt debt,
+        CancellationToken cancellationToken)
+    {
+        if (debt.AccountId is not Guid accountId)
+        {
+            throw new BadRequestException("This debt is not linked to an account.");
+        }
+
+        var householdId = _householdScope.RequireHouseholdId();
+        var account = await _dbContext.Accounts
+            .AsNoTracking()
+            .Where(row => row.Id == accountId && row.HouseholdId == householdId)
+            .Select(row => new
+            {
+                row.Type,
+                row.CurrentBalance,
+                row.IsoCurrencyCode
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (account is null)
+        {
+            throw new BadRequestException("Choose an account from this household.");
+        }
+
+        var snapshot = await _dbContext.AccountBalanceSnapshots
+            .AsNoTracking()
+            .Where(row => row.AccountId == accountId)
+            .OrderByDescending(row => row.Date)
+            .ThenByDescending(row => row.CreatedAt)
+            .Select(row => new
+            {
+                row.Date,
+                row.CurrentBalance,
+                row.IsoCurrencyCode
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var linked = ToLinkedBalance(
+            account.Type,
+            account.CurrentBalance,
+            account.IsoCurrencyCode,
+            snapshot?.Date,
+            snapshot?.CurrentBalance,
+            snapshot?.IsoCurrencyCode);
+
+        if (!DebtSummary.TryReadChosenBalance(
+                debt.Currency,
+                linked,
+                out var balance,
+                out var asOf,
+                out var error))
+        {
+            throw new BadRequestException(error);
+        }
+
+        return (balance, asOf);
+    }
+
+    /// <summary>
+    /// Stores the chosen balance and the date it was true.
+    /// APR, minimum, due date, and the account row stay unchanged.
+    /// </summary>
+    private async Task SaveChosenBalanceAsync(
+        Debt debt,
+        decimal balance,
+        DateOnly asOf,
+        CancellationToken cancellationToken)
+    {
+        debt.Balance = balance;
+        debt.BalanceAsOf = asOf;
+        debt.UpdatedAt = _timeProvider.GetUtcNow();
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Builds one summary input from a debt and the balance of its linked account.
+    /// </summary>
+    private static DebtSummaryInput ToSummaryInput(DebtDto debt, DebtLinkedBalance? linked)
+    {
+        return new DebtSummaryInput(
+            debt.Id,
+            debt.Currency,
+            debt.Kind,
+            debt.Balance,
+            debt.BalanceAsOf,
+            debt.Apr,
+            debt.MinimumPayment,
+            debt.NextDueDate,
+            debt.CreditLimit,
+            debt.RemainingTermMonths,
+            debt.PromotionalApr,
+            debt.PromotionalEndsOn,
+            linked);
+    }
+
+    /// <summary>
+    /// Prefers the latest snapshot, which has a date. The current balance is used only when no snapshot exists.
+    /// </summary>
+    private static DebtLinkedBalance ToLinkedBalance(
+        string accountType,
+        decimal currentBalance,
+        string? accountCurrency,
+        DateOnly? snapshotDate,
+        decimal? snapshotBalance,
+        string? snapshotCurrency)
+    {
+        var hasSnapshot = snapshotDate is not null && snapshotBalance is not null;
+        return new DebtLinkedBalance(
+            hasSnapshot ? snapshotBalance!.Value : currentBalance,
+            hasSnapshot ? snapshotDate : null,
+            hasSnapshot ? snapshotCurrency ?? accountCurrency : accountCurrency,
+            AccountLedger.IsLiability(accountType));
     }
 
     /// <summary>

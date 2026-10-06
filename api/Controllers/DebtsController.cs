@@ -62,6 +62,37 @@ public class DebtsController : ControllerBase
     }
 
     /// <summary>
+    /// GET /api/debts/summary
+    /// Returns totals, risks, and missing inputs for the household's debts.
+    /// A linked account balance is included when it differs. It is not copied onto the debt.
+    /// </summary>
+    [HttpGet("summary")]
+    [ProducesResponseType<DebtSummaryReportDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<DebtSummaryReportDto>> GetDebtSummary(
+        CancellationToken cancellationToken = default)
+    {
+        var summary = await _debtsService.GetSummaryAsync(cancellationToken);
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// POST /api/debts/{id}/use-account-balance
+    /// Stores the linked account's dated balance on the debt.
+    /// The account balance is not changed. APR, minimum, and due date stay as they are.
+    /// </summary>
+    [HttpPost("{id:guid}/use-account-balance")]
+    [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DebtDto>> UseAccountBalance(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var debt = await _debtsService.UseAccountBalanceAsync(id, cancellationToken);
+        return Ok(debt);
+    }
+
+    /// <summary>
     /// DELETE /api/debts/{id}
     /// Deletes a debt. The linked account and its balance stay unchanged.
     /// </summary>

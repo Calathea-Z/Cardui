@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/navigation/page-header";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { DebtForm } from "./DebtForm";
+import { DebtSummary } from "./DebtSummary";
 import { DebtList } from "./DebtList";
 import type { DebtsPageData } from "./debtPageData";
 import { useDebts } from "./useDebts";
@@ -13,15 +14,16 @@ type DebtsPageClientProps = DebtsPageData;
 
 /**
  * Debts page.
- * Saved debts stay on the page. Adding or editing one opens a panel.
- * A blank term stays unknown.
+ * Saved debts stay on the page. Summary sits above them when there is something to inventory.
+ * Adding or editing one opens a panel. A blank term stays unknown.
  */
 export function DebtsPageClient({
   debts: initialDebts,
+  summary: initialSummary,
   accounts,
   planningCurrency,
 }: DebtsPageClientProps) {
-  const debts = useDebts(initialDebts);
+  const debts = useDebts(initialDebts, initialSummary);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [openPickerCount, setOpenPickerCount] = useState(0);
@@ -79,14 +81,20 @@ export function DebtsPageClient({
         }
       />
 
+      {debts.debts.length > 0 ? (
+        <DebtSummary report={debts.summary} updating={debts.summaryUpdating} />
+      ) : null}
+
       <DebtList
         debts={debts.debts}
+        summary={debts.summary}
         busyId={debts.busyId}
         onAdd={(opener) => openForm(opener, debts.startAdding)}
         onEdit={(debt, opener) =>
           openForm(opener, () => debts.startEditing(debt))
         }
         onRemove={(debt) => void debts.remove(debt)}
+        onUseAccountBalance={(debt) => void debts.chooseBalance(debt)}
       />
 
       <BottomSheet

@@ -1,5 +1,5 @@
 import { browserClient } from "../browser-client";
-import type { DebtDto, UpsertDebtDto } from "../types";
+import type { DebtDto, DebtSummaryReportDto, UpsertDebtDto } from "../types";
 
 /**
  * POST /api/debts
@@ -29,4 +29,26 @@ export async function updateDebt(
  */
 export async function deleteDebt(id: string): Promise<void> {
   await browserClient.delete(`/api/debts/${id}`);
+}
+
+/**
+ * GET /api/debts/summary
+ * Reloads the debt totals, risks, and missing inputs.
+ */
+export async function getDebtSummary(): Promise<DebtSummaryReportDto> {
+  const response =
+    await browserClient.get<DebtSummaryReportDto>("/api/debts/summary");
+  return response.data;
+}
+
+/**
+ * POST /api/debts/{id}/use-account-balance
+ * Stores the linked account's dated balance on the debt.
+ * The account balance is not changed. APR, minimum, and due date stay as they are.
+ */
+export async function chooseAccountBalance(id: string): Promise<DebtDto> {
+  const response = await browserClient.post<DebtDto>(
+    `/api/debts/${id}/use-account-balance`,
+  );
+  return response.data;
 }

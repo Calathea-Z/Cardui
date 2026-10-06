@@ -2,6 +2,7 @@
 
 Newest first:
 
+- [2026-10-05 — Debt summary](2026-10-05-016-debt-summary.md)
 - [2026-10-05 — Accounts action menu](2026-10-05-015-accounts-action-menu.md)
 - [2026-10-05 — Debts](2026-10-05-014-debts.md)
 - [2026-10-05 — Recurring bill suggestions](2026-10-05-013-recurring-suggestions.md)

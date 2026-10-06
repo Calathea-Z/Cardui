@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { createDebt, deleteDebt, updateDebt } from "@/lib/api/browser";
+import {
+  chooseAccountBalance,
+  createDebt,
+  deleteDebt,
+  getDebtSummary,
+  updateDebt,
+} from "@/lib/api/browser";
 import { describeApiError } from "@/lib/api/errors";
-import type { DebtDto } from "@/lib/api/types";
+import type { DebtDto, DebtSummaryReportDto } from "@/lib/api/types";
 import {
   debtToForm,
   emptyDebtForm,
@@ -14,16 +20,22 @@ import {
 } from "./debtFormState";
 
 /**
- * Holds the debt list and the create or edit form.
- * A blank term stays unknown. The form opens over the list.
+ * Holds the debt list, its summary, and the create or edit form.
+ * A blank term stays unknown. Summary keeps the recorded balance until the person chooses the account balance.
  */
-export function useDebts(initialDebts: DebtDto[]) {
+export function useDebts(
+  initialDebts: DebtDto[],
+  initialSummary: DebtSummaryReportDto | null,
+) {
   const [debts, setDebts] = useState(initialDebts);
+  const [summary, setSummary] = useState(initialSummary);
+  const [summaryUpdating, setSummaryUpdating] = useState(false);
   const [form, setForm] = useState<DebtFormState>(emptyDebtForm());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const summaryRequest = useRef(0);
   const confirm = useConfirm();
 
   /**
@@ -54,6 +66,7 @@ export function useDebts(initialDebts: DebtDto[]) {
         setDebts((current) => [...current, created]);
       }
 
+      void refreshSummary();
       return true;
     } catch (err) {
       reportDebtFailure(err, "That debt could not be saved.");
@@ -114,10 +127,83 @@ export function useDebts(initialDebts: DebtDto[]) {
       if (editingId === debt.id) {
         closeForm();
       }
+
+      void refreshSummary();
     } catch (err) {
       reportDebtFailure(err, "That debt could not be removed.");
     } finally {
       setBusyId(null);
+    }
+  }
+
+  /**
+   * Stores the linked account's dated balance on the debt after confirmation.
+   * The account balance is not changed. APR, minimum, and due date stay as they are.
+   */
+  async function chooseBalance(debt: DebtDto) {
+    const comparison = summary?.debts.find(
+      (item) => item.debtId === debt.id,
+    )?.balanceComparison;
+    if (!comparison?.canUseAccountBalance) {
+      return;
+    }
+
+    const confirmed = await confirm({
+      title: `Use the account balance for ${debt.name}?`,
+      description:
+        debt.balance === null
+          ? "The debt balance stays unknown until you do. This saves the account balance and its date on the debt. The account itself is not changed."
+          : "The plan keeps the recorded balance until you do. This saves the account balance and its date on the debt. The account itself is not changed.",
+      confirmLabel: "Use the account balance",
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyId(debt.id);
+    try {
+      const updated = await chooseAccountBalance(debt.id);
+      setDebts((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      const refreshed = await refreshSummary();
+      if (refreshed) {
+        toast.success("The recorded balance now matches the account.", {
+          id: debtToastId,
+        });
+      }
+    } catch (err) {
+      reportDebtFailure(err, "That account balance could not be saved.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /**
+   * Reloads summary after a debt change.
+   * The previous summary stays visible until the new one arrives. A failed reload leaves it in place.
+   */
+  async function refreshSummary() {
+    const request = summaryRequest.current + 1;
+    summaryRequest.current = request;
+    setSummaryUpdating(true);
+    try {
+      const next = await getDebtSummary();
+      if (summaryRequest.current === request) {
+        setSummary(next);
+      }
+
+      return summaryRequest.current === request;
+    } catch (err) {
+      if (summaryRequest.current === request) {
+        reportDebtFailure(err, "Debt summary could not be updated.");
+      }
+
+      return false;
+    } finally {
+      if (summaryRequest.current === request) {
+        setSummaryUpdating(false);
+      }
     }
   }
 
@@ -127,6 +213,8 @@ export function useDebts(initialDebts: DebtDto[]) {
     editingId,
     isFormOpen,
     debts: sortDebts(debts),
+    summary,
+    summaryUpdating,
     isSaving,
     busyId,
     handleSubmit,
@@ -134,6 +222,7 @@ export function useDebts(initialDebts: DebtDto[]) {
     startEditing,
     closeForm,
     remove,
+    chooseBalance,
   };
 }
 

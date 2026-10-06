@@ -30,11 +30,19 @@ export function formatApr(value: number) {
 }
 
 /**
+ * Formats a share as a percent.
+ * The ratio is a portion of a whole. 0.30 is 30%, and the screen keeps one decimal when needed.
+ */
+export function formatSharePercent(ratio: number) {
+  const percent = Math.round(ratio * 1000) / 10;
+  const text = Number.isInteger(percent) ? String(percent) : percent.toFixed(1);
+  return `${text}%`;
+}
+
+/**
  * Formats utilization for on-screen text.
  * The ratio is the share of the credit limit in use. The screen rounds it to one decimal percent.
  */
 export function formatUtilization(ratio: number) {
-  const percent = Math.round(ratio * 1000) / 10;
-  const text = Number.isInteger(percent) ? String(percent) : percent.toFixed(1);
-  return `${text}% of the limit`;
+  return `${formatSharePercent(ratio)} of the limit`;
 }

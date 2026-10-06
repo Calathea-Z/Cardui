@@ -1,6 +1,7 @@
 # Linked manual debts
 
-Status: proposed, for Zach's review. Not approved. Nothing here is built.
+Status: approved for the plan on October 6, 2026. Every design question is
+decided (see Decisions). Nothing here is built.
 
 Date: October 6, 2026
 
@@ -11,8 +12,8 @@ they still have to retype the balance after every payment. The debt and the
 connected account stay separate on purpose, so a sync can never overwrite
 something the person typed.
 
-This note proposes an optional way for a debt to follow a connected
-account's balance. A sync still never overwrites what the person typed.
+This note designs an optional way for a debt to follow a connected
+account's balance and credit limit. A sync still never overwrites what the person typed.
 
 ## What exists today
 
@@ -95,11 +96,11 @@ These points were approved before this note. The note designs them.
   update.
 - Stopping the follow keeps the last values and returns the debt to manual.
   Nothing is lost.
-- APR, minimum payment, and due date need the Plaid Liabilities product.
-  That is an open decision.
+- Following uses basic sync only. Plaid Liabilities is not adopted (see
+  Decisions).
 - Sync correctness comes first.
 
-## Proposed design
+## Design
 
 ### Two kinds of link
 
@@ -118,14 +119,13 @@ link does.
   `AccountLedger.IsLiability` is true, and the currency matches the debt.
   A manual account already holds a balance the person types, so following
   it adds nothing.
-- One account can be followed by one debt at most. Two debts following one
-  card would count that balance twice in the summary.
+- One account backs one debt at most. Each account is separate. Two debts
+  following one card would count that balance twice in the summary.
 
 ### Sync never writes a debt
 
-The sync keeps writing only account-side rows: `Account`,
-`AccountBalanceSnapshot`, and, if Liabilities is approved, one new
-account-side terms row. It does not load or update `Debts`.
+The sync keeps writing only account-side rows: `Account` and
+`AccountBalanceSnapshot`. It does not load or update `Debts`.
 
 A followed debt reads its synced values when it is shown or planned, the
 same way `LoadLinkedBalancesAsync` reads the latest snapshot today. That
@@ -138,20 +138,24 @@ by the person's action, not by sync.
 
 ### Field ownership
 
+Following uses what the sync already fetches from `/accounts/get`. Nothing
+else is synced.
+
 | Field | Owner when following | Source |
 | --- | --- | --- |
-| Current balance and its date | Synced | Latest `AccountBalanceSnapshot` (`/accounts/get`) |
-| Credit limit (revolving) | Synced | `balances.limit` from `/accounts/get`. Not stored today. |
-| Statement balance and date | Synced, shown only | Liabilities. No debt column exists. |
-| Minimum payment | Synced | Liabilities |
-| Next due date | Synced | Liabilities |
-| APR | Synced | Liabilities. Purchase APR only (see questions). |
+| Current balance and its date | Synced | Latest `AccountBalanceSnapshot` |
+| Credit limit (revolving) | Synced | `balances.limit`. Not stored today. |
+| APR | Person | Debt |
+| Minimum payment | Person | Debt |
+| Next due date | Person | Debt |
 | Name, type | Person | Debt |
 | Promotional APR and end date | Person | Debt |
 | Months left (installment) | Person | Debt |
 | Payoff priority, notes, target payment | Person | Not built yet. Owned by the person when added. |
 
-A synced field resolves to one of four states. A pure rule in `Domain`
+There is no statement balance on a debt, and following does not add one.
+
+A synced field resolves to one of three states. A pure rule in `Domain`
 decides it from values, with no database, clock, or HTTP:
 
 1. **Synced.** Following, no override, and the connection provides a usable
@@ -159,16 +163,23 @@ decides it from values, with no database, clock, or HTTP:
 2. **Override.** Following, and the person set their own value. The person's
    value is used and labeled "Your value", with the synced value beside it
    and "Use synced value".
-3. **Not provided.** Following, but the connection gives nothing for that
-   field, for example APR without Liabilities. The person's value is used
-   without an override label, and the field says the connection does not
-   provide it. Typing a value here is not an override.
-4. **Manual.** Not following. Today's behavior.
+3. **Manual.** Not following, or the connection gives nothing for that
+   field, such as a loan with no credit limit. The person's value is used
+   without an override label. Typing a value here is not an override.
 
-When the synced value cannot be used, the rule reuses
-`DebtAccountBalanceBlock`. A blocked value (no date, negative, other
-currency, too large) is shown next to the reason. The debt keeps using its
-last usable value and the field is marked stale.
+The person-owned fields stay as they are today on a followed debt. The card
+says they are entered by the person, so it is clear the connection does not
+keep them current.
+
+When the synced balance cannot be used, the rule reuses
+`DebtAccountBalanceBlock`. A blocked value (no date, other currency, too
+large) is shown next to the reason. The debt keeps using its last usable
+value and the field is marked stale.
+
+A negative synced balance is different. It means the card owes the person
+money. On a followed revolving debt the balance in use is $0, with a note
+that names the credit, for example "The card shows a $42.10 credit. Counted
+as $0." The negative amount is not stored on the debt.
 
 ### Editing a followed debt
 
@@ -176,8 +187,10 @@ last usable value and the field is marked stale.
 value would send it back as if the person typed it. A sync between opening
 and saving would then look like an override. To avoid that:
 
-- In the debt form, synced fields are read-only while following. Each one
-  has "Enter my own value", which opens that one field.
+- In the debt form, the balance and credit limit are read-only while
+  following. Each one has "Enter my own value", which opens that one field.
+  APR, minimum, due date, and the other person-owned fields stay editable
+  as they are today.
 - Setting and clearing an override are their own actions, for example
   `PUT /api/debts/{id}/overrides/{field}` and
   `DELETE /api/debts/{id}/overrides/{field}`. `{field}` is a closed set and
@@ -201,12 +214,13 @@ and saving would then look like an override. To avoid that:
      score is shown.
    - "Choose another account" lists every eligible account. "None of these"
      closes the step. Suggestions show only when the person asks, so a
-     dismissal does not need to be stored in the first slice.
-3. The confirm step shows what will follow, and what stays theirs.
-4. If the debt already has a balance that differs from the synced one, the
-   confirm step shows both with their dates. "Use connected balance" is the
-   primary choice. "Keep mine as my own value" saves it as an override. The
-   same applies to any Liabilities field the person already filled.
+     dismissal does not need to be stored.
+3. The confirm step shows what will follow (balance, and credit limit on a
+   card) and what stays theirs (APR, minimum, due date, and the rest).
+4. If the debt already has a balance or credit limit that differs from the
+   synced one, the confirm step shows both with their dates. "Use connected
+   value" is the primary choice. "Keep mine as my own value" saves it as an
+   override.
 5. Confirm saves. A toast says "Store card now follows Visa ending 4821".
 
 An existing reference link to an eligible account shows "Follow this
@@ -219,14 +233,19 @@ a pure rule over values already stored:
 
 | State | When | What the card says | Action |
 | --- | --- | --- | --- |
-| Current | Latest snapshot is within the threshold and the last sync succeeded | "Synced Oct 6" | None |
-| Stale | Latest snapshot is older than the threshold | "Last synced Oct 2. A refresh has not run since." | Refresh |
+| Current | Latest snapshot is no more than two days old in the household time zone, and the last sync succeeded | "Synced Oct 6" | None |
+| Stale | Latest snapshot is more than two days old in the household time zone | "Last synced Oct 2. A refresh has not run since." | Refresh |
 | Sync failing | `LastSyncFailedAt` is after the last success | "Sync failed Oct 5. Showing the Oct 4 balance." | Reconnect, or Update balance |
 | Disconnected | The account's `PlaidItemId` is null (bank link removed) | "Bank link removed. Showing the Oct 4 balance." | Reconnect, Stop following |
 | Account missing | `IsActive` is false or the account is archived | "The bank no longer returns this account." | Stop following |
 
+- The stale threshold is two days in the household time zone. The worker
+  runs daily, so one missed run does not mark a debt stale.
 - The last balance stays visible in every state. Stale data is never hidden
   or zeroed.
+- Removing the bank link does not stop the follow. The debt stays followed
+  and stale, showing the last balance, until the person reconnects, updates
+  the balance, or stops following.
 - "Update balance" sets a balance override with today's date. When the
   connection recovers, the card shows both values and offers "Use synced
   value". Sync does not clear the override on its own.
@@ -253,23 +272,24 @@ not destructive, so it does not ask first, but the toast says what happened:
 
 ### Data model sketch
 
-Description only. Zach generates and applies the migration himself after
-review. Names are proposals.
+Description only. Each slice that changes the model updates the model and
+`DbContext` configuration, then stops. Zach generates and applies the EF
+Core migration himself (`.cursor/rules/migrations.mdc`). Names are
+proposals.
 
 On `Debt`:
 
 - `AccountFollowedSince` (`DateTimeOffset?`). Null is a reference link or no
   link. A value means the debt follows `AccountId` and records when that
   started. It is set only together with `AccountId`.
-- One override timestamp per synced field the person can own:
-  `BalanceOverriddenAt`, `CreditLimitOverriddenAt`,
-  `MinimumPaymentOverriddenAt`, `NextDueDateOverriddenAt`,
-  `AprOverriddenAt` (`DateTimeOffset?`). Null means no override. A value
-  means the debt's own column is the value in use, and when the person set
-  it. The timestamp is the provenance shown as "Your value since Oct 3".
+- One override timestamp per synced field: `BalanceOverriddenAt` and
+  `CreditLimitOverriddenAt` (`DateTimeOffset?`). Null means no override. A
+  value means the debt's own column is the value in use, and when the
+  person set it. The timestamp is the provenance shown as "Your value since
+  Oct 3".
 - No synced-value columns on `Debt`. Synced values stay on the account side.
 - A filtered unique index on `AccountId` where `AccountFollowedSince` is not
-  null, so one account has at most one following debt.
+  null, so one account backs at most one debt.
 - `AccountId` keeps `SetNull` on delete. No API path deletes an account
   today. If one is added, it must stop the follow first, so the snapshot is
   copied before the link is lost.
@@ -278,21 +298,16 @@ On the account side:
 
 - `Account.CreditLimit` (`decimal?`), copied from `balances.limit` by
   `PlaidAccountSyncService`.
-- Only if Liabilities is approved: one row per account, for example
-  `AccountLiabilityTerms` with `AccountId`, `StatementBalance`,
-  `StatementDate`, `MinimumPayment`, `NextDueDate`, `PurchaseApr`, and
-  `SyncedAt`. Sync writes it. A debt only reads it.
 
 In `Domain`, each type in its own file per `.cursor/rules/backend-type-files.mdc`
 and `.cursor/rules/backend-enums.mdc`:
 
-- `DebtFieldSource` enum: `Synced`, `Override`, `NotProvided`, `Manual`.
+- `DebtFieldSource` enum: `Synced`, `Override`, `Manual`.
 - `DebtLinkFreshness` enum: `Current`, `Stale`, `SyncFailing`,
   `Disconnected`, `AccountMissing`.
-- `DebtSyncedField` enum for the override route: `Balance`, `CreditLimit`,
-  `MinimumPayment`, `NextDueDate`, `Apr`.
-- A resolver that returns each field's value, source, and as-of date, and a
-  matcher that ranks eligible accounts with reasons.
+- `DebtSyncedField` enum for the override route: `Balance`, `CreditLimit`.
+- A resolver that returns each synced field's value, source, and as-of
+  date, and a matcher that ranks eligible accounts with reasons.
 
 `DebtDto` gains the follow state, freshness, and, per synced field, its
 source, synced value, and as-of date. The frontend types follow in
@@ -300,8 +315,9 @@ source, synced value, and as-of date. The frontend types follow in
 
 ## Dependency: sync correctness first
 
-A followed balance is only as right as the sync behind it. Before or as the
-first slice:
+A followed balance is only as right as the sync behind it. Slice 0 does not
+wait for the linked-debt work. It is the next engineering increment, folded
+together with the paused Plaid sync reconciliation tests:
 
 - Add `PlaidAccountSyncService` tests: balances copied, today's snapshot
   replaced in the household time zone, an account Plaid stops returning
@@ -312,56 +328,33 @@ first slice:
 - Freshness depends on `LastSyncCompletedAt` and `LastSyncFailedAt` being
   right when a sync is interrupted. Add a test for that.
 
-## Plaid Liabilities: open decision
+`/accounts/get` returns the balance Plaid last refreshed, which can be up
+to about a day old. A real-time balance call is a separate, billed request.
+The daily worker does not need it, and this design does not use it.
 
-`/accounts/get`, which the sync already calls, gives the current balance,
-the available balance, and the credit limit. It does not give APR, minimum
-payment, statement balance, or due date. Those come from the Liabilities
-product.
+## Slices
 
-Before Zach decides, confirm these against the current Plaid documentation
-and the Plaid plan in use. Do not assume them:
-
-- **Coverage.** Liabilities is documented for credit cards, student loans,
-  and mortgages. Auto loans and personal loans are generally not covered,
-  and support varies by institution. An installment debt may get only a
-  balance.
-- **Cost.** Liabilities is billed separately from Transactions. The amount
-  depends on the plan. Record it next to the other bank-link costs the
-  action plan asks to measure.
-- **Consent.** The link token asks only for Transactions today. Existing
-  connections would need the person to consent again, through update mode
-  or an added product, before Liabilities data arrives.
-- **Freshness.** `/accounts/get` returns the balance Plaid last refreshed,
-  which can be up to about a day old. A real-time balance call is a
-  separate, billed request. The daily worker does not need it.
-
-Without Liabilities, this design still works. The balance and credit limit
-follow. APR, minimum, and due date stay person-owned and show "Not provided
-by this connection".
-
-## Proposed slices
-
-Each slice is one review. Each one leaves the app working.
+Each slice is one review. Each one leaves the app working. The action plan
+lists slices 0 to 5 as items 1 to 6 of "Sync correctness and linked debts",
+between Phase 2 items 5 and 6.
 
 0. **Sync correctness.** `PlaidAccountSyncService` tests, a decision and
    guard for overlapping worker and manual sync, and interrupted-sync
-   timestamps. No schema change.
+   timestamps, together with the paused Plaid sync reconciliation tests.
+   No schema change.
 1. **Follow a balance.** `AccountFollowedSince` and `BalanceOverriddenAt`,
    the follow and stop-following actions, the resolver for the balance
-   only, the freshness line, and the confirm step when balances differ.
-   Pick the account from a list. No suggestions yet. One migration.
+   only, the freshness line, the $0 rule for a negative balance, and the
+   confirm step when balances differ. Pick the account from a list. No
+   suggestions yet. Model change; Zach generates the migration.
 2. **Overrides.** The override and "Use synced value" actions for the
    balance, the read-only synced field in the form, and "Update balance"
    from a stale card. No schema change beyond slice 1.
 3. **Suggestions.** The matcher and the suggestion step. No schema change.
 4. **Credit limit.** Store `balances.limit` on the account, follow it, and
-   allow its override. One migration.
+   allow its override. Model change; Zach generates the migration.
 5. **Reconnect.** An update-mode link token and a reconnect action from the
    card and the Connections page. No schema change expected.
-6. **Liabilities, only if approved.** The account terms row, sync for it,
-   consent for existing connections, and the minimum, due date, statement
-   balance, and APR fields. One migration.
 
 ## UI notes
 
@@ -389,24 +382,86 @@ These follow `.cursor/rules/ui-governance.mdc`.
 - The confirm step reuses the two-balance layout from the debt summary, so
   people see one comparison pattern.
 
-## Questions for Zach
+## Decisions
 
-1. Should Liabilities be in scope? If yes, after the balance slices, or
-   only once pricing and coverage are confirmed?
-2. Is the stale threshold two days in the household time zone? The worker
-   runs daily, so one missed run should not alarm.
-3. A negative synced balance means the card owes the person money. Should a
-   followed revolving debt show $0 with a note, or keep the last usable
-   balance as it does for other blocked values?
-4. When the bank link is removed, should following stop on its own with the
-   snapshot kept, or stay followed and stale until the person chooses?
-   This note proposes stale until they choose.
-5. Should one account ever back two debts, for example a card split into
-   two plans? This note proposes no.
-6. APR from Liabilities lists several rates per card. Is the purchase APR
-   enough, or should the debt note a balance-transfer or cash-advance APR
-   too?
-7. Should a statement balance ever be overridable? This note proposes it is
-   shown only.
-8. Should slice 0 land before this design is approved, as the next
-   engineering increment, regardless of the decision on following?
+Zach decided these on October 6, 2026.
+
+1. **Plaid Liabilities is not adopted.** Following uses basic sync only:
+   the balance and the credit limit. APR, minimum payment, due date, and
+   statement balance stay entered by the person. Liabilities may be looked
+   at far in the future. The notes for that case are kept below.
+2. **Stale threshold.** Two days in the household time zone.
+3. **Negative balance.** A negative synced balance on a followed revolving
+   debt is counted as $0, with a note that names the credit.
+4. **Bank link removed.** The debt stays followed and stale, with the last
+   balance, until the person reconnects, updates the balance, or stops
+   following.
+5. **One account, one debt.** An account backs at most one debt. Each
+   account is separate.
+6. **APRs.** Recorded under the future section. If Liabilities is ever
+   adopted, keep every APR the connection returns, not only the purchase
+   APR.
+7. **Statement balance.** Recorded under the future section. If Liabilities
+   is ever adopted, a synced statement balance is display only and cannot
+   be overridden.
+8. **Slice 0 goes first.** Account sync tests and overlapping worker and
+   manual sync do not wait for the linked-debt work. They are the next
+   engineering increment, together with the paused Plaid sync
+   reconciliation tests.
+
+## Future: if Liabilities is ever adopted
+
+Not planned. This section keeps the earlier analysis and Zach's answers so
+a later decision can start from them. Nothing here is part of the slices
+above.
+
+### What it would add
+
+`/accounts/get` gives the current balance, the available balance, and the
+credit limit. Liabilities would add APRs, minimum payment, statement
+balance and date, and next due date. Those fields would move from
+person-owned to synced, with the same override rules as the balance.
+
+### Rules already decided for that case
+
+- Keep every APR the connection returns (purchase, balance transfer, cash
+  advance, special, and any other type), each with its type, so the person
+  sees as much as the bank gives. The purchase APR would be the one the
+  summary uses for interest, and the only one the person can override. A
+  promotional rate the person entered would still win through its end
+  date.
+- A synced statement balance is display only on a followed debt. It cannot
+  be overridden.
+- The confirm step would also compare any of those fields the person
+  already filled, with the same "Use connected value" and "Keep mine"
+  choices.
+
+### Model sketch for that case
+
+- Override timestamps on `Debt` for `MinimumPayment`, `NextDueDate`, and
+  `Apr`, and those members added to `DebtSyncedField`. A `NotProvided`
+  source for a field the connection does not cover.
+- One row per account, for example `AccountLiabilityTerms` with
+  `AccountId`, `StatementBalance`, `StatementDate`, `MinimumPayment`,
+  `NextDueDate`, and `SyncedAt`. Sync writes it. A debt only reads it.
+- One row per APR per account, for example `AccountLiabilityApr` with
+  `AccountId`, `AprType`, `Percentage`, and the balance and interest charge
+  the connection reports for that rate when it gives them. `AprType` stays
+  a string, because the connection defines that set and can extend it
+  (`.cursor/rules/backend-enums.mdc`). Sync replaces an account's APR rows
+  on each refresh.
+
+### What to confirm first
+
+Confirm these against the current Plaid documentation and the Plaid plan in
+use. Do not assume them:
+
+- **Coverage.** Liabilities is documented for credit cards, student loans,
+  and mortgages. Auto loans and personal loans are generally not covered,
+  and support varies by institution.
+- **Cost.** Liabilities is billed separately from Transactions. The amount
+  depends on the plan. Record it next to the other bank-link costs the
+  action plan asks to measure.
+- **Consent.** The link token asks only for Transactions today. Existing
+  connections would need the person to consent again, through update mode
+  or an added product, before Liabilities data arrives.

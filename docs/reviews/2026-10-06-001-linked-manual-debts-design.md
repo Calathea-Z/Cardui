@@ -4,24 +4,25 @@ Date: October 6, 2026
 
 ## Increment
 
-Wrote a design note for letting a manually entered debt follow a connected
-card or loan, so the person does not retype the balance after every payment.
-The note is for review. No screens, API, models, or migrations were changed.
+Wrote a design for letting a manually entered debt follow a connected card
+or loan, so the person does not retype the balance after every payment.
+Zach decided every design question the same day and approved adding the
+work to the action plan. No screens, API, models, or migrations were
+changed.
 
 ## Changes
 
 - Added `docs/design/linked-manual-debts.md`. It describes the current debt
   record, the reference link, the debt summary's "Two balances" and "Use
   this balance", and the account sync, with file paths.
-- It proposes a second link mode, follow, next to today's reference link.
+- It adds a second link mode, follow, next to today's reference link.
   Existing links stay reference links. Only a connected, active credit card
-  or loan in the same currency can be followed, by one debt at most.
+  or loan in the same currency can be followed.
 - Sync keeps writing only account-side rows. A followed debt reads its
   synced values when shown, so a sync still cannot overwrite a debt column.
-- Ownership is per field. The balance and credit limit can follow without
-  Liabilities. Minimum, due date, statement balance, and APR need it.
-  Promotional terms, months left, and the future priority, notes, and target
-  payment stay the person's.
+- Following syncs the balance and the credit limit only. APR, minimum,
+  due date, promotional terms, months left, and the future priority, notes,
+  and target payment stay the person's.
 - An edit to a synced field is a labeled override, set and cleared by its
   own action, with "Use synced value". The form keeps synced fields
   read-only so a full save cannot create an override by accident.
@@ -29,17 +30,40 @@ The note is for review. No screens, API, models, or migrations were changed.
   disconnected, or account missing. The last balance stays visible.
 - Stop following copies the last synced values onto the debt and keeps the
   account named as a reference link.
-- The data model is a sketch for Zach: `AccountFollowedSince`, one override
-  timestamp per synced field, a filtered unique index on the followed
-  account, `Account.CreditLimit`, and an account-side Liabilities row only if
-  approved.
-- Plaid Liabilities coverage, cost, consent, and freshness are listed as
-  things to confirm before deciding, not as assumptions.
-- Slice 0 is sync correctness: `PlaidAccountSyncService` tests, overlapping
-  worker and manual sync, and interrupted-sync timestamps. Six further
-  slices follow.
-- The note does not name outside products. The action plan is unchanged
-  until Zach reviews.
+- The data model is a sketch: `AccountFollowedSince`, override timestamps
+  for the balance and credit limit, a filtered unique index on the followed
+  account, and `Account.CreditLimit`.
+- "Questions for Zach" became "Decisions". Liabilities analysis, and Zach's
+  answers on APRs and the statement balance, moved to "Future: if
+  Liabilities is ever adopted". Nothing was deleted.
+- `docs/Recovery-Application-Action-Plan.md` gains "Sync correctness and
+  linked debts", between Phase 2 items 5 and 6, with six items. The
+  current-work note, the Phase 2 status, the debt inventory traceability
+  row, and Phase 6 item 1 point to it.
+- The design does not name outside products.
+
+## Decisions
+
+Zach decided these on October 6, 2026.
+
+1. Plaid Liabilities is not adopted. Following uses basic sync only. It is
+   deferred, not planned.
+2. A followed debt is stale after two days in the household time zone.
+3. A negative synced balance on a followed revolving debt counts as $0,
+   with a note.
+4. When the bank link is removed, the debt stays followed and stale until
+   the person chooses.
+5. One account backs at most one debt.
+6. If Liabilities is ever adopted, keep every APR, not only the purchase
+   APR.
+7. If Liabilities is ever adopted, a synced statement balance is display
+   only.
+8. Sync correctness (account sync tests and overlapping worker and manual
+   sync) is the next engineering increment, together with the paused Plaid
+   sync reconciliation tests. It does not wait for the linked-debt work.
+
+Model changes in the follow-a-balance and credit-limit items need Zach to
+generate and apply the EF Core migration.
 
 ## Data changes
 
@@ -59,7 +83,7 @@ Waived. There is no screen to exercise.
 
 ## Pending decision
 
-Review `docs/design/linked-manual-debts.md`. The questions at its end need
-answers, first whether Liabilities is in scope and whether slice 0 lands
-next regardless. Overlapping worker and manual sync remains open. Phase 2
-item 6 stays next in the action plan until Zach decides.
+None for the design. The next engineering increment is item 1 of "Sync
+correctness and linked debts" in the action plan: `PlaidAccountSyncService`
+tests, overlapping worker and manual sync, and interrupted-sync timestamps,
+together with the paused Plaid sync reconciliation tests.

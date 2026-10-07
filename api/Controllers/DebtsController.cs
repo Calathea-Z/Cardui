@@ -109,27 +109,48 @@ public class DebtsController : ControllerBase
     }
 
     /// <summary>
-    /// PUT /api/debts/{id}/overrides/{field}
+    /// PUT /api/debts/{id}/overrides/Balance
     /// Keeps the person's balance while the debt follows an account.
     /// A missing date means today. The debt's other terms are not changed.
     /// </summary>
-    [HttpPut("{id:guid}/overrides/{field}")]
+    [HttpPut("{id:guid}/overrides/Balance")]
     [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<DebtDto>> SetOverride(
+    public async Task<ActionResult<DebtDto>> SetBalanceOverride(
         Guid id,
-        DebtSyncedField field,
         [FromBody] SetDebtBalanceOverrideDto dto,
         CancellationToken cancellationToken)
     {
-        var debt = await _debtsService.SetOverrideAsync(id, field, dto, cancellationToken);
+        var debt = await _debtsService.SetOverrideAsync(
+            id,
+            DebtSyncedField.Balance,
+            dto,
+            cancellationToken);
+        return Ok(debt);
+    }
+
+    /// <summary>
+    /// PUT /api/debts/{id}/overrides/CreditLimit
+    /// Keeps the person's credit limit while a revolving debt follows an account.
+    /// The debt's other terms are not changed.
+    /// </summary>
+    [HttpPut("{id:guid}/overrides/CreditLimit")]
+    [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DebtDto>> SetCreditLimitOverride(
+        Guid id,
+        [FromBody] SetDebtCreditLimitOverrideDto dto,
+        CancellationToken cancellationToken)
+    {
+        var debt = await _debtsService.SetCreditLimitOverrideAsync(id, dto, cancellationToken);
         return Ok(debt);
     }
 
     /// <summary>
     /// DELETE /api/debts/{id}/overrides/{field}
-    /// Clears the person's balance so the debt uses the synced balance again.
+    /// Clears the person's value for that field so the debt uses the connection again.
     /// </summary>
     [HttpDelete("{id:guid}/overrides/{field}")]
     [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
@@ -146,7 +167,7 @@ public class DebtsController : ControllerBase
 
     /// <summary>
     /// POST /api/debts/{id}/stop-following
-    /// Stops following and keeps the last balance on the debt. The account stays linked.
+    /// Stops following and keeps the last balance and credit limit on the debt. The account stays linked.
     /// </summary>
     [HttpPost("{id:guid}/stop-following")]
     [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]

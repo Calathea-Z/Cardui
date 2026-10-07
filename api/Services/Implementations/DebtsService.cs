@@ -96,7 +96,12 @@ public class DebtsService : IDebtsService
         if (debt.AccountId is Guid accountId
             && await CanFollowLinkedAccountAsync(debt, accountId, cancellationToken))
         {
-            await SaveFollowAsync(debt, accountId, keepOwnBalance: false, cancellationToken);
+            await SaveFollowAsync(
+                debt,
+                accountId,
+                keepOwnBalance: false,
+                keepOwnCreditLimit: false,
+                cancellationToken);
             return await ProjectDebtAsync(debt.Id, cancellationToken);
         }
 
@@ -126,9 +131,17 @@ public class DebtsService : IDebtsService
         RequireNotFollowing(debt, dto.AccountId);
         var account = await RequireFollowAccountAsync(debt, dto.AccountId, cancellationToken);
         var resolution = DebtFollowedBalance.Resolve(PreviewFacts(debt, account));
+        var limit = DebtFollowedCreditLimit.Resolve(PreviewCreditFacts(debt, account));
         var keepOwnBalance = dto.KeepOwnBalance
             && DebtFollowedBalance.RecordedDiffers(debt.Balance, resolution.Balance);
-        await SaveFollowAsync(debt, account.Id, keepOwnBalance, cancellationToken);
+        var keepOwnCreditLimit = dto.KeepOwnCreditLimit
+            && DebtFollowedCreditLimit.RecordedDiffers(debt.CreditLimit, limit.Limit);
+        await SaveFollowAsync(
+            debt,
+            account.Id,
+            keepOwnBalance,
+            keepOwnCreditLimit,
+            cancellationToken);
         return await ProjectDebtAsync(debt.Id, cancellationToken);
     }
 
@@ -140,8 +153,10 @@ public class DebtsService : IDebtsService
         var debt = await FindDebtAsync(debtId, cancellationToken);
         RequireFollowing(debt);
         var account = await FindFollowAccountAsync(debt.AccountId, cancellationToken);
-        var resolution = DebtFollowedBalance.Resolve(Facts(ToRow(debt), account));
-        await SaveStopAsync(debt, resolution, cancellationToken);
+        var row = ToRow(debt);
+        var resolution = DebtFollowedBalance.Resolve(Facts(row, account));
+        var limit = DebtFollowedCreditLimit.Resolve(CreditFacts(row, account));
+        await SaveStopAsync(debt, resolution, limit, cancellationToken);
         return await ProjectDebtAsync(debt.Id, cancellationToken);
     }
 
@@ -171,6 +186,24 @@ public class DebtsService : IDebtsService
     }
 
     /// <inheritdoc />
+    public async Task<DebtDto> SetCreditLimitOverrideAsync(
+        Guid debtId,
+        SetDebtCreditLimitOverrideDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var debt = await FindDebtAsync(debtId, cancellationToken);
+        RequireFollowing(debt);
+        await RequireSyncedCreditLimitAsync(debt, cancellationToken);
+        if (!DebtRules.TryReadCreditLimitOverride(dto.CreditLimit, out var amount, out var error))
+        {
+            throw new BadRequestException(error);
+        }
+
+        await SaveCreditLimitOverrideAsync(debt, amount, cancellationToken);
+        return await ProjectDebtAsync(debt.Id, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<DebtDto> ClearOverrideAsync(
         Guid debtId,
         DebtSyncedField field,
@@ -178,8 +211,16 @@ public class DebtsService : IDebtsService
     {
         var debt = await FindDebtAsync(debtId, cancellationToken);
         RequireFollowing(debt);
-        RequireBalanceField(field);
-        await ClearBalanceOverrideAsync(debt, cancellationToken);
+        if (field == DebtSyncedField.CreditLimit)
+        {
+            await ClearCreditLimitOverrideAsync(debt, cancellationToken);
+        }
+        else
+        {
+            RequireBalanceField(field);
+            await ClearBalanceOverrideAsync(debt, cancellationToken);
+        }
+
         return await ProjectDebtAsync(debt.Id, cancellationToken);
     }
 
@@ -323,7 +364,8 @@ public class DebtsService : IDebtsService
     /// <summary>
     /// Writes the accepted debt facts onto an existing row.
     /// Currency and the created time stay. A null term replaces a previously known one.
-    /// While following, the balance and the linked account are left alone.
+    /// While following, the balance, a synced credit limit, and the linked account are left alone.
+    /// A credit limit the connection does not provide is still saved.
     /// </summary>
     private async Task SaveDebtAsync(
         Debt debt,
@@ -348,7 +390,7 @@ public class DebtsService : IDebtsService
         debt.Apr = draft.Apr;
         debt.MinimumPayment = draft.MinimumPayment;
         debt.NextDueDate = draft.NextDueDate;
-        debt.CreditLimit = draft.CreditLimit;
+        await ApplyCreditLimitAsync(debt, draft, following, cancellationToken);
         debt.RemainingTermMonths = draft.RemainingTermMonths;
         debt.PromotionalApr = draft.PromotionalApr;
         debt.PromotionalEndsOn = draft.PromotionalEndsOn;
@@ -398,11 +440,11 @@ public class DebtsService : IDebtsService
 
     /// <summary>
     /// Adds the calculated utilization. A missing balance or credit limit stays unknown.
-    /// The balance in use is the followed balance when the debt follows an account.
+    /// Both amounts are the ones in use, so a followed limit counts.
     /// </summary>
     private static DebtDto WithUtilization(DebtDto debt)
     {
-        debt.Utilization = DebtRules.Utilization(debt.BalanceInUse, debt.CreditLimit);
+        debt.Utilization = DebtRules.Utilization(debt.BalanceInUse, debt.CreditLimitInUse);
         return debt;
     }
 
@@ -596,7 +638,7 @@ public class DebtsService : IDebtsService
             debt.Apr,
             debt.MinimumPayment,
             debt.NextDueDate,
-            debt.CreditLimit,
+            debt.CreditLimitInUse,
             debt.RemainingTermMonths,
             debt.PromotionalApr,
             debt.PromotionalEndsOn,
@@ -687,7 +729,8 @@ public class DebtsService : IDebtsService
                 debt.PromotionalApr,
                 debt.PromotionalEndsOn,
                 debt.AccountFollowedSince,
-                debt.BalanceOverriddenAt))
+                debt.BalanceOverriddenAt,
+                debt.CreditLimitOverriddenAt))
             .ToListAsync(cancellationToken);
     }
 
@@ -722,6 +765,7 @@ public class DebtsService : IDebtsService
         }
 
         var resolution = DebtFollowedBalance.Resolve(Facts(row, account));
+        var limit = DebtFollowedCreditLimit.Resolve(CreditFacts(row, account));
         return WithUtilization(new DebtDto
         {
             Id = row.Id,
@@ -746,6 +790,13 @@ public class DebtsService : IDebtsService
             MinimumPayment = row.MinimumPayment,
             NextDueDate = row.NextDueDate,
             CreditLimit = row.CreditLimit,
+            CreditLimitInUse = limit.Limit,
+            CreditLimitSource = limit.Source,
+            SyncedCreditLimit = limit.SyncedLimit,
+            SyncedCreditLimitAsOf = limit.SyncedAsOf,
+            CreditLimitOverriddenOn = limit.Source == DebtFieldSource.Override
+                ? OnHouseholdDate(row.CreditLimitOverriddenAt)
+                : null,
             RemainingTermMonths = row.RemainingTermMonths,
             PromotionalApr = row.PromotionalApr,
             PromotionalEndsOn = row.PromotionalEndsOn
@@ -774,6 +825,37 @@ public class DebtsService : IDebtsService
             account?.LastSyncFailedAt,
             following ? OnHouseholdDate(account?.LastSyncFailedAt) : null,
             Today());
+    }
+
+    /// <summary>
+    /// Builds the credit-limit input for a stored debt.
+    /// The synced as-of date is the latest snapshot date, because that sync wrote the limit.
+    /// </summary>
+    private static DebtCreditLimitFacts CreditFacts(DebtListRow row, DebtFollowAccountState? account)
+    {
+        var following = row.AccountFollowedSince is not null;
+        return new DebtCreditLimitFacts(
+            following,
+            row.CreditLimitOverriddenAt is not null,
+            row.Kind,
+            row.CreditLimit,
+            following ? account?.CreditLimit : null,
+            following ? account?.Balance?.AsOf : null);
+    }
+
+    /// <summary>
+    /// Builds the credit-limit input for a follow that has not been saved.
+    /// The override is off, so this is the limit the connection would use.
+    /// </summary>
+    private static DebtCreditLimitFacts PreviewCreditFacts(Debt debt, DebtFollowAccountState account)
+    {
+        return new DebtCreditLimitFacts(
+            true,
+            false,
+            debt.Kind,
+            debt.CreditLimit,
+            account.CreditLimit,
+            account.Balance?.AsOf);
     }
 
     /// <summary>
@@ -822,7 +904,8 @@ public class DebtsService : IDebtsService
             debt.PromotionalApr,
             debt.PromotionalEndsOn,
             debt.AccountFollowedSince,
-            debt.BalanceOverriddenAt);
+            debt.BalanceOverriddenAt,
+            debt.CreditLimitOverriddenAt);
     }
 
     /// <summary>
@@ -866,7 +949,7 @@ public class DebtsService : IDebtsService
     }
 
     /// <summary>
-    /// Rejects a field this slice does not follow. Balance is the only one.
+    /// Rejects a field the balance action does not write. Credit limit has its own action.
     /// </summary>
     private static void RequireBalanceField(DebtSyncedField field)
     {
@@ -1080,6 +1163,7 @@ public class DebtsService : IDebtsService
         IReadOnlyDictionary<Guid, DebtAccountSuggestion> suggestions)
     {
         var resolution = DebtFollowedBalance.Resolve(PreviewFacts(debt, account));
+        var limit = DebtFollowedCreditLimit.Resolve(PreviewCreditFacts(debt, account));
         suggestions.TryGetValue(account.Id, out var suggestion);
         return new DebtFollowAccountDto
         {
@@ -1093,6 +1177,9 @@ public class DebtsService : IDebtsService
             Block = resolution.Block,
             BalanceCredit = resolution.Credit,
             BalancesDiffer = DebtFollowedBalance.RecordedDiffers(debt.Balance, resolution.Balance),
+            SyncedCreditLimit = limit.SyncedLimit,
+            SyncedCreditLimitAsOf = limit.SyncedAsOf,
+            CreditLimitsDiffer = DebtFollowedCreditLimit.RecordedDiffers(debt.CreditLimit, limit.Limit),
             SuggestionOrder = suggestion?.Order,
             Reasons = suggestion is null
                 ? []
@@ -1116,18 +1203,20 @@ public class DebtsService : IDebtsService
 
     /// <summary>
     /// Records that the debt follows the account.
-    /// The stored balance stays. An override is set only when the person keeps a different amount.
+    /// The stored balance and credit limit stay. An override is set only when the person keeps a different amount.
     /// </summary>
     private async Task SaveFollowAsync(
         Debt debt,
         Guid accountId,
         bool keepOwnBalance,
+        bool keepOwnCreditLimit,
         CancellationToken cancellationToken)
     {
         var now = _timeProvider.GetUtcNow();
         debt.AccountId = accountId;
         debt.AccountFollowedSince = now;
         debt.BalanceOverriddenAt = keepOwnBalance ? now : null;
+        debt.CreditLimitOverriddenAt = keepOwnCreditLimit ? now : null;
         debt.UpdatedAt = now;
         try
         {
@@ -1156,12 +1245,13 @@ public class DebtsService : IDebtsService
     }
 
     /// <summary>
-    /// Copies the last synced balance onto the debt when the person had not set their own, then clears the follow.
+    /// Copies each last synced value onto the debt when the person had not set their own, then clears the follow.
     /// The account link stays. The account and its snapshots are not changed.
     /// </summary>
     private async Task SaveStopAsync(
         Debt debt,
         DebtBalanceResolution resolution,
+        DebtCreditLimitResolution limit,
         CancellationToken cancellationToken)
     {
         if (resolution.Source == DebtFieldSource.Synced
@@ -1172,8 +1262,14 @@ public class DebtsService : IDebtsService
             debt.BalanceAsOf = asOf;
         }
 
+        if (limit.Source == DebtFieldSource.Synced && limit.Limit is decimal creditLimit)
+        {
+            debt.CreditLimit = creditLimit;
+        }
+
         debt.AccountFollowedSince = null;
         debt.BalanceOverriddenAt = null;
+        debt.CreditLimitOverriddenAt = null;
         debt.UpdatedAt = _timeProvider.GetUtcNow();
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -1243,7 +1339,8 @@ public class DebtsService : IDebtsService
                 account.ArchivedAt,
                 account.Type,
                 account.CurrentBalance,
-                account.IsoCurrencyCode
+                account.IsoCurrencyCode,
+                account.CreditLimit
             })
             .ToListAsync(cancellationToken);
         var snapshots = await _dbContext.AccountBalanceSnapshots
@@ -1317,10 +1414,128 @@ public class DebtsService : IDebtsService
                 completedAt,
                 failedAt,
                 account.OfficialName,
-                institutionName);
+                institutionName,
+                account.CreditLimit);
         }
 
         return states;
+    }
+
+    /// <summary>
+    /// Writes the credit limit, or leaves a followed one alone.
+    /// An installment debt does not keep a limit. A limit the connection does not provide is still the person's.
+    /// </summary>
+    private async Task ApplyCreditLimitAsync(
+        Debt debt,
+        DebtDraft draft,
+        bool following,
+        CancellationToken cancellationToken)
+    {
+        if (draft.Kind != DebtKind.Revolving)
+        {
+            debt.CreditLimit = null;
+            debt.CreditLimitOverriddenAt = null;
+            return;
+        }
+
+        if (following && await CreditLimitStaysWithTheConnectionAsync(debt, cancellationToken))
+        {
+            return;
+        }
+
+        debt.CreditLimit = draft.CreditLimit;
+    }
+
+    /// <summary>
+    /// True when a save must not replace the credit limit.
+    /// An override owns the field. A usable account limit is synced, so the form's copy of it is ignored.
+    /// </summary>
+    private async Task<bool> CreditLimitStaysWithTheConnectionAsync(
+        Debt debt,
+        CancellationToken cancellationToken)
+    {
+        if (debt.CreditLimitOverriddenAt is not null)
+        {
+            return true;
+        }
+
+        var limit = await LoadAccountCreditLimitAsync(debt.AccountId, cancellationToken);
+        return DebtFollowedCreditLimit.Usable(limit) is not null;
+    }
+
+    /// <summary>
+    /// The credit limit stored on one household account.
+    /// A missing account has none.
+    /// </summary>
+    private async Task<decimal?> LoadAccountCreditLimitAsync(
+        Guid? accountId,
+        CancellationToken cancellationToken)
+    {
+        if (accountId is not Guid id)
+        {
+            return null;
+        }
+
+        var householdId = _householdScope.RequireHouseholdId();
+        return await _dbContext.Accounts
+            .AsNoTracking()
+            .Where(account => account.Id == id && account.HouseholdId == householdId)
+            .Select(account => account.CreditLimit)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Rejects a credit-limit override when the connection did not provide a usable limit.
+    /// Typing a limit in that case is a normal save, not an override.
+    /// </summary>
+    private async Task RequireSyncedCreditLimitAsync(
+        Debt debt,
+        CancellationToken cancellationToken)
+    {
+        if (debt.Kind != DebtKind.Revolving)
+        {
+            throw new BadRequestException("That field cannot be overridden.");
+        }
+
+        var limit = await LoadAccountCreditLimitAsync(debt.AccountId, cancellationToken);
+        if (DebtFollowedCreditLimit.Usable(limit) is null)
+        {
+            throw new BadRequestException("That credit limit is not synced, so enter it on the debt.");
+        }
+    }
+
+    /// <summary>
+    /// Stores the person's credit limit and marks it as an override.
+    /// The account is not changed. Sync does not clear the mark.
+    /// </summary>
+    private async Task SaveCreditLimitOverrideAsync(
+        Debt debt,
+        decimal creditLimit,
+        CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+        debt.CreditLimit = creditLimit;
+        debt.CreditLimitOverriddenAt = now;
+        debt.UpdatedAt = now;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Clears the credit-limit override. The stored limit stays until the debt stops following.
+    /// A debt that is already using the synced limit is left as it is.
+    /// </summary>
+    private async Task ClearCreditLimitOverrideAsync(
+        Debt debt,
+        CancellationToken cancellationToken)
+    {
+        if (debt.CreditLimitOverriddenAt is null)
+        {
+            return;
+        }
+
+        debt.CreditLimitOverriddenAt = null;
+        debt.UpdatedAt = _timeProvider.GetUtcNow();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     #endregion

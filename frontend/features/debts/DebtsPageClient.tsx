@@ -141,6 +141,7 @@ export function DebtsPageClient({
         onStopFollowing={(debt) => void debts.stopFollowing(debt)}
         onRefresh={refreshFollowed}
         onUseSyncedValue={(debt) => void debts.useSyncedBalance(debt)}
+        onUseSyncedLimit={(debt) => void debts.useSyncedCreditLimit(debt)}
         onUpdateBalance={(debt, amount) => debts.updateBalance(debt, amount)}
       />
 
@@ -163,9 +164,11 @@ export function DebtsPageClient({
           isSaving={debts.isSaving}
           following={editing?.following ?? false}
           balanceSource={editing?.balanceSource ?? null}
+          creditLimitSource={editing?.creditLimitSource ?? null}
           onChange={debts.setForm}
           onPickerOpenChange={handlePickerOpenChange}
           onSaveOwnBalance={debts.saveOwnBalance}
+          onSaveOwnCreditLimit={debts.saveOwnCreditLimit}
           onSubmit={async (event) => {
             const saved = await debts.handleSubmit(event);
             if (saved) {
@@ -185,8 +188,8 @@ export function DebtsPageClient({
         busy={debts.busyId !== null}
         onClose={closeFollow}
         onRetry={debts.retryFollowing}
-        onFollow={(accountId, keepOwnBalance) =>
-          void debts.follow(accountId, keepOwnBalance)
+        onFollow={(accountId, keepOwnBalance, keepOwnCreditLimit) =>
+          void debts.follow(accountId, keepOwnBalance, keepOwnCreditLimit)
         }
       />
     </div>

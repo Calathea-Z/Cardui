@@ -12,7 +12,7 @@ public class DebtConfiguration : IEntityTypeConfiguration<Debt>
     /// Kind is stored as its member name. Rates use three decimal places. Money uses cents.
     /// A null term is unknown. Deleting the household deletes the debt. Deleting the account clears the link.
     /// A null <c>AccountFollowedSince</c> is a reference link or no link. A value means the debt follows
-    /// <c>AccountId</c>. A null <c>BalanceOverriddenAt</c> means the balance is not an override.
+    /// <c>AccountId</c>. A null override timestamp means that field is not an override.
     /// One followed account backs at most one debt.
     /// </summary>
     public void Configure(EntityTypeBuilder<Debt> entity)
@@ -50,6 +50,8 @@ public class DebtConfiguration : IEntityTypeConfiguration<Debt>
 
         entity.Property(x => x.CreditLimit)
             .HasPrecision(18, 2);
+
+        entity.Property(x => x.CreditLimitOverriddenAt);
 
         entity.Property(x => x.PromotionalApr)
             .HasPrecision(6, 3);

@@ -186,6 +186,37 @@ public static class DebtRules
         return true;
     }
 
+    /// <summary>
+    /// Reads a credit limit the person is keeping while a debt follows an account.
+    /// The amount is required. Zero is not a limit. An amount equal to the synced value is still valid.
+    /// </summary>
+    public static bool TryReadCreditLimitOverride(
+        decimal? creditLimit,
+        out decimal amount,
+        out string error)
+    {
+        amount = 0;
+        if (creditLimit is null)
+        {
+            error = "Enter the credit limit.";
+            return false;
+        }
+
+        if (!TryReadOptionalMoney(
+                creditLimit,
+                allowZero: false,
+                "Enter a credit limit above zero.",
+                out var read,
+                out error)
+            || read is not decimal value)
+        {
+            return false;
+        }
+
+        amount = value;
+        return true;
+    }
+
     #region Private Methods
 
     /// <summary>

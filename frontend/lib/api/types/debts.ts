@@ -16,9 +16,9 @@ export type DebtFieldSource = (typeof debtFieldSources)[number];
 
 /**
  * A debt field the person can keep as their own while following an account.
- * Balance is the only one. Credit limit is not followed yet.
+ * Balance follows the latest snapshot. Credit limit follows the account limit on a revolving debt.
  */
-export const debtSyncedFields = ["Balance"] as const;
+export const debtSyncedFields = ["Balance", "CreditLimit"] as const;
 
 export type DebtSyncedField = (typeof debtSyncedFields)[number];
 
@@ -67,9 +67,13 @@ export type DebtLinkFreshness = (typeof debtLinkFreshness)[number];
  * While following without an override, `balanceInUse` is the connected balance and `balance` stays what the person last stored.
  * `balanceCredit` is the positive credit counted as zero. It is null when the balance is not a credit.
  * `freshness` is null when the debt is not following. `syncFailedOn` is set only when freshness is SyncFailing.
- * `creditLimit` is set only for a revolving debt. `remainingTermMonths` is set only for an installment debt.
+ * `creditLimit` is the limit stored on the debt. `creditLimitInUse` is the limit the plan uses.
+ * While following a usable limit without an override, `creditLimitInUse` is the connected limit and `creditLimit` stays what the person last stored.
+ * `syncedCreditLimit` is null when the connection did not provide a usable limit. A loan stays that way.
+ * `creditLimitOverriddenOn` is set only when the source is an override.
+ * `remainingTermMonths` is set only for an installment debt.
  * `utilization` is the share of the credit limit in use, as a ratio. 0.85 means 85 percent.
- * It is null when the balance or the credit limit is unknown, and it is not stored.
+ * It is null when the balance in use or the credit limit in use is unknown, and it is not stored.
  */
 export type DebtDto = {
   id: string;
@@ -94,6 +98,11 @@ export type DebtDto = {
   minimumPayment: number | null;
   nextDueDate: string | null;
   creditLimit: number | null;
+  creditLimitInUse: number | null;
+  creditLimitSource: DebtFieldSource;
+  syncedCreditLimit: number | null;
+  syncedCreditLimitAsOf: string | null;
+  creditLimitOverriddenOn: string | null;
   remainingTermMonths: number | null;
   promotionalApr: number | null;
   promotionalEndsOn: string | null;
@@ -242,6 +251,8 @@ export type UpsertDebtDto = {
  * A connected account a debt is allowed to follow.
  * `balanceInUse` is the amount following would use before the person keeps their own.
  * `balancesDiffer` is true when the debt already has a different balance.
+ * `syncedCreditLimit` is set for a revolving debt when the account has a usable limit.
+ * `creditLimitsDiffer` is true when the debt already has a different limit.
  * `balanceCredit` is the positive credit counted as zero. It is null when the balance is not a credit.
  * `suggestionOrder` is 1, 2, or 3 when this account is suggested. It is null on the rest of the list.
  * The number is the order, not a score, and it is not shown. `reasons` is empty when it is not suggested.
@@ -257,17 +268,21 @@ export type DebtFollowAccountDto = {
   block: DebtAccountBalanceBlock;
   balanceCredit: number | null;
   balancesDiffer: boolean;
+  syncedCreditLimit: number | null;
+  syncedCreditLimitAsOf: string | null;
+  creditLimitsDiffer: boolean;
   suggestionOrder: number | null;
   reasons: DebtMatchReasonDto[];
 };
 
 /**
- * The account to follow, and whether the person's different balance stays as their own value.
- * `keepOwnBalance` applies only when the amounts differ.
+ * The account to follow, and whether a different balance or credit limit stays as the person's value.
+ * Each flag applies only when that amount differs.
  */
 export type FollowDebtAccountDto = {
   accountId: string;
   keepOwnBalance: boolean;
+  keepOwnCreditLimit: boolean;
 };
 
 /**
@@ -278,4 +293,12 @@ export type FollowDebtAccountDto = {
 export type SetDebtBalanceOverrideDto = {
   balance: number;
   balanceAsOf: string | null;
+};
+
+/**
+ * A credit limit the person is keeping while a revolving debt follows an account.
+ * An amount equal to the synced limit is still an override. Zero is not a limit.
+ */
+export type SetDebtCreditLimitOverrideDto = {
+  creditLimit: number;
 };

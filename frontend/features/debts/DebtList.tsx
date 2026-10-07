@@ -18,6 +18,7 @@ import {
   canUpdateBalance,
   creditNote,
   freshnessLine,
+  creditLimitSourceText,
   followBlockCopy,
   isFollowCandidate,
 } from "./debtFollowCopy";
@@ -25,6 +26,7 @@ import {
   formatApr,
   formatCalendarDate,
   formatUtilization,
+  utilizationFill,
 } from "./debtDisplay";
 import {
   balanceComparisonCopy,
@@ -32,7 +34,8 @@ import {
   debtInterestLine,
   twoBalancesNote,
   twoBalancesTitle,
-  utilizationMark,
+  utilizationNotice,
+  type UtilizationNotice,
 } from "./debtSummaryCopy";
 import { debtKindLabel } from "./debtOptions";
 
@@ -49,6 +52,7 @@ type DebtListProps = {
   onStopFollowing: (debt: DebtDto) => void;
   onRefresh: (debt: DebtDto) => void;
   onUseSyncedValue: (debt: DebtDto) => void;
+  onUseSyncedLimit: (debt: DebtDto) => void;
   onUpdateBalance: (debt: DebtDto, amount: string) => Promise<boolean>;
 };
 
@@ -69,6 +73,7 @@ export function DebtList({
   onStopFollowing,
   onRefresh,
   onUseSyncedValue,
+  onUseSyncedLimit,
   onUpdateBalance,
 }: DebtListProps) {
   return (
@@ -106,6 +111,7 @@ export function DebtList({
               onStopFollowing={() => onStopFollowing(debt)}
               onRefresh={() => onRefresh(debt)}
               onUseSyncedValue={() => onUseSyncedValue(debt)}
+              onUseSyncedLimit={() => onUseSyncedLimit(debt)}
               onUpdateBalance={(amount) => onUpdateBalance(debt, amount)}
             />
           ))}
@@ -128,6 +134,7 @@ type DebtRowProps = {
   onStopFollowing: () => void;
   onRefresh: () => void;
   onUseSyncedValue: () => void;
+  onUseSyncedLimit: () => void;
   onUpdateBalance: (amount: string) => Promise<boolean>;
 };
 
@@ -163,6 +170,7 @@ function DebtRow({
   onStopFollowing,
   onRefresh,
   onUseSyncedValue,
+  onUseSyncedLimit,
   onUpdateBalance,
 }: DebtRowProps) {
   const item = summary?.debts.find((entry) => entry.debtId === debt.id) ?? null;
@@ -219,18 +227,22 @@ function DebtRow({
           onUseAccountBalance={() => onUseAccountBalance(startsFollow)}
         />
       ) : null}
-      <DebtFacts
+      <CreditUse
         debt={debt}
-        utilizationNote={
+        balanceShowsSync={balanceShowsSync(debt, comparison !== null)}
+        busy={busy}
+        utilizationNotice={
           summary && item
-            ? utilizationMark(
+            ? utilizationNotice(
                 item.utilizationReachesNotice,
                 item.utilizationReachesLimitNotice,
                 summary,
               )
             : null
         }
+        onUseSyncedLimit={onUseSyncedLimit}
       />
+      <DebtFacts debt={debt} />
       {item ? <DebtSummaryNotes debt={debt} item={item} /> : null}
       <div className="flex flex-wrap gap-2 border-t border-border/70 pt-3 sm:justify-end">
         {debt.following ? (
@@ -276,9 +288,12 @@ function DebtRow({
   );
 }
 
-type DebtTermsProps = {
+type CreditUseProps = {
   debt: DebtDto;
-  utilizationNote: string | null;
+  balanceShowsSync: boolean;
+  busy: boolean;
+  utilizationNotice: UtilizationNotice | null;
+  onUseSyncedLimit: () => void;
 };
 
 /**
@@ -303,10 +318,181 @@ function debtContext(debt: DebtDto) {
 }
 
 /**
+ * How full the credit limit is, then the limit that scale uses.
+ * A revolving debt with no limit in use stays in the terms row as unknown.
+ */
+function CreditUse({
+  debt,
+  balanceShowsSync,
+  busy,
+  utilizationNotice,
+  onUseSyncedLimit,
+}: CreditUseProps) {
+  if (debt.kind !== "Revolving" || debt.creditLimitInUse === null) {
+    return null;
+  }
+
+  const share =
+    debt.utilization === null ? null : formatUtilization(debt.utilization);
+  const fill =
+    debt.utilization === null ? 0 : utilizationFill(debt.utilization);
+  const showSynced =
+    debt.creditLimitSource === "Override" && debt.syncedCreditLimit !== null;
+  return (
+    <div className="flex flex-col gap-3">
+      {share && debt.utilization !== null ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="min-w-0 flex-1">
+            <p className="text-base font-medium text-foreground tabular-nums">
+              {share}
+            </p>
+            <div
+              className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(fill)}
+              aria-valuetext={share}
+              aria-label="Credit used"
+            >
+              <div
+                className={cn(
+                  "h-full rounded-full",
+                  utilizationNotice?.level === "high"
+                    ? "bg-destructive"
+                    : "bg-foreground",
+                )}
+                style={{ width: `${fill}%` }}
+              />
+            </div>
+          </div>
+          <LimitAmount
+            amount={debt.creditLimitInUse}
+            debt={debt}
+            balanceShowsSync={balanceShowsSync}
+            alignEnd
+          />
+        </div>
+      ) : (
+        <LimitAmount
+          amount={debt.creditLimitInUse}
+          debt={debt}
+          balanceShowsSync={balanceShowsSync}
+        />
+      )}
+      {utilizationNotice ? (
+        <p
+          className={cn(
+            "flex items-start gap-2 text-sm font-medium",
+            utilizationNotice.level === "high"
+              ? "text-destructive"
+              : "text-foreground",
+          )}
+        >
+          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{utilizationNotice.text}</span>
+        </p>
+      ) : null}
+      {showSynced ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            {`Synced limit ${formatCurrency(debt.syncedCreditLimit, debt.currency)}`}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            disabled={busy}
+            onClick={onUseSyncedLimit}
+          >
+            Use synced limit
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * The credit limit in use.
+ * The sync date is omitted when the balance row already shows it. A limit the person kept still names that date.
+ */
+function LimitAmount({
+  amount,
+  debt,
+  balanceShowsSync,
+  alignEnd = false,
+}: {
+  amount: number;
+  debt: DebtDto;
+  balanceShowsSync: boolean;
+  alignEnd?: boolean;
+}) {
+  const caption =
+    balanceShowsSync && debt.creditLimitSource === "Synced"
+      ? null
+      : creditLimitSourceText(
+          debt.creditLimitSource,
+          debt.syncedCreditLimitAsOf,
+          debt.creditLimitOverriddenOn,
+          formatCalendarDate,
+        );
+  const current = limitIsCurrent(debt);
+  return (
+    <div className={cn("shrink-0", alignEnd && "sm:text-right")}>
+      <p className="text-xs text-muted-foreground">Limit</p>
+      <p className="ledger-amount mt-0.5 text-lg">
+        {formatCurrency(amount, debt.currency)}
+      </p>
+      {caption ? (
+        <p
+          className={cn(
+            "mt-1 flex items-center gap-1 text-xs",
+            alignEnd && "sm:justify-end",
+            current ? "text-success" : "text-muted-foreground",
+          )}
+        >
+          <span>{caption}</span>
+          {current ? (
+            <CircleCheck className="size-3.5 shrink-0" aria-hidden="true" />
+          ) : null}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * True when the balance row already shows the sync date.
+ * The limit then omits that same line.
+ */
+function balanceShowsSync(debt: DebtDto, comparisonShown: boolean) {
+  return (
+    !comparisonShown &&
+    debt.balanceInUse !== null &&
+    debt.following &&
+    debt.balanceSource === "Synced"
+  );
+}
+
+/**
+ * True when the followed limit is the bank's latest successful value.
+ * A stale or overridden limit stays unmarked.
+ */
+function limitIsCurrent(debt: DebtDto) {
+  return (
+    debt.following &&
+    debt.creditLimitSource === "Synced" &&
+    debt.freshness === "Current"
+  );
+}
+
+/**
  * The terms a person scans on one debt.
  * A label is quiet. A known value is the text they read. A blank term says Unknown.
+ * A revolving limit that is in use is shown above these terms.
  */
-function DebtFacts({ debt, utilizationNote }: DebtTermsProps) {
+function DebtFacts({ debt }: { debt: DebtDto }) {
   const promotion = promotionText(debt);
   const facts: DebtFact[] = [
     {
@@ -324,14 +510,23 @@ function DebtFacts({ debt, utilizationNote }: DebtTermsProps) {
       label: "Due",
       value: debt.nextDueDate ? formatCalendarDate(debt.nextDueDate) : null,
     },
-    debt.kind === "Revolving"
-      ? limitFact(debt, utilizationNote)
-      : termFact(debt),
   ];
+  if (debt.kind === "Revolving") {
+    if (debt.creditLimitInUse === null) {
+      facts.push({ label: "Limit", value: null });
+    }
+  } else {
+    facts.push(termFact(debt));
+  }
 
   return (
     <div className="flex flex-col gap-3">
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+      <dl
+        className={cn(
+          "grid grid-cols-2 gap-x-4 gap-y-3",
+          facts.length > 3 ? "sm:grid-cols-4" : "sm:grid-cols-3",
+        )}
+      >
         {facts.map((fact) => (
           <Fact key={fact.label} fact={fact} />
         ))}
@@ -346,27 +541,7 @@ function DebtFacts({ debt, utilizationNote }: DebtTermsProps) {
 type DebtFact = {
   label: string;
   value: string | null;
-  note?: string | null;
 };
-
-/**
- * The credit limit, with the share in use on the line under it.
- * A missing limit stays unknown. The share is not packed onto the amount.
- */
-function limitFact(debt: DebtDto, utilizationNote: string | null): DebtFact {
-  if (debt.creditLimit === null) {
-    return { label: "Limit", value: null, note: utilizationNote };
-  }
-
-  const share =
-    debt.utilization === null ? null : formatUtilization(debt.utilization);
-  const note = [share, utilizationNote].filter((part) => part).join(" · ");
-  return {
-    label: "Limit",
-    value: formatCurrency(debt.creditLimit, debt.currency),
-    note: note || null,
-  };
-}
 
 /**
  * The months left on an installment debt.
@@ -374,14 +549,14 @@ function limitFact(debt: DebtDto, utilizationNote: string | null): DebtFact {
  */
 function termFact(debt: DebtDto): DebtFact {
   if (debt.remainingTermMonths === null) {
-    return { label: "Term", value: null, note: null };
+    return { label: "Term", value: null };
   }
 
   const months =
     debt.remainingTermMonths === 1
       ? "1 month"
       : `${debt.remainingTermMonths} months`;
-  return { label: "Term", value: months, note: null };
+  return { label: "Term", value: months };
 }
 
 /**
@@ -400,9 +575,6 @@ function Fact({ fact }: { fact: DebtFact }) {
       >
         {fact.value ?? "Unknown"}
       </dd>
-      {fact.note ? (
-        <p className="mt-0.5 text-xs text-muted-foreground">{fact.note}</p>
-      ) : null}
     </div>
   );
 }

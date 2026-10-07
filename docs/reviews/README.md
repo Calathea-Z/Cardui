@@ -27,6 +27,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 Newest first.
 
+- [2026-10-07 — Credit limit](2026-10-07-006-credit-limit.md) — Approved 2026-10-07
 - [2026-10-07 — Suggested matches](2026-10-07-005-suggested-matches.md) — Approved 2026-10-07
 - [2026-10-07 — Domain folders](2026-10-07-004-domain-folders.md) — Approved 2026-10-07
 - [2026-10-07 — Balance overrides](2026-10-07-003-balance-overrides.md) — Approved 2026-10-07

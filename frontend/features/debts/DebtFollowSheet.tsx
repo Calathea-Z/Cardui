@@ -9,6 +9,7 @@ import { formatCalendarDate } from "./debtDisplay";
 import {
   creditNote,
   followBlockCopy,
+  followConfirmLead,
   followedAccountLabel,
   matchReasonText,
   suggestionLabel,
@@ -27,7 +28,11 @@ type DebtFollowSheetProps = {
   busy: boolean;
   onClose: () => void;
   onRetry: () => void;
-  onFollow: (accountId: string, keepOwnBalance: boolean) => void;
+  onFollow: (
+    accountId: string,
+    keepOwnBalance: boolean,
+    keepOwnCreditLimit: boolean,
+  ) => void;
 };
 
 /**
@@ -127,7 +132,11 @@ type FollowBodyProps = {
   onPick: (accountId: string) => void;
   onChooseAnother: () => void;
   onNone: () => void;
-  onFollow: (accountId: string, keepOwnBalance: boolean) => void;
+  onFollow: (
+    accountId: string,
+    keepOwnBalance: boolean,
+    keepOwnCreditLimit: boolean,
+  ) => void;
 };
 
 /**
@@ -324,29 +333,45 @@ type ConfirmFollowProps = {
   debt: DebtDto;
   account: DebtFollowAccountDto;
   busy: boolean;
-  onFollow: (accountId: string, keepOwnBalance: boolean) => void;
+  onFollow: (
+    accountId: string,
+    keepOwnBalance: boolean,
+    keepOwnCreditLimit: boolean,
+  ) => void;
 };
 
 /**
  * Shows what will follow and what stays the person's.
- * When the balances differ, the person chooses the connected amount or keeps theirs.
+ * When the balance or the credit limit differs, the person chooses the connected amounts or keeps theirs.
  */
 function ConfirmFollow({ debt, account, busy, onFollow }: ConfirmFollowProps) {
   const label = followedAccountLabel(account.name, account.mask);
   const block = followBlockCopy(account.block);
-  const choose =
+  const chooseBalance =
     account.balancesDiffer && account.block === "None" && block === null;
+  const chooseLimit = account.creditLimitsDiffer;
+  const choose = chooseBalance || chooseLimit;
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        {debt.name} will follow {label}. The balance follows that account. APR,
-        minimum, and due date stay yours.
+        {followConfirmLead(
+          debt.name,
+          label,
+          account.syncedCreditLimit !== null,
+        )}
       </p>
-      {choose ? (
+      {chooseBalance ? (
         <BalanceChoice debt={debt} account={account} />
       ) : (
         <ConnectedBalance debt={debt} account={account} />
       )}
+      {chooseLimit ? (
+        <LimitChoice debt={debt} account={account} />
+      ) : account.syncedCreditLimit !== null ? (
+        <p className="text-sm text-muted-foreground">
+          {connectedLimitLine(debt, account)}
+        </p>
+      ) : null}
       {block ? <p className="text-sm text-muted-foreground">{block}</p> : null}
       {choose ? (
         <div className="flex flex-col gap-2">
@@ -354,7 +379,7 @@ function ConfirmFollow({ debt, account, busy, onFollow }: ConfirmFollowProps) {
             type="button"
             className="min-h-11"
             disabled={busy}
-            onClick={() => onFollow(account.accountId, false)}
+            onClick={() => onFollow(account.accountId, false, false)}
           >
             Use connected value
           </Button>
@@ -363,7 +388,9 @@ function ConfirmFollow({ debt, account, busy, onFollow }: ConfirmFollowProps) {
             variant="outline"
             className="min-h-11"
             disabled={busy}
-            onClick={() => onFollow(account.accountId, true)}
+            onClick={() =>
+              onFollow(account.accountId, chooseBalance, chooseLimit)
+            }
           >
             Keep mine as my own value
           </Button>
@@ -373,13 +400,28 @@ function ConfirmFollow({ debt, account, busy, onFollow }: ConfirmFollowProps) {
           type="button"
           className="min-h-11"
           disabled={busy}
-          onClick={() => onFollow(account.accountId, false)}
+          onClick={() => onFollow(account.accountId, false, false)}
         >
           Follow
         </Button>
       )}
     </div>
   );
+}
+
+/**
+ * The credit limit following would use when the person's limit is not a second choice.
+ */
+function connectedLimitLine(debt: DebtDto, account: DebtFollowAccountDto) {
+  const amount =
+    account.syncedCreditLimit === null
+      ? "Credit limit unknown"
+      : `Credit limit ${formatCurrency(account.syncedCreditLimit, debt.currency)}`;
+  if (!account.syncedCreditLimitAsOf) {
+    return amount;
+  }
+
+  return `${amount} · ${formatCalendarDate(account.syncedCreditLimitAsOf)}`;
 }
 
 type BalanceChoiceProps = {
@@ -418,6 +460,39 @@ function BalanceChoice({ debt, account }: BalanceChoiceProps) {
   );
 }
 
+type LimitChoiceProps = {
+  debt: DebtDto;
+  account: DebtFollowAccountDto;
+};
+
+/**
+ * The person's credit limit beside the connected one.
+ * The person's limit has no date of its own. The connected date is the latest snapshot.
+ */
+function LimitChoice({ debt, account }: LimitChoiceProps) {
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-muted/60">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-border">
+        <AmountSide
+          label="Your limit"
+          amount={debt.creditLimit}
+          asOf={null}
+          currency={debt.currency}
+          marked
+          showDate={false}
+        />
+        <AmountSide
+          label="Connected limit"
+          amount={account.syncedCreditLimit}
+          asOf={account.syncedCreditLimitAsOf}
+          currency={debt.currency}
+          showDate={account.syncedCreditLimitAsOf !== null}
+        />
+      </div>
+    </div>
+  );
+}
+
 type ConnectedBalanceProps = {
   debt: DebtDto;
   account: DebtFollowAccountDto;
@@ -449,6 +524,7 @@ type AmountSideProps = {
   currency: string;
   marked?: boolean;
   note?: string | null;
+  showDate?: boolean;
 };
 
 /**
@@ -462,6 +538,7 @@ function AmountSide({
   currency,
   marked = false,
   note = null,
+  showDate = true,
 }: AmountSideProps) {
   return (
     <div
@@ -475,9 +552,11 @@ function AmountSide({
       <p className="ledger-amount mt-1 text-lg">
         {amount === null ? "Unknown" : formatCurrency(amount, currency)}
       </p>
-      <p className="mt-0.5 text-xs text-muted-foreground">
-        {asOf ? formatCalendarDate(asOf) : "Date unknown"}
-      </p>
+      {showDate ? (
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {asOf ? formatCalendarDate(asOf) : "Date unknown"}
+        </p>
+      ) : null}
       {note ? (
         <p className="mt-1 text-xs text-muted-foreground">{note}</p>
       ) : null}

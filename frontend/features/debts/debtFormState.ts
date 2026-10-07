@@ -2,6 +2,7 @@ import type {
   DebtDto,
   DebtKind,
   SetDebtBalanceOverrideDto,
+  SetDebtCreditLimitOverrideDto,
   UpsertDebtDto,
 } from "@/lib/api/types";
 
@@ -58,8 +59,10 @@ export function emptyDebtForm(): DebtFormState {
  * Copies a stored debt into the form.
  * A null term becomes a blank field. Dates keep the calendar day.
  * While following, the balance shown is the one in use. Saving does not write that balance.
+ * A followed credit limit shows the one in use. A limit the connection did not provide shows the stored one.
  */
 export function debtToForm(debt: DebtDto): DebtFormState {
+  const followedLimit = debt.following && debt.creditLimitSource !== "Manual";
   return {
     name: debt.name,
     kind: debt.kind,
@@ -71,7 +74,9 @@ export function debtToForm(debt: DebtDto): DebtFormState {
     apr: optionalNumber(debt.apr),
     minimumPayment: optionalNumber(debt.minimumPayment),
     nextDueDate: optionalDate(debt.nextDueDate),
-    creditLimit: optionalNumber(debt.creditLimit),
+    creditLimit: optionalNumber(
+      followedLimit ? debt.creditLimitInUse : debt.creditLimit,
+    ),
     remainingTermMonths: optionalNumber(debt.remainingTermMonths),
     promotionalApr: optionalNumber(debt.promotionalApr),
     promotionalEndsOn: optionalDate(debt.promotionalEndsOn),
@@ -199,6 +204,37 @@ export function toBalanceOverride(
   }
 
   return { ok: true, dto: { balance: amount.amount, balanceAsOf } };
+}
+
+/**
+ * The credit-limit override payload, or the reason it is not ready.
+ * The amount is required. Zero is not a limit.
+ */
+export type CreditLimitOverrideResult =
+  | { ok: true; dto: SetDebtCreditLimitOverrideDto }
+  | { ok: false; error: string };
+
+/**
+ * Reads a credit limit the person is keeping.
+ * Blank and zero are rejected. An amount equal to the synced limit is still valid.
+ */
+export function toCreditLimitOverride(
+  creditLimit: string,
+): CreditLimitOverrideResult {
+  const amount = readOptionalMoney(
+    creditLimit,
+    false,
+    "Enter a credit limit above zero.",
+  );
+  if (!amount.ok) {
+    return amount;
+  }
+
+  if (amount.amount === null) {
+    return { ok: false, error: "Enter the credit limit." };
+  }
+
+  return { ok: true, dto: { creditLimit: amount.amount } };
 }
 
 /**

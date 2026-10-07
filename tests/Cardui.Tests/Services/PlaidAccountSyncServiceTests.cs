@@ -84,6 +84,33 @@ public class PlaidAccountSyncServiceTests
     }
 
     [Fact]
+    public async Task Sync_CopiesTheCreditLimit_AndClearsItWhenTheBankOmitsIt()
+    {
+        await using var dbContext = CreateDbContext();
+        var plaidItem = await SeedItemAsync(dbContext, "America/Denver");
+        var account = await SeedAccountAsync(dbContext, plaidItem, "acct-card", 10m);
+        account.CreditLimit = 1000m;
+        account.Type = AccountTypes.Credit;
+        await dbContext.SaveChangesAsync();
+        var service = CreateService(
+            dbContext,
+            new ScriptedAccountsClient(CreatePlaidAccount("acct-card", 42.50m, 40m, "Visa", 5000m)));
+
+        await service.SyncAccountsForPlaidItemAsync(plaidItem);
+
+        var copied = await dbContext.Accounts.SingleAsync(row => row.Id == account.Id);
+        Assert.Equal(5000m, copied.CreditLimit);
+
+        var cleared = CreateService(
+            dbContext,
+            new ScriptedAccountsClient(CreatePlaidAccount("acct-card", 42.50m, 40m, "Visa")));
+        await cleared.SyncAccountsForPlaidItemAsync(plaidItem);
+
+        var stored = await dbContext.Accounts.SingleAsync(row => row.Id == account.Id);
+        Assert.Null(stored.CreditLimit);
+    }
+
+    [Fact]
     public async Task Sync_WithoutAHousehold_UsesTheDefaultTimeZone()
     {
         await using var dbContext = CreateDbContext();
@@ -260,7 +287,8 @@ public class PlaidAccountSyncServiceTests
         string accountId,
         decimal? current,
         decimal? available,
-        string name = "Prime Checking")
+        string name = "Prime Checking",
+        decimal? limit = null)
     {
         return new PlaidAccount
         {
@@ -274,6 +302,7 @@ public class PlaidAccountSyncServiceTests
             {
                 Current = current,
                 Available = available,
+                Limit = limit,
                 IsoCurrencyCode = "USD"
             }
         };

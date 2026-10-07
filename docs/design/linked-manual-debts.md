@@ -1,6 +1,6 @@
 # Linked manual debts
 
-Status: Approved. Follow a balance, balance overrides, and suggested matches are built. Later slices are not.
+Status: Approved. Follow a balance, balance overrides, suggested matches, and credit limit are approved. Reconnect is not.
 Date: October 6, 2026
 Updated: 2026-10-07
 
@@ -146,7 +146,7 @@ else is synced.
 | Field | Owner when following | Source |
 | --- | --- | --- |
 | Current balance and its date | Synced | Latest `AccountBalanceSnapshot` |
-| Credit limit (revolving) | Synced | `balances.limit`. Not stored today. |
+| Credit limit (revolving) | Synced | `balances.limit`, stored on `Account.CreditLimit`. |
 | APR | Person | Debt |
 | Minimum payment | Person | Debt |
 | Next due date | Person | Debt |

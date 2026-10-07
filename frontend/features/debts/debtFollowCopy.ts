@@ -1,6 +1,7 @@
 import type {
   AccountDto,
   DebtAccountBalanceBlock,
+  DebtFieldSource,
   DebtLinkFreshness,
   DebtMatchReasonDto,
 } from "@/lib/api/types";
@@ -109,6 +110,44 @@ export function followBlockCopy(block: DebtAccountBalanceBlock) {
 }
 
 /**
+ * The confirm sentence for what will follow.
+ * A revolving debt with a usable limit names the credit limit. A loan does not.
+ */
+export function followConfirmLead(
+  debtName: string,
+  accountLabel: string,
+  followsLimit: boolean,
+) {
+  const followed = followsLimit
+    ? "The balance and credit limit follow that account."
+    : "The balance follows that account.";
+  return `${debtName} will follow ${accountLabel}. ${followed} APR, minimum, and due date stay yours.`;
+}
+
+/**
+ * The short source under a followed credit limit.
+ * Manual returns null, because a missing bank limit is not labeled as an override.
+ */
+export function creditLimitSourceText(
+  source: DebtFieldSource,
+  syncedAsOf: string | null,
+  overriddenOn: string | null,
+  formatDate: (value: string) => string,
+) {
+  if (source === "Synced") {
+    return syncedAsOf ? `Synced · ${formatDate(syncedAsOf)}` : "Synced";
+  }
+
+  if (source === "Override") {
+    return overriddenOn
+      ? `Your value since ${formatDate(overriddenOn)}`
+      : "Your value";
+  }
+
+  return null;
+}
+
+/**
  * The toast after a debt starts following an account.
  */
 export function startedFollowingToast(debtName: string, accountLabel: string) {
@@ -148,6 +187,25 @@ export function ownBalanceToast(
  */
 export function syncedBalanceToast(name: string) {
   return `${name} is using the synced balance again.`;
+}
+
+/**
+ * The toast after the person keeps their own credit limit.
+ * A known amount names it.
+ */
+export function ownCreditLimitToast(name: string, limit: string | null) {
+  if (limit) {
+    return `${name} is using your credit limit of ${limit}.`;
+  }
+
+  return `${name} is using your credit limit.`;
+}
+
+/**
+ * The toast after the person goes back to the synced credit limit.
+ */
+export function syncedCreditLimitToast(name: string) {
+  return `${name} is using the synced credit limit again.`;
 }
 
 /**

@@ -23,4 +23,5 @@ internal sealed record DebtListRow(
     decimal? PromotionalApr,
     DateOnly? PromotionalEndsOn,
     DateTimeOffset? AccountFollowedSince,
-    DateTimeOffset? BalanceOverriddenAt);
+    DateTimeOffset? BalanceOverriddenAt,
+    DateTimeOffset? CreditLimitOverriddenAt);

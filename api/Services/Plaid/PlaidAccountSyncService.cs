@@ -209,8 +209,8 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
     }
 
     /// <summary>
-    /// Copies the name, type, mask, and balances supplied by the bank.
-    /// ArchivedAt is left unchanged.
+    /// Copies the name, type, mask, balances, and credit limit supplied by the bank.
+    /// A missing limit clears a limit stored earlier. ArchivedAt is left unchanged.
     /// </summary>
     private static void ApplyPlaidAccountFields(
         Account account,
@@ -227,6 +227,9 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
             : 0m;
         account.AvailableBalance = plaidAccount.Balances.Available.HasValue
             ? Convert.ToDecimal(plaidAccount.Balances.Available.Value)
+            : null;
+        account.CreditLimit = plaidAccount.Balances.Limit.HasValue
+            ? Convert.ToDecimal(plaidAccount.Balances.Limit.Value)
             : null;
         account.IsoCurrencyCode = plaidAccount.Balances.IsoCurrencyCode;
         account.IsActive = true;

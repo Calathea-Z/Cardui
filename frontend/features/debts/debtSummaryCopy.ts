@@ -263,20 +263,44 @@ export function debtSummaryLines(
 }
 
 /**
- * The short mark for a revolving debt that has reached a named utilization threshold.
- * Null when the share is under that threshold. It is not a grade.
+ * Which utilization threshold a revolving debt has reached.
+ * `notice` is the first callout. `high` is the limit nearly used up. It is not a grade.
  */
-export function utilizationMark(
+export const utilizationNoticeLevels = ["notice", "high"] as const;
+
+export type UtilizationNoticeLevel = (typeof utilizationNoticeLevels)[number];
+
+/**
+ * The callout for one utilization threshold.
+ * `text` names the threshold and that this share of the limit is in use.
+ */
+export type UtilizationNotice = {
+  level: UtilizationNoticeLevel;
+  text: string;
+};
+
+/**
+ * The callout when a revolving debt has reached a named utilization threshold.
+ * Notice is the first share. High is the share near the whole limit. Null when the share is under the first threshold.
+ * It is not a grade.
+ */
+export function utilizationNotice(
   reachesNotice: boolean,
   reachesLimit: boolean,
   report: DebtSummaryReportDto,
-) {
+): UtilizationNotice | null {
   if (reachesLimit) {
-    return `${share(report.utilizationLimitNotice)} or more`;
+    return {
+      level: "high",
+      text: `${share(report.utilizationLimitNotice)} or more of the limit is in use`,
+    };
   }
 
   if (reachesNotice) {
-    return `${share(report.utilizationNotice)} or more`;
+    return {
+      level: "notice",
+      text: `${share(report.utilizationNotice)} or more of the limit is in use`,
+    };
   }
 
   return null;

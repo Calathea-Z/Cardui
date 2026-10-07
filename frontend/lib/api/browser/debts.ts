@@ -6,6 +6,7 @@ import type {
   DebtSyncedField,
   FollowDebtAccountDto,
   SetDebtBalanceOverrideDto,
+  SetDebtCreditLimitOverrideDto,
   UpsertDebtDto,
 } from "../types";
 
@@ -88,7 +89,7 @@ export async function getDebtFollowAccounts(
 /**
  * POST /api/debts/{id}/follow
  * Makes the debt follow one connected account.
- * The stored balance stays. keepOwnBalance records a different amount as the person's value.
+ * The stored balance and credit limit stay. Each keep-own flag records a different amount as the person's value.
  */
 export async function followDebtAccount(
   id: string,
@@ -103,7 +104,7 @@ export async function followDebtAccount(
 
 /**
  * POST /api/debts/{id}/stop-following
- * Stops following and keeps the last balance on the debt. The account stays linked.
+ * Stops following and keeps the last balance and credit limit on the debt. The account stays linked.
  */
 export async function stopFollowingDebt(id: string): Promise<DebtDto> {
   const response = await browserClient.post<DebtDto>(
@@ -113,13 +114,13 @@ export async function stopFollowingDebt(id: string): Promise<DebtDto> {
 }
 
 /**
- * PUT /api/debts/{id}/overrides/{field}
+ * PUT /api/debts/{id}/overrides/Balance
  * Keeps the person's balance while the debt follows an account.
  * A null date means today. The amount is kept even when it matches the synced balance.
  */
 export async function setDebtOverride(
   id: string,
-  field: DebtSyncedField,
+  field: "Balance",
   dto: SetDebtBalanceOverrideDto,
 ): Promise<DebtDto> {
   const response = await browserClient.put<DebtDto>(
@@ -130,8 +131,24 @@ export async function setDebtOverride(
 }
 
 /**
+ * PUT /api/debts/{id}/overrides/CreditLimit
+ * Keeps the person's credit limit while a revolving debt follows an account.
+ * The amount is kept even when it matches the synced limit.
+ */
+export async function setDebtCreditLimitOverride(
+  id: string,
+  dto: SetDebtCreditLimitOverrideDto,
+): Promise<DebtDto> {
+  const response = await browserClient.put<DebtDto>(
+    `/api/debts/${id}/overrides/CreditLimit`,
+    dto,
+  );
+  return response.data;
+}
+
+/**
  * DELETE /api/debts/{id}/overrides/{field}
- * Clears the person's balance so the debt uses the synced balance again.
+ * Clears the person's value for that field so the debt uses the connection again.
  */
 export async function clearDebtOverride(
   id: string,

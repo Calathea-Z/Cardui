@@ -20,9 +20,11 @@ type DebtFormProps = {
   isSaving: boolean;
   following: boolean;
   balanceSource: DebtFieldSource | null;
+  creditLimitSource: DebtFieldSource | null;
   onChange: (form: DebtFormState) => void;
   onPickerOpenChange: (open: boolean) => void;
   onSaveOwnBalance: (balance: string, balanceAsOf: string) => Promise<boolean>;
+  onSaveOwnCreditLimit: (creditLimit: string) => Promise<boolean>;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 };
 
@@ -31,7 +33,8 @@ type DebtFormProps = {
  * The type starts unset on a new debt. A blank term stays unknown and is not stored as zero.
  * The linked account can stay blank. A credit limit is asked for a revolving debt, and months left for an installment debt.
  * While following, the balance and its date stay locked until the person enters their own.
- * Saving the other terms does not write that balance. The account stays locked too.
+ * A credit limit the connection provides stays locked the same way. A limit it does not provide stays editable.
+ * Saving the other terms does not write a locked field. The account stays locked too.
  */
 export function DebtForm({
   form,
@@ -43,16 +46,22 @@ export function DebtForm({
   isSaving,
   following,
   balanceSource,
+  creditLimitSource,
   onChange,
   onPickerOpenChange,
   onSaveOwnBalance,
+  onSaveOwnCreditLimit,
   onSubmit,
 }: DebtFormProps) {
   const [showPromotion, setShowPromotion] = useState(
     form.promotionalApr !== "" || form.promotionalEndsOn !== "",
   );
   const [editingOwnBalance, setEditingOwnBalance] = useState(false);
+  const [editingOwnLimit, setEditingOwnLimit] = useState(false);
   const balanceLocked = following && !editingOwnBalance;
+  const limitFollowed =
+    following && creditLimitSource !== null && creditLimitSource !== "Manual";
+  const limitLocked = limitFollowed && !editingOwnLimit;
 
   /**
    * Saves the open balance as the person's value, then locks the field again.
@@ -62,6 +71,17 @@ export function DebtForm({
     const saved = await onSaveOwnBalance(form.balance, form.balanceAsOf);
     if (saved) {
       setEditingOwnBalance(false);
+    }
+  }
+
+  /**
+   * Saves the open credit limit as the person's value, then locks the field again.
+   * The rest of the form is left as it is.
+   */
+  async function saveOwnLimit() {
+    const saved = await onSaveOwnCreditLimit(form.creditLimit);
+    if (saved) {
+      setEditingOwnLimit(false);
     }
   }
 
@@ -237,22 +257,52 @@ export function DebtForm({
         </div>
 
         {form.kind === "Revolving" ? (
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Credit limit
-            <Input
-              value={form.creditLimit}
-              onChange={(event) =>
-                onChange({ ...form, creditLimit: event.target.value })
-              }
-              inputMode="decimal"
-              autoComplete="off"
-              placeholder="Optional"
-            />
-            <span className="font-normal text-muted-foreground">
-              How much of the limit is in use is shown when both the balance and
-              the limit are filled in.
-            </span>
-          </label>
+          <>
+            <label className="flex flex-col gap-1.5 text-sm font-medium">
+              Credit limit
+              <Input
+                value={form.creditLimit}
+                onChange={(event) =>
+                  onChange({ ...form, creditLimit: event.target.value })
+                }
+                inputMode="decimal"
+                autoComplete="off"
+                placeholder="Optional"
+                disabled={limitLocked}
+              />
+              <span className="font-normal text-muted-foreground">
+                {creditLimitNote(
+                  following,
+                  limitFollowed,
+                  editingOwnLimit,
+                  creditLimitSource,
+                )}
+              </span>
+            </label>
+            {limitFollowed ? (
+              editingOwnLimit ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11"
+                  disabled={isSaving}
+                  onClick={() => void saveOwnLimit()}
+                >
+                  Save my limit
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11"
+                  disabled={isSaving}
+                  onClick={() => setEditingOwnLimit(true)}
+                >
+                  Enter my own limit
+                </Button>
+              )
+            ) : null}
+          </>
         ) : null}
 
         {form.kind === "Installment" ? (
@@ -343,6 +393,35 @@ function balanceNote(
   }
 
   return "This balance follows the connected account.";
+}
+
+/**
+ * The note under a credit limit.
+ * A followed limit is saved on its own. A limit the connection did not provide saves with the other terms.
+ */
+function creditLimitNote(
+  following: boolean,
+  limitFollowed: boolean,
+  editingOwnLimit: boolean,
+  creditLimitSource: DebtFieldSource | null,
+) {
+  if (!following || !limitFollowed) {
+    if (following) {
+      return "The connection did not provide a credit limit. Yours stays in use.";
+    }
+
+    return "How much of the limit is in use is shown when both the balance and the limit are filled in.";
+  }
+
+  if (editingOwnLimit) {
+    return "Save my limit keeps this amount. Save changes keeps the other terms.";
+  }
+
+  if (creditLimitSource === "Override") {
+    return "This is your credit limit. The connection does not replace it.";
+  }
+
+  return "This credit limit follows the connected account.";
 }
 
 /**

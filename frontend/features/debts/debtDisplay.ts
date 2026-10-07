@@ -46,3 +46,15 @@ export function formatSharePercent(ratio: number) {
 export function formatUtilization(ratio: number) {
   return `${formatSharePercent(ratio)} of the limit`;
 }
+
+/**
+ * How much of the utilization bar to fill, from 0 to 100.
+ * A share above the whole limit fills the bar. The label still shows the full percent.
+ */
+export function utilizationFill(ratio: number) {
+  if (!Number.isFinite(ratio) || ratio <= 0) {
+    return 0;
+  }
+
+  return Math.min(Math.round(ratio * 1000) / 10, 100);
+}

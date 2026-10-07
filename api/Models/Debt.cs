@@ -36,6 +36,8 @@ public class Debt
 
     public decimal? CreditLimit { get; set; }
 
+    public DateTimeOffset? CreditLimitOverriddenAt { get; set; }
+
     public int? RemainingTermMonths { get; set; }
 
     public decimal? PromotionalApr { get; set; }

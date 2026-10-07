@@ -7,7 +7,7 @@ public interface IDebtsService
 {
     /// <summary>
     /// Lists the signed-in household's debts, ordered by name.
-    /// A null term is unknown. Utilization uses the balance in use and the credit limit when both are known.
+    /// A null term is unknown. Utilization uses the balance in use and the credit limit in use when both are known.
     /// A followed debt's balance in use is the connected balance, except where the person kept their own.
     /// </summary>
     Task<IReadOnlyList<DebtDto>> GetDebtsAsync(
@@ -27,7 +27,8 @@ public interface IDebtsService
     /// Updates a debt's type, balance, terms, and linked account.
     /// The currency stored at creation stays, so a later planning-currency change does not relabel the amounts.
     /// Clearing a term stores it as unknown. The linked account balance is not changed.
-    /// While the debt is following, the balance and the linked account stay as they are.
+    /// While the debt is following, the balance, a synced credit limit, and the linked account stay as they are.
+    /// A credit limit the connection does not provide can still be saved.
     /// </summary>
     Task<DebtDto> UpdateAsync(
         Guid debtId,
@@ -72,7 +73,7 @@ public interface IDebtsService
 
     /// <summary>
     /// Makes the debt follow one eligible account.
-    /// The debt's stored balance stays. KeepOwnBalance records it as the person's value when the amounts differ.
+    /// The debt's stored balance and credit limit stay. Each keep-own flag records that amount as the person's value when it differs.
     /// </summary>
     Task<DebtDto> FollowAccountAsync(
         Guid debtId,
@@ -80,8 +81,8 @@ public interface IDebtsService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Stops following and keeps the last balance on the debt.
-    /// A synced balance is copied once. An override stays as the person's value. The account link remains.
+    /// Stops following and keeps the last balance and credit limit on the debt.
+    /// A synced value is copied once. An override stays as the person's value. The account link remains.
     /// </summary>
     Task<DebtDto> StopFollowingAsync(
         Guid debtId,
@@ -99,7 +100,16 @@ public interface IDebtsService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Clears the person's balance so the debt uses the synced balance again.
+    /// Keeps the person's credit limit while a revolving debt follows an account.
+    /// The amount is stored even when it matches the synced limit. A debt that is not following, or has no synced limit, is rejected.
+    /// </summary>
+    Task<DebtDto> SetCreditLimitOverrideAsync(
+        Guid debtId,
+        SetDebtCreditLimitOverrideDto dto,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Clears the person's value for one synced field so the debt uses the connection again.
     /// The stored amount stays until the debt stops following. A debt that is not following is rejected.
     /// </summary>
     Task<DebtDto> ClearOverrideAsync(

@@ -68,7 +68,32 @@ public class DebtDto
 
     public DateOnly? NextDueDate { get; set; }
 
+    /// <summary>
+    /// The credit limit stored on the debt. While following a usable limit without an override, the amount in use is CreditLimitInUse.
+    /// </summary>
     public decimal? CreditLimit { get; set; }
+
+    /// <summary>
+    /// The credit limit the plan uses. On a followed revolving debt this is the connected limit, except where the person kept their own.
+    /// </summary>
+    public decimal? CreditLimitInUse { get; set; }
+
+    public DebtFieldSource CreditLimitSource { get; set; }
+
+    /// <summary>
+    /// The account's credit limit. Null when the debt is not following a revolving account, or the connection did not provide a usable limit.
+    /// </summary>
+    public decimal? SyncedCreditLimit { get; set; }
+
+    /// <summary>
+    /// The latest snapshot date for the synced limit. Null when that limit has no snapshot date.
+    /// </summary>
+    public DateOnly? SyncedCreditLimitAsOf { get; set; }
+
+    /// <summary>
+    /// The day the person kept their own limit, in the household time zone. Null unless the source is an override.
+    /// </summary>
+    public DateOnly? CreditLimitOverriddenOn { get; set; }
 
     public int? RemainingTermMonths { get; set; }
 
@@ -78,7 +103,7 @@ public class DebtDto
 
     /// <summary>
     /// Share of the credit limit in use, as a ratio. 0.85 means 85 percent.
-    /// Null when the balance or the credit limit is unknown. This is calculated and is not stored.
+    /// Null when the balance in use or the credit limit in use is unknown. This is calculated and is not stored.
     /// </summary>
     public decimal? Utilization { get; set; }
 }

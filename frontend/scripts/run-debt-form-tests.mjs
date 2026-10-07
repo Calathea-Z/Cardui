@@ -141,6 +141,63 @@ test("a stored zero comes back as zero and a missing term comes back blank", () 
   assert.equal(filled.balanceAsOf, "2026-10-01");
 });
 
+test("a followed credit limit shows the one in use, and an override needs an amount", () => {
+  const followed = form.debtToForm({
+    name: "Card",
+    kind: "Revolving",
+    accountId: null,
+    following: true,
+    balance: 1,
+    balanceInUse: 2,
+    balanceAsOf: null,
+    balanceInUseAsOf: null,
+    creditLimit: 1000,
+    creditLimitInUse: 5000,
+    creditLimitSource: "Synced",
+    apr: null,
+    minimumPayment: null,
+    nextDueDate: null,
+    remainingTermMonths: null,
+    promotionalApr: null,
+    promotionalEndsOn: null,
+  });
+  assert.equal(followed.balance, "2");
+  assert.equal(followed.creditLimit, "5000");
+
+  const manual = form.debtToForm({
+    name: "Card",
+    kind: "Revolving",
+    accountId: null,
+    following: true,
+    balance: null,
+    balanceInUse: null,
+    balanceAsOf: null,
+    balanceInUseAsOf: null,
+    creditLimit: 1000,
+    creditLimitInUse: 1000,
+    creditLimitSource: "Manual",
+    apr: null,
+    minimumPayment: null,
+    nextDueDate: null,
+    remainingTermMonths: null,
+    promotionalApr: null,
+    promotionalEndsOn: null,
+  });
+  assert.equal(manual.creditLimit, "1000");
+
+  const saved = form.toCreditLimitOverride("2500.5");
+  assert.equal(saved.ok, true);
+  assert.deepEqual(saved.dto, { creditLimit: 2500.5 });
+  assert.deepEqual(form.toCreditLimitOverride(""), {
+    ok: false,
+    error: "Enter the credit limit.",
+  });
+  assert.deepEqual(form.toCreditLimitOverride("0"), {
+    ok: false,
+    error: "Enter a credit limit above zero.",
+  });
+});
+
 test("a balance override needs an amount, and update balance omits the date", () => {
   const dated = form.toBalanceOverride("10.50", "2026-10-02");
   assert.equal(dated.ok, true);
@@ -170,6 +227,36 @@ test("update balance is offered when the connection is not current", async () =>
   assert.equal(follow.canUpdateBalance("Disconnected"), true);
   assert.equal(follow.canUpdateBalance("Current"), false);
   assert.equal(follow.canUpdateBalance("AccountMissing"), false);
+  assert.equal(
+    follow.followConfirmLead("Store card", "Visa ending 4821", true),
+    "Store card will follow Visa ending 4821. The balance and credit limit follow that account. APR, minimum, and due date stay yours.",
+  );
+  assert.equal(
+    follow.followConfirmLead("Car loan", "Auto loan", false),
+    "Car loan will follow Auto loan. The balance follows that account. APR, minimum, and due date stay yours.",
+  );
+  assert.equal(
+    follow.creditLimitSourceText(
+      "Synced",
+      "2026-10-05",
+      null,
+      (value) => value,
+    ),
+    "Synced · 2026-10-05",
+  );
+  assert.equal(
+    follow.creditLimitSourceText(
+      "Override",
+      null,
+      "2026-10-03",
+      (value) => value,
+    ),
+    "Your value since 2026-10-03",
+  );
+  assert.equal(
+    follow.creditLimitSourceText("Manual", null, null, (value) => value),
+    null,
+  );
 
   const money = (amount) => `$${amount.toFixed(2)}`;
   assert.equal(
@@ -261,4 +348,8 @@ test("dates and rates keep their meaning on the card", () => {
   assert.equal(display.formatUtilization(0), "0% of the limit");
   assert.equal(display.formatUtilization(0.8425), "84.3% of the limit");
   assert.equal(display.formatUtilization(1.5), "150% of the limit");
+  assert.equal(display.utilizationFill(0), 0);
+  assert.equal(display.utilizationFill(0.773), 77.3);
+  assert.equal(display.utilizationFill(1.5), 100);
+  assert.equal(display.utilizationFill(Number.NaN), 0);
 });

@@ -557,6 +557,130 @@ public class DebtsServiceTests
     }
 
     [Fact]
+    public async Task CreditLimit_FollowsAUsableLimitAndCanBeKeptAsAnOverride()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(
+            dbContext,
+            householdId,
+            900m,
+            snapshot: 1240.18m,
+            creditLimit: 5000m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var request = Card(accountId);
+        request.CreditLimit = 1000m;
+        var debt = await service.CreateAsync(request);
+
+        var choice = Assert.Single(await service.GetFollowAccountsAsync(debt.Id));
+        Assert.Equal(5000m, choice.SyncedCreditLimit);
+        Assert.Equal(new DateOnly(2026, 10, 5), choice.SyncedCreditLimitAsOf);
+        Assert.True(choice.CreditLimitsDiffer);
+
+        var followed = await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = accountId });
+        Assert.Equal(1000m, followed.CreditLimit);
+        Assert.Equal(5000m, followed.CreditLimitInUse);
+        Assert.Equal(DebtFieldSource.Synced, followed.CreditLimitSource);
+        Assert.Equal(5000m, followed.SyncedCreditLimit);
+        Assert.Equal(0.2480m, followed.Utilization);
+        Assert.DoesNotContain(
+            DebtSummaryGap.CreditLimit,
+            Assert.Single((await service.GetSummaryAsync()).Debts).Gaps);
+
+        var edited = Card(accountId);
+        edited.CreditLimit = 2000m;
+        edited.Apr = 9m;
+        var saved = await service.UpdateAsync(debt.Id, edited);
+        Assert.Equal(1000m, saved.CreditLimit);
+        Assert.Equal(5000m, saved.CreditLimitInUse);
+        Assert.Equal(9m, saved.Apr);
+
+        var kept = await service.SetCreditLimitOverrideAsync(
+            debt.Id,
+            new SetDebtCreditLimitOverrideDto { CreditLimit = 5000m });
+        Assert.Equal(DebtFieldSource.Override, kept.CreditLimitSource);
+        Assert.Equal(5000m, kept.CreditLimit);
+        Assert.Equal(5000m, kept.CreditLimitInUse);
+        Assert.Equal(new DateOnly(2026, 10, 5), kept.CreditLimitOverriddenOn);
+        Assert.Equal(5000m, kept.SyncedCreditLimit);
+
+        var synced = await service.ClearOverrideAsync(debt.Id, DebtSyncedField.CreditLimit);
+        Assert.Equal(DebtFieldSource.Synced, synced.CreditLimitSource);
+        Assert.Equal(5000m, synced.CreditLimit);
+        Assert.Equal(5000m, synced.CreditLimitInUse);
+        Assert.Null(synced.CreditLimitOverriddenOn);
+
+        var stopped = await service.StopFollowingAsync(synced.Id);
+        Assert.False(stopped.Following);
+        Assert.Equal(5000m, stopped.CreditLimit);
+        Assert.Equal(5000m, stopped.CreditLimitInUse);
+        Assert.Equal(DebtFieldSource.Manual, stopped.CreditLimitSource);
+        Assert.Equal(5000m, await AccountCreditLimitAsync(dbContext, accountId));
+    }
+
+    [Fact]
+    public async Task CreditLimit_StaysManualWhenTheConnectionHasNoneAndOnALoan()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var cardId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var loanAccountId = await AddNamedConnectedAccountAsync(
+            dbContext,
+            householdId,
+            "Auto loan",
+            "9999",
+            400m,
+            400m,
+            accountType: AccountTypes.Loan);
+        var loanAccount = await dbContext.Accounts.SingleAsync(account => account.Id == loanAccountId);
+        loanAccount.CreditLimit = 8000m;
+        await dbContext.SaveChangesAsync();
+        var service = CreateService(dbContext, Bind(householdId));
+
+        var request = Card(cardId);
+        request.CreditLimit = 1000m;
+        var debt = await service.CreateAsync(request);
+        var followed = await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = cardId, KeepOwnCreditLimit = true });
+        Assert.Equal(DebtFieldSource.Manual, followed.CreditLimitSource);
+        Assert.Equal(1000m, followed.CreditLimitInUse);
+        Assert.Null(followed.SyncedCreditLimit);
+
+        var edited = Card(cardId);
+        edited.CreditLimit = 2000m;
+        var saved = await service.UpdateAsync(debt.Id, edited);
+        Assert.Equal(2000m, saved.CreditLimit);
+        Assert.Equal(DebtFieldSource.Manual, saved.CreditLimitSource);
+
+        var rejected = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.SetCreditLimitOverrideAsync(
+                debt.Id,
+                new SetDebtCreditLimitOverrideDto { CreditLimit = 2000m }));
+        Assert.Equal("That credit limit is not synced, so enter it on the debt.", rejected.Message);
+
+        var loan = Card(loanAccountId);
+        loan.Name = "Car loan";
+        loan.Kind = DebtKind.Installment;
+        loan.CreditLimit = 1000m;
+        loan.RemainingTermMonths = 36;
+        var created = await service.CreateAsync(loan);
+        var followedLoan = await service.FollowAccountAsync(
+            created.Id,
+            new FollowDebtAccountDto { AccountId = loanAccountId });
+        Assert.Null(followedLoan.CreditLimit);
+        Assert.Null(followedLoan.CreditLimitInUse);
+        Assert.Equal(DebtFieldSource.Manual, followedLoan.CreditLimitSource);
+        Assert.Null(Assert.Single(
+            await service.GetFollowAccountsAsync(created.Id)).SyncedCreditLimit);
+
+        var stopped = await service.StopFollowingAsync(created.Id);
+        Assert.Null(stopped.CreditLimit);
+    }
+
+    [Fact]
     public async Task FollowAccounts_SuggestsTheCloseAccountAndStillListsTheOthers()
     {
         await using var dbContext = CreateDbContext();
@@ -688,7 +812,8 @@ public class DebtsServiceTests
         CarduiDBContext dbContext,
         Guid householdId,
         decimal currentBalance,
-        decimal snapshot)
+        decimal snapshot,
+        decimal? creditLimit = null)
     {
         var item = new PlaidItem
         {
@@ -715,6 +840,7 @@ public class DebtsServiceTests
             IsoCurrencyCode = "USD",
             IsActive = true,
             CurrentBalance = currentBalance,
+            CreditLimit = creditLimit,
             CreatedAt = Now,
             UpdatedAt = Now
         };
@@ -788,6 +914,15 @@ public class DebtsServiceTests
             CreatedAt = Now
         });
         await dbContext.SaveChangesAsync();
+    }
+
+    private static async Task<decimal?> AccountCreditLimitAsync(CarduiDBContext dbContext, Guid accountId)
+    {
+        return await dbContext.Accounts
+            .AsNoTracking()
+            .Where(account => account.Id == accountId)
+            .Select(account => account.CreditLimit)
+            .SingleAsync();
     }
 
     private static async Task<decimal> AccountBalanceAsync(CarduiDBContext dbContext, Guid accountId)

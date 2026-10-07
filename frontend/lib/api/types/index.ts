@@ -56,6 +56,7 @@ export type {
   DebtSyncedField,
   FollowDebtAccountDto,
   SetDebtBalanceOverrideDto,
+  SetDebtCreditLimitOverrideDto,
   UpsertDebtDto,
 } from "./debts";
 export type {

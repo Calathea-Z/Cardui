@@ -11,15 +11,17 @@ history. They do not say what is next.
 
 **Now**
 
-- No increment is in progress.
+- Linked-debt item 6 of "Sync correctness and linked debts" in
+  [`roadmap.md`](roadmap.md): reconnect. The design is
+  [`design/linked-manual-debts.md`](design/linked-manual-debts.md).
+  No schema change is expected. Credit limit is approved in
+  [`reviews/2026-10-07-006-credit-limit.md`](reviews/2026-10-07-006-credit-limit.md).
+  `20261007193207_AddAccountCreditLimit` is in the repo.
 
 **Next**
 
-1. Linked-debt item 5 of "Sync correctness and linked debts" in
-   [`roadmap.md`](roadmap.md): credit limit. The design is
-   [`design/linked-manual-debts.md`](design/linked-manual-debts.md).
-   Item 6 follows it. This one changes the model. Ask before generating
-   the migration.
+1. Phase 3 in [`roadmap.md`](roadmap.md), after reconnect. Detail panel
+   keyboard focus stays tracked and is not scheduled.
 
 **Tracked, not scheduled**
 
@@ -45,7 +47,7 @@ history. They do not say what is next.
 | --- | --- |
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
-| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, and suggested matches are built. Later slices are not |
+| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, and credit limit are approved. Reconnect is not |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

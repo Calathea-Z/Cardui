@@ -49,6 +49,9 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         entity.Property(x => x.AvailableBalance)
             .HasPrecision(18, 2);
 
+        entity.Property(x => x.CreditLimit)
+            .HasPrecision(18, 2);
+
         entity.Property(x => x.IsoCurrencyCode)
             .HasMaxLength(10);
 

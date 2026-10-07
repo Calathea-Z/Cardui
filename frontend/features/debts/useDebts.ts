@@ -12,6 +12,7 @@ import {
   getDebtFollowAccounts,
   getDebtSummary,
   getDebts,
+  setDebtCreditLimitOverride,
   setDebtOverride,
   stopFollowingDebt,
   syncPlaidItem,
@@ -28,14 +29,17 @@ import { formatCalendarDate } from "./debtDisplay";
 import {
   followedAccountLabel,
   ownBalanceToast,
+  ownCreditLimitToast,
   startedFollowingToast,
   stoppedFollowingToast,
   syncedBalanceToast,
+  syncedCreditLimitToast,
 } from "./debtFollowCopy";
 import {
   debtToForm,
   emptyDebtForm,
   toBalanceOverride,
+  toCreditLimitOverride,
   toDebtUpsert,
   toTodayBalanceOverride,
   type DebtFormState,
@@ -277,9 +281,13 @@ export function useDebts(
 
   /**
    * Makes the open debt follow the chosen account.
-   * Keep-own records a different balance as the person's value. The toast names the account.
+   * Each keep-own flag records a different amount as the person's value. The toast names the account.
    */
-  async function follow(accountId: string, keepOwnBalance: boolean) {
+  async function follow(
+    accountId: string,
+    keepOwnBalance: boolean,
+    keepOwnCreditLimit: boolean,
+  ) {
     const debt = debts.find((item) => item.id === followDebtId);
     if (!debt) {
       return;
@@ -291,6 +299,7 @@ export function useDebts(
       const updated = await followDebtAccount(debt.id, {
         accountId,
         keepOwnBalance,
+        keepOwnCreditLimit,
       });
       setDebts((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
@@ -394,6 +403,66 @@ export function useDebts(
     } catch (err) {
       reportDebtFailure(err, "That balance could not be saved.");
       return false;
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /**
+   * Keeps the open debt's credit limit as the person's value.
+   * The other terms in the form stay. A blank amount is rejected here.
+   */
+  async function saveOwnCreditLimit(creditLimit: string) {
+    if (!editingId) {
+      return false;
+    }
+
+    const parsed = toCreditLimitOverride(creditLimit);
+    if (!parsed.ok) {
+      showDebtError(parsed.error);
+      return false;
+    }
+
+    setIsSaving(true);
+    try {
+      const updated = await setDebtCreditLimitOverride(editingId, parsed.dto);
+      rememberDebt(updated);
+      setForm((current) => ({
+        ...current,
+        creditLimit:
+          updated.creditLimitInUse === null
+            ? ""
+            : String(updated.creditLimitInUse),
+      }));
+      const limit =
+        updated.creditLimitInUse === null
+          ? null
+          : formatCurrency(updated.creditLimitInUse, updated.currency);
+      toast.success(ownCreditLimitToast(updated.name, limit), {
+        id: debtToastId,
+      });
+      void refreshSummary();
+      return true;
+    } catch (err) {
+      reportDebtFailure(err, "That credit limit could not be saved.");
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  /**
+   * Clears the person's credit limit so the debt uses the synced limit again.
+   */
+  async function useSyncedCreditLimit(debt: DebtDto) {
+    setBusyId(debt.id);
+    try {
+      const updated = await clearDebtOverride(debt.id, "CreditLimit");
+      rememberDebt(updated);
+      toast.success(syncedCreditLimitToast(updated.name), { id: debtToastId });
+      void refreshSummary();
+    } catch (err) {
+      reportDebtFailure(err, "The synced credit limit could not be used.");
     } finally {
       setBusyId(null);
     }
@@ -541,8 +610,10 @@ export function useDebts(
     stopFollowing,
     refreshConnection,
     saveOwnBalance,
+    saveOwnCreditLimit,
     updateBalance,
     useSyncedBalance,
+    useSyncedCreditLimit,
   };
 }
 

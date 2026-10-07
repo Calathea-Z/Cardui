@@ -25,6 +25,8 @@ public class Account
     public decimal CurrentBalance { get; set; }
     public decimal? AvailableBalance { get; set; }
 
+    public decimal? CreditLimit { get; set; }
+
     public string? IsoCurrencyCode { get; set; }
 
     public decimal OpeningBalance { get; set; }

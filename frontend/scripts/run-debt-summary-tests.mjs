@@ -270,7 +270,15 @@ test("a card names a passed due date once and skips an unknown interest line", (
     copy.debtFactLine([], ["APR", "minimum", "due date"]),
     "APR, minimum, and due date unknown",
   );
-  assert.equal(copy.utilizationMark(false, true, report([])), "90% or more");
+  assert.deepEqual(copy.utilizationNotice(false, false, report([])), null);
+  assert.deepEqual(copy.utilizationNotice(true, false, report([])), {
+    level: "notice",
+    text: "30% or more of the limit is in use",
+  });
+  assert.deepEqual(copy.utilizationNotice(false, true, report([])), {
+    level: "high",
+    text: "90% or more of the limit is in use",
+  });
 
   const lines = copy.debtSummaryLines(
     {

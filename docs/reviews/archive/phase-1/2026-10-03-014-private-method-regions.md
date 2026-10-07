@@ -43,7 +43,7 @@ No screen or data change. Spot-check the regions, or waive this list.
    Expected: `UpdateTransactionCategoryAsync` follows
    `GetMerchantHistoryAsync`. Merchant-history helpers, pagination, and
    the other private methods are together in the region.
-3. Open `api/Domain/TransactionActivityCalculator.cs`.
+3. Open `api/Domain/Transactions/TransactionActivityCalculator.cs`.
    Expected: the four private methods are in the region. `CategoryBucket`
    stays after `#endregion`.
 

@@ -30,8 +30,8 @@ standing rule for that split.
 
 No screen or data change. Spot-check the folders, or waive this list.
 
-1. Open `api/Domain/TransactionCategoryClassifier.cs` and
-   `api/Domain/TransferTextClassifier.cs`.
+1. Open `api/Domain/Transactions/TransactionCategoryClassifier.cs` and
+   `api/Domain/Transactions/TransferTextClassifier.cs`.
    Expected: both types are in `Cardui.Api.Domain`.
 2. Open `api/Services`.
    Expected: `ManualAccountBalance.cs` is the only file in that folder.

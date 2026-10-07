@@ -30,8 +30,8 @@ All of this is on `main` as of October 6, 2026.
 - `api/Data/Configurations/DebtConfiguration.cs` maps `AccountId` with
   `OnDelete(DeleteBehavior.SetNull)` and indexes it. The debt is deleted
   with its household.
-- `api/Domain/DebtRules.cs` normalizes a request into `DebtDraft`. The API
-  shapes are `api/Dtos/Debts/DebtDto.cs` and `UpsertDebtDto.cs`.
+- `api/Domain/Debts/DebtRules.cs` normalizes a request into `DebtDraft`.
+  The API shapes are `api/Dtos/Debts/DebtDto.cs` and `UpsertDebtDto.cs`.
 - There is no payoff priority, notes, or target payment field yet. The
   promotional rate and end date exist.
 
@@ -46,11 +46,12 @@ All of this is on `main` as of October 6, 2026.
   `DebtsService.LoadLinkedBalancesAsync`. The latest
   `AccountBalanceSnapshot` is the dated figure. Without one, the current
   balance is shown with an unknown date.
-- When that balance differs, `api/Domain/DebtSummary.cs` builds a
+- When that balance differs, `api/Domain/Debts/DebtSummary.cs` builds a
   `DebtBalanceComparison`. The card says "Two balances". The recorded
-  balance stays in use. `api/Domain/DebtAccountBalanceBlock.cs` explains why
-  an account balance cannot be copied: `DateUnknown`, `NegativeBalance`,
-  `CurrencyDiffers`, or `AmountTooLarge`. A cash account is not offered.
+  balance stays in use. `api/Domain/Debts/DebtAccountBalanceBlock.cs`
+  explains why an account balance cannot be copied: `DateUnknown`,
+  `NegativeBalance`, `CurrencyDiffers`, or `AmountTooLarge`. A cash account
+  is not offered.
 - `POST /api/debts/{id}/use-account-balance` copies that one snapshot onto
   the debt after confirmation. It does not change the account, APR,
   minimum, or due date. It does not repeat after the next sync.

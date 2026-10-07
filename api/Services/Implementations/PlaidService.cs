@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;
@@ -198,53 +199,19 @@ public class PlaidService : IPlaidService
         CancellationToken cancellationToken = default)
     {
         var plaidItem = await GetPlaidItemOrThrowAsync(plaidItemId, cancellationToken);
-        await RegisterWebhookAsync(plaidItem, cancellationToken);
-        var now = _timeProvider.GetUtcNow();
-
-        plaidItem.LastSyncStartedAt = now;
-        plaidItem.LastSyncCompletedAt = null;
-        plaidItem.LastSyncFailedAt = null;
-        plaidItem.LastSyncError = null;
-        plaidItem.UpdatedAt = now;
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("Starting Plaid sync for item {PlaidItemId}", plaidItemId);
+        if (!await TryClaimSyncAsync(plaidItem, cancellationToken))
+        {
+            return AlreadyRunning(plaidItem);
+        }
 
         try
         {
-            await _accountSyncService.SyncAccountsForPlaidItemAsync(
-                plaidItem,
-                cancellationToken);
-            var transactionsResult = await _transactionSyncService.SyncTransactionsForPlaidItemAsync(
-                plaidItem,
-                cancellationToken);
-
-            var completedAt = _timeProvider.GetUtcNow();
-            plaidItem.LastSyncCompletedAt = completedAt;
-            plaidItem.LastSyncFailedAt = null;
-            plaidItem.LastSyncError = null;
-            plaidItem.UpdatedAt = completedAt;
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation(
-                "Completed Plaid sync for item {PlaidItemId}. Added {Added}, modified {Modified}, removed {Removed}",
-                plaidItemId,
-                transactionsResult.Added,
-                transactionsResult.Modified,
-                transactionsResult.Removed);
-
-            return new SyncPlaidItemResponseDto
-            {
-                PlaidItemId = plaidItem.Id,
-                Transactions = transactionsResult
-            };
+            await _dbContext.Entry(plaidItem).ReloadAsync(cancellationToken);
+            return await RunClaimedSyncAsync(plaidItem, cancellationToken);
         }
         catch (Exception ex)
         {
-            RecordSyncFailure(plaidItem, ex);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await RecordSyncFailureAsync(plaidItem, ex);
             throw;
         }
     }
@@ -262,6 +229,183 @@ public class PlaidService : IPlaidService
     #region Private Methods
 
     /// <summary>
+    /// Claims the item for this sync, or reports that another sync still holds it.
+    /// An abandoned start is recorded as interrupted before the new claim.
+    /// On PostgreSQL each step is a conditional update, so the worker and a
+    /// manual sync cannot both claim the item.
+    /// </summary>
+    private async Task<bool> TryClaimSyncAsync(
+        PlaidItem plaidItem,
+        CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+        var startedAt = now.AddTicks(1);
+        if (!_dbContext.Database.IsRelational())
+        {
+            return await ClaimLoadedItemAsync(plaidItem, now, startedAt, cancellationToken);
+        }
+
+        var leaseCutoff = now - PlaidItemSync.Lease;
+        await MarkInterruptedSyncAsync(plaidItem, now, leaseCutoff, cancellationToken);
+        return await ClaimSyncAsync(plaidItem, startedAt, leaseCutoff, cancellationToken);
+    }
+
+    /// <summary>
+    /// Applies <see cref="PlaidItemSync"/> to the loaded row and saves the claim.
+    /// Used when the database cannot run a conditional update.
+    /// </summary>
+    private async Task<bool> ClaimLoadedItemAsync(
+        PlaidItem plaidItem,
+        DateTimeOffset now,
+        DateTimeOffset startedAt,
+        CancellationToken cancellationToken)
+    {
+        if (PlaidItemSync.HoldsItem(
+                plaidItem.LastSyncStartedAt,
+                plaidItem.LastSyncCompletedAt,
+                plaidItem.LastSyncFailedAt,
+                now))
+        {
+            return false;
+        }
+
+        if (PlaidItemSync.IsInterrupted(
+                plaidItem.LastSyncStartedAt,
+                plaidItem.LastSyncCompletedAt,
+                plaidItem.LastSyncFailedAt,
+                now))
+        {
+            plaidItem.LastSyncFailedAt = now;
+            plaidItem.LastSyncError = PlaidItemSync.InterruptedMessage;
+            plaidItem.UpdatedAt = now;
+        }
+
+        plaidItem.LastSyncStartedAt = startedAt;
+        plaidItem.UpdatedAt = startedAt;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    /// <summary>
+    /// Sets the start time when the item is free.
+    /// A start that still holds the item is left unchanged.
+    /// </summary>
+    private async Task<bool> ClaimSyncAsync(
+        PlaidItem plaidItem,
+        DateTimeOffset startedAt,
+        DateTimeOffset leaseCutoff,
+        CancellationToken cancellationToken)
+    {
+        var claimed = await ClaimableItems(plaidItem, leaseCutoff)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(item => item.LastSyncStartedAt, startedAt)
+                    .SetProperty(item => item.UpdatedAt, startedAt),
+                cancellationToken);
+
+        return claimed == 1;
+    }
+
+    /// <summary>
+    /// Records an unfinished start whose lease has passed.
+    /// The last success time stays, so freshness still has a completed sync.
+    /// </summary>
+    private async Task MarkInterruptedSyncAsync(
+        PlaidItem plaidItem,
+        DateTimeOffset now,
+        DateTimeOffset leaseCutoff,
+        CancellationToken cancellationToken)
+    {
+        await _dbContext.PlaidItems
+            .Where(item => item.Id == plaidItem.Id && item.HouseholdId == plaidItem.HouseholdId)
+            .Where(item =>
+                item.LastSyncStartedAt != null
+                && (item.LastSyncCompletedAt == null
+                    || item.LastSyncStartedAt > item.LastSyncCompletedAt)
+                && (item.LastSyncFailedAt == null
+                    || item.LastSyncStartedAt > item.LastSyncFailedAt)
+                && item.LastSyncStartedAt <= leaseCutoff)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(item => item.LastSyncFailedAt, now)
+                    .SetProperty(item => item.LastSyncError, PlaidItemSync.InterruptedMessage)
+                    .SetProperty(item => item.UpdatedAt, now),
+                cancellationToken);
+    }
+
+    /// <summary>
+    /// Items whose latest start is closed or older than the lease.
+    /// Matches <see cref="PlaidItemSync.HoldsItem"/>: a holding start is excluded.
+    /// </summary>
+    private IQueryable<PlaidItem> ClaimableItems(PlaidItem plaidItem, DateTimeOffset leaseCutoff)
+    {
+        return _dbContext.PlaidItems
+            .Where(item => item.Id == plaidItem.Id && item.HouseholdId == plaidItem.HouseholdId)
+            .Where(item =>
+                item.LastSyncStartedAt == null
+                || (item.LastSyncCompletedAt != null
+                    && item.LastSyncStartedAt <= item.LastSyncCompletedAt)
+                || (item.LastSyncFailedAt != null
+                    && item.LastSyncStartedAt <= item.LastSyncFailedAt)
+                || item.LastSyncStartedAt <= leaseCutoff);
+    }
+
+    /// <summary>
+    /// Syncs accounts and transactions after this call has claimed the item.
+    /// Completion clears a previous failure. It does not erase an older success
+    /// until the new sync finishes.
+    /// </summary>
+    private async Task<SyncPlaidItemResponseDto> RunClaimedSyncAsync(
+        PlaidItem plaidItem,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Starting Plaid sync for item {PlaidItemId}", plaidItem.Id);
+
+        await RegisterWebhookAsync(plaidItem, cancellationToken);
+        await _accountSyncService.SyncAccountsForPlaidItemAsync(
+            plaidItem,
+            cancellationToken);
+        var transactionsResult = await _transactionSyncService.SyncTransactionsForPlaidItemAsync(
+            plaidItem,
+            cancellationToken);
+
+        var completedAt = PlaidItemSync.FinishTime(
+            plaidItem.LastSyncStartedAt,
+            _timeProvider.GetUtcNow());
+        plaidItem.LastSyncCompletedAt = completedAt;
+        plaidItem.LastSyncFailedAt = null;
+        plaidItem.LastSyncError = null;
+        plaidItem.UpdatedAt = completedAt;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Completed Plaid sync for item {PlaidItemId}. Added {Added}, modified {Modified}, removed {Removed}",
+            plaidItem.Id,
+            transactionsResult.Added,
+            transactionsResult.Modified,
+            transactionsResult.Removed);
+
+        return new SyncPlaidItemResponseDto
+        {
+            PlaidItemId = plaidItem.Id,
+            Transactions = transactionsResult
+        };
+    }
+
+    /// <summary>
+    /// Returns without syncing. The in-progress sync keeps the accounts and timestamps.
+    /// </summary>
+    private static SyncPlaidItemResponseDto AlreadyRunning(PlaidItem plaidItem)
+    {
+        return new SyncPlaidItemResponseDto
+        {
+            PlaidItemId = plaidItem.Id,
+            AlreadyRunning = true
+        };
+    }
+
+    /// <summary>
     /// Loads a tracked household Plaid item, or throws when it is missing.
     /// </summary>
     private async Task<PlaidItem> GetPlaidItemOrThrowAsync(
@@ -276,6 +420,16 @@ public class PlaidService : IPlaidService
     }
 
     /// <summary>
+    /// Stores the failure time and a short error, and saves even when the
+    /// request was cancelled. The last success time is left in place.
+    /// </summary>
+    private async Task RecordSyncFailureAsync(PlaidItem plaidItem, Exception ex)
+    {
+        RecordSyncFailure(plaidItem, ex);
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+    }
+
+    /// <summary>
     /// Stores the failure time and a short error on the item. The caller saves.
     /// </summary>
     private void RecordSyncFailure(PlaidItem plaidItem, Exception ex)
@@ -285,7 +439,9 @@ public class PlaidService : IPlaidService
             plaidItem.Id,
             ex.GetType().Name);
 
-        var failedAt = _timeProvider.GetUtcNow();
+        var failedAt = PlaidItemSync.FinishTime(
+            plaidItem.LastSyncStartedAt,
+            _timeProvider.GetUtcNow());
         plaidItem.LastSyncFailedAt = failedAt;
         plaidItem.LastSyncError = FormatSyncError(ex);
         plaidItem.UpdatedAt = failedAt;
@@ -297,6 +453,11 @@ public class PlaidService : IPlaidService
     /// </summary>
     private static string FormatSyncError(Exception ex)
     {
+        if (ex is OperationCanceledException)
+        {
+            return PlaidItemSync.InterruptedMessage;
+        }
+
         if (ex is PlaidNotConfiguredException notConfigured)
         {
             return notConfigured.Message;

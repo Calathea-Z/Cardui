@@ -27,6 +27,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 Newest first.
 
+- [2026-10-06 — Sync correctness](2026-10-06-002-sync-correctness.md) — Approved 2026-10-07
 - [2026-10-07 — Documentation cleanup](2026-10-07-001-documentation-cleanup.md) — Awaiting review
 - [2026-10-06 — Linked manual debts design and plan](2026-10-06-001-linked-manual-debts-design.md) — Approved; correction note added October 7
 - [2026-10-05 — Category targets](2026-10-05-019-category-targets.md) — Approved 2026-10-06

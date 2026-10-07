@@ -16,12 +16,10 @@ history. They do not say what is next.
 
 **Next**
 
-1. Sync correctness, item 1 of "Sync correctness and linked debts" in
-   [`roadmap.md`](roadmap.md): `PlaidAccountSyncService` tests, a guard for
-   overlapping worker and manual sync, and interrupted-sync timestamps. The
-   Plaid transaction reconciliation tests are already done
-   ([`reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`](reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md)).
-2. Linked-debt items 2–6 in the same roadmap section.
+1. Linked-debt item 2 of "Sync correctness and linked debts" in
+   [`roadmap.md`](roadmap.md): follow a balance. Items 3–6 follow it.
+   Sync correctness is approved in
+   [`reviews/2026-10-06-002-sync-correctness.md`](reviews/2026-10-06-002-sync-correctness.md).
 
 **Tracked, not scheduled**
 

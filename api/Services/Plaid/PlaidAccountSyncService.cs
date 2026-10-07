@@ -2,8 +2,6 @@ using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Models;
 using Cardui.Api.Security;
-using Going.Plaid.Accounts;
-using Going.Plaid.Entity;
 using Microsoft.EntityFrameworkCore;
 using Account = Cardui.Api.Models.Account;
 using PlaidAccount = Going.Plaid.Entity.Account;
@@ -13,23 +11,20 @@ namespace Cardui.Api.Services.Plaid;
 public class PlaidAccountSyncService : IPlaidAccountSyncService
 {
     private readonly CarduiDBContext _dbContext;
-    private readonly IPlaidClientSource _clientSource;
-    private readonly IPlaidRequestExecutor _requestExecutor;
+    private readonly IPlaidAccountsClient _accountsClient;
     private readonly IPlaidAccessTokenProtector _accessTokenProtector;
     private readonly ILogger<PlaidAccountSyncService> _logger;
     private readonly TimeProvider _timeProvider;
 
     public PlaidAccountSyncService(
         CarduiDBContext dbContext,
-        IPlaidClientSource clientSource,
-        IPlaidRequestExecutor requestExecutor,
+        IPlaidAccountsClient accountsClient,
         IPlaidAccessTokenProtector accessTokenProtector,
         ILogger<PlaidAccountSyncService> logger,
         TimeProvider timeProvider)
     {
         _dbContext = dbContext;
-        _clientSource = clientSource;
-        _requestExecutor = requestExecutor;
+        _accountsClient = accountsClient;
         _accessTokenProtector = accessTokenProtector;
         _logger = logger;
         _timeProvider = timeProvider;
@@ -41,12 +36,12 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var response = await FetchAccountsAsync(plaidItem);
+        var plaidAccounts = await FetchAccountsAsync(plaidItem, cancellationToken);
         var now = _timeProvider.GetUtcNow();
         var today = FinancialDate.Today(
             _timeProvider,
             await GetHouseholdTimeZoneIdAsync(plaidItem, cancellationToken));
-        var responseAccountIds = response.Accounts
+        var responseAccountIds = plaidAccounts
             .Select(account => account.AccountId)
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .ToHashSet(StringComparer.Ordinal);
@@ -58,7 +53,7 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
             cancellationToken);
         var processedAccounts = ApplyReturnedAccounts(
             plaidItem,
-            response.Accounts,
+            plaidAccounts,
             itemAccounts,
             now);
 
@@ -83,16 +78,12 @@ public class PlaidAccountSyncService : IPlaidAccountSyncService
     /// <summary>
     /// Asks Plaid for the accounts on this item.
     /// </summary>
-    private async Task<AccountsGetResponse> FetchAccountsAsync(PlaidItem plaidItem)
+    private async Task<IReadOnlyList<PlaidAccount>> FetchAccountsAsync(
+        PlaidItem plaidItem,
+        CancellationToken cancellationToken)
     {
-        var client = _clientSource.GetClient();
         var accessToken = _accessTokenProtector.Unprotect(plaidItem.AccessToken);
-        var request = _requestExecutor.WithCredentials(
-            new AccountsGetRequest(),
-            accessToken);
-
-        return await _requestExecutor.ExecuteAsync(
-            () => client.AccountsGetAsync(request));
+        return await _accountsClient.GetAccountsAsync(accessToken, cancellationToken);
     }
 
     /// <summary>

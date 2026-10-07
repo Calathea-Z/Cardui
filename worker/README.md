@@ -7,6 +7,7 @@ The worker:
 - Loads connected Plaid items from PostgreSQL.
 - Skips an item that has no household.
 - Runs the existing account and transaction sync flow for each item.
+- Skips an item when a sync is already running. That skip is not a failure.
 - Logs per-item success or failure.
 - Exits with code `1` if any item fails.
 

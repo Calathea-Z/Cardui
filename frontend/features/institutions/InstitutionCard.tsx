@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { LoaderCircle } from "lucide-react";
 import type { AccountDto, PlaidItemDto } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,25 +17,28 @@ type InstitutionCardProps = {
   accounts: AccountDto[];
   isSyncing: boolean;
   isDisconnecting: boolean;
+  actionsDisabled: boolean;
   onSync: () => void;
   onDisconnect: () => void;
 };
 
 /**
  * One linked bank, its synced accounts, and sync or disconnect actions.
- * Disconnect asks for confirmation and says accounts and transactions stay in Cardui.
+ * Sync now and Disconnect show a spinner while the request runs and keep the button in place.
+ * Disconnect confirms in the app dialog before it removes the bank login.
+ * actionsDisabled locks both buttons while another bank in a Sync all is running.
  */
 export function InstitutionCard({
   item,
   accounts,
   isSyncing,
   isDisconnecting,
+  actionsDisabled,
   onSync,
   onDisconnect,
 }: InstitutionCardProps) {
-  const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
   const institutionName = item.institutionName ?? "Connected institution";
-  const busy = isSyncing || isDisconnecting;
+  const busy = isSyncing || isDisconnecting || actionsDisabled;
 
   return (
     <Card className="bg-card/80">
@@ -51,52 +54,50 @@ export function InstitutionCard({
               disabled={busy}
               size="lg"
               variant="outline"
+              className={
+                isSyncing ? "min-w-24 disabled:opacity-100" : "min-w-24"
+              }
+              aria-busy={isSyncing}
+              aria-label={isSyncing ? `Syncing ${institutionName}` : undefined}
               onClick={onSync}
             >
-              {isSyncing ? "Syncing" : "Sync now"}
+              {isSyncing ? (
+                <LoaderCircle
+                  className="size-4 animate-spin motion-reduce:animate-none"
+                  aria-hidden="true"
+                />
+              ) : (
+                "Sync now"
+              )}
             </Button>
-            {confirmingDisconnect ? (
-              <Button
-                type="button"
-                disabled={busy}
-                size="lg"
-                variant="destructive"
-                onClick={onDisconnect}
-              >
-                {isDisconnecting ? "Removing" : "Remove bank link"}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                disabled={busy}
-                size="lg"
-                variant="ghost"
-                onClick={() => setConfirmingDisconnect(true)}
-              >
-                Disconnect
-              </Button>
-            )}
+            <Button
+              type="button"
+              disabled={busy}
+              size="lg"
+              variant="ghost"
+              className={
+                isDisconnecting ? "min-w-28 disabled:opacity-100" : "min-w-28"
+              }
+              aria-busy={isDisconnecting}
+              aria-label={
+                isDisconnecting ? `Removing ${institutionName}` : undefined
+              }
+              onClick={onDisconnect}
+            >
+              {isDisconnecting ? (
+                <LoaderCircle
+                  className="size-4 animate-spin motion-reduce:animate-none"
+                  aria-hidden="true"
+                />
+              ) : (
+                "Disconnect"
+              )}
+            </Button>
           </div>
         </CardAction>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {confirmingDisconnect ? (
-          <div className="flex flex-col gap-3 rounded-lg border border-border/70 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              This removes the login at the bank. Accounts and transactions stay
-              in Cardui.
-            </p>
-            <Button
-              type="button"
-              disabled={busy}
-              variant="ghost"
-              onClick={() => setConfirmingDisconnect(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        ) : null}
         {item.lastSyncFailedAt ? (
           <p className="text-sm text-destructive">
             Sync failed: {item.lastSyncError ?? "Unknown error"}

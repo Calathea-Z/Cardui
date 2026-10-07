@@ -77,6 +77,13 @@ foreach (var plaidItem in plaidItems)
     try
     {
         var result = await plaidService.SyncPlaidItemAsync(plaidItem.Id, cancellationToken);
+        if (result.AlreadyRunning)
+        {
+            logger.LogInformation(
+                "Skipped Plaid item {PlaidItemId} because a sync is already running.",
+                plaidItem.Id);
+            continue;
+        }
 
         logger.LogInformation(
             "Synced Plaid item {PlaidItemId}. Added {Added}, modified {Modified}, removed {Removed}.",

@@ -1,22 +1,27 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { BackButton } from "@/components/navigation/back-button";
 import { PageHeader } from "@/components/navigation/page-header";
 import { useSetMobileHeaderLeading } from "@/components/navigation/mobile-header-actions";
-import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { disconnectPlaidItem, syncPlaidItem } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import type {
   AccountDto,
   PlaidItemDto,
-  SyncPlaidItemResponseDto,
+  SyncTransactionsResponseDto,
 } from "@/lib/api/types";
 import { PlaidLinkButton } from "@/features/plaid/PlaidLinkButton";
 import { groupAccountsByInstitution } from "./groupAccountsByInstitution";
 import { InstitutionCard } from "./InstitutionCard";
+
+const connectionToastId = "connection-action";
 
 type InstitutionsPageClientProps = {
   initialItems: PlaidItemDto[];
@@ -25,22 +30,20 @@ type InstitutionsPageClientProps = {
 
 /**
  * Lists linked banks and lets the user connect, sync, or disconnect them.
- * A sync or disconnect error replaces the last result message.
+ * Sync progress stays on the bank's button. Sync all walks the banks one at a time. The result is a toast.
  */
 export function InstitutionsPageClient({
   initialItems,
   accounts,
 }: InstitutionsPageClientProps) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [items, setItems] = useState(initialItems);
   const [syncingItemId, setSyncingItemId] = useState<string | null>(null);
+  const [syncingAll, setSyncingAll] = useState(false);
   const [disconnectingItemId, setDisconnectingItemId] = useState<string | null>(
     null,
   );
-  const [lastResult, setLastResult] = useState<SyncPlaidItemResponseDto | null>(
-    null,
-  );
-  const [syncError, setSyncError] = useState<string | null>(null);
 
   const accountsByInstitution = useMemo(
     () => groupAccountsByInstitution(accounts),
@@ -55,37 +58,68 @@ export function InstitutionsPageClient({
   useSetMobileHeaderLeading(mobileHeaderLeading);
 
   /**
+   * Names the bank for a toast.
+   * A missing name uses a generic label.
+   */
+  function institutionName(plaidItemId: string) {
+    return (
+      items.find((item) => item.id === plaidItemId)?.institutionName ??
+      "This bank"
+    );
+  }
+
+  /**
+   * Marks one bank as synced just now.
+   * The last failure is cleared. A later refresh replaces these times with the server's.
+   */
+  function markSynced(plaidItemId: string) {
+    const syncedAt = new Date().toISOString();
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === plaidItemId
+          ? {
+              ...item,
+              updatedAt: syncedAt,
+              lastTransactionsSyncedAt: syncedAt,
+              lastSyncFailedAt: null,
+              lastSyncError: null,
+              lastSyncCompletedAt: syncedAt,
+            }
+          : item,
+      ),
+    );
+  }
+
+  /**
    * Syncs one linked bank and refreshes the page.
-   * On success, that bank's sync times are set to now and its last failure is cleared.
+   * The button shows a spinner while the request runs.
+   * When a sync already holds the bank, the times stay as they are.
    */
   async function handleSync(plaidItemId: string) {
+    const name = institutionName(plaidItemId);
     setSyncingItemId(plaidItemId);
-    setLastResult(null);
-    setSyncError(null);
 
     try {
       const result = await syncPlaidItem(plaidItemId);
-      setLastResult(result);
+      if (result.alreadyRunning) {
+        toast.warning("Already syncing", {
+          id: connectionToastId,
+          description: `${name} is syncing, so this click did nothing.`,
+        });
+        router.refresh();
+        return;
+      }
 
-      setItems((currentItems) =>
-        currentItems.map((item) =>
-          item.id === plaidItemId
-            ? {
-                ...item,
-                updatedAt: new Date().toISOString(),
-                lastTransactionsSyncedAt: new Date().toISOString(),
-                lastSyncFailedAt: null,
-                lastSyncError: null,
-                lastSyncCompletedAt: new Date().toISOString(),
-              }
-            : item,
-        ),
-      );
-
+      toast.success("Sync finished", {
+        id: connectionToastId,
+        description: syncCounts(result.transactions),
+      });
+      markSynced(plaidItemId);
       router.refresh();
     } catch (error) {
-      setSyncError(
+      toast.error(
         getApiErrorMessage(error, "Could not sync this institution."),
+        { id: connectionToastId },
       );
     } finally {
       setSyncingItemId(null);
@@ -93,23 +127,82 @@ export function InstitutionsPageClient({
   }
 
   /**
-   * Disconnects one bank and refreshes the page.
-   * The bank leaves the list after the request succeeds.
+   * Syncs every linked bank, one after another, and refreshes the page.
+   * Each bank's Sync now button spins while that bank runs. One toast sums the result.
+   */
+  async function handleSyncAll() {
+    const banks = items;
+    setSyncingAll(true);
+    const totals = { added: 0, modified: 0, removed: 0 };
+    let synced = 0;
+    let alreadyRunning = 0;
+    const failedNames: string[] = [];
+    let failureMessage = "Could not sync this institution.";
+
+    try {
+      for (const bank of banks) {
+        setSyncingItemId(bank.id);
+        try {
+          const result = await syncPlaidItem(bank.id);
+          if (result.alreadyRunning) {
+            alreadyRunning += 1;
+            continue;
+          }
+
+          totals.added += result.transactions.added;
+          totals.modified += result.transactions.modified;
+          totals.removed += result.transactions.removed;
+          synced += 1;
+          markSynced(bank.id);
+        } catch (error) {
+          failedNames.push(bank.institutionName ?? "This bank");
+          failureMessage = getApiErrorMessage(
+            error,
+            "Could not sync this institution.",
+          );
+        }
+      }
+    } finally {
+      setSyncingItemId(null);
+      setSyncingAll(false);
+    }
+
+    reportSyncAll(synced, alreadyRunning, failedNames, failureMessage, totals);
+    router.refresh();
+  }
+
+  /**
+   * Removes one bank login after the user confirms.
+   * Accounts and transactions stay. The bank leaves the list after the request succeeds.
    */
   async function handleDisconnect(plaidItemId: string) {
+    const name = institutionName(plaidItemId);
+    const confirmed = await confirm({
+      title: `Remove ${name}?`,
+      description:
+        "This removes the login at the bank. Accounts and transactions stay in Cardui.",
+      confirmLabel: "Remove bank link",
+    });
+    if (!confirmed) {
+      return;
+    }
+
     setDisconnectingItemId(plaidItemId);
-    setLastResult(null);
-    setSyncError(null);
 
     try {
       await disconnectPlaidItem(plaidItemId);
+      toast.success(`Removed ${name}`, {
+        id: connectionToastId,
+        description: "Accounts and transactions stay in Cardui.",
+      });
       setItems((currentItems) =>
         currentItems.filter((item) => item.id !== plaidItemId),
       );
       router.refresh();
     } catch (error) {
-      setSyncError(
+      toast.error(
         getApiErrorMessage(error, "Could not disconnect this institution."),
+        { id: connectionToastId },
       );
     } finally {
       setDisconnectingItemId(null);
@@ -125,23 +218,37 @@ export function InstitutionsPageClient({
         description="Manage linked banks and the accounts synced from each institution."
         actions={
           items.length > 0 ? (
-            <PlaidLinkButton
-              onSuccess={() => router.refresh()}
-              className="w-full sm:w-auto"
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="lg"
+                variant="outline"
+                disabled={
+                  syncingAll ||
+                  syncingItemId !== null ||
+                  disconnectingItemId !== null
+                }
+                className={
+                  syncingAll ? "min-w-24 disabled:opacity-100" : "min-w-24"
+                }
+                aria-busy={syncingAll}
+                aria-label={syncingAll ? "Syncing all banks" : undefined}
+                onClick={() => void handleSyncAll()}
+              >
+                {syncingAll ? (
+                  <LoaderCircle
+                    className="size-4 animate-spin motion-reduce:animate-none"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  "Sync all"
+                )}
+              </Button>
+              <PlaidLinkButton onSuccess={() => router.refresh()} />
+            </div>
           ) : undefined
         }
       />
-
-      {syncError ? <Alert variant="panel">{syncError}</Alert> : null}
-
-      {lastResult ? (
-        <Alert>
-          Last sync added {lastResult.transactions.added}, modified{" "}
-          {lastResult.transactions.modified}, removed{" "}
-          {lastResult.transactions.removed}.
-        </Alert>
-      ) : null}
 
       {items.length > 0 ? (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -152,6 +259,7 @@ export function InstitutionsPageClient({
               accounts={accountsByInstitution.get(item.id) ?? []}
               isSyncing={syncingItemId === item.id}
               isDisconnecting={disconnectingItemId === item.id}
+              actionsDisabled={syncingAll && syncingItemId !== item.id}
               onSync={() => handleSync(item.id)}
               onDisconnect={() => handleDisconnect(item.id)}
             />
@@ -167,4 +275,64 @@ export function InstitutionsPageClient({
       )}
     </section>
   );
+}
+
+/**
+ * Formats added, modified, and removed counts for a sync toast.
+ */
+function syncCounts(counts: SyncTransactionsResponseDto) {
+  return `Added ${counts.added}, modified ${counts.modified}, removed ${counts.removed}.`;
+}
+
+/**
+ * Reports one Sync all result.
+ * One failure uses that bank's error. Several failures name the banks. A click where every bank was already syncing is a warning.
+ */
+function reportSyncAll(
+  synced: number,
+  alreadyRunning: number,
+  failedNames: string[],
+  failureMessage: string,
+  totals: SyncTransactionsResponseDto,
+) {
+  if (failedNames.length > 0) {
+    toast.error(
+      failedNames.length === 1 && synced === 0
+        ? failureMessage
+        : "Could not sync every bank",
+      {
+        id: connectionToastId,
+        description:
+          failedNames.length === 1 && synced === 0
+            ? undefined
+            : synced > 0
+              ? `Could not sync ${failedNames.join(", ")}. ${syncCounts(totals)}`
+              : `Could not sync ${failedNames.join(", ")}.`,
+      },
+    );
+    return;
+  }
+
+  if (synced === 0 && alreadyRunning > 0) {
+    toast.warning("Already syncing", {
+      id: connectionToastId,
+      description:
+        alreadyRunning === 1
+          ? "That bank is syncing, so this click did nothing."
+          : "Those banks are syncing, so this click did nothing.",
+    });
+    return;
+  }
+
+  const already =
+    alreadyRunning === 0
+      ? ""
+      : alreadyRunning === 1
+        ? " 1 bank was already syncing."
+        : ` ${alreadyRunning} banks were already syncing.`;
+
+  toast.success("Sync finished", {
+    id: connectionToastId,
+    description: `${syncCounts(totals)}${already}`,
+  });
 }

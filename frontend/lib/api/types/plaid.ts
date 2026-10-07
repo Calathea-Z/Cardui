@@ -38,4 +38,9 @@ export type SyncTransactionsResponseDto = {
 export type SyncPlaidItemResponseDto = {
   plaidItemId: string;
   transactions: SyncTransactionsResponseDto;
+  /**
+   * True when this call did not sync because another sync still holds the item.
+   * Transaction counts stay zero.
+   */
+  alreadyRunning: boolean;
 };

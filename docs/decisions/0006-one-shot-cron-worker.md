@@ -16,8 +16,10 @@ item without a household is skipped.
 
 ## Consequences
 
-A worker sync and a manual sync can overlap for one item. That guard is
-the next engineering increment. The deployed schedule is not verified yet.
+A second sync does not start while one sync still holds the item. That
+guard is approved in
+`docs/reviews/2026-10-06-002-sync-correctness.md`. The deployed schedule
+is not verified yet.
 
 Source: `worker/README.md`,
 `docs/reviews/archive/phase-0/2026-10-03-006-phase-0-baseline-close.md`.

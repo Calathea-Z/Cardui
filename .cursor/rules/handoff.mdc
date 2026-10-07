@@ -5,14 +5,19 @@ alwaysApply: true
 
 # Review handoff
 
+Each review report updates the Now / Next / Open decisions block in
+`docs/README.md` in the same change. That block is the single source for
+current work. See `docs/reviews/README.md` for the report conventions.
+
 When Zach approves an increment, or asks for the wrap-up, give both of these
 in the same reply. Do not start the next increment in that reply.
 
 1. **Commit message.** One or two sentences that say why the change exists.
    Do not commit unless Zach asks.
-2. **Next-chat prompt.** A paste-ready block that names `AGENTS.md`, the
-   latest review, `docs/reviews/README.md`, and the pending decision or next
-   Phase 1 item. A new chat should be able to start from those files alone.
+2. **Next-chat prompt.** A paste-ready block that names `AGENTS.md`,
+   `docs/README.md`, the latest review, `docs/reviews/README.md`, and the
+   pending decision or next roadmap item. A new chat should be able to start
+   from those files alone.
 
 Stay in the current chat if the increment is unfinished or the reasoning is
 not in the repository yet.

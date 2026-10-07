@@ -36,7 +36,7 @@ changed.
 - "Questions for Zach" became "Decisions". Liabilities analysis, and Zach's
   answers on APRs and the statement balance, moved to "Future: if
   Liabilities is ever adopted". Nothing was deleted.
-- `docs/Recovery-Application-Action-Plan.md` gains "Sync correctness and
+- `docs/roadmap.md` gains "Sync correctness and
   linked debts", between Phase 2 items 5 and 6, with six items. The
   current-work note, the Phase 2 status, the debt inventory traceability
   row, and Phase 6 item 1 point to it.
@@ -87,3 +87,11 @@ None for the design. The next engineering increment is item 1 of "Sync
 correctness and linked debts" in the action plan: `PlaidAccountSyncService`
 tests, overlapping worker and manual sync, and interrupted-sync timestamps,
 together with the paused Plaid sync reconciliation tests.
+
+## Correction (October 7, 2026)
+
+The Plaid sync reconciliation tests were not paused. They were done and
+approved on October 5 in
+`docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`. The next
+increment is `PlaidAccountSyncService` tests, a guard for overlapping worker
+and manual sync, and interrupted-sync timestamps.

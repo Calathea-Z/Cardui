@@ -1,22 +1,60 @@
 # Cardui agent notes
 
-Read this file, `docs/reviews/README.md`, and the latest review before
-starting work.
+Read this file, `docs/README.md`, `docs/reviews/README.md`, and the latest
+review before starting work.
+
+## Docs map
+
+- `docs/README.md`: the Now / Next / Open decisions block, the single
+  source for current work, and the map of every document.
+- `docs/roadmap.md`: product direction, the phase backlog, and what each
+  phase built.
+- `docs/decisions/`: short decision records for product and architecture
+  choices.
+- `docs/design/`, `docs/reference/`, `docs/checklists/`: designs,
+  standing rules for the data, and manual walkthroughs.
+- `docs/reviews/`: one report per increment, indexed in
+  `docs/reviews/README.md`. Closed phases are in `docs/reviews/archive/`.
+- `docs/archive/`: superseded documents kept for reference.
+
+Every document outside `docs/reviews/` starts with `Status:` and
+`Updated:`. File and folder names are lowercase kebab-case.
+
+## Review reports
+
+Write each report at `docs/reviews/YYYY-MM-DD-NNN-short-name.md`, with a
+number not yet used for that date. Start it with `Date`, `Status`, and
+`PR` lines. In the same change, add it to `docs/reviews/README.md` newest
+first and update the status block in `docs/README.md`. Do not rewrite an
+old report; add a dated correction note instead. When a roadmap phase
+closes, its reports may move to `docs/reviews/archive/<phase>/` with every
+link updated. See `docs/reviews/README.md`.
 
 ## Review handoff
 
 When Zach approves an increment, or asks for the wrap-up, give a commit
 message and a paste-ready prompt for the next chat. The prompt should name
-this file, the latest review, `docs/reviews/README.md`, and the pending
-decision. Do not commit unless asked. Do not start the next increment in
-that reply.
+this file, `docs/README.md`, the latest review, `docs/reviews/README.md`,
+and the pending decision or next roadmap item. Do not commit unless asked.
+Do not start the next increment in that reply. See
+`.cursor/rules/handoff.mdc`.
+
+## Security
+
+Never log, return, or store a Plaid access token, client secret, or session
+token in plaintext. Keep financial queries in the signed-in household. Mark
+an anonymous endpoint on purpose, and check a webhook signature first.
+Production refuses wildcard hosts, localhost origins, and unencrypted
+data-protection keys. Local servers bind to loopback. See
+`.cursor/rules/security.mdc`.
 
 ## Migrations
 
 Update models and the DbContext, then ask before generating or applying an
-EF Core migration. After approval, run `dotnet ef` from `api/` in
-PowerShell. Do not drop or wipe data without a separate approval. When a
-column, type, or API is no longer used, remove it in the same change.
+EF Core migration. After approval, run `dotnet ef` in PowerShell from the
+repository root with `--project .\api --startup-project .\api`. Do not
+drop or wipe data without a separate approval. When a column, type, or API
+is no longer used, remove it in the same change.
 
 ## Backend method comments
 

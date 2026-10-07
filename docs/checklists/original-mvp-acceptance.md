@@ -1,5 +1,10 @@
 # Original MVP acceptance checklist
 
+Status: Template. Phase 0 was closed with it on October 3, 2026; that record is at the end.
+Updated: 2026-10-07
+
+The empty boxes are the reusable walkthrough, not open work.
+
 Use this walkthrough to record the current account, transaction, balance, and
 synchronization baseline before recovery-planning features change those areas.
 
@@ -32,7 +37,8 @@ each non-pass result, record a concise observation and a follow-up issue or revi
 Data change: creates a Plaid item, accounts, balance snapshots, and transactions in the
 local database.
 
-- [ ] Open **Institutions** and start the Plaid Link flow.
+- [ ] Open **Connections** from the account menu (`/institutions`) and start the Plaid
+      Link flow.
 - [ ] Connect a sandbox institution and return successfully to Cardui.
 - [ ] Confirm the institution appears once and reports a successful synchronization.
 - [ ] Refresh the page and confirm the institution remains present.
@@ -119,23 +125,24 @@ A failed item sets a non-zero exit code. An empty item list exits without syncin
 works and does what this section expects. This record does not include worker logs,
 per-item added, modified, or removed counts, or a new transaction-count check.
 Account synchronization and user edits surviving sync remain the confirmation in
-`docs/reviews/2026-10-03-002-preserve-transaction-user-edits.md`.
+`docs/reviews/archive/phase-0/2026-10-03-002-preserve-transaction-user-edits.md`.
 
 ## 7. Review dashboard summaries
 
-- [ ] Confirm account and recent-transaction widgets load without errors.
+- [ ] Confirm Home's net worth card and Recent activity load without errors.
 - [ ] Call `GET http://localhost:5235/api/dashboard/summary` and confirm the response
       includes current-month income, spending, and category totals for the controlled
       data.
 - [ ] Confirm transfers, refunds, and pending transactions are treated consistently;
       record uncertain or incorrect classifications.
-- [ ] Confirm the dashboard Monthly Activity panel shows the reporting period, income,
+- [ ] Confirm Home's This month panel shows the reporting period, income,
       spending, the difference, and category spending for the controlled data.
 
-Expected result: the API summary and the visible Monthly Activity panel reconcile to
-the same controlled transactions. Those summaries were added on October 2, 2026 and
-confirmed in `docs/reviews/2026-10-02-003-dashboard-spending-and-financial-totals.md`
-and `docs/reviews/2026-10-02-004-transaction-activity-conventions.md`.
+Expected result: the API summary and the visible This month panel reconcile to
+the same controlled transactions. Home showed this panel as Monthly Activity before
+October 5, 2026. Those summaries were added on October 2, 2026 and
+confirmed in `docs/reviews/archive/phase-0/2026-10-02-003-dashboard-spending-and-financial-totals.md`
+and `docs/reviews/archive/phase-0/2026-10-02-004-transaction-activity-conventions.md`.
 
 ## 8. Record the outcome
 

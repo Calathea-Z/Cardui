@@ -1,49 +1,17 @@
-Enforceable UI conventions for new screens live in `.cursor/rules/ui-governance.mdc`.
-
 # UI direction
 
-Approved October 5, 2026. This is the local UI plan. The first increment is the light shell plus Home.
+Status: Implemented. Approved October 5, 2026 and built the same day.
+Updated: 2026-10-07
 
-Section 1 describes the shell before the Income page. `/income` is now a real route, in the sidebar and the phone tab bar. See `docs/reviews/2026-10-04-016-income-sources.md`. The approved primary navigation is still Home, Accounts, and Activity. Keep the Income route. Do not redesign that page in the first increment, and do not treat it as a fourth primary item.
+The enforceable conventions for new screens are in `.cursor/rules/ui-governance.mdc`. Where this note and that rule differ, the rule wins. This note keeps the reasoning behind the shell, the visual system, and the map.
 
-Tortoise should look like one light finance product. The phone layout is the same screens, stacked. The current UI is a dark journal theme wearing a phone shell on a laptop.
+Built in `docs/reviews/2026-10-05-002-light-shell-home.md` (light shell and Home), `docs/reviews/2026-10-05-003-detail-surface.md` (right-hand panel), `docs/reviews/2026-10-05-004-picker-popovers.md` (popovers), `docs/reviews/2026-10-05-005-accounts-chart-header.md`, and `docs/reviews/2026-10-05-007-signed-in-layout.md`.
 
-The signed-in app is branded **Tortoise** (`frontend/app/layout.tsx`). The repo and roadmap call it Cardui. This note is about the Next.js app in `frontend/` (Next.js 16, React 19, Tailwind 4). Zach approved this direction on October 5, 2026. It is the local UI plan, not a design-system spec and not an implementation.
+The signed-in app is branded **Tortoise** (`frontend/app/layout.tsx`). The repo and roadmap call it Cardui. This note is about the Next.js app in `frontend/` (Next.js 16, React 19, Tailwind 4).
 
-I did not run Tortoise. The workspace has no env files, and every signed-in route calls Clerk `auth.protect()`. Starting it would need secrets. The layout notes below are from the components.
+## 1. What this direction replaced (historical)
 
-## 1. Where the UI is split
-
-The break is the `md` breakpoint (768px). Below it, the app is a phone. At it and above, a sidebar appears, and the page underneath is still the phone column.
-
-**Two navigations at once.** `AppShell` always mounts `DesktopSidebar` and `MobileShell`. The sidebar is `hidden ... md:flex` (`desktop-sidebar.tsx`). The phone header, drawer, and tab bar are `md:hidden` (`mobile-shell.tsx`). On a phone, primary destinations exist twice: `MobileBottomNav` shows Dashboard, Transactions, Accounts, and Budgets (`bottomNavItems` in `nav-items.ts`), and `MobileDrawer` lists all six items, including Institutions and Categories. Household is in neither. It sits only in `AccountMenu`, at the bottom of the sidebar and the drawer.
-
-**Phone pages have a title. The main desktop pages do not.** The phone header centers the active nav label. `PageHeader` (handwritten title, back button) is `hidden md:inline-flex` for the back control, and the money pages do not use it. Dashboard, accounts, and transactions render a `max-w-6xl` stack with no `h1`. Categories, institutions, household, and the budgets placeholder draw their own titles. Desktop Home is a column of cards under a sidebar, with no page name.
-
-**The dashboard is a swipe carousel at every width.** `DashboardAccountsSlider` is three snap panels (Net Worth, Assets, Liabilities) with `snap-x` and `touch-pan-x`. A laptop user swipes or hits the text tabs to see assets. That is a phone pattern in the widest content column.
-
-**Detail UI is a phone sheet on the desktop too.** `fullScreenSheet.ts` says the sheet "fills the phone and becomes a bottom sheet on desktop." At `md` it is still anchored to the bottom, `max-h-[85vh]`, `rounded-t-2xl`. `Select` always opens a `BottomSheet`, including account and category filters. Transaction detail, add, import, and account detail all use that sheet.
-
-**Actions move, the page does not.** Accounts puts Add / refresh into the phone header via `useSetMobileHeaderActions`, and repeats them in a row that is `hidden ... md:flex` (`AccountsView`). Transactions always shows Import and Add at the top of the column, under the phone header when the window is narrow.
-
-**The theme is one dark craft treatment, on both sizes.** `layout.tsx` puts `class="dark"` on `<html>` and loads three faces: Shantell Sans (`font-brand`, the wordmark and page titles), Sora (UI), JetBrains Mono (money). `:root` and `.dark` in `globals.css` are the same forest green. The body paints radial glows and ruled lines. `.app-panel` adds a green left rail and an entrance animation. `.app-panel-header` adds a gradient and a growing rule. `.ledger-amount` paints a highlighter behind figures. None of that changes at `md`.
-
-A few inner layouts do use width (`sm` for the income/spending/difference row, `lg` for category editor, institution cards, and transaction filters). The shell does not. A 1200px window is a 256px dark sidebar plus a centered 72rem phone stack.
-
-### What is real
-
-| Route | Status |
-| --- | --- |
-| `/` | Real. Net worth carousel, monthly income/spending/category bars, recent transactions. |
-| `/transactions` | Real. Search, filters, date groups, detail sheet, add, CSV import. |
-| `/accounts` | Real. Balance chart, metric and range controls, grouped list, manual add, Plaid, detail sheet. |
-| `/institutions` | Real. Linked institutions. |
-| `/categories` | Real. List and editor. |
-| `/household` | Real, but only from the account block. Planning currency, time zone, contributors. |
-| `/budgets` | Placeholder. "Budget tracking is coming soon." |
-| `/sign-in`, `/sign-up` | Clerk. |
-
-The October 2 roadmap points the product at debt recovery. The screens above are still a spending and net-worth ledger. This direction does not design the recovery flows.
+Before October 5, 2026, the app was a dark journal theme in a phone shell. At 768px and up it showed a dark sidebar beside the same phone column. It had two navigations on a phone (a four-item tab bar and a drawer with all six destinations), no page title on the main desktop pages, a swipe carousel on Home at every width, and bottom sheets for detail and choices on a laptop. It loaded three faces and painted wallpaper, a panel rail, and a highlighter behind figures. None of that is in the current app. The full description is in git history, in the version of this file from `dbe4c27`.
 
 ## 2. What the product should feel like
 
@@ -67,9 +35,9 @@ Leave these out: a second brand color that fills the room, a display face used o
 
 ### The map
 
-Home, Accounts, and Activity are the objects. Categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
+Home, Accounts, and Activity are the objects. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
 
-The dark canvas goes away. Tortoise is dark today, and that theme is part of what is being retired. One light theme. No second theme in the same pass.
+The dark canvas is gone. One light theme, and no second theme.
 
 Leave these out: a custom dashboard builder, a pile of measures, marketing-size headlines, an AI prompt, a logo wall, and team or payables reporting. Clicking a chart later can open the rows underneath. It does not need a new viewer in this pass.
 
@@ -89,7 +57,7 @@ Remove Shantell Sans and JetBrains Mono from `layout.tsx`. Page titles stop usin
 | Big figure | 2rem | 600 | Tabular numbers. One per card, not a highlighter. |
 | Section title | 0.875rem | 600 | Sentence case. |
 | Body, nav, rows | 0.875rem | 400 / 500 | Nav labels at 500. |
-| Meta, tab label | 0.75rem | 500 | Phone tab labels are 10px today. 12px is the floor. |
+| Meta, tab label | 0.75rem | 500 | Phone tab labels were 10px before this direction. 12px is the floor. |
 
 Eyebrows in 11px with `0.18em` tracking go away. They are the journal voice.
 
@@ -111,7 +79,7 @@ Light only. Stop forcing `class="dark"` on `<html>`.
 | `--transfer` | `#3d5f8a` | Transfers only. |
 | `--chart-1` | `#1e4d3a` | Net worth and the primary series. |
 | `--chart-2` | `#c4b8a5` | The second series, when a chart compares two things. |
-| `--radius` | `0.5rem` | Cards and fields. Sheets stop at `rounded-t-2xl` on desktop later. |
+| `--radius` | `0.5rem` | Cards and fields. From 768px up, a record opens as a right-hand panel, not a bottom sheet. |
 
 Green stays as the accent. It no longer fills the background. Category colors stay the household's colors, and they appear only on that category's bar.
 
@@ -143,17 +111,20 @@ Three primary destinations. Everything else is a setting.
 
 The path stays `/transactions` in the first pass. Only the label changes, to Activity. Renaming the route can wait.
 
-**Plan** (`/budgets`) comes off the primary nav until the screen is real. A "coming soon" row in the sidebar, and a tab on the phone, advertise an empty room. Leave the route in place so the URL does not 404. When budgets, and later the recovery questions from the October 2 roadmap, have a real screen, Plan comes back as the fourth primary item. Do not design that screen now.
+**Plan** (`/budgets`) stays off the primary nav until the screen is real. The route stays so the URL does not 404. Do not design that screen yet. Where Plan goes when it exists is an open decision in `docs/README.md`. Until then, `.cursor/rules/ui-governance.mdc` keeps three primary destinations and no fourth tab.
 
-**Settings, in the account block, on both widths:**
+**Settings, in the account menu, on both widths:**
 
 | Label | Path | Why it is not primary |
 | --- | --- | --- |
+| Income | `/income` | Planning inputs, edited now and then. |
+| Bills | `/bills` | Planning inputs, edited now and then. |
+| Debts | `/debts` | The debt inventory, edited now and then. |
 | Categories | `/categories` | A taxonomy for Activity. People open it to fix a name or a color. |
 | Connections | `/institutions` | How accounts get linked. The path stays `/institutions`. |
 | Household | `/household` | Planning currency, time zone, contributors. Already the right kind of page. It is just hidden. |
 
-Desktop: those three under the account email, where Household already is. Phone: the same three in one menu opened from the account button. The hamburger drawer that repeats Home, Accounts, and Activity goes away. The phone tab bar is Home, Accounts, Activity. Three tabs, not four, until Plan exists.
+Desktop: these six under the account email. Phone: the same six in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity.
 
 Primary pages get a title row and no back button. Back is for a nested flow, not for Home. Page actions (Add on Accounts, Import and Add on Activity) sit in that title row on desktop and in the same row on the phone, wrapping under the title. They stop teleporting into the phone header.
 
@@ -184,27 +155,8 @@ A PWA would not fix it. There is no web manifest and no service worker (the only
 - React Native, Expo, or a second repo.
 - A service worker, an offline ledger, or an install prompt.
 - A phone-only information architecture.
-- Desktop bottom sheets as a permanent pattern. Fixing `Select` and the detail sheets is the UI pass after this one.
 - Dark mode. Light replaces the forest theme. Maintaining both now would freeze the split.
 
-## 6. First increment
+## 6. First increment (done)
 
-**The light shell, plus Home.** One pass. Zach can look at Home, Accounts, and Activity and see the same chrome. Only Home's layout changes inside the page.
-
-In scope:
-
-- `frontend/app/globals.css` and `frontend/app/layout.tsx`: the tokens, Inter, no `dark` class, no wallpaper, no ink utilities on the surfaces this pass touches.
-- `frontend/components/navigation/`: three primary items, settings in the account block, phone tabs reduced to those three, drawer no longer a second primary nav, a title row on Home, Accounts, and Activity.
-- `frontend/features/dashboard/`: remove the snap carousel. Net worth chart with asset and liability figures, this-month beside it from `lg` up, recent activity underneath. Keep `dashboardMonthlyActivity.ts`, `dashboardAccountGroups.ts`, and the existing summary data. This is a layout change.
-
-Leave alone:
-
-- API, worker, and database.
-- CSV import, transaction detail fields, filters, and grouping.
-- Account chart math, metric selector, and the accounts list.
-- Category editor, institutions, and household forms.
-- `BottomSheet` and `Select`. They will look lighter because the tokens change, and they will still slide up from the bottom. That is the next UI pass.
-- The budgets route body. Remove it from the nav. Do not design Plan.
-- New fonts beyond Inter, and any new chart or component library.
-
-After this increment, the next UI decision is the detail surface: a right-hand panel from 768px up, a full-screen sheet under it, and `Select` as a popover on desktop. Not before Home looks like one product.
+The first increment was the light shell plus Home: tokens, Inter, no dark class, three primary items, settings in the account menu, a title row on Home, Accounts, and Activity, and Home without the carousel. It was approved on October 5, 2026 in `docs/reviews/2026-10-05-002-light-shell-home.md`. The detail surface and picker popovers followed in `docs/reviews/2026-10-05-003-detail-surface.md` and `docs/reviews/2026-10-05-004-picker-popovers.md`.

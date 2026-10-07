@@ -25,7 +25,7 @@ categorization so a negative amount alone is no longer treated as income.
   refunds retain the matching expense category, while unknown incoming amounts
   default to Other.
 - Documented the conventions and the limitation affecting previously stored
-  category assignments in `docs/Transaction-Activity-Conventions.md`.
+  category assignments in `docs/reference/transaction-activity-conventions.md`.
 - Added focused calculator, classifier, and dashboard integration coverage.
 
 ## Agent verification

@@ -1,4 +1,4 @@
-# Tortoise Daily Sync Worker
+# Cardui sync worker
 
 One-shot worker for scheduled Plaid account and transaction syncs.
 
@@ -39,10 +39,11 @@ on both.
 Create a separate Railway service for this worker and point it at
 `worker/Dockerfile` with the repository root as the build context.
 
-Use a daily cron schedule, for example:
+Use a daily cron schedule. Railway uses a five-field crontab expression in UTC,
+for example:
 
 ```text
-0 0 9 * * *
+0 9 * * *
 ```
 
 That runs once per day at 9:00 UTC. Adjust the hour for your preferred sync

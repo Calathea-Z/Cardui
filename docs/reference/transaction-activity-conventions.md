@@ -1,5 +1,8 @@
 # Transaction activity conventions
 
+Status: Current. These rules drive Home's This month panel.
+Updated: 2026-10-07
+
 The dashboard's monthly activity is a categorized, posted-transaction view. It
 is not a complete cash-flow statement.
 

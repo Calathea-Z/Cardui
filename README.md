@@ -6,6 +6,8 @@ Cardui is a personal financial recovery application. The repository contains:
 - `frontend/`: Next.js 16 / React 19 web application.
 - `worker/`: one-shot scheduled Plaid synchronization worker.
 - `tests/Cardui.Tests/`: .NET unit tests.
+- `docs/`: roadmap, design notes, review reports, and the current status. Start at
+  [`docs/README.md`](docs/README.md).
 
 The current application requires PostgreSQL to start. Plaid credentials are required
 only to link or sync a bank. Keep all database and Plaid credentials in .NET User
@@ -18,7 +20,7 @@ Secrets or environment variables; do not add them to checked-in settings or docu
 - Docker Desktop with Docker Compose.
 - Node.js and pnpm 10.33.0 (pinned by `frontend/package.json`).
 - EF Core CLI available as `dotnet ef`.
-- Plaid sandbox credentials for account-link and synchronization checks.
+- Optional: Plaid sandbox credentials, only for bank linking and sync checks.
 
 Run commands below from the repository root unless a step says otherwise.
 
@@ -181,7 +183,7 @@ Pop-Location
 ```
 
 The original-MVP manual walkthrough is in
-[`docs/Original-MVP-Acceptance-Checklist.md`](docs/Original-MVP-Acceptance-Checklist.md).
+[`docs/checklists/original-mvp-acceptance.md`](docs/checklists/original-mvp-acceptance.md).
 
 ## Continuous integration
 

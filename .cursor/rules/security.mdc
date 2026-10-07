@@ -1,0 +1,23 @@
+---
+description: Keep tokens, household scope, anonymous endpoints, and production settings safe
+alwaysApply: true
+---
+
+# Security
+
+When adding or changing Cardui, keep these boundaries.
+
+- Never log, return, or store a Plaid access token, client secret, or
+  session token in plaintext. A stored Plaid token uses the data-protection
+  protector. A value without that prefix is rejected.
+- A financial query is limited to the signed-in household. System
+  categories and sub-groups are not writable by a household. A custom name
+  or key is unique inside that household, together with the shared system
+  rows.
+- An endpoint without a signed-in user is marked anonymous on purpose. A
+  webhook checks its signature before it reads the body.
+- Production refuses a wildcard host, a localhost CORS origin, a localhost
+  Clerk authorized party, and data-protection keys that are not encrypted
+  with the configured certificate.
+- Local database and app servers bind to loopback. A critical dependency
+  advisory that covers the version Cardui runs is upgraded in that change.

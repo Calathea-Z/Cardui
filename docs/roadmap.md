@@ -1,8 +1,11 @@
-# Cardui financial recovery application: action plan
+# Cardui roadmap
 
-Prepared September 25, 2026; direction updated October 2, 2026. Proposed development roadmap based on the current repository, original `Plan.md`, this planning conversation, and the supplied capability inventory. This document preserves the original specification rather than overwriting it. Release boundaries below are recommendations, not previously approved scope cuts.
+Status: Approved. Direction approved October 2, 2026.
+Updated: 2026-10-07
 
-**Current local work (October 6, 2026).** Debt capture is approved in [`docs/reviews/2026-10-05-014-debts.md`](reviews/2026-10-05-014-debts.md). `20261005202726_AddDebts` is applied. The Accounts more-options menu is awaiting a check in [`docs/reviews/2026-10-05-015-accounts-action-menu.md`](reviews/2026-10-05-015-accounts-action-menu.md). The debt summary is approved in [`docs/reviews/2026-10-05-016-debt-summary.md`](reviews/2026-10-05-016-debt-summary.md). The linked manual debts design is approved for the plan in [`docs/design/linked-manual-debts.md`](design/linked-manual-debts.md). The next engineering increment is item 1 of "Sync correctness and linked debts" below: account sync tests and overlapping worker and manual sync, together with the paused Plaid sync reconciliation tests. The linked-debt slices follow it. Phase 2 item 6 comes after them.
+Prepared September 25, 2026. Zach approved the direction on October 2, 2026 (`docs/reviews/archive/phase-0/2026-10-02-001-recovery-roadmap-direction.md`). It was based on the repository at that time, Zach's private planning notes in an untracked `Plan.md` (gitignored, not in the repository), the planning conversation, and the supplied capability inventory. Release boundaries below are recommendations, not approved scope cuts.
+
+What is being worked on now, what comes next, and open decisions are in [`docs/README.md`](README.md). The status paragraphs below record what each phase built.
 
 ## 1. Mission and first product outcome
 
@@ -35,56 +38,11 @@ Recommendations must show the assumptions, tradeoffs and reason for the ordering
 
 ## 2. Audit scope and verification
 
-The original specification was found in root `Plan.md`. It describes a personal-use dashboard, an eight-item Phase 1 MVP, later budgeting and debt screens, and future enhancements. Its progress and technology sections are stale: the API now targets .NET 10, and the frontend uses Next.js 16 / React 19.
-
-This is a source-code and local-check audit. It does not establish production deployment, live bank connectivity, scheduled worker execution, browser usability, or security readiness.
-
-Checks run during this audit:
-
-- `dotnet test Cardui.sln --no-restore`: 35 passed, 0 failed.
-- `npm test` in frontend: 12 passed, 0 failed across the three existing script suites.
-- `npm run lint` in frontend: passed after rerunning outside the filesystem sandbox.
-- No production build, live Plaid exercise, database migration, or browser walkthrough was performed.
-
-Existing tests cover selected transaction/category services, mapping, validation, transfer classification, and frontend utilities. Passing them does not establish coverage of syncing, household isolation, financial forecasting, or complete user journeys.
+The September 25, 2026 audit this roadmap started from is archived in [`docs/archive/2026-09-25-recovery-audit.md`](archive/2026-09-25-recovery-audit.md). Zach's original specification is a private `Plan.md`, gitignored and not in the repository.
 
 ## 3. Original specification versus current implementation
 
-| Original requirement | Current evidence | Remaining work |
-| --- | --- | --- |
-| Connect bank through Plaid | Link UI, token exchange, protected token storage, initial sync | Live acceptance check; connection repair and removal lifecycle |
-| Retrieve accounts | Account sync services, account API and views | Verify representative account types and balance freshness |
-| Retrieve and store transactions | Cursor-based added/modified/removed sync and EF persistence | Exercise failure/retry, pending replacement, concurrent sync, and duplicate cases |
-| View transactions | Search, account/category/pending filters, pagination, detail drawers | End-to-end verification and reconciliation edge cases |
-| View balances | Account groups, available/current balance DTOs, history charts | Verify display completeness, missing balance handling, and history continuity |
-| View spending by category | Summary API computes category totals | Current dashboard widget registry renders accounts and recent transactions only; add spending presentation |
-| View monthly spending | Summary API computes current-month income/spending | Add visible monthly summary and clear period labels; month selection is a useful extension |
-| Dashboard net worth/cash/credit/income versus expenses | Account summary and dashboard services exist | Unify net-worth definitions; expose missing summary information |
-| Manual categorization, merchant details, notes | Implemented through transaction UI and APIs; merchant history added | Verify edits survive later synchronization |
-| Monthly category budgets, progress, remaining | Budgets route is a coming-soon placeholder | Entire budget model, API, calculations, and UI |
-| Debt balances, rates, payments, snowball/avalanche | Linked account balances exist | Debt terms, inventory UI, payment rules, payoff engine and comparisons |
-| Background synchronization | One-shot worker and Railway scheduling instructions exist | Verify actual deployment/schedule, durable keys, concurrency and retry handling |
-| Net-worth history | Balance snapshots and grouped history already exist | Validate missing dates/account changes; avoid treating partial snapshots as real drops |
-| Assets, goals, rules, tags, monthly snapshots | No dedicated implementations found for these planned additions | Prioritize recovery goals; defer general tags/rules/assets unless needed |
-| Webhooks, reminders, receipts, PWA/native, AI categorization | Not established by inspected implementation | Phase later according to recovery value |
-| Investment tracking | Investment balance grouping exists | Holdings/performance tracking remains a separate later capability |
-
-**Assessment:** the transaction/account foundation is substantially implemented. The original Phase 1 is not fully closed because spending presentation and live acceptance evidence remain missing. The broader original budget/debt vision and the new recovery experience remain to be built.
-
-That assessment describes the September 25, 2026 audit. Phase 0 closed the local baseline on October 3, 2026; the current status and retained limitations are in section 5 and `docs/Original-MVP-Acceptance-Checklist.md`.
-
-Key implementation anchors:
-
-- `frontend/features/dashboard/dashboard-widgets.tsx`: current visible dashboard widgets.
-- `api/Services/Implementations/DashboardService.cs`: summary calculates net worth as cash minus credit cards.
-- `api/Services/Implementations/AccountsService.cs`: account summary includes investments and loans in net worth; history aggregates snapshots by date.
-- `frontend/app/budgets/page.tsx`: budget placeholder.
-- `api/Models/Account.cs` and `Transaction.cs`: require Plaid linkage/identifiers; manual data needs model changes.
-- `api/Data/CarduiDBContext.cs`: no user/household/budget/debt-plan/conversation entities.
-- `api/Configuration/WebApplicationExtensions.cs`: no authentication/authorization middleware in inspected pipeline.
-- `api/Services/Implementations/PlaidService.cs`: configured default client user ID; no repair/removal endpoints in current controller.
-- `api/Configuration/ApplicationServiceCollectionExtensions.cs`: token protection and optional persisted key path exist.
-- `worker/Program.cs`: iterates all Plaid items and invokes existing sync services.
+Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 ## 4. Release boundaries
 
@@ -104,11 +62,11 @@ Key implementation anchors:
 3. Centralize asset/liability and transfer/refund/pending conventions. Resolve the two net-worth definitions.
 4. Audit balance-history gaps, transaction classification, and repeated sync behavior. Do not treat every incoming amount as earned income.
 5. Exercise account connection, synchronization, transaction editing, and worker execution with controlled data.
-6. Establish CI for existing tests/lint, builds, and future integration checks. No `.github` workflow directory was found in this audit.
+6. Establish CI for existing tests/lint, builds, and future integration checks.
 
 **Exit:** dashboard and account totals agree for the same data; original Phase 1 has a documented acceptance walkthrough; repeated imports do not duplicate activity or lose user edits. Record remaining live-environment limitations explicitly.
 
-**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/Original-MVP-Acceptance-Checklist.md`. Phase 1 sign-in was chosen afterward; implementation has not started.
+**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/checklists/original-mvp-acceptance.md`. Phase 1 followed and closed on October 4, 2026.
 
 ### Phase 1 — Ownership, manual data, and durable financial facts
 
@@ -123,7 +81,7 @@ Key implementation anchors:
 
 **Exit:** two test households cannot access each other's records through any ID or aggregate endpoint; existing data remains intact; a new person can use the app without connecting a bank.
 
-**Status (October 4, 2026):** Sign-in is locked to Clerk Hobby. The frontend requires a signed-in Clerk user, and the API verifies that session token, creates one household per owner, and scopes financial reads and writes to that household. Contributors remain household facts, without partner invitations. The local unscoped bank connections, and the custom categories and subgroup, were assigned to that household on October 3, 2026. Linked accounts and transactions still follow the Plaid item. They can also exist without one: external ids are optional, and each row stores source and provenance. Existing linked rows remain `Plaid` / `PlaidSync` and keep their ids. System categories and subgroups stay shared. Category and sub-group names and keys are unique inside a household together with the system rows, after `20261004142305_ScopeHouseholdCategoryNames`. `AddHouseholdOwner`, `ScopeHouseholdData`, `IndependentFinancialRecords`, `ManualFinancialRecords`, and `FinancialProfile` are in the API project. Manual accounts and transactions can be created, edited, archived, and reconciled. An opening balance is stored on the account and is not income. A statement difference is an adjustment, and that adjustment is excluded from income and spending. Financial profile preferences store one planning currency, a household time zone, and named contributors with a visibility flag. Totals include a blank currency and leave any other currency out, with a notice, until conversion exists. `FinancialProfile` was applied to the API database. CSV import with preview, column mapping, duplicate detection, and batch undo was approved on October 4, 2026. Manual entry remains. `20261004174550_AddTransactionImports` is applied. Item 8 was approved on October 4, 2026. The API and worker start without Plaid credentials. Bank linking and sync stay off until client id, secret, and environment are all set. A partial set still stops startup. Phase 1 items 1–8 are done. The CSV import UX section below was approved on October 4, 2026. Phase 2 is next. Multifactor authentication, passkeys, a configurable session lifetime, and removal of Clerk branding wait until a Pro upgrade. See `docs/reviews/2026-10-03-007-phase-1-sign-in-decision.md`, `docs/reviews/2026-10-03-008-clerk-household-owner.md`, `docs/reviews/2026-10-03-009-household-scope.md`, `docs/reviews/2026-10-03-010-assign-household-rows.md`, `docs/reviews/2026-10-03-011-independent-financial-records.md`, `docs/reviews/2026-10-03-012-manual-accounts-and-transactions.md`, `docs/reviews/2026-10-03-013-financial-profile.md`, `docs/reviews/2026-10-04-008-csv-import.md`, `docs/reviews/2026-10-04-009-optional-plaid.md`, and `docs/reviews/2026-10-04-010-csv-import-ux.md`.
+**Status (October 4, 2026):** Sign-in is locked to Clerk Hobby. The frontend requires a signed-in Clerk user, and the API verifies that session token, creates one household per owner, and scopes financial reads and writes to that household. Contributors remain household facts, without partner invitations. The local unscoped bank connections, and the custom categories and subgroup, were assigned to that household on October 3, 2026. Linked accounts and transactions still follow the Plaid item. They can also exist without one: external ids are optional, and each row stores source and provenance. Existing linked rows remain `Plaid` / `PlaidSync` and keep their ids. System categories and subgroups stay shared. Category and sub-group names and keys are unique inside a household together with the system rows, after `20261004142305_ScopeHouseholdCategoryNames`. `AddHouseholdOwner`, `ScopeHouseholdData`, `IndependentFinancialRecords`, `ManualFinancialRecords`, and `FinancialProfile` are in the API project. Manual accounts and transactions can be created, edited, archived, and reconciled. An opening balance is stored on the account and is not income. A statement difference is an adjustment, and that adjustment is excluded from income and spending. Financial profile preferences store one planning currency, a household time zone, and named contributors with a visibility flag. Totals include a blank currency and leave any other currency out, with a notice, until conversion exists. `FinancialProfile` was applied to the API database. CSV import with preview, column mapping, duplicate detection, and batch undo was approved on October 4, 2026. Manual entry remains. `20261004174550_AddTransactionImports` is applied. Item 8 was approved on October 4, 2026. The API and worker start without Plaid credentials. Bank linking and sync stay off until client id, secret, and environment are all set. A partial set still stops startup. Phase 1 items 1–8 are done. The CSV import UX section below was approved on October 4, 2026, and Phase 2 followed. Multifactor authentication, passkeys, a configurable session lifetime, and removal of Clerk branding wait until a Pro upgrade. See `docs/reviews/archive/phase-1/2026-10-03-007-phase-1-sign-in-decision.md`, `docs/reviews/archive/phase-1/2026-10-03-008-clerk-household-owner.md`, `docs/reviews/archive/phase-1/2026-10-03-009-household-scope.md`, `docs/reviews/archive/phase-1/2026-10-03-010-assign-household-rows.md`, `docs/reviews/archive/phase-1/2026-10-03-011-independent-financial-records.md`, `docs/reviews/archive/phase-1/2026-10-03-012-manual-accounts-and-transactions.md`, `docs/reviews/archive/phase-1/2026-10-03-018-financial-profile.md`, `docs/reviews/archive/phase-1/2026-10-04-008-csv-import.md`, `docs/reviews/archive/phase-1/2026-10-04-009-optional-plaid.md`, and `docs/reviews/archive/phase-1/2026-10-04-010-csv-import-ux.md`.
 
 ### CSV import UX — after Phase 1 item 8, before Phase 2
 
@@ -131,7 +89,7 @@ Key implementation anchors:
 2. Keep the approved behavior: preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo.
 3. Leave fitting the sheet to phone and desktop, plus the broader keyboard and screen-reader pass, for Phase 6 item 4.
 
-**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/2026-10-04-010-csv-import-ux.md`. Income-source capture is approved in `docs/reviews/2026-10-04-016-income-sources.md`. Scenarios and expected raises are approved in `docs/reviews/2026-10-05-009-income-scenarios-and-raises.md`.
+**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/archive/phase-1/2026-10-04-010-csv-import-ux.md`.
 
 ### Phase 2 — Financial inventory and real budgeting
 
@@ -146,13 +104,37 @@ Key implementation anchors:
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
 
-**Status (October 5, 2026):** A household can record income sources: typical net pay for one payment, cadence, next payment date, contributor, and reliability. Low and strong are optional. An expected raise is a later typical amount. When that date arrives, the Income page asks the person to update typical pay or remove the raise. The current amount stays until they answer. Remove deletes a source and its raises. `20261005025504_AddIncomeSources`, `20261005031455_DropIncomeSourceArchivedAt`, and `20261005150122_AddIncomeScenariosAndRaises` are applied. The amount stays one payment and is not turned into a monthly figure. This capture is approved in `docs/reviews/2026-10-05-009-income-scenarios-and-raises.md`. Friendly errors, Sonner toasts, the income form groups, and the rule that a raise cannot be lower than typical pay are approved in `docs/reviews/2026-10-05-010-income-form-feedback.md`. Paycheck schedules and optional gross pay are approved in `docs/reviews/2026-10-05-011-paycheck-schedules.md`. A biweekly payment stays a dated paycheck. A monthly figure is a yearly average, not cash on a date. `20261005180946_AddIncomeGrossPay` is applied. A household can record a bill: one payment, cadence, next due date, an optional source account, and essential or flexible. The amount stays one payment. `20261005183259_AddObligations` is applied. This capture is approved in `docs/reviews/2026-10-05-012-bills.md`. A repeated payment can be suggested from activity. It becomes a bill only when the person saves it, and Not a bill hides that pattern. `20261005191328_AddRecurringSuggestionConfirmation` is applied. This suggestion step is approved in `docs/reviews/2026-10-05-013-recurring-suggestions.md`. A household can record a debt: an optional linked account, a balance with the date it was true, APR, minimum, due date, revolving or installment, a credit limit on a revolving debt, months left on an installment debt, and promotional terms. A blank term stays unknown. Zero is a known zero. Utilization is calculated when the balance and the credit limit are both known. The linked account balance stays as it is. `20261005202726_AddDebts` is applied. This capture is approved in `docs/reviews/2026-10-05-014-debts.md`. A connected card and a debt stay separate. Connecting a card does not create a debt, and a later sync does not overwrite the debt's dated balance. When they differ, the plan keeps the debt until the person chooses the connection's balance. The Debts page now shows that inventory: one month of interest, minimums, utilization, a passed due date, a promotion ending or ended, and missing inputs, with no score. That summary is approved in `docs/reviews/2026-10-05-016-debt-summary.md`. Overlapping worker and manual sync remains open. "Sync correctness and linked debts" below comes next. Phase 2 item 6 follows it.
+**Status (October 7, 2026):** Items 1–5 are done. "Sync correctness and linked debts" below comes next, then item 6.
+
+| Item | Status | Reviews |
+| --- | --- | --- |
+| 1. Income sources, scenarios, expected raises | Done | `docs/reviews/2026-10-04-016-income-sources.md`, `docs/reviews/2026-10-05-009-income-scenarios-and-raises.md`, `docs/reviews/2026-10-05-010-income-form-feedback.md` |
+| 2. Paycheck schedules and gross pay | Done | `docs/reviews/2026-10-05-011-paycheck-schedules.md` |
+| 3. Bills and recurring suggestions | Done | `docs/reviews/2026-10-05-012-bills.md`, `docs/reviews/2026-10-05-013-recurring-suggestions.md` |
+| 4. Debts | Done | `docs/reviews/2026-10-05-014-debts.md` |
+| 5. Debt inventory and health view | Done | `docs/reviews/2026-10-05-016-debt-summary.md` |
+| 6. Monthly category targets | Next after "Sync correctness and linked debts" | — |
+| 7. Reserve, emergency goal, sinking funds | Not started | — |
+| 8. Household contributions and discretionary spending | Not started | — |
+
+Rules that came out of items 1–5:
+
+- An income amount is one payment, not a monthly figure. Low and strong pay are optional. An expected raise is a later typical amount, cannot be lower than typical pay, and the Income page asks the person to update typical pay or remove the raise when its date arrives.
+- A biweekly payment stays a dated paycheck. A monthly figure is a yearly average, not cash on a date. Gross pay is optional and separate from net.
+- A bill is one payment on a cadence, with a next due date, an optional source account, and essential or flexible. A repeated payment suggested from activity becomes a bill only when the person saves it. Not a bill hides that pattern.
+- A debt records what the person knows. A blank term stays unknown, and zero is a known zero. Utilization is calculated only when the balance and the credit limit are both known.
+- A connected card and a debt stay separate. Connecting a card does not create a debt, and a sync does not overwrite the debt's dated balance. When they differ, the plan keeps the debt's balance until the person chooses the connection's balance.
+- The Debts summary shows one month of interest, minimums, utilization, a passed due date, a promotion ending or ended, and missing inputs, with no score.
+
+Applied migrations: `20261005025504_AddIncomeSources`, `20261005031455_DropIncomeSourceArchivedAt`, `20261005150122_AddIncomeScenariosAndRaises`, `20261005180946_AddIncomeGrossPay`, `20261005183259_AddObligations`, `20261005191328_AddRecurringSuggestionConfirmation`, and `20261005202726_AddDebts`.
 
 ### Sync correctness and linked debts — after Phase 2 item 5, before Phase 2 item 6
 
 A manually entered debt can optionally follow a connected credit card or loan, so the person does not retype the balance after every payment. Design: [`docs/design/linked-manual-debts.md`](design/linked-manual-debts.md), approved for the plan on October 6, 2026. Each item is one review.
 
-1. Sync correctness. Add `PlaidAccountSyncService` tests, decide and guard overlapping worker and manual sync for one item, and test sync timestamps after an interrupted sync. This folds in the paused Plaid sync reconciliation tests. It does not wait for the linked-debt items. It pulls the concurrency part of Phase 6 item 1 forward. No schema change.
+**Status (October 7, 2026):** Item 1 is next. Items 2–6 are not started.
+
+1. Sync correctness. Add `PlaidAccountSyncService` tests, decide and guard overlapping worker and manual sync for one item, and test sync timestamps after an interrupted sync. The Plaid transaction reconciliation tests are already done (`docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`). It does not wait for the linked-debt items. It pulls the concurrency part of Phase 6 item 1 forward. No schema change.
 2. Follow a balance. A debt can follow an eligible connected account: active, not archived, a credit card or loan, same currency, and backing no other debt. Existing links stay reference links. Sync never writes a debt; a followed debt reads the latest snapshot. Each followed debt shows freshness, stale after two days in the household time zone. A removed bank link leaves the debt followed and stale until the person chooses. A negative balance on a followed revolving debt counts as $0 with a note. Stop following copies the last values onto the debt. Model change.
 3. Overrides. Setting the person's own balance is a labeled override with "Use synced value". The form keeps synced fields read-only. "Update balance" works from a stale card. No schema change beyond item 2.
 4. Suggested matches. Up to three eligible accounts with plain reasons. The person confirms. No schema change.
@@ -162,6 +144,12 @@ A manually entered debt can optionally follow a connected credit card or loan, s
 Following uses basic sync only: the balance and the credit limit. APR, minimum payment, due date, and statement balance stay entered by the person. Plaid Liabilities is deferred and not planned. The design keeps the analysis and Zach's rules for it under "Future: if Liabilities is ever adopted".
 
 A model change in items 2 and 5 updates the model and `DbContext` configuration, then stops. Zach generates and applies the EF Core migration.
+
+### Tracked UI follow-ups
+
+These are not scheduled into a phase yet. Each is one review when it is picked up.
+
+1. Detail panel keyboard focus. While a record panel or full-screen sheet is open, and while a nested picker is open inside it, Tab and Shift+Tab stay inside the top surface. Escape closes only that surface. When it closes, focus returns to the control that opened it. Today the panel moves focus into itself when it opens, but Tab can leave it and focus does not return to the opener. Found in `docs/reviews/2026-10-05-017-ui-review-notes.md`. Required by `.cursor/rules/ui-governance.mdc` section 3. No schema change.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 
@@ -210,9 +198,9 @@ Design the conversation and test scripted prototypes during Phases 1–3. Produc
 ### Phase 6 — Public-beta readiness and affordability
 
 1. Complete bank repair/disconnect/removal and retention behavior. Verify scheduled worker deployment, concurrency protection, retry behavior and visible stale-data states. Overlapping-sync protection and reconnect for linked debts are planned earlier, in "Sync correctness and linked debts".
-2. Verify API and worker use durable compatible Data Protection keys; test token decryption after restart/redeployment and recovery. Account for legacy unprotected tokens accepted by current code.
+2. Verify API and worker use durable compatible Data Protection keys; test token decryption after restart/redeployment and recovery. Plaintext tokens left from before October 4, 2026 are rewrapped at API and worker startup (`docs/reviews/archive/phase-1/2026-10-04-007-security-hardening.md`).
 3. Add export/deletion flows, retention policies, authorization integration tests, rate limits, redacted logs, backup/restore drills and migration deployment procedures.
-4. Test mobile layouts, keyboard/screen-reader flows, slow networks, empty states and interrupted conversations. The CSV import flow is the earlier step after Phase 1 item 8. This item still covers how that sheet fits phone and desktop.
+4. Test mobile layouts, keyboard/screen-reader flows, slow networks, empty states and interrupted conversations. The CSV import flow is the earlier step after Phase 1 item 8. This item still covers how that sheet fits phone and desktop. Detail panel keyboard focus is tracked earlier under "Tracked UI follow-ups".
 5. Measure AI usage per completed plan and follow-up session; measure bank-link, infrastructure, support and payment-processing costs. Price from actual bills and observed usage.
 6. Target accessible core planning/manual budgeting plus an included conversation allowance; consider paid automation and additional usage. Do not lock a saved plan when usage runs out. Avoid promises of unlimited chat or a specific price before validation.
 7. Add billing only when launching a paid offering, with clear limits, cancellation and downgrade behavior. Explore sponsored access after the core experience is validated.
@@ -286,11 +274,11 @@ Use focused unit fixtures for calculations, database integration tests for isola
 
 Implement in this order, as reviewable changes:
 
-1. Baseline CI/setup and original-MVP acceptance checklist.
-2. Dashboard spending summaries and consistent financial totals.
-3. Household/authentication schema, data backfill and isolation tests.
-4. Manual account/transaction model and workflows, optional Plaid startup.
-5. Income, obligations and debt-health inventory with direct editing.
+1. Baseline CI/setup and original-MVP acceptance checklist. Done (Phase 0).
+2. Dashboard spending summaries and consistent financial totals. Done (Phase 0).
+3. Household/authentication schema, data backfill and isolation tests. Done (Phase 1).
+4. Manual account/transaction model and workflows, optional Plaid startup. Done (Phase 1).
+5. Income, obligations and debt-health inventory with direct editing. Done (Phase 2 items 1–5). Linked debts follow, under "Sync correctness and linked debts".
 6. Life-with-debt budgeting, emergency reserve and sinking-fund behavior.
 7. Dated cash-flow, smart payoff priority, automatic rollover, 6/12/18-month scenarios and core refinance/restructuring calculations with reference fixtures.
 8. Versioned recovery plan, cash-flow recovery indicators, ordered actions, milestones and summary export.
@@ -303,8 +291,8 @@ Conversation scripts and screen sketches can be designed alongside the first ite
 
 Measure completed first plans, time/effort to reach them, unresolved inputs, successful return sessions, completed first reviews, user understanding of next actions, protected-buffer adherence, recurring cash flow freed, minimum payments removed, high utilization reduced, plan relapse/re-borrowing signals, calculation errors and cost per active household. Do not optimize for message count or the fastest theoretical debt-free date alone.
 
-Proposed defaults: single planning currency, one household owner with multiple contributors, manual input available, conservative income baseline, protected operating cash, avalanche as the comparison baseline, payment rollover enabled in projections, user-reviewed plan changes, no automated financial transactions, and direct editing alongside chat.
+Adopted defaults: single planning currency, one household owner with multiple contributors, and manual input available. Proposed defaults for Phase 3 and later: conservative income baseline, protected operating cash, avalanche as the comparison baseline, payment rollover enabled in projections, user-reviewed plan changes, no automated financial transactions, and direct editing alongside chat.
 
-Before release, choose authentication/hosting configuration, validate model quality and actual pricing, confirm the supported launch jurisdiction/currency, and establish boundaries for specialized financial topics. The current roadmap does not require those choices to block the baseline cleanup.
+Authentication is chosen: Clerk Hobby (`docs/reviews/archive/phase-1/2026-10-03-007-phase-1-sign-in-decision.md`). Before release, choose the hosting configuration, validate model quality and actual pricing, confirm the supported launch jurisdiction/currency, and establish boundaries for specialized financial topics. The current roadmap does not require those choices to block the baseline cleanup.
 
 OpenAI integration references used in this planning conversation: [function calling](https://developers.openai.com/api/docs/guides/function-calling) and [model optimization](https://developers.openai.com/api/docs/guides/model-optimization). Recheck current API/model documentation during implementation. This roadmap specifies product behavior, not a frozen SDK contract.

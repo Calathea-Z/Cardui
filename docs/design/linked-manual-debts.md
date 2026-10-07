@@ -1,9 +1,10 @@
 # Linked manual debts
 
-Status: approved for the plan on October 6, 2026. Every design question is
-decided (see Decisions). Nothing here is built.
-
+Status: Approved for the plan on October 6, 2026. Not built.
 Date: October 6, 2026
+Updated: 2026-10-07
+
+Every design question is decided (see Decisions).
 
 ## Problem
 
@@ -75,7 +76,7 @@ All of this is on `main` as of October 6, 2026.
   stay. Accounts are archived, not deleted, through the API.
 - `worker/Program.cs` runs one daily sync per item. A manual sync can run
   through `POST /api/plaid/{id}/sync`. Overlapping worker and manual sync is
-  still open in `docs/Recovery-Application-Action-Plan.md` and in every
+  still open in `docs/roadmap.md` and in every
   review since `docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`.
 - Tests cover `PlaidTransactionReconciler`, `PlaidTransactionSyncService`,
   and `PlaidItemRemoval` (`tests/Cardui.Tests/Services`). There is no test
@@ -316,8 +317,10 @@ source, synced value, and as-of date. The frontend types follow in
 ## Dependency: sync correctness first
 
 A followed balance is only as right as the sync behind it. Slice 0 does not
-wait for the linked-debt work. It is the next engineering increment, folded
-together with the paused Plaid sync reconciliation tests:
+wait for the linked-debt work. It is the next engineering increment. The
+Plaid transaction reconciliation tests are already done
+(`docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`). Slice 0
+covers:
 
 - Add `PlaidAccountSyncService` tests: balances copied, today's snapshot
   replaced in the household time zone, an account Plaid stops returning
@@ -334,14 +337,13 @@ The daily worker does not need it, and this design does not use it.
 
 ## Slices
 
-Each slice is one review. Each one leaves the app working. The action plan
+Each slice is one review. Each one leaves the app working. The roadmap
 lists slices 0 to 5 as items 1 to 6 of "Sync correctness and linked debts",
 between Phase 2 items 5 and 6.
 
 0. **Sync correctness.** `PlaidAccountSyncService` tests, a decision and
    guard for overlapping worker and manual sync, and interrupted-sync
-   timestamps, together with the paused Plaid sync reconciliation tests.
-   No schema change.
+   timestamps. No schema change.
 1. **Follow a balance.** `AccountFollowedSince` and `BalanceOverriddenAt`,
    the follow and stop-following actions, the resolver for the balance
    only, the freshness line, the $0 rule for a negative balance, and the
@@ -406,8 +408,7 @@ Zach decided these on October 6, 2026.
    be overridden.
 8. **Slice 0 goes first.** Account sync tests and overlapping worker and
    manual sync do not wait for the linked-debt work. They are the next
-   engineering increment, together with the paused Plaid sync
-   reconciliation tests.
+   engineering increment, with interrupted-sync timestamps.
 
 ## Future: if Liabilities is ever adopted
 
@@ -461,7 +462,7 @@ use. Do not assume them:
   and support varies by institution.
 - **Cost.** Liabilities is billed separately from Transactions. The amount
   depends on the plan. Record it next to the other bank-link costs the
-  action plan asks to measure.
+  roadmap asks to measure.
 - **Consent.** The link token asks only for Transactions today. Existing
   connections would need the person to consent again, through update mode
   or an added product, before Liabilities data arrives.

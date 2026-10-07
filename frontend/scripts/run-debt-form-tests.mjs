@@ -227,6 +227,10 @@ test("update balance is offered when the connection is not current", async () =>
   assert.equal(follow.canUpdateBalance("Disconnected"), true);
   assert.equal(follow.canUpdateBalance("Current"), false);
   assert.equal(follow.canUpdateBalance("AccountMissing"), false);
+  assert.equal(follow.repairConnectionId("SyncFailing", "item-1"), "item-1");
+  assert.equal(follow.repairConnectionId("SyncFailing", null), null);
+  assert.equal(follow.repairConnectionId("Disconnected", "item-1"), null);
+  assert.equal(follow.repairConnectionId("Stale", "item-1"), null);
   assert.equal(
     follow.followConfirmLead("Store card", "Visa ending 4821", true),
     "Store card will follow Visa ending 4821. The balance and credit limit follow that account. APR, minimum, and due date stay yours.",

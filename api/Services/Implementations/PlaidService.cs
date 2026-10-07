@@ -21,6 +21,7 @@ public class PlaidService : IPlaidService
     private readonly IPlaidClientSource _clientSource;
     private readonly PlaidConfig _plaidOptions;
     private readonly IPlaidRequestExecutor _requestExecutor;
+    private readonly IPlaidLinkClient _linkClient;
     private readonly IPlaidAccountSyncService _accountSyncService;
     private readonly IPlaidTransactionSyncService _transactionSyncService;
     private readonly IPlaidAccessTokenProtector _accessTokenProtector;
@@ -40,12 +41,14 @@ public class PlaidService : IPlaidService
         PlaidItemRemoval itemRemoval,
         HouseholdScope householdScope,
         ILogger<PlaidService> logger,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IPlaidLinkClient linkClient)
     {
         _dbContext = dbContext;
         _clientSource = clientSource;
         _plaidOptions = plaidOptions.Value;
         _requestExecutor = requestExecutor;
+        _linkClient = linkClient;
         _accountSyncService = accountSyncService;
         _transactionSyncService = transactionSyncService;
         _accessTokenProtector = accessTokenProtector;
@@ -60,34 +63,25 @@ public class PlaidService : IPlaidService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var client = _clientSource.GetClient();
-
-        var request = _requestExecutor.WithCredentials(new LinkTokenCreateRequest
+        var request = NewLinkTokenRequest();
+        request.Products = new List<Products>
         {
-            ClientName = _plaidOptions.ClientName,
-            Language = Language.English,
-            CountryCodes = new List<CountryCode>
-            {
-                CountryCode.Us
-            },
-            Products = new List<Products>
-            {
-                Products.Transactions
-            },
-            User = new LinkTokenCreateRequestUser
-            {
-                ClientUserId = _householdScope.RequireHouseholdId().ToString("D")
-            },
-            Webhook = EmptyToNull(_plaidOptions.WebhookUrl)
-        });
-
-        var response = await _requestExecutor.ExecuteAsync(
-            () => client.LinkTokenCreateAsync(request));
-
-        return new CreateLinkTokenResponseDto
-        {
-            LinkToken = response.LinkToken
+            Products.Transactions
         };
+        var prepared = _requestExecutor.WithCredentials(request);
+
+        return await LinkTokenAsync(prepared, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<CreateLinkTokenResponseDto> CreateUpdateLinkTokenAsync(
+        Guid plaidItemId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var plaidItem = await GetPlaidItemOrThrowAsync(plaidItemId, cancellationToken);
+
+        return await LinkTokenAsync(RepairLinkTokenRequest(plaidItem), cancellationToken);
     }
 
     /// <inheritdoc />
@@ -173,7 +167,7 @@ public class PlaidService : IPlaidService
     public async Task<IReadOnlyList<PlaidItemDto>> GetPlaidItemsAsync(
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.PlaidItems
+        var items = await _dbContext.PlaidItems
             .AsNoTracking()
             .InHousehold(_householdScope)
             .OrderBy(x => x.InstitutionName)
@@ -191,6 +185,15 @@ public class PlaidService : IPlaidService
                 LastSyncError = x.LastSyncError
             })
             .ToListAsync(cancellationToken);
+
+        foreach (var item in items)
+        {
+            item.NeedsRepair = PlaidItemSync.LastAttemptFailed(
+                item.LastSyncCompletedAt,
+                item.LastSyncFailedAt);
+        }
+
+        return items;
     }
 
     /// <inheritdoc />
@@ -227,6 +230,54 @@ public class PlaidService : IPlaidService
     }
 
     #region Private Methods
+
+    /// <summary>
+    /// The shared Link token fields for a new connection and for a repair.
+    /// Products stay unset until the caller adds them. A repair leaves them unset.
+    /// </summary>
+    private LinkTokenCreateRequest NewLinkTokenRequest()
+    {
+        return new LinkTokenCreateRequest
+        {
+            ClientName = _plaidOptions.ClientName,
+            Language = Language.English,
+            CountryCodes = new List<CountryCode>
+            {
+                CountryCode.Us
+            },
+            User = new LinkTokenCreateRequestUser
+            {
+                ClientUserId = _householdScope.RequireHouseholdId().ToString("D")
+            },
+            Webhook = EmptyToNull(_plaidOptions.WebhookUrl)
+        };
+    }
+
+    /// <summary>
+    /// A Link token request for an existing item. Products stay unset, which
+    /// is update mode. The access token is placed on the request for Plaid.
+    /// </summary>
+    private LinkTokenCreateRequest RepairLinkTokenRequest(PlaidItem plaidItem)
+    {
+        var accessToken = _accessTokenProtector.Unprotect(plaidItem.AccessToken);
+        return _requestExecutor.WithCredentials(NewLinkTokenRequest(), accessToken);
+    }
+
+    /// <summary>
+    /// Sends a prepared Link token request and returns the token.
+    /// The access token on a repair request is not copied onto the response.
+    /// </summary>
+    private async Task<CreateLinkTokenResponseDto> LinkTokenAsync(
+        LinkTokenCreateRequest request,
+        CancellationToken cancellationToken)
+    {
+        var linkToken = await _linkClient.CreateAsync(request, cancellationToken);
+
+        return new CreateLinkTokenResponseDto
+        {
+            LinkToken = linkToken
+        };
+    }
 
     /// <summary>
     /// Claims the item for this sync, or reports that another sync still holds it.

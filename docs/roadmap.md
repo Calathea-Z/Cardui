@@ -104,7 +104,7 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
 
-**Status (October 7, 2026):** Items 1–6 are done. Item 6 is approved in `docs/reviews/2026-10-05-019-category-targets.md`. `20261006031630_AddCategoryTargets` is applied. Items 1–4 of "Sync correctness and linked debts" are approved. Items 5–6 of that section are not started.
+**Status (October 7, 2026):** Items 1–6 are done. Item 6 is approved in `docs/reviews/2026-10-05-019-category-targets.md`. `20261006031630_AddCategoryTargets` is applied. Items 1–6 of "Sync correctness and linked debts" are approved.
 
 | Item | Status | Reviews |
 | --- | --- | --- |
@@ -132,7 +132,7 @@ Applied migrations: `20261005025504_AddIncomeSources`, `20261005031455_DropIncom
 
 A manually entered debt can optionally follow a connected credit card or loan, so the person does not retype the balance after every payment. Design: [`docs/design/linked-manual-debts.md`](design/linked-manual-debts.md), approved for the plan on October 6, 2026. Each item is one review.
 
-**Status (October 7, 2026):** Item 1 is approved in `docs/reviews/2026-10-06-002-sync-correctness.md`. Item 2 is approved in `docs/reviews/2026-10-07-002-follow-a-balance.md`. Item 3 is approved in `docs/reviews/2026-10-07-003-balance-overrides.md`. Item 4 is approved in `docs/reviews/2026-10-07-005-suggested-matches.md`. Item 5 is approved in `docs/reviews/2026-10-07-006-credit-limit.md`. `20261007162523_AddDebtAccountFollow` and `20261007193207_AddAccountCreditLimit` are in the repo. Item 6 is not started.
+**Status (October 7, 2026):** Item 1 is approved in `docs/reviews/2026-10-06-002-sync-correctness.md`. Item 2 is approved in `docs/reviews/2026-10-07-002-follow-a-balance.md`. Item 3 is approved in `docs/reviews/2026-10-07-003-balance-overrides.md`. Item 4 is approved in `docs/reviews/2026-10-07-005-suggested-matches.md`. Item 5 is approved in `docs/reviews/2026-10-07-006-credit-limit.md`. `20261007162523_AddDebtAccountFollow` and `20261007193207_AddAccountCreditLimit` are in the repo. Item 6 is approved in `docs/reviews/2026-10-07-007-reconnect.md`. No schema change.
 
 1. Sync correctness. Add `PlaidAccountSyncService` tests, decide and guard overlapping worker and manual sync for one item, and test sync timestamps after an interrupted sync. The Plaid transaction reconciliation tests are already done (`docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`). It does not wait for the linked-debt items. It pulls the concurrency part of Phase 6 item 1 forward. No schema change.
 2. Follow a balance. A debt can follow an eligible connected account: active, not archived, a credit card or loan, same currency, and backing no other debt. Existing links stay reference links. Sync never writes a debt; a followed debt reads the latest snapshot. Each followed debt shows freshness, stale after two days in the household time zone. A removed bank link leaves the debt followed and stale until the person chooses. A negative balance on a followed revolving debt counts as $0 with a note. Stop following copies the last values onto the debt. Model change.

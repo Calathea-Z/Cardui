@@ -6,11 +6,13 @@ import { cn } from "@/lib/utils";
 /**
  * Class names for an alert variant.
  * An omitted variant uses the muted default panel.
+ * notice is a prompt that is not a failure, such as an old balance.
  */
 const alertVariants = cva("rounded-lg text-sm whitespace-pre-line", {
   variants: {
     variant: {
       default: "app-panel p-4 text-muted-foreground",
+      notice: "border border-foreground/15 bg-muted px-3 py-2 text-foreground",
       destructive:
         "border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive",
       panel: "app-panel border-destructive/40 p-4 text-destructive",
@@ -23,7 +25,7 @@ const alertVariants = cva("rounded-lg text-sm whitespace-pre-line", {
 
 /**
  * Status message announced as an alert.
- * variant default is a muted panel, destructive is inline danger text, and panel is a danger panel.
+ * variant default is a muted panel, notice is a prompt that is not a failure, destructive is inline danger text, and panel is a danger panel.
  * A line break in the text stays on its own line.
  */
 function Alert({

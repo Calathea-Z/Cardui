@@ -1,4 +1,5 @@
 using Cardui.Api.Domain.Accounts;
+using Cardui.Api.Domain.Plaid;
 using Cardui.Api.Models;
 
 namespace Cardui.Api.Domain.Debts;
@@ -191,7 +192,7 @@ public static class DebtFollowedBalance
             return DebtLinkFreshness.Disconnected;
         }
 
-        if (IsSyncFailing(facts.LastSyncCompletedAt, facts.LastSyncFailedAt))
+        if (PlaidItemSync.LastAttemptFailed(facts.LastSyncCompletedAt, facts.LastSyncFailedAt))
         {
             return DebtLinkFreshness.SyncFailing;
         }
@@ -202,21 +203,6 @@ public static class DebtFollowedBalance
         }
 
         return DebtLinkFreshness.Current;
-    }
-
-    /// <summary>
-    /// True when the latest sync failed after the last success, or failed without one.
-    /// </summary>
-    private static bool IsSyncFailing(
-        DateTimeOffset? completedAt,
-        DateTimeOffset? failedAt)
-    {
-        if (failedAt is not DateTimeOffset failed)
-        {
-            return false;
-        }
-
-        return completedAt is not DateTimeOffset completed || failed > completed;
     }
 
     /// <summary>

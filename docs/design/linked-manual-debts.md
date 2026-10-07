@@ -1,6 +1,6 @@
 # Linked manual debts
 
-Status: Approved. Follow a balance, balance overrides, suggested matches, and credit limit are approved. Reconnect is not.
+Status: Approved. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved.
 Date: October 6, 2026
 Updated: 2026-10-07
 
@@ -251,9 +251,10 @@ a pure rule over values already stored:
 - "Update balance" sets a balance override with today's date. When the
   connection recovers, the card shows both values and offers "Use synced
   value". Sync does not clear the override on its own.
-- Reconnect needs a Plaid update-mode link token for the existing item. That
-  does not exist today and is its own slice. Until then, the action opens
-  the Connections page.
+- Reconnect for a failing sync opens Plaid Link in update mode for the
+  existing item. The access token does not change and is not returned.
+  After the person finishes, that institution is synced. A removed bank
+  link has no item, so that Reconnect opens Connections.
 - The summary keeps using the debt's resolved values. A stale value still
   counts, and the summary names how many debts are stale, the same way it
   names missing inputs.
@@ -375,7 +376,10 @@ These follow `.cursor/rules/ui-governance.mdc`.
 - A synced field shows a small "Synced" label in text, not only an icon or
   color. An override shows "Your value" in text, the synced value beside it,
   and a "Use synced value" button.
-- The freshness line is text with an icon. Stale and failing states do not
+- The freshness line is text with an icon. A failing sync or a removed
+  bank link uses the error alert, and Reconnect uses the tinted error
+  button. An old balance uses a notice with a light wash, and Refresh is
+  the filled button. Update balance stays outline. Those states do not
   rely on color alone. The balance stays visible and readable.
 - Every action says what happened: following, overriding, reverting,
   updating, and stopping. A failure says what failed and how to retry.

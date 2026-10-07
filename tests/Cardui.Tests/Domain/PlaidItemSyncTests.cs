@@ -51,6 +51,17 @@ public class PlaidItemSyncTests
     }
 
     [Fact]
+    public void LastAttemptFailed_OnlyWhenTheFailureIsLatest()
+    {
+        Assert.False(PlaidItemSync.LastAttemptFailed(null, null));
+        Assert.False(PlaidItemSync.LastAttemptFailed(Now, null));
+        Assert.True(PlaidItemSync.LastAttemptFailed(null, Now));
+        Assert.True(PlaidItemSync.LastAttemptFailed(Now.AddMinutes(-5), Now));
+        Assert.False(PlaidItemSync.LastAttemptFailed(Now, Now.AddMinutes(-5)));
+        Assert.False(PlaidItemSync.LastAttemptFailed(Now, Now));
+    }
+
+    [Fact]
     public void FinishTime_DoesNotPrecedeTheStart()
     {
         var started = Now.AddTicks(1);

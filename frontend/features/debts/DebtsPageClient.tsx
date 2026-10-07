@@ -1,15 +1,18 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/navigation/page-header";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { usePlaidLinkFlow } from "@/features/plaid/usePlaidLinkFlow";
+import type { DebtDto } from "@/lib/api/types";
 import { DebtFollowSheet } from "./DebtFollowSheet";
 import { DebtForm } from "./DebtForm";
 import { DebtSummary } from "./DebtSummary";
 import { DebtList } from "./DebtList";
-import type { DebtDto } from "@/lib/api/types";
 import type { DebtsPageData } from "./debtPageData";
+import { repairConnectionId } from "./debtFollowCopy";
 import { useDebts } from "./useDebts";
 
 type DebtsPageClientProps = DebtsPageData;
@@ -26,6 +29,18 @@ export function DebtsPageClient({
   planningCurrency,
 }: DebtsPageClientProps) {
   const debts = useDebts(initialDebts, initialSummary);
+  const reconnectDebtRef = useRef<DebtDto | null>(null);
+  const reconnect = usePlaidLinkFlow({
+    onError: (message) => toast.error(message, { id: "debt-action" }),
+    onUpdated: async (plaidItemId) => {
+      const debt = reconnectDebtRef.current;
+      if (!debt) {
+        return;
+      }
+
+      await debts.finishReconnect(debt, plaidItemId);
+    },
+  });
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const followOpenerRef = useRef<HTMLElement | null>(null);
@@ -77,6 +92,28 @@ export function DebtsPageClient({
     if (opener?.isConnected) {
       opener.focus();
     }
+  }
+
+  /**
+   * Opens Plaid Link for a failing bank connection.
+   * A removed link has no item to repair.
+   */
+  function reconnectFollowed(debt: DebtDto) {
+    if (!debt.freshness) {
+      return;
+    }
+
+    const account = accounts.find((item) => item.id === debt.accountId);
+    const plaidItemId = repairConnectionId(
+      debt.freshness,
+      account?.plaidItemId,
+    );
+    if (!plaidItemId) {
+      return;
+    }
+
+    reconnectDebtRef.current = debt;
+    void reconnect.openUpdate(plaidItemId);
   }
 
   /**
@@ -140,6 +177,8 @@ export function DebtsPageClient({
         onFollow={openFollow}
         onStopFollowing={(debt) => void debts.stopFollowing(debt)}
         onRefresh={refreshFollowed}
+        onReconnect={reconnectFollowed}
+        reconnectingItemId={reconnect.pendingUpdateId}
         onUseSyncedValue={(debt) => void debts.useSyncedBalance(debt)}
         onUseSyncedLimit={(debt) => void debts.useSyncedCreditLimit(debt)}
         onUpdateBalance={(debt, amount) => debts.updateBalance(debt, amount)}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -18,6 +19,7 @@ import {
   canUpdateBalance,
   creditNote,
   freshnessLine,
+  repairConnectionId,
   creditLimitSourceText,
   followBlockCopy,
   isFollowCandidate,
@@ -51,6 +53,8 @@ type DebtListProps = {
   onFollow: (debt: DebtDto, opener: HTMLElement) => void;
   onStopFollowing: (debt: DebtDto) => void;
   onRefresh: (debt: DebtDto) => void;
+  onReconnect: (debt: DebtDto) => void;
+  reconnectingItemId: string | null;
   onUseSyncedValue: (debt: DebtDto) => void;
   onUseSyncedLimit: (debt: DebtDto) => void;
   onUpdateBalance: (debt: DebtDto, amount: string) => Promise<boolean>;
@@ -72,6 +76,8 @@ export function DebtList({
   onFollow,
   onStopFollowing,
   onRefresh,
+  onReconnect,
+  reconnectingItemId,
   onUseSyncedValue,
   onUseSyncedLimit,
   onUpdateBalance,
@@ -110,6 +116,8 @@ export function DebtList({
               onFollow={(opener) => onFollow(debt, opener)}
               onStopFollowing={() => onStopFollowing(debt)}
               onRefresh={() => onRefresh(debt)}
+              onReconnect={() => onReconnect(debt)}
+              reconnectingItemId={reconnectingItemId}
               onUseSyncedValue={() => onUseSyncedValue(debt)}
               onUseSyncedLimit={() => onUseSyncedLimit(debt)}
               onUpdateBalance={(amount) => onUpdateBalance(debt, amount)}
@@ -133,6 +141,8 @@ type DebtRowProps = {
   onFollow: (opener: HTMLElement) => void;
   onStopFollowing: () => void;
   onRefresh: () => void;
+  onReconnect: () => void;
+  reconnectingItemId: string | null;
   onUseSyncedValue: () => void;
   onUseSyncedLimit: () => void;
   onUpdateBalance: (amount: string) => Promise<boolean>;
@@ -169,6 +179,8 @@ function DebtRow({
   onFollow,
   onStopFollowing,
   onRefresh,
+  onReconnect,
+  reconnectingItemId,
   onUseSyncedValue,
   onUseSyncedLimit,
   onUpdateBalance,
@@ -215,6 +227,15 @@ function DebtRow({
           accounts={accounts}
           busy={busy}
           onRefresh={onRefresh}
+          onReconnect={onReconnect}
+          reconnecting={
+            reconnectingItemId !== null &&
+            accounts.some(
+              (account) =>
+                account.id === debt.accountId &&
+                account.plaidItemId === reconnectingItemId,
+            )
+          }
           onUpdateBalance={onUpdateBalance}
         />
       ) : null}
@@ -790,6 +811,8 @@ type FollowStatusProps = {
   accounts: AccountDto[];
   busy: boolean;
   onRefresh: () => void;
+  onReconnect: () => void;
+  reconnecting: boolean;
   onUpdateBalance: (amount: string) => Promise<boolean>;
 };
 
@@ -830,13 +853,15 @@ function balanceCaption(debt: DebtDto) {
 
 /**
  * How current a followed balance is, and the action for that state.
- * A current balance is already named under the amount. Refresh pulls the bank again.
+ * A current balance is already named under the amount. An old balance uses the notice and a filled Refresh. A failed sync or a removed link uses the error alert.
  */
 function FollowStatus({
   debt,
   accounts,
   busy,
   onRefresh,
+  onReconnect,
+  reconnecting,
   onUpdateBalance,
 }: FollowStatusProps) {
   const [updating, setUpdating] = useState(false);
@@ -854,9 +879,14 @@ function FollowStatus({
   );
   const canRefresh =
     debt.freshness === "Stale" && Boolean(account?.plaidItemId);
-  const canReconnect =
-    debt.freshness === "SyncFailing" || debt.freshness === "Disconnected";
+  const repairId = repairConnectionId(debt.freshness, account?.plaidItemId);
+  const openConnections =
+    debt.freshness === "Disconnected" ||
+    (debt.freshness === "SyncFailing" && !repairId);
   const canUpdate = canUpdateBalance(debt.freshness);
+  const broken =
+    debt.freshness === "SyncFailing" || debt.freshness === "Disconnected";
+  const stale = debt.freshness === "Stale";
 
   /**
    * Saves today's balance and closes the amount field when it is kept.
@@ -871,10 +901,22 @@ function FollowStatus({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="flex items-start gap-2 text-sm text-foreground">
-        <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        <span>{line}</span>
-      </p>
+      {broken ? (
+        <Alert variant="destructive" className="flex items-start gap-2">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{line}</span>
+        </Alert>
+      ) : stale ? (
+        <Alert variant="notice" className="flex items-start gap-2">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{line}</span>
+        </Alert>
+      ) : (
+        <p className="flex items-start gap-2 text-sm text-foreground">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{line}</span>
+        </p>
+      )}
       {updating ? (
         <div className="flex max-w-xs flex-col gap-2">
           <label className="flex flex-col gap-1.5 text-sm font-medium">
@@ -915,12 +957,11 @@ function FollowStatus({
           </div>
         </div>
       ) : null}
-      {canRefresh || canReconnect || canUpdate ? (
+      {canRefresh || repairId || openConnections || canUpdate ? (
         <div className="flex flex-wrap gap-2">
           {canRefresh ? (
             <Button
               type="button"
-              variant="outline"
               className="min-h-11"
               disabled={busy}
               onClick={onRefresh}
@@ -934,10 +975,31 @@ function FollowStatus({
               Refresh
             </Button>
           ) : null}
-          {canReconnect ? (
+          {repairId ? (
+            <Button
+              type="button"
+              variant="destructive"
+              className="min-h-11"
+              disabled={busy || reconnecting}
+              aria-busy={reconnecting}
+              onClick={onReconnect}
+            >
+              {reconnecting ? (
+                <LoaderCircle
+                  className="size-4 animate-spin"
+                  aria-hidden="true"
+                />
+              ) : null}
+              Reconnect
+            </Button>
+          ) : null}
+          {openConnections ? (
             <Link
               href="/connections"
-              className={cn(buttonVariants({ variant: "outline" }), "min-h-11")}
+              className={cn(
+                buttonVariants({ variant: "destructive" }),
+                "min-h-11",
+              )}
             >
               Reconnect
             </Link>

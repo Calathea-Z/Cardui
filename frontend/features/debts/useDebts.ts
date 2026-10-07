@@ -490,23 +490,54 @@ export function useDebts(
    * A sync that is already running does not change the balance.
    */
   async function refreshConnection(debt: DebtDto, plaidItemId: string) {
+    await syncConnection(
+      debt,
+      plaidItemId,
+      "Refresh finished",
+      "That refresh failed. Try again.",
+    );
+  }
+
+  /**
+   * Pulls the bank after the person repairs its login, then reloads the debts.
+   * A sync that is already running does not change the balance.
+   */
+  async function finishReconnect(debt: DebtDto, plaidItemId: string) {
+    await syncConnection(
+      debt,
+      plaidItemId,
+      "Reconnect finished",
+      "Reconnect could not finish. Try again.",
+    );
+  }
+
+  /**
+   * Syncs one bank and reloads the debts.
+   * The finished and failed sentences name the action that asked for the sync.
+   */
+  async function syncConnection(
+    debt: DebtDto,
+    plaidItemId: string,
+    finished: string,
+    failed: string,
+  ) {
     setBusyId(debt.id);
     try {
       const result = await syncPlaidItem(plaidItemId);
       if (result.alreadyRunning) {
         toast.warning("Already syncing", {
           id: debtToastId,
-          description: "This refresh did nothing.",
+          description: "This click did nothing.",
         });
         return;
       }
 
       const next = await getDebts();
       setDebts(next);
-      toast.success("Refresh finished", { id: debtToastId });
+      toast.success(finished, { id: debtToastId });
       void refreshSummary();
     } catch (err) {
-      reportDebtFailure(err, "That refresh failed. Try again.");
+      reportDebtFailure(err, failed);
     } finally {
       setBusyId(null);
     }
@@ -609,6 +640,7 @@ export function useDebts(
     follow,
     stopFollowing,
     refreshConnection,
+    finishReconnect,
     saveOwnBalance,
     saveOwnCreditLimit,
     updateBalance,

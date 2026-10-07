@@ -3,7 +3,6 @@ import type { AccountDto, PlaidItemDto } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -17,84 +16,114 @@ type InstitutionCardProps = {
   accounts: AccountDto[];
   isSyncing: boolean;
   isDisconnecting: boolean;
+  isReconnecting: boolean;
   actionsDisabled: boolean;
   onSync: () => void;
+  onReconnect: () => void;
   onDisconnect: () => void;
 };
 
 /**
- * One linked bank, its synced accounts, and sync or disconnect actions.
- * Sync now and Disconnect show a spinner while the request runs and keep the button in place.
+ * One linked bank, its synced accounts, and sync, reconnect, or disconnect actions.
+ * The name and last sync stay on their own lines. The buttons sit under them, so another button does not wrap that date.
+ * Sync now, Reconnect, and Disconnect show a spinner while that request runs and keep the button in place.
+ * Reconnect is shown when the latest sync failed, and it repairs the existing login.
  * Disconnect confirms in the app dialog before it removes the bank login.
- * actionsDisabled locks both buttons while another bank in a Sync all is running.
+ * actionsDisabled locks the buttons while another bank in a Sync all is running.
  */
 export function InstitutionCard({
   item,
   accounts,
   isSyncing,
   isDisconnecting,
+  isReconnecting,
   actionsDisabled,
   onSync,
+  onReconnect,
   onDisconnect,
 }: InstitutionCardProps) {
   const institutionName = item.institutionName ?? "Connected institution";
-  const busy = isSyncing || isDisconnecting || actionsDisabled;
+  const busy =
+    isSyncing || isDisconnecting || isReconnecting || actionsDisabled;
 
   return (
     <Card className="bg-card/80">
-      <CardHeader>
-        <CardTitle>{institutionName}</CardTitle>
-        <CardDescription>
-          Last synced {formatSyncedAt(item.lastTransactionsSyncedAt)}
-        </CardDescription>
-        <CardAction>
-          <div className="flex flex-wrap justify-end gap-2">
+      <CardHeader className="gap-3">
+        <div className="min-w-0">
+          <CardTitle>{institutionName}</CardTitle>
+          <CardDescription className="mt-1">
+            Last synced {formatSyncedAt(item.lastTransactionsSyncedAt)}
+          </CardDescription>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {item.needsRepair ? (
             <Button
               type="button"
               disabled={busy}
               size="lg"
-              variant="outline"
+              variant="destructive"
               className={
-                isSyncing ? "min-w-24 disabled:opacity-100" : "min-w-24"
+                isReconnecting ? "min-w-28 disabled:opacity-100" : "min-w-28"
               }
-              aria-busy={isSyncing}
-              aria-label={isSyncing ? `Syncing ${institutionName}` : undefined}
-              onClick={onSync}
-            >
-              {isSyncing ? (
-                <LoaderCircle
-                  className="size-4 animate-spin motion-reduce:animate-none"
-                  aria-hidden="true"
-                />
-              ) : (
-                "Sync now"
-              )}
-            </Button>
-            <Button
-              type="button"
-              disabled={busy}
-              size="lg"
-              variant="ghost"
-              className={
-                isDisconnecting ? "min-w-28 disabled:opacity-100" : "min-w-28"
-              }
-              aria-busy={isDisconnecting}
+              aria-busy={isReconnecting}
               aria-label={
-                isDisconnecting ? `Removing ${institutionName}` : undefined
+                isReconnecting ? `Reconnecting ${institutionName}` : undefined
               }
-              onClick={onDisconnect}
+              onClick={onReconnect}
             >
-              {isDisconnecting ? (
+              {isReconnecting ? (
                 <LoaderCircle
                   className="size-4 animate-spin motion-reduce:animate-none"
                   aria-hidden="true"
                 />
               ) : (
-                "Disconnect"
+                "Reconnect"
               )}
             </Button>
-          </div>
-        </CardAction>
+          ) : null}
+          <Button
+            type="button"
+            disabled={busy}
+            size="lg"
+            variant="outline"
+            className={isSyncing ? "min-w-24 disabled:opacity-100" : "min-w-24"}
+            aria-busy={isSyncing}
+            aria-label={isSyncing ? `Syncing ${institutionName}` : undefined}
+            onClick={onSync}
+          >
+            {isSyncing ? (
+              <LoaderCircle
+                className="size-4 animate-spin motion-reduce:animate-none"
+                aria-hidden="true"
+              />
+            ) : (
+              "Sync now"
+            )}
+          </Button>
+          <Button
+            type="button"
+            disabled={busy}
+            size="lg"
+            variant="ghost"
+            className={
+              isDisconnecting ? "min-w-28 disabled:opacity-100" : "min-w-28"
+            }
+            aria-busy={isDisconnecting}
+            aria-label={
+              isDisconnecting ? `Removing ${institutionName}` : undefined
+            }
+            onClick={onDisconnect}
+          >
+            {isDisconnecting ? (
+              <LoaderCircle
+                className="size-4 animate-spin motion-reduce:animate-none"
+                aria-hidden="true"
+              />
+            ) : (
+              "Disconnect"
+            )}
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">

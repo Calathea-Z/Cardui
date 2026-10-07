@@ -19,6 +19,21 @@ export async function createPlaidLinkToken(): Promise<CreatePlaidLinkTokenRespon
 }
 
 /**
+ * POST /api/plaid/{plaidItemId}/link-token
+ * Starts a Plaid Link session that repairs one existing bank connection.
+ * The access token stays on the server.
+ */
+export async function createPlaidUpdateLinkToken(
+  plaidItemId: string,
+): Promise<CreatePlaidLinkTokenResponse> {
+  const response = await browserClient.post<CreatePlaidLinkTokenResponse>(
+    `/api/plaid/${plaidItemId}/link-token`,
+  );
+
+  return response.data;
+}
+
+/**
  * POST /api/plaid/exchange-public-token
  * Turns a completed Link public token into a stored institution connection.
  */

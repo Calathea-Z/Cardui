@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { usePlaidLinkFlow } from "./usePlaidLinkFlow";
+import { plaidConnectLabel, usePlaidLinkFlow } from "./usePlaidLinkFlow";
 
 type PlaidLinkButtonProps = {
   onSuccess?: () => void;
@@ -36,13 +36,11 @@ export function PlaidLinkButton({
         size="lg"
         className="w-fit"
       >
-        {isCreatingToken
-          ? "Preparing Plaid"
-          : isExchangingToken
-            ? "Connecting"
-            : errorMessage
-              ? "Try again"
-              : "Connect account"}
+        {plaidConnectLabel({
+          isCreatingToken,
+          isExchangingToken,
+          errorMessage,
+        })}
       </Button>
 
       {errorMessage ? (

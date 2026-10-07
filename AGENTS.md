@@ -85,7 +85,9 @@ no private methods, and skip generated EF Core migrations. See
 Give each model, DTO, domain value, and options type in `api/` or `worker/`
 its own file. Do not nest one inside a class, service, controller, or
 calculator, and do not declare it in the same file as that behavior. A
-type used by only one caller may be `internal`. See
+type used by only one caller may be `internal`. A Domain type goes in
+`Domain/<feature>` for the feature that owns it. A rule that several
+features read stays at the `Domain` root. See
 `.cursor/rules/backend-type-files.mdc`.
 
 ## Backend enums
@@ -98,7 +100,9 @@ system can extend, a user-defined key, or a slug stays a string. See
 ## Backend domain rules
 
 Put a pure business rule in `Domain`. Put work that loads or saves rows in
-`Services`. Do not add a `Helpers` folder. See
+`Services`. A Domain type goes in `Domain/<feature>` for the feature that
+owns it. A rule that several features read stays at the `Domain` root.
+Do not add a `Helpers` folder. See
 `.cursor/rules/backend-domain-rules.mdc`.
 
 ## Backend method responsibility

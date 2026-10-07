@@ -10,8 +10,10 @@ behavior types. Do this in the same change as the type.
 
 - Give each model, DTO, domain value, and options type its own file. Name
   the file after the type.
-- Put it in `Models`, `Dtos/<feature>`, `Domain`, or `Options`, with the
-  types already there.
+- Put it in `Models`, `Dtos/<feature>`, `Domain/<feature>`, or `Options`,
+  with the types already there. A Domain type goes in `Domain/<feature>`
+  for the feature that owns it. A rule that several features read stays
+  at the `Domain` root.
 - Do not nest that type inside a class, record, service, controller, or
   calculator.
 - Do not declare it in the same file as a service or other behavior type.

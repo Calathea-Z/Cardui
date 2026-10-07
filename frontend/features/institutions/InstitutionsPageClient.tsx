@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { BackButton } from "@/components/navigation/back-button";
 import { PageHeader } from "@/components/navigation/page-header";
 import { useSetMobileHeaderLeading } from "@/components/navigation/mobile-header-actions";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -17,7 +18,10 @@ import type {
   PlaidItemDto,
   SyncTransactionsResponseDto,
 } from "@/lib/api/types";
-import { PlaidLinkButton } from "@/features/plaid/PlaidLinkButton";
+import {
+  plaidConnectLabel,
+  usePlaidLinkFlow,
+} from "@/features/plaid/usePlaidLinkFlow";
 import { groupAccountsByInstitution } from "./groupAccountsByInstitution";
 import { InstitutionCard } from "./InstitutionCard";
 
@@ -44,6 +48,12 @@ export function InstitutionsPageClient({
   const [disconnectingItemId, setDisconnectingItemId] = useState<string | null>(
     null,
   );
+  const link = usePlaidLinkFlow({
+    onSuccess: () => router.refresh(),
+    onUpdated: async (plaidItemId) => {
+      await finishReconnect(plaidItemId);
+    },
+  });
 
   const accountsByInstitution = useMemo(
     () => groupAccountsByInstitution(accounts),
@@ -84,6 +94,7 @@ export function InstitutionsPageClient({
               lastSyncFailedAt: null,
               lastSyncError: null,
               lastSyncCompletedAt: syncedAt,
+              needsRepair: false,
             }
           : item,
       ),
@@ -172,6 +183,37 @@ export function InstitutionsPageClient({
   }
 
   /**
+   * Syncs one bank after its login is repaired.
+   * The existing connection is kept. A sync that is already running does not change it.
+   */
+  async function finishReconnect(plaidItemId: string) {
+    const name = institutionName(plaidItemId);
+    try {
+      const result = await syncPlaidItem(plaidItemId);
+      if (result.alreadyRunning) {
+        toast.warning("Already syncing", {
+          id: connectionToastId,
+          description: `${name} is syncing, so this reconnect did nothing.`,
+        });
+        router.refresh();
+        return;
+      }
+
+      toast.success("Reconnect finished", {
+        id: connectionToastId,
+        description: syncCounts(result.transactions),
+      });
+      markSynced(plaidItemId);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, "Reconnect could not finish. Try again."),
+        { id: connectionToastId },
+      );
+    }
+  }
+
+  /**
    * Removes one bank login after the user confirms.
    * Accounts and transactions stay. The bank leaves the list after the request succeeds.
    */
@@ -226,7 +268,8 @@ export function InstitutionsPageClient({
                 disabled={
                   syncingAll ||
                   syncingItemId !== null ||
-                  disconnectingItemId !== null
+                  disconnectingItemId !== null ||
+                  link.pendingUpdateId !== null
                 }
                 className={
                   syncingAll ? "min-w-24 disabled:opacity-100" : "min-w-24"
@@ -244,11 +287,24 @@ export function InstitutionsPageClient({
                   "Sync all"
                 )}
               </Button>
-              <PlaidLinkButton onSuccess={() => router.refresh()} />
+              <ConnectBankButton link={link} />
             </div>
           ) : undefined
         }
       />
+
+      {link.errorMessage ? (
+        <Alert variant="destructive">
+          {link.errorMessage}{" "}
+          <button
+            type="button"
+            onClick={link.clearError}
+            className="cursor-pointer underline underline-offset-2"
+          >
+            Dismiss
+          </button>
+        </Alert>
+      ) : null}
 
       {items.length > 0 ? (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -259,8 +315,14 @@ export function InstitutionsPageClient({
               accounts={accountsByInstitution.get(item.id) ?? []}
               isSyncing={syncingItemId === item.id}
               isDisconnecting={disconnectingItemId === item.id}
-              actionsDisabled={syncingAll && syncingItemId !== item.id}
+              isReconnecting={link.pendingUpdateId === item.id}
+              actionsDisabled={
+                (syncingAll && syncingItemId !== item.id) ||
+                (link.pendingUpdateId !== null &&
+                  link.pendingUpdateId !== item.id)
+              }
               onSync={() => handleSync(item.id)}
+              onReconnect={() => void link.openUpdate(item.id)}
               onDisconnect={() => handleDisconnect(item.id)}
             />
           ))}
@@ -269,11 +331,44 @@ export function InstitutionsPageClient({
         <EmptyState
           title="No institutions connected yet"
           description="Link a bank to start syncing accounts and transactions."
-          action={<PlaidLinkButton onSuccess={() => router.refresh()} />}
+          action={<ConnectBankButton link={link} />}
           className="app-panel bg-card/50 gap-2 px-6 py-12 [&_p:first-of-type]:text-lg [&_p:first-of-type]:font-medium"
         />
       )}
     </section>
+  );
+}
+
+type ConnectBankButtonProps = {
+  link: {
+    open: () => Promise<void>;
+    canAttemptConnect: boolean;
+    isCreatingToken: boolean;
+    isExchangingToken: boolean;
+    pendingUpdateId: string | null;
+    connectErrorMessage: string | null;
+  };
+};
+
+/**
+ * Starts a new bank connection from the page's Plaid Link flow.
+ * Preparing names a new connection. A repair uses Reconnect on that bank.
+ */
+function ConnectBankButton({ link }: ConnectBankButtonProps) {
+  return (
+    <Button
+      type="button"
+      disabled={!link.canAttemptConnect}
+      onClick={() => void link.open()}
+      size="lg"
+      className="w-fit"
+    >
+      {plaidConnectLabel({
+        isCreatingToken: link.isCreatingToken && link.pendingUpdateId === null,
+        isExchangingToken: link.isExchangingToken,
+        errorMessage: link.connectErrorMessage,
+      })}
+    </Button>
   );
 }
 

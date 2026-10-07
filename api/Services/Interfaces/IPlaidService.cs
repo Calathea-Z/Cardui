@@ -12,6 +12,14 @@ public interface IPlaidService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asks Plaid for a Link token that repairs one existing bank connection.
+    /// The stored access token is sent to Plaid and is not returned.
+    /// </summary>
+    Task<CreateLinkTokenResponseDto> CreateUpdateLinkTokenAsync(
+        Guid plaidItemId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Exchanges a public token for an access token, stores the protected
     /// token, and syncs that item's accounts and transactions.
     /// The database work is rolled back if the first sync fails.

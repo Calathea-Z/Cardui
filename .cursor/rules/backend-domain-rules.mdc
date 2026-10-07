@@ -10,6 +10,8 @@ in `Domain`. Put work that loads or saves rows in `Services`.
 
 - A pure rule reads values and returns a decision or calculation. It does
   not use the database, HTTP, a clock, or dependency injection.
+- A Domain type goes in `Domain/<feature>` for the feature that owns it.
+  A rule that several features read stays at the `Domain` root.
 - Ledgers, activity totals, merchant history periods, category keys, and
   transfer text classification are pure rules. They live in `Domain`.
 - A shared static operation that uses `CarduiDBContext`, such as

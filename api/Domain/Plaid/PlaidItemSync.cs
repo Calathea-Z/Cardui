@@ -57,6 +57,22 @@ public static class PlaidItemSync
     }
 
     /// <summary>
+    /// True when the latest sync failed after the last success, or failed
+    /// without one. A later success does not need repair.
+    /// </summary>
+    public static bool LastAttemptFailed(
+        DateTimeOffset? completedAt,
+        DateTimeOffset? failedAt)
+    {
+        if (failedAt is not DateTimeOffset failed)
+        {
+            return false;
+        }
+
+        return completedAt is not DateTimeOffset completed || failed > completed;
+    }
+
+    /// <summary>
     /// A finish time that is not earlier than the start, so a fast sync
     /// still closes the hold when the clock has not moved past the start.
     /// </summary>

@@ -156,3 +156,7 @@ not applied, is for `.cursor/rules/backend-type-files.mdc` and
 the feature that owns it. A rule that several features read stays at the
 `Domain` root." Without it, the existing "with the types already there"
 wording still points a new file to the matching folder.
+
+## Correction
+
+October 7, 2026: Zach approved that wording the same day, with reconnect. `.cursor/rules/backend-type-files.mdc`, `backend-domain-rules.mdc`, and `AGENTS.md` now include it. See `2026-10-07-007-reconnect.md`.

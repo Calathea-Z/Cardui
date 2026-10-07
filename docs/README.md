@@ -11,17 +11,14 @@ history. They do not say what is next.
 
 **Now**
 
-- Linked-debt item 6 of "Sync correctness and linked debts" in
-  [`roadmap.md`](roadmap.md): reconnect. The design is
-  [`design/linked-manual-debts.md`](design/linked-manual-debts.md).
-  No schema change is expected. Credit limit is approved in
-  [`reviews/2026-10-07-006-credit-limit.md`](reviews/2026-10-07-006-credit-limit.md).
-  `20261007193207_AddAccountCreditLimit` is in the repo.
+- Phase 3 in [`roadmap.md`](roadmap.md), recovery calculations, scenarios,
+  and a saved plan. Start with item 1. Reconnect is approved in
+  [`reviews/2026-10-07-007-reconnect.md`](reviews/2026-10-07-007-reconnect.md).
 
 **Next**
 
-1. Phase 3 in [`roadmap.md`](roadmap.md), after reconnect. Detail panel
-   keyboard focus stays tracked and is not scheduled.
+1. Phase 3 items 2 onward, after item 1. Detail panel keyboard focus stays
+   tracked and is not scheduled.
 
 **Tracked, not scheduled**
 
@@ -33,10 +30,6 @@ history. They do not say what is next.
 - Where a future Plan screen goes. Targets are `/targets`.
   `.cursor/rules/ui-governance.mdc` keeps three primary destinations and no
   fourth tab until Zach decides otherwise.
-- Whether `.cursor/rules/backend-type-files.mdc` and
-  `backend-domain-rules.mdc` should name the `Domain/<feature>` layout.
-  The proposed wording is in
-  [`reviews/2026-10-07-004-domain-folders.md`](reviews/2026-10-07-004-domain-folders.md).
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
@@ -47,7 +40,7 @@ history. They do not say what is next.
 | --- | --- |
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
-| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, and credit limit are approved. Reconnect is not |
+| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

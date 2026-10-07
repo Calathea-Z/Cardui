@@ -193,7 +193,8 @@ public class PlaidItemSyncServiceTests
             new PlaidItemRemoval(dbContext, time),
             scope,
             NullLogger<PlaidService>.Instance,
-            time);
+            time,
+            null!);
     }
 
     private static CarduiDBContext CreateDbContext(out DbContextOptions<CarduiDBContext> options)

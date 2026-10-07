@@ -49,6 +49,24 @@ public class PlaidController : ControllerBase
     }
 
     /// <summary>
+    /// POST /api/plaid/{plaidItemId}/link-token
+    /// Creates a Plaid Link token that repairs one existing bank connection.
+    /// The access token is not returned.
+    /// </summary>
+    [HttpPost("{plaidItemId:guid}/link-token")]
+    [ProducesResponseType<CreateLinkTokenResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CreateLinkTokenResponseDto>> CreateUpdateLinkToken(
+        Guid plaidItemId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _plaidService.CreateUpdateLinkTokenAsync(
+            plaidItemId,
+            cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// POST /api/plaid/exchange-public-token
     /// Saves a new bank connection and runs the first account and transaction sync.
     /// </summary>

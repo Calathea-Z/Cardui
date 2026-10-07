@@ -440,7 +440,8 @@ public class HouseholdFinancialScopeTests
             new PlaidItemRemoval(dbContext, TimeProvider.System),
             scope,
             NullLogger<PlaidService>.Instance,
-            TimeProvider.System);
+            TimeProvider.System,
+            null!);
     }
 
     private static CarduiDBContext CreateDbContext()

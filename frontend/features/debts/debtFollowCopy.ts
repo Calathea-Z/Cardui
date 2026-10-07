@@ -155,6 +155,21 @@ export function startedFollowingToast(debtName: string, accountLabel: string) {
 }
 
 /**
+ * The bank connection Reconnect can repair, or null when it cannot.
+ * A failing sync still has an item. A removed link does not, so it cannot be repaired in place.
+ */
+export function repairConnectionId(
+  freshness: DebtLinkFreshness,
+  plaidItemId: string | null | undefined,
+) {
+  if (freshness !== "SyncFailing" || !plaidItemId) {
+    return null;
+  }
+
+  return plaidItemId;
+}
+
+/**
  * True when a followed card can record today's balance.
  * A current card uses the form. A missing account is stopped, not updated.
  */

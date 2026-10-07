@@ -13,6 +13,11 @@ export type PlaidItemDto = {
   lastSyncCompletedAt: string | null;
   lastSyncFailedAt: string | null;
   lastSyncError: string | null;
+  /**
+   * True when the latest sync failed after the last success, or failed with no success.
+   * That connection can be repaired in Plaid Link.
+   */
+  needsRepair: boolean;
 };
 
 export type CreatePlaidLinkTokenResponse = {

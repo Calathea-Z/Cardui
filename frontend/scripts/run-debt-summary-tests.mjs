@@ -64,6 +64,7 @@ function group(overrides = {}) {
     missingPromotionalEndCount: 0,
     missingPromotionalRateCount: 0,
     missingRateAfterPromotionCount: 0,
+    staleCount: 0,
     ...overrides,
   };
 }
@@ -149,6 +150,18 @@ test("signals stay short and do not repeat the utilization figure", () => {
   assert.equal(text.includes("30%"), false);
 });
 
+test("a followed balance that is not current is named and still counted", () => {
+  const signals = copy.summarySignals(
+    report([group({ staleCount: 2, recordedBalance: 40 })]),
+  );
+  const text = signals.map((signal) => signal.label).join(" ");
+  assert.match(text, /2 balances are not current/);
+  assert.match(
+    signals.map((signal) => signal.detail ?? "").join(" "),
+    /Still counted/,
+  );
+});
+
 test("a different account balance is labeled beside the one in use", () => {
   const comparison = copy.balanceComparisonCopy(
     842.5,
@@ -176,9 +189,74 @@ test("a different account balance is labeled beside the one in use", () => {
     /totals above use the recorded balance/,
   );
   assert.match(copy.twoBalancesNote(true), /Choose the account balance/);
+  assert.match(
+    copy.twoBalancesNote(true, true),
+    /follows that account from now on/,
+  );
   assert.equal(
     copy.twoBalancesNote(false).includes("Choose the account balance"),
     false,
+  );
+});
+
+test("a missing count names the debts and the blank field", () => {
+  const debts = [
+    { id: "store", name: "Store card", currency: "USD" },
+    { id: "visa", name: "Visa", currency: "USD" },
+    { id: "loan", name: "Car loan", currency: "USD" },
+  ];
+  const item = (debtId, gaps, monthlyInterest = null) => ({
+    debtId,
+    monthlyInterest,
+    rateInEffect: null,
+    rateIsPromotional: false,
+    promotionEnded: false,
+    promotionalEndsOn: null,
+    promoEndsWithinNotice: false,
+    dueDatePassed: false,
+    aprReachesNotice: false,
+    utilizationReachesNotice: false,
+    utilizationReachesLimitNotice: false,
+    gaps,
+    balanceComparison: null,
+  });
+  const full = {
+    ...report([
+      group({
+        unknownInterestCount: 2,
+        unknownMinimumCount: 1,
+        unknownUtilizationCount: 2,
+        missingDueDateCount: 2,
+        missingRemainingTermCount: 1,
+      }),
+    ]),
+    debts: [
+      item("store", ["Apr", "MinimumPayment", "CreditLimit", "DueDate"]),
+      item("visa", ["Balance", "Apr", "CreditLimit", "DueDate"]),
+      item("loan", ["RemainingTerm"], 4),
+    ],
+  };
+
+  const metrics = copy.summaryMetrics(
+    full.currencies[0],
+    full,
+    share,
+    money,
+    debts,
+  );
+  assert.equal(
+    metrics[1].hint,
+    "Store card needs an APR. Visa needs a balance and an APR.",
+  );
+  assert.equal(metrics[2].hint, "Store card needs a minimum.");
+  assert.equal(metrics[3].hint, "Store card and Visa need a credit limit.");
+
+  const missing = copy
+    .summarySignals(full, debts)
+    .find((signal) => signal.label === "Still missing");
+  assert.equal(
+    missing.hint,
+    "Store card and Visa need a due date. Car loan needs the months left.",
   );
 });
 

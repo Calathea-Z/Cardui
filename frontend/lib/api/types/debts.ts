@@ -7,11 +7,46 @@ export const debtKinds = ["Revolving", "Installment"] as const;
 export type DebtKind = (typeof debtKinds)[number];
 
 /**
+ * Where the balance in use came from.
+ * Synced is the connection. Override is a value the person kept. Manual is the debt's own balance.
+ */
+export const debtFieldSources = ["Synced", "Override", "Manual"] as const;
+
+export type DebtFieldSource = (typeof debtFieldSources)[number];
+
+/**
+ * A debt field the person can keep as their own while following an account.
+ * Balance is the only one. Credit limit is not followed yet.
+ */
+export const debtSyncedFields = ["Balance"] as const;
+
+export type DebtSyncedField = (typeof debtSyncedFields)[number];
+
+/**
+ * How current a followed connection is.
+ * Current means the latest snapshot is recent and the last sync succeeded.
+ */
+export const debtLinkFreshness = [
+  "Current",
+  "Stale",
+  "SyncFailing",
+  "Disconnected",
+  "AccountMissing",
+] as const;
+
+export type DebtLinkFreshness = (typeof debtLinkFreshness)[number];
+
+/**
  * One debt stored for the household.
  * A null balance, APR, minimum, due date, limit, term, or promotion is unknown.
  * Zero is a known zero, not a stand-in for unknown.
  * `currency` is the planning currency when the debt was created. An edit does not change it.
  * `accountId` is null when the debt is not linked to a household account.
+ * `following` is true when the debt uses the connected account's balance. A reference link stays false.
+ * `balance` is the amount stored on the debt. `balanceInUse` is the amount the plan uses.
+ * While following without an override, `balanceInUse` is the connected balance and `balance` stays what the person last stored.
+ * `balanceCredit` is the positive credit counted as zero. It is null when the balance is not a credit.
+ * `freshness` is null when the debt is not following. `syncFailedOn` is set only when freshness is SyncFailing.
  * `creditLimit` is set only for a revolving debt. `remainingTermMonths` is set only for an installment debt.
  * `utilization` is the share of the credit limit in use, as a ratio. 0.85 means 85 percent.
  * It is null when the balance or the credit limit is unknown, and it is not stored.
@@ -22,8 +57,18 @@ export type DebtDto = {
   kind: DebtKind;
   accountId: string | null;
   accountName: string | null;
+  following: boolean;
   balance: number | null;
   balanceAsOf: string | null;
+  balanceInUse: number | null;
+  balanceInUseAsOf: string | null;
+  balanceSource: DebtFieldSource;
+  syncedBalance: number | null;
+  syncedBalanceAsOf: string | null;
+  syncedBalanceBlock: DebtAccountBalanceBlock;
+  balanceCredit: number | null;
+  freshness: DebtLinkFreshness | null;
+  syncFailedOn: string | null;
   currency: string;
   apr: number | null;
   minimumPayment: number | null;
@@ -132,6 +177,11 @@ export type DebtCurrencySummaryDto = {
   missingPromotionalEndCount: number;
   missingPromotionalRateCount: number;
   missingRateAfterPromotionCount: number;
+  /**
+   * Followed debts in this currency whose connection is not current.
+   * Their balance is still included in the totals.
+   */
+  staleCount: number;
 };
 
 /**
@@ -166,4 +216,42 @@ export type UpsertDebtDto = {
   remainingTermMonths: number | null;
   promotionalApr: number | null;
   promotionalEndsOn: string | null;
+};
+
+/**
+ * A connected account a debt is allowed to follow.
+ * `balanceInUse` is the amount following would use before the person keeps their own.
+ * `balancesDiffer` is true when the debt already has a different balance.
+ * `balanceCredit` is the positive credit counted as zero. It is null when the balance is not a credit.
+ */
+export type DebtFollowAccountDto = {
+  accountId: string;
+  name: string;
+  mask: string | null;
+  syncedBalance: number | null;
+  syncedBalanceAsOf: string | null;
+  balanceInUse: number | null;
+  balanceInUseAsOf: string | null;
+  block: DebtAccountBalanceBlock;
+  balanceCredit: number | null;
+  balancesDiffer: boolean;
+};
+
+/**
+ * The account to follow, and whether the person's different balance stays as their own value.
+ * `keepOwnBalance` applies only when the amounts differ.
+ */
+export type FollowDebtAccountDto = {
+  accountId: string;
+  keepOwnBalance: boolean;
+};
+
+/**
+ * A balance the person is keeping while a debt follows an account.
+ * `balanceAsOf` null means today in the household time zone. Update balance sends null.
+ * An amount equal to the synced balance is still an override.
+ */
+export type SetDebtBalanceOverrideDto = {
+  balance: number;
+  balanceAsOf: string | null;
 };

@@ -59,4 +59,9 @@ public class DebtCurrencySummaryDto
     public int MissingPromotionalRateCount { get; set; }
 
     public int MissingRateAfterPromotionCount { get; set; }
+
+    /// <summary>
+    /// Followed debts whose connection is not current. Their balance is still included in the totals.
+    /// </summary>
+    public int StaleCount { get; set; }
 }

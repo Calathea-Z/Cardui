@@ -6,6 +6,7 @@ import { Toaster as SonnerToaster } from "sonner";
 /**
  * Mounts Sonner so an action can show a toast.
  * The toast uses the app colors and sits below the phone header.
+ * A warning uses the same ink as the page so it stays on the light shell.
  */
 export function Toaster() {
   return (
@@ -36,4 +37,7 @@ const toasterStyle = {
   "--error-border":
     "color-mix(in oklch, var(--destructive) 40%, var(--border))",
   "--error-text": "var(--destructive)",
+  "--warning-bg": "var(--card)",
+  "--warning-border": "var(--foreground)",
+  "--warning-text": "var(--foreground)",
 } as CSSProperties;

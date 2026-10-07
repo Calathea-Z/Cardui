@@ -37,6 +37,7 @@ export function AccountsPageClient({
   /**
    * Syncs every linked institution, then reloads the accounts page.
    * An empty institution list leaves the page as it is.
+   * A bank that already has a sync running is left to that sync.
    */
   const handleRefreshAll = useCallback(async () => {
     if (plaidItems.length === 0) {

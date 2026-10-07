@@ -141,6 +141,37 @@ test("a stored zero comes back as zero and a missing term comes back blank", () 
   assert.equal(filled.balanceAsOf, "2026-10-01");
 });
 
+test("a balance override needs an amount, and update balance omits the date", () => {
+  const dated = form.toBalanceOverride("10.50", "2026-10-02");
+  assert.equal(dated.ok, true);
+  assert.deepEqual(dated.dto, { balance: 10.5, balanceAsOf: "2026-10-02" });
+
+  const today = form.toTodayBalanceOverride("0");
+  assert.equal(today.ok, true);
+  assert.deepEqual(today.dto, { balance: 0, balanceAsOf: null });
+
+  assert.deepEqual(form.toBalanceOverride("", "2026-10-02"), {
+    ok: false,
+    error: "Enter the balance.",
+  });
+  assert.deepEqual(form.toBalanceOverride("10", ""), {
+    ok: false,
+    error: "Enter the date this balance was true.",
+  });
+});
+
+test("update balance is offered when the connection is not current", async () => {
+  const follow = await loadModule(
+    "features/debts/debtFollowCopy.ts",
+    "debtFollowCopy.mjs",
+  );
+  assert.equal(follow.canUpdateBalance("Stale"), true);
+  assert.equal(follow.canUpdateBalance("SyncFailing"), true);
+  assert.equal(follow.canUpdateBalance("Disconnected"), true);
+  assert.equal(follow.canUpdateBalance("Current"), false);
+  assert.equal(follow.canUpdateBalance("AccountMissing"), false);
+});
+
 test("dates and rates keep their meaning on the card", () => {
   assert.equal(display.formatCalendarDate("2026-10-01"), "Oct 1, 2026");
   assert.equal(display.formatApr(19.99), "19.99%");

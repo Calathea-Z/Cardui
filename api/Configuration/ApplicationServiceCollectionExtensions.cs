@@ -42,6 +42,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ITransferPairingService, TransferPairingService>();
 
         services.AddSingleton<IPlaidRequestExecutor, PlaidRequestExecutor>();
+        services.AddScoped<IPlaidAccountsClient, PlaidAccountsClient>();
         services.AddScoped<IPlaidAccountSyncService, PlaidAccountSyncService>();
         services.AddScoped<IPlaidTransactionPageClient, PlaidTransactionPageClient>();
         services.AddScoped<IPlaidTransactionReconciler, PlaidTransactionReconciler>();

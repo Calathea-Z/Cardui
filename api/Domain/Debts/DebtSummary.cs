@@ -80,6 +80,17 @@ public static class DebtSummary
         return true;
     }
 
+    /// <summary>
+    /// Decides whether a linked balance can be stored on a debt.
+    /// A missing date, a negative amount, a different currency, or an amount above the stored limit cannot.
+    /// </summary>
+    public static DebtAccountBalanceBlock ClassifyLinkedBalance(
+        string debtCurrency,
+        DebtLinkedBalance account)
+    {
+        return Classify(debtCurrency, account);
+    }
+
     #region Private Methods
 
     /// <summary>
@@ -117,7 +128,7 @@ public static class DebtSummary
                 && notice < UtilizationLimitNotice,
             utilization is decimal nearLimit && nearLimit >= UtilizationLimitNotice,
             Gaps(debt, rate, promotional),
-            CompareBalances(debt.Balance, debt.Currency, debt.LinkedBalance));
+            CompareBalances(debt, debt.LinkedBalance));
     }
 
     /// <summary>
@@ -160,7 +171,9 @@ public static class DebtSummary
             GapCount(items, DebtSummaryGap.RemainingTerm),
             GapCount(items, DebtSummaryGap.PromotionalEnd),
             GapCount(items, DebtSummaryGap.PromotionalRate),
-            GapCount(items, DebtSummaryGap.RateAfterPromotion));
+            GapCount(items, DebtSummaryGap.RateAfterPromotion),
+            pairs.Count(pair => pair.Input.Freshness is DebtLinkFreshness freshness
+                && freshness != DebtLinkFreshness.Current));
     }
 
     /// <summary>
@@ -258,20 +271,20 @@ public static class DebtSummary
 
     /// <summary>
     /// Sets a linked card or loan balance beside the debt when the amounts differ.
+    /// A followed debt already uses its resolved balance, so it is not a second choice.
     /// A cash account is not the debt's balance. Matching amounts are not a difference.
     /// </summary>
     private static DebtBalanceComparison? CompareBalances(
-        decimal? debtBalance,
-        string debtCurrency,
+        DebtSummaryInput debt,
         DebtLinkedBalance? linked)
     {
-        if (linked is not { IsLiability: true } account)
+        if (debt.Following || linked is not { IsLiability: true } account)
         {
             return null;
         }
 
         var accountBalance = AccountLedger.Round(account.Balance);
-        decimal? recorded = debtBalance is decimal value
+        decimal? recorded = debt.Balance is decimal value
             ? AccountLedger.Round(value)
             : null;
         if (recorded == accountBalance)
@@ -279,7 +292,7 @@ public static class DebtSummary
             return null;
         }
 
-        var block = Classify(debtCurrency, account);
+        var block = Classify(debt.Currency, account);
         return new DebtBalanceComparison(
             accountBalance,
             account.AsOf,

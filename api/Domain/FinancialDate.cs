@@ -15,8 +15,16 @@ public static class FinancialDate
     /// </summary>
     public static DateOnly Today(TimeProvider timeProvider, string timeZoneId)
     {
+        return InTimeZone(timeProvider.GetUtcNow(), timeZoneId);
+    }
+
+    /// <summary>
+    /// The calendar date of an instant in the household time zone.
+    /// </summary>
+    public static DateOnly InTimeZone(DateTimeOffset instant, string timeZoneId)
+    {
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-        var local = TimeZoneInfo.ConvertTime(timeProvider.GetUtcNow(), timeZone);
+        var local = TimeZoneInfo.ConvertTime(instant, timeZone);
         return DateOnly.FromDateTime(local.DateTime);
     }
 }

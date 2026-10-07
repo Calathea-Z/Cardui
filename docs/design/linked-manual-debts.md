@@ -1,6 +1,6 @@
 # Linked manual debts
 
-Status: Approved for the plan on October 6, 2026. Not built.
+Status: Approved. Follow a balance and balance overrides are built. Later slices are not.
 Date: October 6, 2026
 Updated: 2026-10-07
 
@@ -111,7 +111,7 @@ link does.
 
 | Mode | Meaning | Who sets the balance |
 | --- | --- | --- |
-| Reference (today) | The debt names an account. Nothing is copied. "Two balances" and "Use this balance" work as they do now. | The person |
+| Reference | The debt names an account. Nothing is copied until the person chooses. When that account can be followed, "Use this balance" starts the follow. When it cannot, the balance is copied once. | The person, until they follow |
 | Follow (new) | The debt uses the connected account's synced fields, except where the person set an override. | The connection, field by field |
 
 - Every existing debt with an `AccountId` stays a reference link. The

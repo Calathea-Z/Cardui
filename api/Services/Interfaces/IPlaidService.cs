@@ -42,7 +42,8 @@ public interface IPlaidService
 
     /// <summary>
     /// Syncs accounts and transactions for one item and records whether the
-    /// sync completed or failed.
+    /// sync completed or failed. A second call does not start while a sync
+    /// still holds the item, so two syncs cannot replace today's snapshot together.
     /// </summary>
     Task<SyncPlaidItemResponseDto> SyncPlaidItemAsync(
         Guid plaidItemId,

@@ -1,4 +1,5 @@
 using Cardui.Api.Data;
+using Cardui.Api.Domain;
 using Cardui.Api.Domain.Accounts;
 using Cardui.Api.Domain.Debts;
 using Cardui.Api.Dtos.Debts;
@@ -328,6 +329,232 @@ public class DebtsServiceTests
         Assert.Empty((await other.GetSummaryAsync()).Debts);
     }
 
+    [Fact]
+    public async Task Follow_ReadsTheSnapshotAndDoesNotWriteTheDebtBalance()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var debt = await service.CreateAsync(Card(accountId));
+
+        var choices = await service.GetFollowAccountsAsync(debt.Id);
+        var choice = Assert.Single(choices);
+        Assert.Equal(accountId, choice.AccountId);
+        Assert.True(choice.BalancesDiffer);
+        Assert.Equal(1240.18m, choice.BalanceInUse);
+
+        var followed = await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = accountId });
+
+        Assert.True(followed.Following);
+        Assert.Equal(842.50m, followed.Balance);
+        Assert.Equal(1240.18m, followed.BalanceInUse);
+        Assert.Equal(DebtFieldSource.Synced, followed.BalanceSource);
+        Assert.Equal(DebtLinkFreshness.Current, followed.Freshness);
+        Assert.Equal(900m, await AccountBalanceAsync(dbContext, accountId));
+        var summary = await service.GetSummaryAsync();
+        Assert.Equal(1240.18m, Assert.Single(summary.Currencies).RecordedBalance);
+        Assert.Null(Assert.Single(summary.Debts).BalanceComparison);
+
+        var edited = Card(accountId);
+        edited.Balance = 1m;
+        edited.BalanceAsOf = new DateOnly(2026, 10, 2);
+        edited.Apr = 9m;
+        var saved = await service.UpdateAsync(debt.Id, edited);
+        Assert.Equal(842.50m, saved.Balance);
+        Assert.Equal(1240.18m, saved.BalanceInUse);
+        Assert.Equal(9m, saved.Apr);
+
+        var stopped = await service.StopFollowingAsync(debt.Id);
+        Assert.False(stopped.Following);
+        Assert.Equal(accountId, stopped.AccountId);
+        Assert.Equal(1240.18m, stopped.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 5), stopped.BalanceAsOf);
+        Assert.Equal(1240.18m, stopped.BalanceInUse);
+    }
+
+    [Fact]
+    public async Task Follow_CanKeepTheRecordedBalanceAndRejectsASecondFollow()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var manualId = await AddAccountAsync(dbContext, householdId, "Cash", 20m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var debt = await service.CreateAsync(Card(accountId));
+
+        var kept = await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = accountId, KeepOwnBalance = true });
+        Assert.Equal(DebtFieldSource.Override, kept.BalanceSource);
+        Assert.Equal(842.50m, kept.BalanceInUse);
+        Assert.Equal(1240.18m, kept.SyncedBalance);
+
+        var other = Card(null);
+        other.Name = "Other card";
+        var second = await service.CreateAsync(other);
+        var taken = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.FollowAccountAsync(
+                second.Id,
+                new FollowDebtAccountDto { AccountId = accountId }));
+        Assert.Equal("That account is already followed by another debt.", taken.Message);
+
+        var cash = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.FollowAccountAsync(
+                second.Id,
+                new FollowDebtAccountDto { AccountId = manualId }));
+        Assert.Equal("Choose a connected credit card or loan in this currency.", cash.Message);
+
+        await service.StopFollowingAsync(debt.Id);
+        var again = await service.UseAccountBalanceAsync(debt.Id);
+        Assert.True(again.Following);
+        Assert.Equal(842.50m, again.Balance);
+        Assert.Equal(1240.18m, again.BalanceInUse);
+    }
+
+    [Fact]
+    public async Task UseAccountBalance_FollowsAnEligibleAccountAndCopiesAManualOne()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var debt = await service.CreateAsync(Card(accountId));
+
+        var followed = await service.UseAccountBalanceAsync(debt.Id);
+
+        Assert.True(followed.Following);
+        Assert.Equal(842.50m, followed.Balance);
+        Assert.Equal(1240.18m, followed.BalanceInUse);
+        Assert.Equal(DebtFieldSource.Synced, followed.BalanceSource);
+        Assert.Equal(900m, await AccountBalanceAsync(dbContext, accountId));
+
+        var other = Card(accountId);
+        other.Name = "Other card";
+        var second = await service.CreateAsync(other);
+        var copied = await service.UseAccountBalanceAsync(second.Id);
+        Assert.False(copied.Following);
+        Assert.Equal(1240.18m, copied.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 5), copied.BalanceAsOf);
+    }
+
+    [Fact]
+    public async Task Follow_CountsACardCreditAsZeroAndKeepsItOffTheDebtUntilStopped()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, -42.10m, snapshot: -42.10m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var created = await service.CreateAsync(Card(accountId));
+
+        var followed = await service.FollowAccountAsync(
+            created.Id,
+            new FollowDebtAccountDto { AccountId = accountId });
+        Assert.Equal(0m, followed.BalanceInUse);
+        Assert.Equal(42.10m, followed.BalanceCredit);
+        Assert.Equal(842.50m, followed.Balance);
+
+        var stopped = await service.StopFollowingAsync(created.Id);
+        Assert.Equal(0m, stopped.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 5), stopped.BalanceAsOf);
+        Assert.Null(stopped.BalanceCredit);
+    }
+
+    [Fact]
+    public async Task Override_KeepsThePersonsBalanceEvenWhenItMatchesAndCanReturnToSynced()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var debt = await service.CreateAsync(Card(accountId));
+        await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = accountId });
+
+        var kept = await service.SetOverrideAsync(
+            debt.Id,
+            DebtSyncedField.Balance,
+            new SetDebtBalanceOverrideDto
+            {
+                Balance = 1240.18m,
+                BalanceAsOf = new DateOnly(2026, 10, 2)
+            });
+        Assert.Equal(DebtFieldSource.Override, kept.BalanceSource);
+        Assert.Equal(1240.18m, kept.Balance);
+        Assert.Equal(1240.18m, kept.BalanceInUse);
+        Assert.Equal(new DateOnly(2026, 10, 2), kept.BalanceAsOf);
+        Assert.Equal(1240.18m, kept.SyncedBalance);
+        Assert.Equal(900m, await AccountBalanceAsync(dbContext, accountId));
+
+        var edited = Card(accountId);
+        edited.Balance = 1m;
+        edited.Apr = 9m;
+        var saved = await service.UpdateAsync(debt.Id, edited);
+        Assert.Equal(1240.18m, saved.Balance);
+        Assert.Equal(DebtFieldSource.Override, saved.BalanceSource);
+        Assert.Equal(9m, saved.Apr);
+
+        var synced = await service.ClearOverrideAsync(debt.Id, DebtSyncedField.Balance);
+        Assert.Equal(DebtFieldSource.Synced, synced.BalanceSource);
+        Assert.Equal(1240.18m, synced.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 2), synced.BalanceAsOf);
+        Assert.Equal(1240.18m, synced.BalanceInUse);
+        Assert.Equal(new DateOnly(2026, 10, 5), synced.BalanceInUseAsOf);
+
+        var own = await service.SetOverrideAsync(
+            debt.Id,
+            DebtSyncedField.Balance,
+            new SetDebtBalanceOverrideDto
+            {
+                Balance = 500m,
+                BalanceAsOf = new DateOnly(2026, 10, 3)
+            });
+        var stopped = await service.StopFollowingAsync(own.Id);
+        Assert.False(stopped.Following);
+        Assert.Equal(500m, stopped.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 3), stopped.BalanceAsOf);
+        Assert.Equal(DebtFieldSource.Manual, stopped.BalanceSource);
+    }
+
+    [Fact]
+    public async Task Override_UsesTodayWhenTheDateIsOmittedAndRejectsADebtThatIsNotFollowing()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var debt = await service.CreateAsync(Card(accountId));
+
+        var early = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.SetOverrideAsync(
+                debt.Id,
+                DebtSyncedField.Balance,
+                new SetDebtBalanceOverrideDto { Balance = 10m }));
+        Assert.Equal("This debt is not following an account.", early.Message);
+
+        await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = accountId });
+        var updated = await service.SetOverrideAsync(
+            debt.Id,
+            DebtSyncedField.Balance,
+            new SetDebtBalanceOverrideDto { Balance = 10m });
+        Assert.Equal(DebtFieldSource.Override, updated.BalanceSource);
+        Assert.Equal(10m, updated.BalanceInUse);
+        Assert.Equal(new DateOnly(2026, 10, 5), updated.BalanceAsOf);
+        Assert.Equal(1240.18m, updated.SyncedBalance);
+
+        var blank = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.SetOverrideAsync(
+                debt.Id,
+                DebtSyncedField.Balance,
+                new SetDebtBalanceOverrideDto()));
+        Assert.Equal("Enter the balance.", blank.Message);
+    }
+
     private static UpsertDebtDto Card(Guid? accountId)
     {
         return new UpsertDebtDto
@@ -393,6 +620,46 @@ public class DebtsServiceTests
         };
         dbContext.Accounts.Add(account);
         await dbContext.SaveChangesAsync();
+        return account.Id;
+    }
+
+    private static async Task<Guid> AddConnectedAccountAsync(
+        CarduiDBContext dbContext,
+        Guid householdId,
+        decimal currentBalance,
+        decimal snapshot)
+    {
+        var item = new PlaidItem
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = householdId,
+            PlaidItemId = "item-1",
+            AccessToken = "stored-token",
+            LastSyncCompletedAt = Now,
+            CreatedAt = Now,
+            UpdatedAt = Now
+        };
+        dbContext.PlaidItems.Add(item);
+        var account = new Account
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = householdId,
+            PlaidItemId = item.Id,
+            PlaidAccountId = "account-1",
+            Source = FinancialRecordSource.Plaid,
+            Provenance = FinancialRecordProvenance.PlaidSync,
+            Name = "Visa",
+            Mask = "4821",
+            Type = AccountTypes.Credit,
+            IsoCurrencyCode = "USD",
+            IsActive = true,
+            CurrentBalance = currentBalance,
+            CreatedAt = Now,
+            UpdatedAt = Now
+        };
+        dbContext.Accounts.Add(account);
+        await dbContext.SaveChangesAsync();
+        await AddSnapshotAsync(dbContext, account.Id, new DateOnly(2026, 10, 5), snapshot, "USD");
         return account.Id;
     }
 

@@ -6,7 +6,7 @@ import { Form } from "@/components/ui/form";
 import { DateField } from "@/components/ui/date-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import type { AccountDto } from "@/lib/api/types";
+import type { AccountDto, DebtFieldSource } from "@/lib/api/types";
 import type { DebtFormState } from "./debtFormState";
 import { debtKindOptions, isDebtKind } from "./debtOptions";
 
@@ -18,8 +18,11 @@ type DebtFormProps = {
   storedCurrency: string | null;
   isEditing: boolean;
   isSaving: boolean;
+  following: boolean;
+  balanceSource: DebtFieldSource | null;
   onChange: (form: DebtFormState) => void;
   onPickerOpenChange: (open: boolean) => void;
+  onSaveOwnBalance: (balance: string, balanceAsOf: string) => Promise<boolean>;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 };
 
@@ -27,6 +30,8 @@ type DebtFormProps = {
  * Form for one debt.
  * The type starts unset on a new debt. A blank term stays unknown and is not stored as zero.
  * The linked account can stay blank. A credit limit is asked for a revolving debt, and months left for an installment debt.
+ * While following, the balance and its date stay locked until the person enters their own.
+ * Saving the other terms does not write that balance. The account stays locked too.
  */
 export function DebtForm({
   form,
@@ -36,13 +41,29 @@ export function DebtForm({
   storedCurrency,
   isEditing,
   isSaving,
+  following,
+  balanceSource,
   onChange,
   onPickerOpenChange,
+  onSaveOwnBalance,
   onSubmit,
 }: DebtFormProps) {
   const [showPromotion, setShowPromotion] = useState(
     form.promotionalApr !== "" || form.promotionalEndsOn !== "",
   );
+  const [editingOwnBalance, setEditingOwnBalance] = useState(false);
+  const balanceLocked = following && !editingOwnBalance;
+
+  /**
+   * Saves the open balance as the person's value, then locks the field again.
+   * The rest of the form is left as it is.
+   */
+  async function saveOwnBalance() {
+    const saved = await onSaveOwnBalance(form.balance, form.balanceAsOf);
+    if (saved) {
+      setEditingOwnBalance(false);
+    }
+  }
 
   /**
    * Explains which currency the amounts use, and that a blank term stays unknown.
@@ -109,9 +130,10 @@ export function DebtForm({
             inputMode="decimal"
             autoComplete="off"
             placeholder="Optional"
+            disabled={balanceLocked}
           />
           <span className="font-normal text-muted-foreground">
-            What you owe. Leave blank if you don&apos;t know it.
+            {balanceNote(following, editingOwnBalance, balanceSource)}
           </span>
         </label>
 
@@ -124,11 +146,36 @@ export function DebtForm({
             min="2000-01-01"
             max="2100-12-31"
             onOpenChange={onPickerOpenChange}
+            disabled={balanceLocked}
           />
           <span className="font-normal text-muted-foreground">
             The date that balance was true. Required when you enter a balance.
           </span>
         </div>
+
+        {following ? (
+          editingOwnBalance ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              disabled={isSaving}
+              onClick={() => void saveOwnBalance()}
+            >
+              Save my balance
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              disabled={isSaving}
+              onClick={() => setEditingOwnBalance(true)}
+            >
+              Enter my own value
+            </Button>
+          )
+        ) : null}
 
         <div className="flex flex-col gap-1.5 text-sm font-medium">
           Linked account
@@ -138,9 +185,12 @@ export function DebtForm({
             onChange={(value) => onChange({ ...form, accountId: value })}
             options={accountChoices(accounts, form.accountId, savedAccountName)}
             onOpenChange={onPickerOpenChange}
+            disabled={following}
           />
           <span className="font-normal text-muted-foreground">
-            Optional. The account balance is not copied or changed.
+            {following
+              ? "Stop following before choosing a different account."
+              : "Optional. The account balance is not copied or changed."}
           </span>
         </div>
 
@@ -269,6 +319,30 @@ export function DebtForm({
       </Button>
     </Form>
   );
+}
+
+/**
+ * The note under a followed balance.
+ * Saving the form does not write that balance. Enter my own value does.
+ */
+function balanceNote(
+  following: boolean,
+  editingOwnBalance: boolean,
+  balanceSource: DebtFieldSource | null,
+) {
+  if (!following) {
+    return "What you owe. Leave blank if you don't know it.";
+  }
+
+  if (editingOwnBalance) {
+    return "Save my balance keeps this amount. Save changes keeps the other terms.";
+  }
+
+  if (balanceSource === "Override") {
+    return "This is your balance. The connection does not replace it.";
+  }
+
+  return "This balance follows the connected account.";
 }
 
 /**

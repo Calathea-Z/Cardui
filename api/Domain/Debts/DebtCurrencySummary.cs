@@ -4,6 +4,7 @@ namespace Cardui.Api.Domain.Debts;
 /// Totals for debts that share one currency.
 /// A null total means every amount in that total is unknown. A known zero stays zero and is not a missing amount.
 /// Debts in another currency are not added in.
+/// StaleCount is how many followed debts in this currency are not current. A stale balance is still in the totals.
 /// </summary>
 public sealed record DebtCurrencySummary(
     string Currency,
@@ -28,4 +29,5 @@ public sealed record DebtCurrencySummary(
     int MissingRemainingTermCount,
     int MissingPromotionalEndCount,
     int MissingPromotionalRateCount,
-    int MissingRateAfterPromotionCount);
+    int MissingRateAfterPromotionCount,
+    int StaleCount);

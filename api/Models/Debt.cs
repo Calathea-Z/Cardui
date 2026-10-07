@@ -18,9 +18,13 @@ public class Debt
 
     public Account? Account { get; set; }
 
+    public DateTimeOffset? AccountFollowedSince { get; set; }
+
     public decimal? Balance { get; set; }
 
     public DateOnly? BalanceAsOf { get; set; }
+
+    public DateTimeOffset? BalanceOverriddenAt { get; set; }
 
     public required string Currency { get; set; }
 

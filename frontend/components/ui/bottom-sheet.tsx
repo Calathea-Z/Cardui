@@ -41,6 +41,11 @@ type SheetPresentation = "sheet" | "panel";
 type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
+  /**
+   * Called by the back arrow on a nested step.
+   * Escape and the backdrop still call onClose. When this is omitted, the arrow closes too.
+   */
+  onBack?: () => void;
   title: string;
   children: React.ReactNode;
   className?: string;
@@ -69,6 +74,7 @@ type BottomSheetProps = {
 export function BottomSheet({
   open,
   onClose,
+  onBack,
   title,
   children,
   className,
@@ -164,6 +170,7 @@ export function BottomSheet({
           title={title}
           titleId={titleId}
           onClose={onClose}
+          onBack={onBack}
           headerTrailing={headerTrailing}
         />
 
@@ -180,6 +187,7 @@ type SheetHeaderProps = {
   title: string;
   titleId: string;
   onClose: () => void;
+  onBack?: () => void;
   headerTrailing?: React.ReactNode;
 };
 
@@ -192,6 +200,7 @@ function SheetHeader({
   title,
   titleId,
   onClose,
+  onBack,
   headerTrailing,
 }: SheetHeaderProps) {
   if (action === "panel") {
@@ -215,7 +224,7 @@ function SheetHeader({
       <BackHeader
         title={title}
         titleId={titleId}
-        onClose={onClose}
+        onClose={onBack ?? onClose}
         headerTrailing={headerTrailing}
       />
     );

@@ -1,6 +1,8 @@
 import type {
   DebtBalanceComparisonDto,
   DebtCurrencySummaryDto,
+  DebtSummaryGap,
+  DebtSummaryItemDto,
   DebtSummaryReportDto,
 } from "@/lib/api/types";
 
@@ -12,21 +14,35 @@ type DateText = (value: string) => string;
  * One figure in the summary strip.
  * `known` is false when the figure is unknown, so the screen can quiet that number.
  * `detail` is the short caveat. A complete figure has none.
+ * `hint` names the debts behind that caveat. It is null when the caveat has no debts to name.
  */
 export type SummaryMetric = {
   label: string;
   value: string;
   detail: string | null;
+  hint: string | null;
   known: boolean;
 };
 
 /**
  * One risk or missing-input row under the figures.
  * The label is the fact. The detail is the short context, when there is any.
+ * `hint` names the debts behind a missing-term detail.
  */
 export type SummarySignal = {
   label: string;
   detail: string | null;
+  hint?: string | null;
+};
+
+/**
+ * A debt name used to explain a summary gap.
+ * `currency` keeps the note on the matching currency group.
+ */
+export type SummaryDebtName = {
+  id: string;
+  name: string;
+  currency: string;
 };
 
 /**
@@ -52,13 +68,16 @@ export const summaryInterestNote =
 /**
  * The four summary figures for one currency.
  * A null total is Unknown. A known zero stays an amount. The caveat is a short detail, not a paragraph.
+ * A hint names the debts in this currency that were left out.
  */
 export function summaryMetrics(
   group: DebtCurrencySummaryDto,
   report: DebtSummaryReportDto,
   sharePercent: (ratio: number) => string,
   money: MoneyText,
+  debts: SummaryDebtName[] = [],
 ): SummaryMetric[] {
+  const rows = rowsInCurrency(debts, report.debts, group.currency);
   return [
     metric(
       "Recorded",
@@ -68,6 +87,7 @@ export function summaryMetrics(
       "unknown",
       "unknown",
       money,
+      gapHint(rows, "Balance"),
     ),
     metric(
       "Interest this month",
@@ -77,6 +97,7 @@ export function summaryMetrics(
       "missing input",
       "missing inputs",
       money,
+      interestHint(rows),
     ),
     metric(
       "Minimums",
@@ -86,6 +107,7 @@ export function summaryMetrics(
       "unknown",
       "unknown",
       money,
+      gapHint(rows, "MinimumPayment"),
     ),
     {
       label: "Limits in use",
@@ -94,6 +116,7 @@ export function summaryMetrics(
           ? "Unknown"
           : sharePercent(group.utilization),
       detail: utilizationDetail(group, report, sharePercent),
+      hint: gapHint(rows, "CreditLimit"),
       known: group.utilization !== null,
     },
   ];
@@ -103,9 +126,24 @@ export function summaryMetrics(
  * The risks and missing inputs the four figures do not already show.
  * A balance that differs from its account is not listed here. That choice stays on the debt.
  * A count of zero is left out. There is no score.
+ * A missing-term row names the debts when those names are known.
  */
-export function summarySignals(report: DebtSummaryReportDto): SummarySignal[] {
+export function summarySignals(
+  report: DebtSummaryReportDto,
+  debts: SummaryDebtName[] = [],
+): SummarySignal[] {
   const signals: SummarySignal[] = [];
+  const stale = sum(report, "staleCount");
+  if (stale > 0) {
+    signals.push({
+      label:
+        stale === 1
+          ? "1 balance is not current"
+          : `${stale} balances are not current`,
+      detail: "Still counted",
+    });
+  }
+
   const due = sum(report, "dueDatePassedCount");
   if (due > 0) {
     signals.push({
@@ -143,7 +181,11 @@ export function summarySignals(report: DebtSummaryReportDto): SummarySignal[] {
 
   const missing = missingDetails(report);
   if (missing.length > 0) {
-    signals.push({ label: "Still missing", detail: missing.join(", ") });
+    signals.push({
+      label: "Still missing",
+      detail: missing.join(", "),
+      hint: stillMissingHint(namedRows(debts, report.debts)),
+    });
   }
 
   return signals;
@@ -248,9 +290,14 @@ export const twoBalancesTitle = "Two balances";
 
 /**
  * Says which balance the totals use, and what choosing the account balance does.
+ * When the account can be followed, choosing it starts that follow. Otherwise it copies the balance once.
  * When the account balance cannot be stored, the line does not offer that choice.
  */
-export function twoBalancesNote(canChoose: boolean) {
+export function twoBalancesNote(canChoose: boolean, startsFollow = false) {
+  if (canChoose && startsFollow) {
+    return "The totals above use the recorded balance. Choosing the account balance follows that account from now on.";
+  }
+
   if (canChoose) {
     return "The totals above use the recorded balance. Choose the account balance if you want them to use that instead.";
   }
@@ -298,11 +345,13 @@ function metric(
   singular: string,
   plural: string,
   money: MoneyText,
+  hint: string | null,
 ): SummaryMetric {
   return {
     label,
     value: amount === null ? "Unknown" : money(amount, currency),
     detail: unknownDetail(unknownCount, singular, plural),
+    hint,
     known: amount !== null,
   };
 }
@@ -395,6 +444,140 @@ function missingDetails(report: DebtSummaryReportDto) {
 /**
  * Adds one missing-term phrase when the count is above zero.
  */
+const gapPhrase: Record<DebtSummaryGap, string> = {
+  Balance: "a balance",
+  Apr: "an APR",
+  MinimumPayment: "a minimum",
+  DueDate: "a due date",
+  CreditLimit: "a credit limit",
+  RemainingTerm: "the months left",
+  PromotionalEnd: "a promo end date",
+  PromotionalRate: "a promo rate",
+  RateAfterPromotion: "an APR after the promo",
+};
+
+const stillMissingGaps = [
+  "DueDate",
+  "RemainingTerm",
+  "PromotionalEnd",
+  "PromotionalRate",
+  "RateAfterPromotion",
+] as const satisfies readonly DebtSummaryGap[];
+
+type GapRow = {
+  name: string;
+  gaps: DebtSummaryGap[];
+  monthlyInterest: number | null;
+};
+
+/**
+ * Names the debts in one currency that are missing one fact.
+ * An empty match returns null so the caveat stays a count.
+ */
+function gapHint(rows: GapRow[], gap: DebtSummaryGap) {
+  const names = rows
+    .filter((row) => row.gaps.includes(gap))
+    .map((row) => row.name);
+  return names.length === 0 ? null : namesNeed(names, gapPhrase[gap]);
+}
+
+/**
+ * Names why interest could not be estimated.
+ * Debts missing the same facts share one sentence.
+ */
+function interestHint(rows: GapRow[]) {
+  const groups = new Map<string, string[]>();
+  for (const row of rows) {
+    if (row.monthlyInterest !== null) {
+      continue;
+    }
+
+    const parts = (["Balance", "Apr"] as const)
+      .filter((gap) => row.gaps.includes(gap))
+      .map((gap) => gapPhrase[gap]);
+    const phrase = parts.length > 0 ? joinList(parts) : "an interest input";
+    const names = groups.get(phrase) ?? [];
+    names.push(row.name);
+    groups.set(phrase, names);
+  }
+
+  if (groups.size === 0) {
+    return null;
+  }
+
+  return [...groups.entries()]
+    .map(([phrase, names]) => namesNeed(names, phrase))
+    .join(" ");
+}
+
+/**
+ * Names the debts behind the terms that are not already on the four figures.
+ */
+function stillMissingHint(rows: GapRow[]) {
+  const sentences = stillMissingGaps
+    .map((gap) => gapHint(rows, gap))
+    .filter((sentence) => sentence !== null);
+  return sentences.length > 0 ? sentences.join(" ") : null;
+}
+
+/**
+ * Joins debt names with the fact they still need.
+ */
+function namesNeed(names: string[], phrase: string) {
+  const verb = names.length === 1 ? "needs" : "need";
+  return `${joinList(names)} ${verb} ${phrase}.`;
+}
+
+/**
+ * Joins a list with commas and a final "and".
+ * One item stays as it is.
+ */
+function joinList(parts: string[]) {
+  if (parts.length <= 1) {
+    return parts[0] ?? "";
+  }
+
+  if (parts.length === 2) {
+    return `${parts[0]} and ${parts[1]}`;
+  }
+
+  return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+}
+
+/**
+ * Pairs summary rows with debt names in one currency.
+ * A debt from another currency stays out of this group's note.
+ */
+function rowsInCurrency(
+  debts: SummaryDebtName[],
+  items: DebtSummaryItemDto[],
+  currency: string,
+) {
+  return namedRows(debts, items).filter((row) => row.currency === currency);
+}
+
+/**
+ * Pairs every summary row with its debt name.
+ * A summary row with no matching debt is left out.
+ */
+function namedRows(debts: SummaryDebtName[], items: DebtSummaryItemDto[]) {
+  return items.flatMap((item) => {
+    const debt = debts.find((entry) => entry.id === item.debtId);
+    if (!debt) {
+      return [];
+    }
+
+    return [
+      {
+        name: debt.name,
+        currency: debt.currency,
+        gaps: item.gaps,
+        monthlyInterest: item.monthlyInterest,
+      },
+    ];
+  });
+}
+
 function pushMissing(
   details: string[],
   countValue: number,

@@ -11,20 +11,16 @@ history. They do not say what is next.
 
 **Now**
 
-- Documentation cleanup: awaiting Zach's review in
-  [`reviews/2026-10-07-001-documentation-cleanup.md`](reviews/2026-10-07-001-documentation-cleanup.md).
 - Domain folders: awaiting Zach's review in
-  [`reviews/2026-10-07-002-domain-folders.md`](reviews/2026-10-07-002-domain-folders.md).
+  [`reviews/2026-10-07-004-domain-folders.md`](reviews/2026-10-07-004-domain-folders.md).
   `api/Domain` is grouped into feature folders. No behavior changed.
 
 **Next**
 
-1. Sync correctness, item 1 of "Sync correctness and linked debts" in
-   [`roadmap.md`](roadmap.md): `PlaidAccountSyncService` tests, a guard for
-   overlapping worker and manual sync, and interrupted-sync timestamps. The
-   Plaid transaction reconciliation tests are already done
-   ([`reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`](reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md)).
-2. Linked-debt items 2–6 in the same roadmap section.
+1. Linked-debt item 4 of "Sync correctness and linked debts" in
+   [`roadmap.md`](roadmap.md): suggested matches. The design is
+   [`design/linked-manual-debts.md`](design/linked-manual-debts.md).
+   Items 5–6 follow it. No schema change.
 
 **Tracked, not scheduled**
 
@@ -39,7 +35,7 @@ history. They do not say what is next.
 - Whether `.cursor/rules/backend-type-files.mdc` and
   `backend-domain-rules.mdc` should name the `Domain/<feature>` layout.
   The proposed wording is in
-  [`reviews/2026-10-07-002-domain-folders.md`](reviews/2026-10-07-002-domain-folders.md).
+  [`reviews/2026-10-07-004-domain-folders.md`](reviews/2026-10-07-004-domain-folders.md).
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
@@ -50,7 +46,7 @@ history. They do not say what is next.
 | --- | --- |
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
-| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design, approved and not built |
+| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance and balance overrides are built. Later slices are not |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

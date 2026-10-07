@@ -1,3 +1,4 @@
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Debts;
 
 namespace Cardui.Api.Services.Interfaces;
@@ -6,7 +7,8 @@ public interface IDebtsService
 {
     /// <summary>
     /// Lists the signed-in household's debts, ordered by name.
-    /// A null term is unknown. Utilization is calculated when the balance and credit limit are both known.
+    /// A null term is unknown. Utilization uses the balance in use and the credit limit when both are known.
+    /// A followed debt's balance in use is the connected balance, except where the person kept their own.
     /// </summary>
     Task<IReadOnlyList<DebtDto>> GetDebtsAsync(
         CancellationToken cancellationToken = default);
@@ -25,6 +27,7 @@ public interface IDebtsService
     /// Updates a debt's type, balance, terms, and linked account.
     /// The currency stored at creation stays, so a later planning-currency change does not relabel the amounts.
     /// Clearing a term stores it as unknown. The linked account balance is not changed.
+    /// While the debt is following, the balance and the linked account stay as they are.
     /// </summary>
     Task<DebtDto> UpdateAsync(
         Guid debtId,
@@ -41,17 +44,65 @@ public interface IDebtsService
 
     /// <summary>
     /// Builds the summary of the household's debts.
-    /// Interest and utilization use each debt's dated balance.
-    /// A linked account balance is shown when it differs, and it is not copied until chosen.
+    /// Interest and utilization use each debt's balance in use.
+    /// A reference link shows the account balance when it differs, and it is not copied until chosen.
+    /// A followed balance that is not current is still counted, and the summary names how many are not current.
     /// </summary>
     Task<DebtSummaryReportDto> GetSummaryAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Stores the linked account's dated balance on the debt.
-    /// The account balance, APR, minimum, and due date stay as they are.
+    /// Uses the linked account's balance for this debt.
+    /// When that account can be followed, the debt starts following it and the stored balance stays.
+    /// Otherwise the dated balance is copied onto the debt once. APR, minimum, and due date stay as they are.
+    /// A debt that already follows the account is rejected.
     /// </summary>
     Task<DebtDto> UseAccountBalanceAsync(
         Guid debtId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists the connected credit cards and loans this debt may follow.
+    /// An account already followed by another debt is left out. A manual account is left out.
+    /// </summary>
+    Task<IReadOnlyList<DebtFollowAccountDto>> GetFollowAccountsAsync(
+        Guid debtId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Makes the debt follow one eligible account.
+    /// The debt's stored balance stays. KeepOwnBalance records it as the person's value when the amounts differ.
+    /// </summary>
+    Task<DebtDto> FollowAccountAsync(
+        Guid debtId,
+        FollowDebtAccountDto dto,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Stops following and keeps the last balance on the debt.
+    /// A synced balance is copied once. An override stays as the person's value. The account link remains.
+    /// </summary>
+    Task<DebtDto> StopFollowingAsync(
+        Guid debtId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Keeps the person's balance while the debt follows an account.
+    /// The amount is stored even when it matches the synced balance. A missing date means today.
+    /// A debt that is not following is rejected. Sync does not clear this.
+    /// </summary>
+    Task<DebtDto> SetOverrideAsync(
+        Guid debtId,
+        DebtSyncedField field,
+        SetDebtBalanceOverrideDto dto,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Clears the person's balance so the debt uses the synced balance again.
+    /// The stored amount stays until the debt stops following. A debt that is not following is rejected.
+    /// </summary>
+    Task<DebtDto> ClearOverrideAsync(
+        Guid debtId,
+        DebtSyncedField field,
         CancellationToken cancellationToken = default);
 }

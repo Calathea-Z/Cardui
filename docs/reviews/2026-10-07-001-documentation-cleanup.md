@@ -1,7 +1,7 @@
 # Documentation cleanup
 
 Date: October 7, 2026
-Status: Awaiting review
+Status: Approved 2026-10-07
 PR: from `cursor/docs-cleanup-9b44`
 
 ## Increment
@@ -122,6 +122,10 @@ changes.
    Expected: the item table, the next step, and no "paused" tests.
 4. Read `.cursor/rules/security.mdc` and `.cursor/rules/handoff.mdc`.
    Expected: the wording you approved.
+
+## Approval
+
+Zach approved this increment on October 7, 2026.
 
 ## Pending decision
 

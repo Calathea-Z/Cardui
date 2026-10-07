@@ -291,6 +291,9 @@ namespace Cardui.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("AccountFollowedSince")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid?>("AccountId")
                         .HasColumnType("uuid");
 
@@ -304,6 +307,9 @@ namespace Cardui.Api.Migrations
 
                     b.Property<DateOnly?>("BalanceAsOf")
                         .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("BalanceOverriddenAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -352,7 +358,10 @@ namespace Cardui.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Debts_AccountId_Followed")
+                        .HasFilter("\"AccountFollowedSince\" IS NOT NULL");
 
                     b.HasIndex("HouseholdId", "Name");
 

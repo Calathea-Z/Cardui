@@ -2,7 +2,7 @@
 
 Date: October 7, 2026
 Status: Awaiting review
-PR: from `cursor/domain-feature-folders-2e70`
+PR: [#26](https://github.com/Calathea-Z/Cardui/pull/26), from `cursor/domain-feature-folders-2e70`
 
 ## Increment
 

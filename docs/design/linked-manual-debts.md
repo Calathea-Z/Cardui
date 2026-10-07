@@ -76,7 +76,7 @@ All of this is on `main` as of October 6, 2026.
   stay. Accounts are archived, not deleted, through the API.
 - `worker/Program.cs` runs one daily sync per item. A manual sync can run
   through `POST /api/plaid/{id}/sync`. Overlapping worker and manual sync is
-  still open in `docs/Recovery-Application-Action-Plan.md` and in every
+  still open in `docs/roadmap.md` and in every
   review since `docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`.
 - Tests cover `PlaidTransactionReconciler`, `PlaidTransactionSyncService`,
   and `PlaidItemRemoval` (`tests/Cardui.Tests/Services`). There is no test
@@ -337,7 +337,7 @@ The daily worker does not need it, and this design does not use it.
 
 ## Slices
 
-Each slice is one review. Each one leaves the app working. The action plan
+Each slice is one review. Each one leaves the app working. The roadmap
 lists slices 0 to 5 as items 1 to 6 of "Sync correctness and linked debts",
 between Phase 2 items 5 and 6.
 
@@ -462,7 +462,7 @@ use. Do not assume them:
   and support varies by institution.
 - **Cost.** Liabilities is billed separately from Transactions. The amount
   depends on the plan. Record it next to the other bank-link costs the
-  action plan asks to measure.
+  roadmap asks to measure.
 - **Consent.** The link token asks only for Transactions today. Existing
   connections would need the person to consent again, through update mode
   or an added product, before Liabilities data arrives.

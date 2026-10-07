@@ -15,9 +15,9 @@ Phase 1 was not started. No PostgreSQL CI job was added.
 - Updated checklist section 7 so it asks for the Monthly Activity panel that
   has existed since October 2, 2026.
 - Added a Phase 0 baseline record to
-  `docs/Original-MVP-Acceptance-Checklist.md` with the earlier confirmations
+  `docs/checklists/original-mvp-acceptance.md` with the earlier confirmations
   and the retained limitations.
-- Marked Phase 0 closed in `docs/Recovery-Application-Action-Plan.md` and
+- Marked Phase 0 closed in `docs/roadmap.md` and
   pointed the September 25 audit assessment at that status.
 
 ## Agent verification

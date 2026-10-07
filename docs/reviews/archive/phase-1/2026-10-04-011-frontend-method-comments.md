@@ -103,5 +103,5 @@ No screen or data change. Spot-check the comments, or waive this list.
 ## Pending decision
 
 Zach approved the rule below on October 4, 2026. It was recorded in
-`docs/reviews/2026-10-04-012-frontend-comment-rule.md`. Phase 2 item 1,
+`docs/reviews/archive/phase-1/2026-10-04-012-frontend-comment-rule.md`. Phase 2 item 1,
 income sources, is the next product increment.

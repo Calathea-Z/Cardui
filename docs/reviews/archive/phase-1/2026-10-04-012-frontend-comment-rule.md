@@ -43,6 +43,6 @@ Please read the rules, or waive them.
 
 ## Pending decision
 
-Phase 2 item 1 in `docs/Recovery-Application-Action-Plan.md` is next:
+Phase 2 item 1 in `docs/roadmap.md` is next:
 capture income sources, take-home amount, cadence, next payment date,
 contributor, and reliability.

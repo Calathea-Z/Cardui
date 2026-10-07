@@ -12,7 +12,7 @@ accessibility rules. No application UI changed.
 
 - The rules are in `.cursor/rules/ui-governance.mdc`.
 - `AGENTS.md` and `frontend/AGENTS.md` each point at that file.
-- `docs/ui-direction.md` points at that file and stays the plan.
+- `docs/design/ui-direction.md` points at that file and stays the plan.
 
 ## Data changes
 

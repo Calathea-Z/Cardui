@@ -125,7 +125,7 @@ A failed item sets a non-zero exit code. An empty item list exits without syncin
 works and does what this section expects. This record does not include worker logs,
 per-item added, modified, or removed counts, or a new transaction-count check.
 Account synchronization and user edits surviving sync remain the confirmation in
-`docs/reviews/2026-10-03-002-preserve-transaction-user-edits.md`.
+`docs/reviews/archive/phase-0/2026-10-03-002-preserve-transaction-user-edits.md`.
 
 ## 7. Review dashboard summaries
 
@@ -141,8 +141,8 @@ Account synchronization and user edits surviving sync remain the confirmation in
 Expected result: the API summary and the visible This month panel reconcile to
 the same controlled transactions. Home showed this panel as Monthly Activity before
 October 5, 2026. Those summaries were added on October 2, 2026 and
-confirmed in `docs/reviews/2026-10-02-003-dashboard-spending-and-financial-totals.md`
-and `docs/reviews/2026-10-02-004-transaction-activity-conventions.md`.
+confirmed in `docs/reviews/archive/phase-0/2026-10-02-003-dashboard-spending-and-financial-totals.md`
+and `docs/reviews/archive/phase-0/2026-10-02-004-transaction-activity-conventions.md`.
 
 ## 8. Record the outcome
 

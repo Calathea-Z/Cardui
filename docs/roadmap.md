@@ -1,9 +1,9 @@
-# Cardui financial recovery application: action plan
+# Cardui roadmap
 
 Status: Approved. Direction approved October 2, 2026.
 Updated: 2026-10-07
 
-Prepared September 25, 2026. Zach approved the direction on October 2, 2026 (`docs/reviews/2026-10-02-001-recovery-roadmap-direction.md`). It was based on the repository at that time, Zach's private planning notes in an untracked `Plan.md` (gitignored, not in the repository), the planning conversation, and the supplied capability inventory. Release boundaries below are recommendations, not approved scope cuts.
+Prepared September 25, 2026. Zach approved the direction on October 2, 2026 (`docs/reviews/archive/phase-0/2026-10-02-001-recovery-roadmap-direction.md`). It was based on the repository at that time, Zach's private planning notes in an untracked `Plan.md` (gitignored, not in the repository), the planning conversation, and the supplied capability inventory. Release boundaries below are recommendations, not approved scope cuts.
 
 What is being worked on now, what comes next, and open decisions are in [`docs/README.md`](README.md). The status paragraphs below record what each phase built.
 
@@ -38,58 +38,11 @@ Recommendations must show the assumptions, tradeoffs and reason for the ordering
 
 ## 2. Audit scope and verification
 
-> Historical: sections 2 and 3 are the September 25, 2026 audit snapshot. The implementation anchors and checks below were no longer true by October 3–4 (sign-in, household scope, and records independent of Plaid). Current status is in [`docs/README.md`](README.md).
-
-The original specification was Zach's private `Plan.md`, which is gitignored and not in the repository. It describes a personal-use dashboard, an eight-item Phase 1 MVP, later budgeting and debt screens, and future enhancements. Its progress and technology sections are stale: the API now targets .NET 10, and the frontend uses Next.js 16 / React 19.
-
-This is a source-code and local-check audit. It does not establish production deployment, live bank connectivity, scheduled worker execution, browser usability, or security readiness.
-
-Checks run during this audit:
-
-- `dotnet test Cardui.sln --no-restore`: 35 passed, 0 failed.
-- `npm test` in frontend: 12 passed, 0 failed across the three existing script suites.
-- `npm run lint` in frontend: passed after rerunning outside the filesystem sandbox.
-- No production build, live Plaid exercise, database migration, or browser walkthrough was performed.
-
-Existing tests cover selected transaction/category services, mapping, validation, transfer classification, and frontend utilities. Passing them does not establish coverage of syncing, household isolation, financial forecasting, or complete user journeys.
+The September 25, 2026 audit this roadmap started from is archived in [`docs/archive/2026-09-25-recovery-audit.md`](archive/2026-09-25-recovery-audit.md). Zach's original specification is a private `Plan.md`, gitignored and not in the repository.
 
 ## 3. Original specification versus current implementation
 
-| Original requirement | Current evidence | Remaining work |
-| --- | --- | --- |
-| Connect bank through Plaid | Link UI, token exchange, protected token storage, initial sync | Live acceptance check; connection repair and removal lifecycle |
-| Retrieve accounts | Account sync services, account API and views | Verify representative account types and balance freshness |
-| Retrieve and store transactions | Cursor-based added/modified/removed sync and EF persistence | Exercise failure/retry, pending replacement, concurrent sync, and duplicate cases |
-| View transactions | Search, account/category/pending filters, pagination, detail drawers | End-to-end verification and reconciliation edge cases |
-| View balances | Account groups, available/current balance DTOs, history charts | Verify display completeness, missing balance handling, and history continuity |
-| View spending by category | Summary API computes category totals | Current dashboard widget registry renders accounts and recent transactions only; add spending presentation |
-| View monthly spending | Summary API computes current-month income/spending | Add visible monthly summary and clear period labels; month selection is a useful extension |
-| Dashboard net worth/cash/credit/income versus expenses | Account summary and dashboard services exist | Unify net-worth definitions; expose missing summary information |
-| Manual categorization, merchant details, notes | Implemented through transaction UI and APIs; merchant history added | Verify edits survive later synchronization |
-| Monthly category budgets, progress, remaining | Budgets route is a coming-soon placeholder | Entire budget model, API, calculations, and UI |
-| Debt balances, rates, payments, snowball/avalanche | Linked account balances exist | Debt terms, inventory UI, payment rules, payoff engine and comparisons |
-| Background synchronization | One-shot worker and Railway scheduling instructions exist | Verify actual deployment/schedule, durable keys, concurrency and retry handling |
-| Net-worth history | Balance snapshots and grouped history already exist | Validate missing dates/account changes; avoid treating partial snapshots as real drops |
-| Assets, goals, rules, tags, monthly snapshots | No dedicated implementations found for these planned additions | Prioritize recovery goals; defer general tags/rules/assets unless needed |
-| Webhooks, reminders, receipts, PWA/native, AI categorization | Not established by inspected implementation | Phase later according to recovery value |
-| Investment tracking | Investment balance grouping exists | Holdings/performance tracking remains a separate later capability |
-
-**Assessment:** the transaction/account foundation is substantially implemented. The original Phase 1 is not fully closed because spending presentation and live acceptance evidence remain missing. The broader original budget/debt vision and the new recovery experience remain to be built.
-
-That assessment describes the September 25, 2026 audit. Phase 0 closed the local baseline on October 3, 2026; the current status and retained limitations are in section 5 and `docs/Original-MVP-Acceptance-Checklist.md`.
-
-Key implementation anchors:
-
-- `frontend/features/dashboard/dashboard-widgets.tsx`: current visible dashboard widgets.
-- `api/Services/Implementations/DashboardService.cs`: summary calculates net worth as cash minus credit cards.
-- `api/Services/Implementations/AccountsService.cs`: account summary includes investments and loans in net worth; history aggregates snapshots by date.
-- `frontend/app/budgets/page.tsx`: budget placeholder.
-- `api/Models/Account.cs` and `Transaction.cs`: require Plaid linkage/identifiers; manual data needs model changes.
-- `api/Data/CarduiDBContext.cs`: no user/household/budget/debt-plan/conversation entities.
-- `api/Configuration/WebApplicationExtensions.cs`: no authentication/authorization middleware in inspected pipeline.
-- `api/Services/Implementations/PlaidService.cs`: configured default client user ID; no repair/removal endpoints in current controller.
-- `api/Configuration/ApplicationServiceCollectionExtensions.cs`: token protection and optional persisted key path exist.
-- `worker/Program.cs`: iterates all Plaid items and invokes existing sync services.
+Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 ## 4. Release boundaries
 
@@ -113,7 +66,7 @@ Key implementation anchors:
 
 **Exit:** dashboard and account totals agree for the same data; original Phase 1 has a documented acceptance walkthrough; repeated imports do not duplicate activity or lose user edits. Record remaining live-environment limitations explicitly.
 
-**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/Original-MVP-Acceptance-Checklist.md`. Phase 1 followed and closed on October 4, 2026.
+**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/checklists/original-mvp-acceptance.md`. Phase 1 followed and closed on October 4, 2026.
 
 ### Phase 1 — Ownership, manual data, and durable financial facts
 
@@ -128,7 +81,7 @@ Key implementation anchors:
 
 **Exit:** two test households cannot access each other's records through any ID or aggregate endpoint; existing data remains intact; a new person can use the app without connecting a bank.
 
-**Status (October 4, 2026):** Sign-in is locked to Clerk Hobby. The frontend requires a signed-in Clerk user, and the API verifies that session token, creates one household per owner, and scopes financial reads and writes to that household. Contributors remain household facts, without partner invitations. The local unscoped bank connections, and the custom categories and subgroup, were assigned to that household on October 3, 2026. Linked accounts and transactions still follow the Plaid item. They can also exist without one: external ids are optional, and each row stores source and provenance. Existing linked rows remain `Plaid` / `PlaidSync` and keep their ids. System categories and subgroups stay shared. Category and sub-group names and keys are unique inside a household together with the system rows, after `20261004142305_ScopeHouseholdCategoryNames`. `AddHouseholdOwner`, `ScopeHouseholdData`, `IndependentFinancialRecords`, `ManualFinancialRecords`, and `FinancialProfile` are in the API project. Manual accounts and transactions can be created, edited, archived, and reconciled. An opening balance is stored on the account and is not income. A statement difference is an adjustment, and that adjustment is excluded from income and spending. Financial profile preferences store one planning currency, a household time zone, and named contributors with a visibility flag. Totals include a blank currency and leave any other currency out, with a notice, until conversion exists. `FinancialProfile` was applied to the API database. CSV import with preview, column mapping, duplicate detection, and batch undo was approved on October 4, 2026. Manual entry remains. `20261004174550_AddTransactionImports` is applied. Item 8 was approved on October 4, 2026. The API and worker start without Plaid credentials. Bank linking and sync stay off until client id, secret, and environment are all set. A partial set still stops startup. Phase 1 items 1–8 are done. The CSV import UX section below was approved on October 4, 2026, and Phase 2 followed. Multifactor authentication, passkeys, a configurable session lifetime, and removal of Clerk branding wait until a Pro upgrade. See `docs/reviews/2026-10-03-007-phase-1-sign-in-decision.md`, `docs/reviews/2026-10-03-008-clerk-household-owner.md`, `docs/reviews/2026-10-03-009-household-scope.md`, `docs/reviews/2026-10-03-010-assign-household-rows.md`, `docs/reviews/2026-10-03-011-independent-financial-records.md`, `docs/reviews/2026-10-03-012-manual-accounts-and-transactions.md`, `docs/reviews/2026-10-03-013-financial-profile.md`, `docs/reviews/2026-10-04-008-csv-import.md`, `docs/reviews/2026-10-04-009-optional-plaid.md`, and `docs/reviews/2026-10-04-010-csv-import-ux.md`.
+**Status (October 4, 2026):** Sign-in is locked to Clerk Hobby. The frontend requires a signed-in Clerk user, and the API verifies that session token, creates one household per owner, and scopes financial reads and writes to that household. Contributors remain household facts, without partner invitations. The local unscoped bank connections, and the custom categories and subgroup, were assigned to that household on October 3, 2026. Linked accounts and transactions still follow the Plaid item. They can also exist without one: external ids are optional, and each row stores source and provenance. Existing linked rows remain `Plaid` / `PlaidSync` and keep their ids. System categories and subgroups stay shared. Category and sub-group names and keys are unique inside a household together with the system rows, after `20261004142305_ScopeHouseholdCategoryNames`. `AddHouseholdOwner`, `ScopeHouseholdData`, `IndependentFinancialRecords`, `ManualFinancialRecords`, and `FinancialProfile` are in the API project. Manual accounts and transactions can be created, edited, archived, and reconciled. An opening balance is stored on the account and is not income. A statement difference is an adjustment, and that adjustment is excluded from income and spending. Financial profile preferences store one planning currency, a household time zone, and named contributors with a visibility flag. Totals include a blank currency and leave any other currency out, with a notice, until conversion exists. `FinancialProfile` was applied to the API database. CSV import with preview, column mapping, duplicate detection, and batch undo was approved on October 4, 2026. Manual entry remains. `20261004174550_AddTransactionImports` is applied. Item 8 was approved on October 4, 2026. The API and worker start without Plaid credentials. Bank linking and sync stay off until client id, secret, and environment are all set. A partial set still stops startup. Phase 1 items 1–8 are done. The CSV import UX section below was approved on October 4, 2026, and Phase 2 followed. Multifactor authentication, passkeys, a configurable session lifetime, and removal of Clerk branding wait until a Pro upgrade. See `docs/reviews/archive/phase-1/2026-10-03-007-phase-1-sign-in-decision.md`, `docs/reviews/archive/phase-1/2026-10-03-008-clerk-household-owner.md`, `docs/reviews/archive/phase-1/2026-10-03-009-household-scope.md`, `docs/reviews/archive/phase-1/2026-10-03-010-assign-household-rows.md`, `docs/reviews/archive/phase-1/2026-10-03-011-independent-financial-records.md`, `docs/reviews/archive/phase-1/2026-10-03-012-manual-accounts-and-transactions.md`, `docs/reviews/archive/phase-1/2026-10-03-018-financial-profile.md`, `docs/reviews/archive/phase-1/2026-10-04-008-csv-import.md`, `docs/reviews/archive/phase-1/2026-10-04-009-optional-plaid.md`, and `docs/reviews/archive/phase-1/2026-10-04-010-csv-import-ux.md`.
 
 ### CSV import UX — after Phase 1 item 8, before Phase 2
 
@@ -136,7 +89,7 @@ Key implementation anchors:
 2. Keep the approved behavior: preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo.
 3. Leave fitting the sheet to phone and desktop, plus the broader keyboard and screen-reader pass, for Phase 6 item 4.
 
-**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/2026-10-04-010-csv-import-ux.md`.
+**Status (October 4, 2026):** Approved. The import sheet is a sequence: choose the account and file, map columns, preview and choose rows, then import. The mapping step says which column becomes the date, the name, and the amount, and the column names from the file are already selected. Preview, column mapping, duplicate detection, opening-date and future-date checks, and batch undo are unchanged. Undo for an open batch is on the first step and again after an import. Phone and desktop layout stay in Phase 6 item 4. See `docs/reviews/archive/phase-1/2026-10-04-010-csv-import-ux.md`.
 
 ### Phase 2 — Financial inventory and real budgeting
 
@@ -196,7 +149,7 @@ A model change in items 2 and 5 updates the model and `DbContext` configuration,
 
 These are not scheduled into a phase yet. Each is one review when it is picked up.
 
-1. Detail panel keyboard focus. While a record panel or full-screen sheet is open, and while a nested picker is open inside it, Tab and Shift+Tab stay inside the top surface. Escape closes only that surface. When it closes, focus returns to the control that opened it. Today the panel moves focus into itself when it opens, but Tab can leave it and focus does not return to the opener. Found in `docs/reviews/2026-10-05-005-ui-review-notes.md`. Required by `.cursor/rules/ui-governance.mdc` section 3. No schema change.
+1. Detail panel keyboard focus. While a record panel or full-screen sheet is open, and while a nested picker is open inside it, Tab and Shift+Tab stay inside the top surface. Escape closes only that surface. When it closes, focus returns to the control that opened it. Today the panel moves focus into itself when it opens, but Tab can leave it and focus does not return to the opener. Found in `docs/reviews/2026-10-05-017-ui-review-notes.md`. Required by `.cursor/rules/ui-governance.mdc` section 3. No schema change.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 
@@ -340,6 +293,6 @@ Measure completed first plans, time/effort to reach them, unresolved inputs, suc
 
 Adopted defaults: single planning currency, one household owner with multiple contributors, and manual input available. Proposed defaults for Phase 3 and later: conservative income baseline, protected operating cash, avalanche as the comparison baseline, payment rollover enabled in projections, user-reviewed plan changes, no automated financial transactions, and direct editing alongside chat.
 
-Authentication is chosen: Clerk Hobby (`docs/reviews/2026-10-03-007-phase-1-sign-in-decision.md`). Before release, choose the hosting configuration, validate model quality and actual pricing, confirm the supported launch jurisdiction/currency, and establish boundaries for specialized financial topics. The current roadmap does not require those choices to block the baseline cleanup.
+Authentication is chosen: Clerk Hobby (`docs/reviews/archive/phase-1/2026-10-03-007-phase-1-sign-in-decision.md`). Before release, choose the hosting configuration, validate model quality and actual pricing, confirm the supported launch jurisdiction/currency, and establish boundaries for specialized financial topics. The current roadmap does not require those choices to block the baseline cleanup.
 
 OpenAI integration references used in this planning conversation: [function calling](https://developers.openai.com/api/docs/guides/function-calling) and [model optimization](https://developers.openai.com/api/docs/guides/model-optimization). Recheck current API/model documentation during implementation. This roadmap specifies product behavior, not a frozen SDK contract.

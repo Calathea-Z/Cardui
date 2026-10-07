@@ -32,7 +32,7 @@ remain only in this database. Zach chose Clerk Hobby on October 3, 2026.
 ## Changes
 
 - Recorded the decision on Phase 1 in
-  `docs/Recovery-Application-Action-Plan.md`.
+  `docs/roadmap.md`.
 
 ## Agent verification
 

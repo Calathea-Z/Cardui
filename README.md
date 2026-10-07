@@ -18,7 +18,7 @@ Secrets or environment variables; do not add them to checked-in settings or docu
 - Docker Desktop with Docker Compose.
 - Node.js and pnpm 10.33.0 (pinned by `frontend/package.json`).
 - EF Core CLI available as `dotnet ef`.
-- Plaid sandbox credentials for account-link and synchronization checks.
+- Optional: Plaid sandbox credentials, only for bank linking and sync checks.
 
 Run commands below from the repository root unless a step says otherwise.
 

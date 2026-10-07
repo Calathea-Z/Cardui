@@ -14,8 +14,8 @@ that reply.
 ## Migrations
 
 Update models and the DbContext, then ask before generating or applying an
-EF Core migration. After approval, run `dotnet ef` from `api/` in
-PowerShell. Do not drop or wipe data without a separate approval. When a
+EF Core migration. After approval, run `dotnet ef` in PowerShell from the
+repository root with `--project .\api --startup-project .\api`. Do not drop or wipe data without a separate approval. When a
 column, type, or API is no longer used, remove it in the same change.
 
 ## Backend method comments

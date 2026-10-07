@@ -36,6 +36,11 @@ Refresh Accounts so this build loads. No data changes.
 4. Open that menu again and press Tab.
    Expected: focus starts on Income and each Tab moves to the next destination. The focused row is marked. Shift+Tab moves back.
 
+## Approval
+
+Zach approved this increment. It was merged in PR #20 on October 5, 2026, and
+the approval was recorded on October 7, 2026.
+
 ## Pending decision
 
 Debt capture is approved in `docs/reviews/2026-10-05-014-debts.md`. Overlapping worker and manual sync remains open. Phase 2 item 5 is next.

@@ -87,3 +87,11 @@ None for the design. The next engineering increment is item 1 of "Sync
 correctness and linked debts" in the action plan: `PlaidAccountSyncService`
 tests, overlapping worker and manual sync, and interrupted-sync timestamps,
 together with the paused Plaid sync reconciliation tests.
+
+## Correction (October 7, 2026)
+
+The Plaid sync reconciliation tests were not paused. They were done and
+approved on October 5 in
+`docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`. The next
+increment is `PlaidAccountSyncService` tests, a guard for overlapping worker
+and manual sync, and interrupted-sync timestamps.

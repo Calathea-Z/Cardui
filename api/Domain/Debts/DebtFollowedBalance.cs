@@ -1,8 +1,7 @@
 using Cardui.Api.Domain.Accounts;
-using Cardui.Api.Domain.Debts;
 using Cardui.Api.Models;
 
-namespace Cardui.Api.Domain;
+namespace Cardui.Api.Domain.Debts;
 
 /// <summary>
 /// Decides the balance a followed debt uses.

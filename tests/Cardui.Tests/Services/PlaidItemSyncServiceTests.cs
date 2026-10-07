@@ -1,6 +1,6 @@
 using Cardui.Api.Data;
-using Cardui.Api.Domain;
 using Cardui.Api.Domain.Accounts;
+using Cardui.Api.Domain.Plaid;
 using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;

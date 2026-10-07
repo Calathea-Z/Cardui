@@ -1,4 +1,4 @@
-namespace Cardui.Api.Domain;
+namespace Cardui.Api.Domain.Debts;
 
 /// <summary>
 /// How current a followed debt's connection is.

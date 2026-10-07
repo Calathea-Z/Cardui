@@ -1,7 +1,7 @@
 using Cardui.Api.Domain.Accounts;
 using Cardui.Api.Models;
 
-namespace Cardui.Api.Domain;
+namespace Cardui.Api.Domain.Debts;
 
 /// <summary>
 /// Decides whether a debt may follow an account.

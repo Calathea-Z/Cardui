@@ -1,4 +1,4 @@
-namespace Cardui.Api.Domain.Transactions;
+namespace Cardui.Api.Domain.Plaid;
 
 /// <summary>
 /// Whether one Plaid transaction was inserted, updated, or skipped.

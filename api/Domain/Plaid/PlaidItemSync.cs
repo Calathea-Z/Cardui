@@ -1,4 +1,4 @@
-namespace Cardui.Api.Domain;
+namespace Cardui.Api.Domain.Plaid;
 
 /// <summary>
 /// Decides whether a Plaid item can start a sync.

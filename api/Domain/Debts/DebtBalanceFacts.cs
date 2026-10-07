@@ -1,7 +1,6 @@
-using Cardui.Api.Domain.Debts;
 using Cardui.Api.Models;
 
-namespace Cardui.Api.Domain;
+namespace Cardui.Api.Domain.Debts;
 
 /// <summary>
 /// The stored values used to decide a debt's balance.

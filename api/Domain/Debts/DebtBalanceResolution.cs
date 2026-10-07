@@ -1,6 +1,4 @@
-using Cardui.Api.Domain.Debts;
-
-namespace Cardui.Api.Domain;
+namespace Cardui.Api.Domain.Debts;
 
 /// <summary>
 /// The balance a debt uses, and where it came from.

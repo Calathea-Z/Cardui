@@ -24,4 +24,4 @@ Date entry uses `DateField` from `frontend/components/ui/date-field.tsx`.
 It opens the themed calendar. Do not use a native date input. On Windows
 that calendar stays the browser's white widget and ignores the app theme.
 
-Action menus stay `ActionMenu`. Text entry stays `Input`.
+Action menus stay `ActionMenu`. Text entry stays `Input`. A two-state setting uses `Switch` from `frontend/components/ui/switch.tsx`. Do not style a plain button to look like a label.

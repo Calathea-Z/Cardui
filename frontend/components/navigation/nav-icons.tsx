@@ -22,7 +22,7 @@ export function NavIcon({ href }: NavIconProps) {
   const className = "size-5 shrink-0";
 
   switch (href) {
-    case "/transactions":
+    case "/activity":
       return <ArrowLeftRight className={className} aria-hidden />;
     case "/accounts":
       return <Wallet className={className} aria-hidden />;
@@ -32,9 +32,9 @@ export function NavIcon({ href }: NavIconProps) {
       return <Receipt className={className} aria-hidden />;
     case "/debts":
       return <CreditCard className={className} aria-hidden />;
-    case "/institutions":
+    case "/connections":
       return <Building2 className={className} aria-hidden />;
-    case "/budgets":
+    case "/targets":
       return <PieChart className={className} aria-hidden />;
     case "/categories":
       return <Tags className={className} aria-hidden />;

@@ -107,7 +107,7 @@ export function ColorPicker({
         prefixed
         disabled={disabled}
         aria-label="Hex color"
-        className="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 font-mono text-sm text-foreground uppercase outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="h-10 w-full rounded-lg border border-border bg-card px-2.5 font-mono text-sm text-foreground uppercase outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
       />
     </div>
   );

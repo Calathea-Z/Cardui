@@ -104,7 +104,7 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
 
-**Status (October 7, 2026):** Items 1–5 are done. "Sync correctness and linked debts" below comes next, then item 6.
+**Status (October 6, 2026):** Items 1–6 are done. Item 6 is approved in `docs/reviews/2026-10-05-019-category-targets.md`. `20261006031630_AddCategoryTargets` is applied. "Sync correctness and linked debts" below is next.
 
 | Item | Status | Reviews |
 | --- | --- | --- |
@@ -113,7 +113,7 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 | 3. Bills and recurring suggestions | Done | `docs/reviews/2026-10-05-012-bills.md`, `docs/reviews/2026-10-05-013-recurring-suggestions.md` |
 | 4. Debts | Done | `docs/reviews/2026-10-05-014-debts.md` |
 | 5. Debt inventory and health view | Done | `docs/reviews/2026-10-05-016-debt-summary.md` |
-| 6. Monthly category targets | Next after "Sync correctness and linked debts" | — |
+| 6. Monthly category targets | Done | `docs/reviews/2026-10-05-019-category-targets.md` |
 | 7. Reserve, emergency goal, sinking funds | Not started | — |
 | 8. Household contributions and discretionary spending | Not started | — |
 

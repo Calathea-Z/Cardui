@@ -57,7 +57,7 @@ export function AccountsPageClient({
   }, [plaidItems, router]);
 
   const handleManageInstitutions = useCallback(() => {
-    router.push("/institutions");
+    router.push("/connections");
   }, [router]);
 
   const handleAdd = useCallback(() => {

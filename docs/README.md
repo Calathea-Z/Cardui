@@ -22,7 +22,6 @@ history. They do not say what is next.
    Plaid transaction reconciliation tests are already done
    ([`reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`](reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md)).
 2. Linked-debt items 2–6 in the same roadmap section.
-3. Phase 2 item 6: monthly category targets.
 
 **Tracked, not scheduled**
 
@@ -31,7 +30,7 @@ history. They do not say what is next.
 
 **Open decisions**
 
-- Where Plan (`/budgets`) goes when it has a real screen.
+- Where a future Plan screen goes. Targets are `/targets`.
   `.cursor/rules/ui-governance.mdc` keeps three primary destinations and no
   fourth tab until Zach decides otherwise.
 - Hosting and production configuration. Until a public host exists,

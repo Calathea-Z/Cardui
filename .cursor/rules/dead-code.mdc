@@ -1,0 +1,16 @@
+---
+description: Remove unused code until Cardui has shipped
+alwaysApply: true
+---
+
+# Dead code
+
+Until Zach says Cardui has reached MVP and has shipped, delete code that nothing uses. Do this in the same change that makes it unused.
+
+- A renamed screen, route, type, or function does not keep the old name. There is no redirect, alias, or compatibility path for an address this app no longer uses.
+- An unused file, export, branch, or comment that only explains a removed path goes away with the code.
+- After Zach says the app has shipped, a public address or a saved client may keep a redirect. Until then, it does not.
+
+```ts
+// The screen moved to /activity. The old /transactions page is deleted.
+```

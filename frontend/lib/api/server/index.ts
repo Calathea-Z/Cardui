@@ -5,6 +5,7 @@ import "server-only";
 
 export * from "./accounts";
 export * from "./categories";
+export * from "./category-targets";
 export * from "./dashboard";
 export * from "./groups";
 export * from "./households";

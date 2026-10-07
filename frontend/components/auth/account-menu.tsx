@@ -158,7 +158,7 @@ type SettingsLinksProps = {
 
 /**
  * Lists settings destinations in the account block.
- * Income, Bills, Debts, Categories, Connections, and Household stay off the primary nav.
+ * Income, Bills, Debts, Targets, Categories, Connections, and Household stay off the primary nav.
  */
 function SettingsLinks({ onNavigate }: SettingsLinksProps) {
   return (

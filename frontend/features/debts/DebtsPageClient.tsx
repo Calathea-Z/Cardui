@@ -4,9 +4,11 @@ import { useRef, useState } from "react";
 import { PageHeader } from "@/components/navigation/page-header";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { DebtFollowSheet } from "./DebtFollowSheet";
 import { DebtForm } from "./DebtForm";
 import { DebtSummary } from "./DebtSummary";
 import { DebtList } from "./DebtList";
+import type { DebtDto } from "@/lib/api/types";
 import type { DebtsPageData } from "./debtPageData";
 import { useDebts } from "./useDebts";
 
@@ -26,6 +28,7 @@ export function DebtsPageClient({
   const debts = useDebts(initialDebts, initialSummary);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  const followOpenerRef = useRef<HTMLElement | null>(null);
   const [openPickerCount, setOpenPickerCount] = useState(0);
   const editing = debts.debts.find((debt) => debt.id === debts.editingId);
 
@@ -56,6 +59,38 @@ export function DebtsPageClient({
   }
 
   /**
+   * Remembers the follow button, then opens the follow steps.
+   * Closing those steps returns focus to that button.
+   */
+  function openFollow(debt: DebtDto, opener: HTMLElement) {
+    followOpenerRef.current = opener;
+    debts.startFollowing(debt);
+  }
+
+  /**
+   * Closes the follow steps and returns focus to the button that opened them.
+   */
+  function closeFollow() {
+    debts.closeFollowing();
+    const opener = followOpenerRef.current;
+    followOpenerRef.current = null;
+    if (opener?.isConnected) {
+      opener.focus();
+    }
+  }
+
+  /**
+   * Refreshes the bank behind a stale followed balance.
+   * An account with no bank link has no refresh.
+   */
+  function refreshFollowed(debt: DebtDto) {
+    const account = accounts.find((item) => item.id === debt.accountId);
+    if (account?.plaidItemId) {
+      void debts.refreshConnection(debt, account.plaidItemId);
+    }
+  }
+
+  /**
    * Tracks how many choice lists or calendars are open inside the form.
    * Escape closes the panel only when none of those are open.
    */
@@ -82,11 +117,16 @@ export function DebtsPageClient({
       />
 
       {debts.debts.length > 0 ? (
-        <DebtSummary report={debts.summary} updating={debts.summaryUpdating} />
+        <DebtSummary
+          report={debts.summary}
+          debts={debts.debts}
+          updating={debts.summaryUpdating}
+        />
       ) : null}
 
       <DebtList
         debts={debts.debts}
+        accounts={accounts}
         summary={debts.summary}
         busyId={debts.busyId}
         onAdd={(opener) => openForm(opener, debts.startAdding)}
@@ -94,7 +134,12 @@ export function DebtsPageClient({
           openForm(opener, () => debts.startEditing(debt))
         }
         onRemove={(debt) => void debts.remove(debt)}
-        onUseAccountBalance={(debt) => void debts.chooseBalance(debt)}
+        onUseAccountBalance={(debt, startsFollow) =>
+          void debts.chooseBalance(debt, startsFollow)
+        }
+        onFollow={openFollow}
+        onStopFollowing={(debt) => void debts.stopFollowing(debt)}
+        onRefresh={refreshFollowed}
       />
 
       <BottomSheet
@@ -114,6 +159,7 @@ export function DebtsPageClient({
           storedCurrency={editing?.currency ?? null}
           isEditing={debts.editingId !== null}
           isSaving={debts.isSaving}
+          following={editing?.following ?? false}
           onChange={debts.setForm}
           onPickerOpenChange={handlePickerOpenChange}
           onSubmit={async (event) => {
@@ -124,6 +170,21 @@ export function DebtsPageClient({
           }}
         />
       </BottomSheet>
+
+      <DebtFollowSheet
+        debt={
+          debts.debts.find((debt) => debt.id === debts.followDebtId) ?? null
+        }
+        accounts={debts.followAccounts}
+        loading={debts.followLoading}
+        error={debts.followError}
+        busy={debts.busyId !== null}
+        onClose={closeFollow}
+        onRetry={debts.retryFollowing}
+        onFollow={(accountId, keepOwnBalance) =>
+          void debts.follow(accountId, keepOwnBalance)
+        }
+      />
     </div>
   );
 }

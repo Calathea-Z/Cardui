@@ -44,10 +44,14 @@ export type {
   DebtBalanceComparisonDto,
   DebtCurrencySummaryDto,
   DebtDto,
+  DebtFieldSource,
+  DebtFollowAccountDto,
+  DebtLinkFreshness,
   DebtSummaryGap,
   DebtSummaryItemDto,
   DebtSummaryReportDto,
   DebtKind,
+  FollowDebtAccountDto,
   UpsertDebtDto,
 } from "./debts";
 export type {

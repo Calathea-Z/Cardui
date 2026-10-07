@@ -15,12 +15,15 @@ import { Button } from "@/components/ui/button";
 /**
  * The question a confirm dialog asks.
  * Cancel leaves the record in place. `confirmLabel` is the action that proceeds.
+ * `destructive` is false when that action keeps the record, such as following an account.
+ * An omitted value uses the remove color.
  */
 export type ConfirmOptions = {
   title: string;
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  destructive?: boolean;
 };
 
 type PendingConfirm = ConfirmOptions & {
@@ -83,6 +86,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           description={pending.description}
           confirmLabel={pending.confirmLabel ?? "Confirm"}
           cancelLabel={pending.cancelLabel ?? "Cancel"}
+          destructive={pending.destructive ?? true}
           onConfirm={accept}
           onCancel={cancel}
         />
@@ -96,6 +100,7 @@ type ConfirmDialogProps = {
   description?: string;
   confirmLabel: string;
   cancelLabel: string;
+  destructive: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -109,6 +114,7 @@ function ConfirmDialog({
   description,
   confirmLabel,
   cancelLabel,
+  destructive,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -193,7 +199,7 @@ function ConfirmDialog({
           <Button
             ref={confirmRef}
             type="button"
-            variant="destructive"
+            variant={destructive ? "destructive" : "default"}
             className="flex-1"
             onClick={onConfirm}
           >

@@ -1,18 +1,21 @@
 "use client";
 
 import { formatCurrency } from "@/features/accounts/formatCurrency";
+import { InfoTip, InfoTipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { DebtSummaryReportDto } from "@/lib/api/types";
+import type { DebtDto, DebtSummaryReportDto } from "@/lib/api/types";
 import { formatSharePercent } from "./debtDisplay";
 import {
   summaryInterestNote,
   summaryMetrics,
   summarySignals,
+  type SummaryDebtName,
   type SummaryMetric,
 } from "./debtSummaryCopy";
 
 type DebtSummaryProps = {
   report: DebtSummaryReportDto | null;
+  debts: DebtDto[];
   updating: boolean;
 };
 
@@ -20,8 +23,9 @@ type DebtSummaryProps = {
  * Totals for the debts on this page.
  * The four figures come first. A two-balance choice stays on the debt. There is no score.
  */
-export function DebtSummary({ report, updating }: DebtSummaryProps) {
-  const signals = report ? summarySignals(report) : [];
+export function DebtSummary({ report, debts, updating }: DebtSummaryProps) {
+  const names = debtNames(debts);
+  const signals = report ? summarySignals(report, names) : [];
 
   return (
     <section className="app-panel" aria-labelledby="debt-summary-title">
@@ -43,7 +47,7 @@ export function DebtSummary({ report, updating }: DebtSummaryProps) {
           This summary could not be loaded. The debts below are still here.
         </p>
       ) : (
-        <>
+        <InfoTipProvider>
           {report.currencies.map((group) => (
             <div key={group.currency}>
               {report.currencies.length > 1 ? (
@@ -57,6 +61,7 @@ export function DebtSummary({ report, updating }: DebtSummaryProps) {
                   report,
                   formatSharePercent,
                   formatCurrency,
+                  names,
                 ).map((item) => (
                   <SummaryFigure key={item.label} metric={item} />
                 ))}
@@ -74,15 +79,17 @@ export function DebtSummary({ report, updating }: DebtSummaryProps) {
                     {signal.label}
                   </span>
                   {signal.detail ? (
-                    <span className="text-xs text-muted-foreground sm:shrink-0 sm:text-right">
-                      {signal.detail}
-                    </span>
+                    <Hint
+                      text={signal.detail}
+                      hint={signal.hint ?? null}
+                      className="text-xs sm:shrink-0 sm:text-right"
+                    />
                   ) : null}
                 </li>
               ))}
             </ul>
           ) : null}
-        </>
+        </InfoTipProvider>
       )}
     </section>
   );
@@ -109,10 +116,49 @@ function SummaryFigure({ metric }: SummaryFigureProps) {
         {metric.value}
       </span>
       {metric.detail ? (
-        <span className="mt-1 text-xs text-muted-foreground">
-          {metric.detail}
-        </span>
+        <Hint
+          text={metric.detail}
+          hint={metric.hint}
+          className="mt-1 text-xs"
+        />
       ) : null}
     </div>
   );
+}
+
+type HintProps = {
+  text: string;
+  hint: string | null;
+  className?: string;
+};
+
+/**
+ * A caveat that names the debts behind it on hover or focus.
+ * A caveat with nothing to name stays plain text.
+ */
+function Hint({ text, hint, className }: HintProps) {
+  if (!hint) {
+    return (
+      <span className={cn("text-muted-foreground", className)}>{text}</span>
+    );
+  }
+
+  return (
+    <InfoTip
+      text={text}
+      hint={hint}
+      className={cn("text-muted-foreground", className)}
+    />
+  );
+}
+
+/**
+ * The names the summary can attach to a gap.
+ */
+function debtNames(debts: DebtDto[]): SummaryDebtName[] {
+  return debts.map((debt) => ({
+    id: debt.id,
+    name: debt.name,
+    currency: debt.currency,
+  }));
 }

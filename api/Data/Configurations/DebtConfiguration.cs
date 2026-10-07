@@ -11,6 +11,9 @@ public class DebtConfiguration : IEntityTypeConfiguration<Debt>
     /// Maps a debt to its household, optional linked account, and lookup indexes.
     /// Kind is stored as its member name. Rates use three decimal places. Money uses cents.
     /// A null term is unknown. Deleting the household deletes the debt. Deleting the account clears the link.
+    /// A null <c>AccountFollowedSince</c> is a reference link or no link. A value means the debt follows
+    /// <c>AccountId</c>. A null <c>BalanceOverriddenAt</c> means the balance is not an override.
+    /// One followed account backs at most one debt.
     /// </summary>
     public void Configure(EntityTypeBuilder<Debt> entity)
     {
@@ -28,8 +31,12 @@ public class DebtConfiguration : IEntityTypeConfiguration<Debt>
             .HasConversion<string>()
             .HasMaxLength(32);
 
+        entity.Property(x => x.AccountFollowedSince);
+
         entity.Property(x => x.Balance)
             .HasPrecision(18, 2);
+
+        entity.Property(x => x.BalanceOverriddenAt);
 
         entity.Property(x => x.Currency)
             .IsRequired()
@@ -65,6 +72,9 @@ public class DebtConfiguration : IEntityTypeConfiguration<Debt>
 
         entity.HasIndex(x => new { x.HouseholdId, x.Name });
 
-        entity.HasIndex(x => x.AccountId);
+        entity.HasIndex(x => x.AccountId)
+            .IsUnique()
+            .HasFilter("\"AccountFollowedSince\" IS NOT NULL")
+            .HasDatabaseName("IX_Debts_AccountId_Followed");
     }
 }

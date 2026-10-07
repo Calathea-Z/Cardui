@@ -27,6 +27,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 Newest first.
 
+- [2026-10-07 — Documentation cleanup](2026-10-07-001-documentation-cleanup.md) — Awaiting review
 - [2026-10-06 — Linked manual debts design and plan](2026-10-06-001-linked-manual-debts-design.md) — Approved; correction note added October 7
 - [2026-10-05 — Debt summary](2026-10-05-016-debt-summary.md) — Approved; its pending decision was superseded by 2026-10-06-001
 - [2026-10-05 — Accounts action menu](2026-10-05-015-accounts-action-menu.md) — Approved; recorded October 7 (PR #20)
@@ -62,7 +63,7 @@ Archived in [`archive/phase-1/`](archive/phase-1/). Newest first.
 - [2026-10-04 — DotRush hover documentation](archive/phase-1/2026-10-04-018-dotrush-hover-docs.md) — Merged in PR #11; approval not recorded (was `2026-10-04-009-dotrush-hover-docs`)
 - [2026-10-04 — CSV import](archive/phase-1/2026-10-04-008-csv-import.md) — Approved
 - [2026-10-04 — DotRush solution pin](archive/phase-1/2026-10-04-017-dotrush-solution-pin.md) — Merged in PR #9; approval not recorded (was `2026-10-04-008-dotrush-solution-pin`)
-- [2026-10-04 — Security hardening](archive/phase-1/2026-10-04-007-security-hardening.md) — Merged in PR #10; approval not recorded
+- [2026-10-04 — Security hardening](archive/phase-1/2026-10-04-007-security-hardening.md) — Merged in PR #10; approval not recorded. Its proposed rule was adopted October 7 as `.cursor/rules/security.mdc`
 - [2026-10-04 — Clerk page protection](archive/phase-1/2026-10-04-006-clerk-page-protection.md) — Merged in PR #8; approval not recorded
 - [2026-10-04 — Frontend conventions](archive/phase-1/2026-10-04-005-frontend-conventions.md) — Merged in PR #8; approval not recorded
 - [2026-10-04 — Frontend cleanup](archive/phase-1/2026-10-04-004-frontend-cleanup.md) — Merged in PR #8; approval not recorded. Its pending decision was resolved by 2026-10-04-005

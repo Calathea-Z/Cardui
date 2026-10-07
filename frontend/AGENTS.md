@@ -8,6 +8,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+Repository-wide rules, the docs map, review reports, and the review
+handoff are in the root `AGENTS.md`. Current work is in `docs/README.md`.
+
+Never put a Clerk secret, a Plaid token, or a session token in a
+`NEXT_PUBLIC_` value, a log, or source control. See
+`.cursor/rules/security.mdc`.
+
 New Tortoise screens follow the light shell, the account-menu map, and the shared action, state, and accessibility conventions. See `.cursor/rules/ui-governance.mdc`.
 
 When a control is reused, decide whether it should be a shared primitive in

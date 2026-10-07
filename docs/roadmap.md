@@ -198,7 +198,7 @@ Design the conversation and test scripted prototypes during Phases 1–3. Produc
 ### Phase 6 — Public-beta readiness and affordability
 
 1. Complete bank repair/disconnect/removal and retention behavior. Verify scheduled worker deployment, concurrency protection, retry behavior and visible stale-data states. Overlapping-sync protection and reconnect for linked debts are planned earlier, in "Sync correctness and linked debts".
-2. Verify API and worker use durable compatible Data Protection keys; test token decryption after restart/redeployment and recovery. Account for legacy unprotected tokens accepted by current code.
+2. Verify API and worker use durable compatible Data Protection keys; test token decryption after restart/redeployment and recovery. Plaintext tokens left from before October 4, 2026 are rewrapped at API and worker startup (`docs/reviews/archive/phase-1/2026-10-04-007-security-hardening.md`).
 3. Add export/deletion flows, retention policies, authorization integration tests, rate limits, redacted logs, backup/restore drills and migration deployment procedures.
 4. Test mobile layouts, keyboard/screen-reader flows, slow networks, empty states and interrupted conversations. The CSV import flow is the earlier step after Phase 1 item 8. This item still covers how that sheet fits phone and desktop. Detail panel keyboard focus is tracked earlier under "Tracked UI follow-ups".
 5. Measure AI usage per completed plan and follow-up session; measure bank-link, infrastructure, support and payment-processing costs. Price from actual bills and observed usage.

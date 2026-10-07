@@ -1,4 +1,9 @@
-import type { DebtDto, DebtKind, UpsertDebtDto } from "@/lib/api/types";
+import type {
+  DebtDto,
+  DebtKind,
+  SetDebtBalanceOverrideDto,
+  UpsertDebtDto,
+} from "@/lib/api/types";
 
 /**
  * Fields the debt form edits.
@@ -167,6 +172,69 @@ export function toDebtUpsert(form: DebtFormState): DebtUpsertResult {
       promotionalEndsOn: form.promotionalEndsOn || null,
     },
   };
+}
+
+/**
+ * The balance override payload, or the reason it is not ready.
+ * The amount is required. A blank date is rejected here. Update balance uses today instead.
+ */
+export type BalanceOverrideResult =
+  { ok: true; dto: SetDebtBalanceOverrideDto } | { ok: false; error: string };
+
+/**
+ * Reads a balance the person is keeping, with the date they chose.
+ * A blank amount or date is rejected. Zero is a known zero.
+ */
+export function toBalanceOverride(
+  balance: string,
+  balanceAsOf: string,
+): BalanceOverrideResult {
+  const amount = readRequiredBalance(balance);
+  if (!amount.ok) {
+    return amount;
+  }
+
+  if (!balanceAsOf) {
+    return { ok: false, error: "Enter the date this balance was true." };
+  }
+
+  return { ok: true, dto: { balance: amount.amount, balanceAsOf } };
+}
+
+/**
+ * Reads a balance dated today by the server.
+ * The date is omitted so the household's today is used.
+ */
+export function toTodayBalanceOverride(balance: string): BalanceOverrideResult {
+  const amount = readRequiredBalance(balance);
+  if (!amount.ok) {
+    return amount;
+  }
+
+  return { ok: true, dto: { balance: amount.amount, balanceAsOf: null } };
+}
+
+/**
+ * Reads a required dollar amount for a balance override.
+ * Blank is rejected. Zero is kept.
+ */
+function readRequiredBalance(
+  value: string,
+): { ok: true; amount: number } | { ok: false; error: string } {
+  const amount = readOptionalMoney(
+    value,
+    true,
+    "Enter the balance in dollars and cents.",
+  );
+  if (!amount.ok) {
+    return amount;
+  }
+
+  if (amount.amount === null) {
+    return { ok: false, error: "Enter the balance." };
+  }
+
+  return { ok: true, amount: amount.amount };
 }
 
 /**

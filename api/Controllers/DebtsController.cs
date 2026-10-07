@@ -1,3 +1,4 @@
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Debts;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -104,6 +105,42 @@ public class DebtsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var debt = await _debtsService.FollowAccountAsync(id, dto, cancellationToken);
+        return Ok(debt);
+    }
+
+    /// <summary>
+    /// PUT /api/debts/{id}/overrides/{field}
+    /// Keeps the person's balance while the debt follows an account.
+    /// A missing date means today. The debt's other terms are not changed.
+    /// </summary>
+    [HttpPut("{id:guid}/overrides/{field}")]
+    [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DebtDto>> SetOverride(
+        Guid id,
+        DebtSyncedField field,
+        [FromBody] SetDebtBalanceOverrideDto dto,
+        CancellationToken cancellationToken)
+    {
+        var debt = await _debtsService.SetOverrideAsync(id, field, dto, cancellationToken);
+        return Ok(debt);
+    }
+
+    /// <summary>
+    /// DELETE /api/debts/{id}/overrides/{field}
+    /// Clears the person's balance so the debt uses the synced balance again.
+    /// </summary>
+    [HttpDelete("{id:guid}/overrides/{field}")]
+    [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DebtDto>> ClearOverride(
+        Guid id,
+        DebtSyncedField field,
+        CancellationToken cancellationToken)
+    {
+        var debt = await _debtsService.ClearOverrideAsync(id, field, cancellationToken);
         return Ok(debt);
     }
 

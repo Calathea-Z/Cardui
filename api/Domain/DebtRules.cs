@@ -133,6 +133,59 @@ public static class DebtRules
         return decimal.Round(balanceValue / limit, 4, MidpointRounding.AwayFromZero);
     }
 
+    /// <summary>
+    /// Reads a balance the person is keeping while a debt follows an account.
+    /// The amount is required. A missing date uses today. An amount equal to the synced value is still valid.
+    /// </summary>
+    public static bool TryReadBalanceOverride(
+        decimal? balance,
+        DateOnly? balanceAsOf,
+        DateOnly today,
+        out decimal amount,
+        out DateOnly asOf,
+        out string error)
+    {
+        amount = 0;
+        asOf = default;
+        if (balance is null)
+        {
+            error = "Enter the balance.";
+            return false;
+        }
+
+        if (!TryReadOptionalMoney(
+                balance,
+                allowZero: true,
+                "Enter the balance in dollars and cents.",
+                out var read,
+                out error)
+            || read is not decimal value)
+        {
+            return false;
+        }
+
+        amount = value;
+        if (balanceAsOf is null)
+        {
+            asOf = today;
+            error = "";
+            return true;
+        }
+
+        if (!TryReadOptionalDate(
+                balanceAsOf,
+                "Enter the date this balance was true.",
+                out var date,
+                out error)
+            || date is not DateOnly chosen)
+        {
+            return false;
+        }
+
+        asOf = chosen;
+        return true;
+    }
+
     #region Private Methods
 
     /// <summary>

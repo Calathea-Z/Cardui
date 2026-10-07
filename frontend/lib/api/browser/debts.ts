@@ -3,7 +3,9 @@ import type {
   DebtDto,
   DebtFollowAccountDto,
   DebtSummaryReportDto,
+  DebtSyncedField,
   FollowDebtAccountDto,
+  SetDebtBalanceOverrideDto,
   UpsertDebtDto,
 } from "../types";
 
@@ -105,6 +107,37 @@ export async function followDebtAccount(
 export async function stopFollowingDebt(id: string): Promise<DebtDto> {
   const response = await browserClient.post<DebtDto>(
     `/api/debts/${id}/stop-following`,
+  );
+  return response.data;
+}
+
+/**
+ * PUT /api/debts/{id}/overrides/{field}
+ * Keeps the person's balance while the debt follows an account.
+ * A null date means today. The amount is kept even when it matches the synced balance.
+ */
+export async function setDebtOverride(
+  id: string,
+  field: DebtSyncedField,
+  dto: SetDebtBalanceOverrideDto,
+): Promise<DebtDto> {
+  const response = await browserClient.put<DebtDto>(
+    `/api/debts/${id}/overrides/${field}`,
+    dto,
+  );
+  return response.data;
+}
+
+/**
+ * DELETE /api/debts/{id}/overrides/{field}
+ * Clears the person's balance so the debt uses the synced balance again.
+ */
+export async function clearDebtOverride(
+  id: string,
+  field: DebtSyncedField,
+): Promise<DebtDto> {
+  const response = await browserClient.delete<DebtDto>(
+    `/api/debts/${id}/overrides/${field}`,
   );
   return response.data;
 }

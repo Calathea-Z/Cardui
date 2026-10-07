@@ -15,6 +15,14 @@ export const debtFieldSources = ["Synced", "Override", "Manual"] as const;
 export type DebtFieldSource = (typeof debtFieldSources)[number];
 
 /**
+ * A debt field the person can keep as their own while following an account.
+ * Balance is the only one. Credit limit is not followed yet.
+ */
+export const debtSyncedFields = ["Balance"] as const;
+
+export type DebtSyncedField = (typeof debtSyncedFields)[number];
+
+/**
  * How current a followed connection is.
  * Current means the latest snapshot is recent and the last sync succeeded.
  */
@@ -236,4 +244,14 @@ export type DebtFollowAccountDto = {
 export type FollowDebtAccountDto = {
   accountId: string;
   keepOwnBalance: boolean;
+};
+
+/**
+ * A balance the person is keeping while a debt follows an account.
+ * `balanceAsOf` null means today in the household time zone. Update balance sends null.
+ * An amount equal to the synced balance is still an override.
+ */
+export type SetDebtBalanceOverrideDto = {
+  balance: number;
+  balanceAsOf: string | null;
 };

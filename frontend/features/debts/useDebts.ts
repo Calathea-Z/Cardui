@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   chooseAccountBalance,
+  clearDebtOverride,
   createDebt,
   deleteDebt,
   followDebtAccount,
   getDebtFollowAccounts,
   getDebtSummary,
   getDebts,
+  setDebtOverride,
   stopFollowingDebt,
   syncPlaidItem,
   updateDebt,
@@ -25,13 +27,17 @@ import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { formatCalendarDate } from "./debtDisplay";
 import {
   followedAccountLabel,
+  ownBalanceToast,
   startedFollowingToast,
   stoppedFollowingToast,
+  syncedBalanceToast,
 } from "./debtFollowCopy";
 import {
   debtToForm,
   emptyDebtForm,
+  toBalanceOverride,
   toDebtUpsert,
+  toTodayBalanceOverride,
   type DebtFormState,
 } from "./debtFormState";
 
@@ -338,6 +344,79 @@ export function useDebts(
   }
 
   /**
+   * Keeps the open debt's balance as the person's value.
+   * The other terms in the form stay. A blank amount or date is rejected here.
+   */
+  async function saveOwnBalance(balance: string, balanceAsOf: string) {
+    if (!editingId) {
+      return false;
+    }
+
+    const parsed = toBalanceOverride(balance, balanceAsOf);
+    if (!parsed.ok) {
+      showDebtError(parsed.error);
+      return false;
+    }
+
+    setIsSaving(true);
+    try {
+      const updated = await setDebtOverride(editingId, "Balance", parsed.dto);
+      rememberDebt(updated);
+      toast.success(ownBalanceText(updated), { id: debtToastId });
+      void refreshSummary();
+      return true;
+    } catch (err) {
+      reportDebtFailure(err, "That balance could not be saved.");
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  /**
+   * Sets a balance override dated today on a card whose connection is not current.
+   * A blank amount is rejected here. The date is chosen by the server.
+   */
+  async function updateBalance(debt: DebtDto, amount: string) {
+    const parsed = toTodayBalanceOverride(amount);
+    if (!parsed.ok) {
+      showDebtError(parsed.error);
+      return false;
+    }
+
+    setBusyId(debt.id);
+    try {
+      const updated = await setDebtOverride(debt.id, "Balance", parsed.dto);
+      rememberDebt(updated);
+      toast.success(ownBalanceText(updated), { id: debtToastId });
+      void refreshSummary();
+      return true;
+    } catch (err) {
+      reportDebtFailure(err, "That balance could not be saved.");
+      return false;
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /**
+   * Clears the person's balance so the debt uses the synced balance again.
+   */
+  async function useSyncedBalance(debt: DebtDto) {
+    setBusyId(debt.id);
+    try {
+      const updated = await clearDebtOverride(debt.id, "Balance");
+      rememberDebt(updated);
+      toast.success(syncedBalanceToast(updated.name), { id: debtToastId });
+      void refreshSummary();
+    } catch (err) {
+      reportDebtFailure(err, "The synced balance could not be used.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /**
    * Pulls the bank behind a stale followed balance, then reloads the debts.
    * A sync that is already running does not change the balance.
    */
@@ -392,6 +471,45 @@ export function useDebts(
     }
   }
 
+  /**
+   * Replaces one debt in the list and, when that debt is open, its balance fields.
+   * The other terms the person has typed stay in the form.
+   */
+  function rememberDebt(updated: DebtDto) {
+    setDebts((current) =>
+      current.map((item) => (item.id === updated.id ? updated : item)),
+    );
+    setForm((current) => {
+      if (editingId !== updated.id) {
+        return current;
+      }
+
+      return {
+        ...current,
+        balance:
+          updated.balanceInUse === null ? "" : String(updated.balanceInUse),
+        balanceAsOf: updated.balanceInUseAsOf
+          ? updated.balanceInUseAsOf.slice(0, 10)
+          : "",
+      };
+    });
+  }
+
+  /**
+   * The toast for a saved balance override.
+   * The amount and date are the ones now in use.
+   */
+  function ownBalanceText(updated: DebtDto) {
+    const balance =
+      updated.balanceInUse === null
+        ? null
+        : formatCurrency(updated.balanceInUse, updated.currency);
+    const asOf = updated.balanceInUseAsOf
+      ? formatCalendarDate(updated.balanceInUseAsOf)
+      : null;
+    return ownBalanceToast(updated.name, balance, asOf);
+  }
+
   return {
     form,
     setForm,
@@ -422,6 +540,9 @@ export function useDebts(
     follow,
     stopFollowing,
     refreshConnection,
+    saveOwnBalance,
+    updateBalance,
+    useSyncedBalance,
   };
 }
 

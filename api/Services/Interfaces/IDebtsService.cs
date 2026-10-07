@@ -1,3 +1,4 @@
+using Cardui.Api.Domain;
 using Cardui.Api.Dtos.Debts;
 
 namespace Cardui.Api.Services.Interfaces;
@@ -83,5 +84,25 @@ public interface IDebtsService
     /// </summary>
     Task<DebtDto> StopFollowingAsync(
         Guid debtId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Keeps the person's balance while the debt follows an account.
+    /// The amount is stored even when it matches the synced balance. A missing date means today.
+    /// A debt that is not following is rejected. Sync does not clear this.
+    /// </summary>
+    Task<DebtDto> SetOverrideAsync(
+        Guid debtId,
+        DebtSyncedField field,
+        SetDebtBalanceOverrideDto dto,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Clears the person's balance so the debt uses the synced balance again.
+    /// The stored amount stays until the debt stops following. A debt that is not following is rejected.
+    /// </summary>
+    Task<DebtDto> ClearOverrideAsync(
+        Guid debtId,
+        DebtSyncedField field,
         CancellationToken cancellationToken = default);
 }

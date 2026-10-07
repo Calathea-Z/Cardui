@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { cn } from "@/lib/utils";
@@ -13,6 +15,7 @@ import type {
   DebtSummaryReportDto,
 } from "@/lib/api/types";
 import {
+  canUpdateBalance,
   creditNote,
   freshnessLine,
   followBlockCopy,
@@ -45,6 +48,8 @@ type DebtListProps = {
   onFollow: (debt: DebtDto, opener: HTMLElement) => void;
   onStopFollowing: (debt: DebtDto) => void;
   onRefresh: (debt: DebtDto) => void;
+  onUseSyncedValue: (debt: DebtDto) => void;
+  onUpdateBalance: (debt: DebtDto, amount: string) => Promise<boolean>;
 };
 
 /**
@@ -63,6 +68,8 @@ export function DebtList({
   onFollow,
   onStopFollowing,
   onRefresh,
+  onUseSyncedValue,
+  onUpdateBalance,
 }: DebtListProps) {
   return (
     <section className="flex flex-col gap-3">
@@ -98,6 +105,8 @@ export function DebtList({
               onFollow={(opener) => onFollow(debt, opener)}
               onStopFollowing={() => onStopFollowing(debt)}
               onRefresh={() => onRefresh(debt)}
+              onUseSyncedValue={() => onUseSyncedValue(debt)}
+              onUpdateBalance={(amount) => onUpdateBalance(debt, amount)}
             />
           ))}
         </ul>
@@ -118,6 +127,8 @@ type DebtRowProps = {
   onFollow: (opener: HTMLElement) => void;
   onStopFollowing: () => void;
   onRefresh: () => void;
+  onUseSyncedValue: () => void;
+  onUpdateBalance: (amount: string) => Promise<boolean>;
 };
 
 /**
@@ -151,6 +162,8 @@ function DebtRow({
   onFollow,
   onStopFollowing,
   onRefresh,
+  onUseSyncedValue,
+  onUpdateBalance,
 }: DebtRowProps) {
   const item = summary?.debts.find((entry) => entry.debtId === debt.id) ?? null;
   const linked = accounts.find((account) => account.id === debt.accountId);
@@ -180,7 +193,13 @@ function DebtRow({
             {debtContext(debt)}
           </p>
         </div>
-        {comparison ? null : <BalanceInUse debt={debt} />}
+        {comparison ? null : (
+          <BalanceInUse
+            debt={debt}
+            busy={busy}
+            onUseSyncedValue={onUseSyncedValue}
+          />
+        )}
       </div>
       {debt.following && debt.freshness && debt.freshness !== "Current" ? (
         <FollowStatus
@@ -188,6 +207,7 @@ function DebtRow({
           accounts={accounts}
           busy={busy}
           onRefresh={onRefresh}
+          onUpdateBalance={onUpdateBalance}
         />
       ) : null}
       {comparison && item?.balanceComparison ? (
@@ -521,7 +541,15 @@ function DebtSummaryNotes({ debt, item }: DebtSummaryNotesProps) {
  * The balance the plan uses, with a short source label when the debt is following.
  * A missing amount says unknown.
  */
-function BalanceInUse({ debt }: { debt: DebtDto }) {
+function BalanceInUse({
+  debt,
+  busy,
+  onUseSyncedValue,
+}: {
+  debt: DebtDto;
+  busy: boolean;
+  onUseSyncedValue: () => void;
+}) {
   const amount = debt.balanceInUse;
   const credit =
     debt.balanceSource === "Synced" && debt.balanceCredit !== null
@@ -530,8 +558,13 @@ function BalanceInUse({ debt }: { debt: DebtDto }) {
   const block = debt.following
     ? followBlockCopy(debt.syncedBalanceBlock)
     : null;
+  const showSynced =
+    debt.following &&
+    debt.balanceSource === "Override" &&
+    debt.syncedBalance !== null;
+  const canUseSynced = showSynced && debt.syncedBalanceBlock === "None";
   return (
-    <div className="shrink-0 text-right">
+    <div className="flex shrink-0 flex-col items-end text-right">
       {amount === null ? (
         <p className="text-sm text-muted-foreground">Unknown</p>
       ) : (
@@ -552,12 +585,21 @@ function BalanceInUse({ debt }: { debt: DebtDto }) {
           </p>
         </>
       )}
-      {debt.following &&
-      debt.balanceSource === "Override" &&
-      debt.syncedBalance !== null ? (
+      {showSynced && debt.syncedBalance !== null ? (
         <p className="mt-0.5 text-xs text-muted-foreground">
           {`Synced ${formatCurrency(debt.syncedBalance, debt.currency)}`}
         </p>
+      ) : null}
+      {canUseSynced ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-2 min-h-11"
+          disabled={busy}
+          onClick={onUseSyncedValue}
+        >
+          Use synced value
+        </Button>
       ) : null}
       {credit ? (
         <p className="mt-0.5 max-w-48 text-xs text-muted-foreground">
@@ -576,6 +618,7 @@ type FollowStatusProps = {
   accounts: AccountDto[];
   busy: boolean;
   onRefresh: () => void;
+  onUpdateBalance: (amount: string) => Promise<boolean>;
 };
 
 /**
@@ -617,7 +660,15 @@ function balanceCaption(debt: DebtDto) {
  * How current a followed balance is, and the action for that state.
  * A current balance is already named under the amount. Refresh pulls the bank again.
  */
-function FollowStatus({ debt, accounts, busy, onRefresh }: FollowStatusProps) {
+function FollowStatus({
+  debt,
+  accounts,
+  busy,
+  onRefresh,
+  onUpdateBalance,
+}: FollowStatusProps) {
+  const [updating, setUpdating] = useState(false);
+  const [amount, setAmount] = useState("");
   if (!debt.freshness || debt.freshness === "Current") {
     return null;
   }
@@ -633,13 +684,66 @@ function FollowStatus({ debt, accounts, busy, onRefresh }: FollowStatusProps) {
     debt.freshness === "Stale" && Boolean(account?.plaidItemId);
   const canReconnect =
     debt.freshness === "SyncFailing" || debt.freshness === "Disconnected";
+  const canUpdate = canUpdateBalance(debt.freshness);
+
+  /**
+   * Saves today's balance and closes the amount field when it is kept.
+   */
+  async function saveUpdate() {
+    const saved = await onUpdateBalance(amount);
+    if (saved) {
+      setUpdating(false);
+      setAmount("");
+    }
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <p className="flex items-start gap-2 text-sm text-foreground">
         <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <span>{line}</span>
       </p>
-      {canRefresh || canReconnect ? (
+      {updating ? (
+        <div className="flex max-w-xs flex-col gap-2">
+          <label className="flex flex-col gap-1.5 text-sm font-medium">
+            Balance
+            <Input
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              inputMode="decimal"
+              autoComplete="off"
+              disabled={busy}
+            />
+            <span className="font-normal text-muted-foreground">
+              Dated today. The connection does not replace it.
+            </span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              disabled={busy}
+              onClick={() => void saveUpdate()}
+            >
+              Save
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-11"
+              disabled={busy}
+              onClick={() => {
+                setUpdating(false);
+                setAmount("");
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {canRefresh || canReconnect || canUpdate ? (
         <div className="flex flex-wrap gap-2">
           {canRefresh ? (
             <Button
@@ -665,6 +769,17 @@ function FollowStatus({ debt, accounts, busy, onRefresh }: FollowStatusProps) {
             >
               Reconnect
             </Link>
+          ) : null}
+          {canUpdate && !updating ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              disabled={busy}
+              onClick={() => setUpdating(true)}
+            >
+              Update balance
+            </Button>
           ) : null}
         </div>
       ) : null}

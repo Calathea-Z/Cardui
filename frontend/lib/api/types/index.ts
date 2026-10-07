@@ -51,7 +51,9 @@ export type {
   DebtSummaryItemDto,
   DebtSummaryReportDto,
   DebtKind,
+  DebtSyncedField,
   FollowDebtAccountDto,
+  SetDebtBalanceOverrideDto,
   UpsertDebtDto,
 } from "./debts";
 export type {

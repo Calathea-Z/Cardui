@@ -1,6 +1,6 @@
 # Linked manual debts
 
-Status: Approved. Follow a balance is built. Later slices are not.
+Status: Approved. Follow a balance and balance overrides are built. Later slices are not.
 Date: October 6, 2026
 Updated: 2026-10-07
 

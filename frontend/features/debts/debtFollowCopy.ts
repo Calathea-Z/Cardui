@@ -115,6 +115,41 @@ export function startedFollowingToast(debtName: string, accountLabel: string) {
 }
 
 /**
+ * True when a followed card can record today's balance.
+ * A current card uses the form. A missing account is stopped, not updated.
+ */
+export function canUpdateBalance(freshness: DebtLinkFreshness) {
+  return (
+    freshness === "Stale" ||
+    freshness === "SyncFailing" ||
+    freshness === "Disconnected"
+  );
+}
+
+/**
+ * The toast after the person keeps their own balance.
+ * A known amount names it and the date that was saved.
+ */
+export function ownBalanceToast(
+  name: string,
+  balance: string | null,
+  asOf: string | null,
+) {
+  if (balance && asOf) {
+    return `${name} is using your balance of ${balance} from ${asOf}.`;
+  }
+
+  return `${name} is using your balance.`;
+}
+
+/**
+ * The toast after the person goes back to the synced balance.
+ */
+export function syncedBalanceToast(name: string) {
+  return `${name} is using the synced balance again.`;
+}
+
+/**
  * The toast after a debt stops following.
  * A known balance names the amount and the date that was kept.
  */

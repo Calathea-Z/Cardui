@@ -135,14 +135,48 @@ public class DebtsService : IDebtsService
         CancellationToken cancellationToken = default)
     {
         var debt = await FindDebtAsync(debtId, cancellationToken);
-        if (debt.AccountFollowedSince is null)
-        {
-            throw new BadRequestException("This debt is not following an account.");
-        }
-
+        RequireFollowing(debt);
         var account = await FindFollowAccountAsync(debt.AccountId, cancellationToken);
         var resolution = DebtFollowedBalance.Resolve(Facts(ToRow(debt), account));
         await SaveStopAsync(debt, resolution, cancellationToken);
+        return await ProjectDebtAsync(debt.Id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<DebtDto> SetOverrideAsync(
+        Guid debtId,
+        DebtSyncedField field,
+        SetDebtBalanceOverrideDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var debt = await FindDebtAsync(debtId, cancellationToken);
+        RequireFollowing(debt);
+        RequireBalanceField(field);
+        if (!DebtRules.TryReadBalanceOverride(
+                dto.Balance,
+                dto.BalanceAsOf,
+                Today(),
+                out var amount,
+                out var asOf,
+                out var error))
+        {
+            throw new BadRequestException(error);
+        }
+
+        await SaveBalanceOverrideAsync(debt, amount, asOf, cancellationToken);
+        return await ProjectDebtAsync(debt.Id, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<DebtDto> ClearOverrideAsync(
+        Guid debtId,
+        DebtSyncedField field,
+        CancellationToken cancellationToken = default)
+    {
+        var debt = await FindDebtAsync(debtId, cancellationToken);
+        RequireFollowing(debt);
+        RequireBalanceField(field);
+        await ClearBalanceOverrideAsync(debt, cancellationToken);
         return await ProjectDebtAsync(debt.Id, cancellationToken);
     }
 
@@ -818,6 +852,28 @@ public class DebtsService : IDebtsService
     }
 
     /// <summary>
+    /// Rejects a debt that is not following. An override applies only while it follows.
+    /// </summary>
+    private static void RequireFollowing(Debt debt)
+    {
+        if (debt.AccountFollowedSince is null)
+        {
+            throw new BadRequestException("This debt is not following an account.");
+        }
+    }
+
+    /// <summary>
+    /// Rejects a field this slice does not follow. Balance is the only one.
+    /// </summary>
+    private static void RequireBalanceField(DebtSyncedField field)
+    {
+        if (field != DebtSyncedField.Balance)
+        {
+            throw new BadRequestException("That field cannot be overridden.");
+        }
+    }
+
+    /// <summary>
     /// Rejects a second follow. The person stops following before choosing another account.
     /// </summary>
     private static void RequireNotFollowing(Debt debt, Guid accountId)
@@ -1037,6 +1093,42 @@ public class DebtsService : IDebtsService
         }
 
         debt.AccountFollowedSince = null;
+        debt.BalanceOverriddenAt = null;
+        debt.UpdatedAt = _timeProvider.GetUtcNow();
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Stores the person's balance and marks it as an override.
+    /// The account and its snapshots are not changed. Sync does not clear the mark.
+    /// </summary>
+    private async Task SaveBalanceOverrideAsync(
+        Debt debt,
+        decimal balance,
+        DateOnly asOf,
+        CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+        debt.Balance = balance;
+        debt.BalanceAsOf = asOf;
+        debt.BalanceOverriddenAt = now;
+        debt.UpdatedAt = now;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Clears the override mark. The stored balance stays until the debt stops following.
+    /// A debt that is already using the synced balance is left as it is.
+    /// </summary>
+    private async Task ClearBalanceOverrideAsync(
+        Debt debt,
+        CancellationToken cancellationToken)
+    {
+        if (debt.BalanceOverriddenAt is null)
+        {
+            return;
+        }
+
         debt.BalanceOverriddenAt = null;
         debt.UpdatedAt = _timeProvider.GetUtcNow();
         await _dbContext.SaveChangesAsync(cancellationToken);

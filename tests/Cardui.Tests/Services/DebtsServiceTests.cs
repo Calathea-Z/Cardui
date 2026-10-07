@@ -460,6 +460,99 @@ public class DebtsServiceTests
         Assert.Null(stopped.BalanceCredit);
     }
 
+    [Fact]
+    public async Task Override_KeepsThePersonsBalanceEvenWhenItMatchesAndCanReturnToSynced()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var debt = await service.CreateAsync(Card(accountId));
+        await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = accountId });
+
+        var kept = await service.SetOverrideAsync(
+            debt.Id,
+            DebtSyncedField.Balance,
+            new SetDebtBalanceOverrideDto
+            {
+                Balance = 1240.18m,
+                BalanceAsOf = new DateOnly(2026, 10, 2)
+            });
+        Assert.Equal(DebtFieldSource.Override, kept.BalanceSource);
+        Assert.Equal(1240.18m, kept.Balance);
+        Assert.Equal(1240.18m, kept.BalanceInUse);
+        Assert.Equal(new DateOnly(2026, 10, 2), kept.BalanceAsOf);
+        Assert.Equal(1240.18m, kept.SyncedBalance);
+        Assert.Equal(900m, await AccountBalanceAsync(dbContext, accountId));
+
+        var edited = Card(accountId);
+        edited.Balance = 1m;
+        edited.Apr = 9m;
+        var saved = await service.UpdateAsync(debt.Id, edited);
+        Assert.Equal(1240.18m, saved.Balance);
+        Assert.Equal(DebtFieldSource.Override, saved.BalanceSource);
+        Assert.Equal(9m, saved.Apr);
+
+        var synced = await service.ClearOverrideAsync(debt.Id, DebtSyncedField.Balance);
+        Assert.Equal(DebtFieldSource.Synced, synced.BalanceSource);
+        Assert.Equal(1240.18m, synced.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 2), synced.BalanceAsOf);
+        Assert.Equal(1240.18m, synced.BalanceInUse);
+        Assert.Equal(new DateOnly(2026, 10, 5), synced.BalanceInUseAsOf);
+
+        var own = await service.SetOverrideAsync(
+            debt.Id,
+            DebtSyncedField.Balance,
+            new SetDebtBalanceOverrideDto
+            {
+                Balance = 500m,
+                BalanceAsOf = new DateOnly(2026, 10, 3)
+            });
+        var stopped = await service.StopFollowingAsync(own.Id);
+        Assert.False(stopped.Following);
+        Assert.Equal(500m, stopped.Balance);
+        Assert.Equal(new DateOnly(2026, 10, 3), stopped.BalanceAsOf);
+        Assert.Equal(DebtFieldSource.Manual, stopped.BalanceSource);
+    }
+
+    [Fact]
+    public async Task Override_UsesTodayWhenTheDateIsOmittedAndRejectsADebtThatIsNotFollowing()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var accountId = await AddConnectedAccountAsync(dbContext, householdId, 900m, snapshot: 1240.18m);
+        var service = CreateService(dbContext, Bind(householdId));
+        var debt = await service.CreateAsync(Card(accountId));
+
+        var early = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.SetOverrideAsync(
+                debt.Id,
+                DebtSyncedField.Balance,
+                new SetDebtBalanceOverrideDto { Balance = 10m }));
+        Assert.Equal("This debt is not following an account.", early.Message);
+
+        await service.FollowAccountAsync(
+            debt.Id,
+            new FollowDebtAccountDto { AccountId = accountId });
+        var updated = await service.SetOverrideAsync(
+            debt.Id,
+            DebtSyncedField.Balance,
+            new SetDebtBalanceOverrideDto { Balance = 10m });
+        Assert.Equal(DebtFieldSource.Override, updated.BalanceSource);
+        Assert.Equal(10m, updated.BalanceInUse);
+        Assert.Equal(new DateOnly(2026, 10, 5), updated.BalanceAsOf);
+        Assert.Equal(1240.18m, updated.SyncedBalance);
+
+        var blank = await Assert.ThrowsAsync<BadRequestException>(
+            () => service.SetOverrideAsync(
+                debt.Id,
+                DebtSyncedField.Balance,
+                new SetDebtBalanceOverrideDto()));
+        Assert.Equal("Enter the balance.", blank.Message);
+    }
+
     private static UpsertDebtDto Card(Guid? accountId)
     {
         return new UpsertDebtDto

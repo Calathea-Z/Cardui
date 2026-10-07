@@ -197,6 +197,39 @@ public class DebtRulesTests
         Assert.Null(draft.BalanceAsOf);
     }
 
+    [Fact]
+    public void TryReadBalanceOverride_RequiresAnAmountAndUsesTodayWhenTheDateIsMissing()
+    {
+        var today = new DateOnly(2026, 10, 7);
+        var dated = DebtRules.TryReadBalanceOverride(
+            1240.18m,
+            new DateOnly(2026, 10, 2),
+            today,
+            out var amount,
+            out var asOf,
+            out var error);
+
+        Assert.True(dated);
+        Assert.Equal("", error);
+        Assert.Equal(1240.18m, amount);
+        Assert.Equal(new DateOnly(2026, 10, 2), asOf);
+
+        var omitted = DebtRules.TryReadBalanceOverride(
+            0m,
+            null,
+            today,
+            out amount,
+            out asOf,
+            out error);
+        Assert.True(omitted);
+        Assert.Equal(0m, amount);
+        Assert.Equal(today, asOf);
+
+        var blank = DebtRules.TryReadBalanceOverride(null, today, today, out _, out _, out error);
+        Assert.False(blank);
+        Assert.Equal("Enter the balance.", error);
+    }
+
     private static (bool ok, string error) Reject(
         string name = "Card",
         DebtKind? kind = DebtKind.Revolving,

@@ -140,6 +140,8 @@ export function DebtsPageClient({
         onFollow={openFollow}
         onStopFollowing={(debt) => void debts.stopFollowing(debt)}
         onRefresh={refreshFollowed}
+        onUseSyncedValue={(debt) => void debts.useSyncedBalance(debt)}
+        onUpdateBalance={(debt, amount) => debts.updateBalance(debt, amount)}
       />
 
       <BottomSheet
@@ -160,8 +162,10 @@ export function DebtsPageClient({
           isEditing={debts.editingId !== null}
           isSaving={debts.isSaving}
           following={editing?.following ?? false}
+          balanceSource={editing?.balanceSource ?? null}
           onChange={debts.setForm}
           onPickerOpenChange={handlePickerOpenChange}
+          onSaveOwnBalance={debts.saveOwnBalance}
           onSubmit={async (event) => {
             const saved = await debts.handleSubmit(event);
             if (saved) {

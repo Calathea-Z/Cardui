@@ -48,6 +48,12 @@ Production refuses wildcard hosts, localhost origins, and unencrypted
 data-protection keys. Local servers bind to loopback. See
 `.cursor/rules/security.mdc`.
 
+## Dead code
+
+Until Zach says Cardui has reached MVP and has shipped, delete code that
+nothing uses in the same change. A renamed route does not keep a redirect
+or an alias. See `.cursor/rules/dead-code.mdc`.
+
 ## Migrations
 
 Update models and the DbContext, then ask before generating or applying an
@@ -111,7 +117,7 @@ before an index migration. See `.cursor/rules/backend-query-access.mdc`.
 
 ## UI governance
 
-New Tortoise screens follow the light shell, the account-menu map, and the shared action, state, and accessibility conventions. See `.cursor/rules/ui-governance.mdc`.
+New Tortoise screens follow the light shell, the account-menu map, and the shared action, state, and accessibility conventions. When a UX choice is uncertain, ask Zach and offer options before building it. See `.cursor/rules/ui-governance.mdc`.
 
 ## UI primitives
 
@@ -121,7 +127,8 @@ a small primitive is enough or a library is the better fit, and ask before
 adding that dependency. Choice lists use `Select` in
 `frontend/components/ui/select.tsx`. Do not use a native `<select>`.
 Date entry uses `DateField` in `frontend/components/ui/date-field.tsx`.
-Do not use a native date input. See `.cursor/rules/ui-primitives.mdc`.
+Do not use a native date input. A two-state setting uses `Switch` in
+`frontend/components/ui/switch.tsx`. See `.cursor/rules/ui-primitives.mdc`.
 
 ## Frontend layers
 

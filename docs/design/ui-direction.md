@@ -107,11 +107,11 @@ Three primary destinations. Everything else is a setting.
 | --- | --- | --- |
 | Home | `/` | Where the household stands. Net worth chart, this month, recent activity. |
 | Accounts | `/accounts` | Balances, the balance chart, the grouped list. |
-| Activity | `/transactions` | The ledger. Search, filters, the row, the detail. |
+| Activity | `/activity` | The ledger. Search, filters, the row, the detail. |
 
-The path stays `/transactions` in the first pass. Only the label changes, to Activity. Renaming the route can wait.
+The address matches the label.
 
-**Plan** (`/budgets`) stays off the primary nav until the screen is real. The route stays so the URL does not 404. Do not design that screen yet. Where Plan goes when it exists is an open decision in `docs/README.md`. Until then, `.cursor/rules/ui-governance.mdc` keeps three primary destinations and no fourth tab.
+**Targets** (`/targets`) is a setting in the account menu. It is not a fourth tab. Where a future Plan screen goes is an open decision in `docs/README.md`.
 
 **Settings, in the account menu, on both widths:**
 
@@ -120,11 +120,12 @@ The path stays `/transactions` in the first pass. Only the label changes, to Act
 | Income | `/income` | Planning inputs, edited now and then. |
 | Bills | `/bills` | Planning inputs, edited now and then. |
 | Debts | `/debts` | The debt inventory, edited now and then. |
+| Targets | `/targets` | A monthly amount for each spending category. |
 | Categories | `/categories` | A taxonomy for Activity. People open it to fix a name or a color. |
-| Connections | `/institutions` | How accounts get linked. The path stays `/institutions`. |
+| Connections | `/connections` | How accounts get linked. |
 | Household | `/household` | Planning currency, time zone, contributors. Already the right kind of page. It is just hidden. |
 
-Desktop: these six under the account email. Phone: the same six in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity.
+Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity.
 
 Primary pages get a title row and no back button. Back is for a nested flow, not for Home. Page actions (Add on Accounts, Import and Add on Activity) sit in that title row on desktop and in the same row on the phone, wrapping under the title. They stop teleporting into the phone header.
 

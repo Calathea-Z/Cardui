@@ -17,7 +17,7 @@ import { ColorPicker, colorPickerPopoverSize } from "./ColorPicker";
 import { EmojiPicker, emojiPickerPopoverSize } from "./EmojiPicker";
 
 const fieldTriggerClassName = cn(
-  "mt-2 flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm transition-colors outline-none",
+  "mt-2 flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-border bg-card px-2.5 text-left text-sm transition-colors outline-none",
   "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
   "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
 );

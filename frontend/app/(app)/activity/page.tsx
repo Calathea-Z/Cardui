@@ -4,15 +4,15 @@ import { TransactionsClient } from "@/features/transactions";
 import { loadTransactionsPage } from "@/features/transactions/server/loadTransactionsPage";
 
 /**
- * Renders the transactions page on each request.
+ * Renders the Activity page on each request.
  */
 export const dynamic = "force-dynamic";
 
 /**
- * Transactions route.
+ * Activity route.
  * Loads transactions on the server and shows a banner when that load fails.
  */
-export default async function TransactionsPage() {
+export default async function ActivityPage() {
   await auth.protect();
 
   const page = await loadTransactionsPage();

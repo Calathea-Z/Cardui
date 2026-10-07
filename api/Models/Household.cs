@@ -32,4 +32,7 @@ public class Household
 
     public ICollection<Debt> Debts { get; init; } =
         new List<Debt>();
+
+    public ICollection<CategoryTargetMonth> CategoryTargetMonths { get; init; } =
+        new List<CategoryTargetMonth>();
 }

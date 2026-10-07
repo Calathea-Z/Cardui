@@ -218,6 +218,73 @@ namespace Cardui.Api.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.CategoryTarget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryTargetMonthId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Rollover")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("CategoryTargetMonthId", "CategoryId")
+                        .IsUnique();
+
+                    b.ToTable("CategoryTargets");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.CategoryTargetMonth", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("CopiedFromMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CopiedFromYear")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId", "Year", "Month")
+                        .IsUnique();
+
+                    b.ToTable("CategoryTargetMonths");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Debt", b =>
                 {
                     b.Property<Guid>("Id")
@@ -872,6 +939,36 @@ namespace Cardui.Api.Migrations
                     b.Navigation("SubGroup");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.CategoryTarget", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cardui.Api.Models.CategoryTargetMonth", "Month")
+                        .WithMany("Targets")
+                        .HasForeignKey("CategoryTargetMonthId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Month");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.CategoryTargetMonth", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Household", "Household")
+                        .WithMany("CategoryTargetMonths")
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Debt", b =>
                 {
                     b.HasOne("Cardui.Api.Models.Account", "Account")
@@ -1035,6 +1132,11 @@ namespace Cardui.Api.Migrations
                     b.Navigation("Transactions");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.CategoryTargetMonth", b =>
+                {
+                    b.Navigation("Targets");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Group", b =>
                 {
                     b.Navigation("SubGroups");
@@ -1042,6 +1144,8 @@ namespace Cardui.Api.Migrations
 
             modelBuilder.Entity("Cardui.Api.Models.Household", b =>
                 {
+                    b.Navigation("CategoryTargetMonths");
+
                     b.Navigation("Contributors");
 
                     b.Navigation("Debts");

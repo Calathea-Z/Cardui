@@ -121,7 +121,7 @@ export function InstitutionsPageClient({
       <PageHeader
         showBack
         backFallbackHref="/accounts"
-        title="Institutions"
+        title="Connections"
         description="Manage linked banks and the accounts synced from each institution."
         actions={
           items.length > 0 ? (

@@ -17,6 +17,12 @@ export type {
   SubGroupDto,
   UpdateCategoryDto,
 } from "./categories";
+export type {
+  CategoryTargetLineDto,
+  CategoryTargetMonthDto,
+  CategoryTargetMonthRequest,
+  UpsertCategoryTargetDto,
+} from "./category-targets";
 export type { DashboardSummaryDto, SpendingByCategoryDto } from "./dashboard";
 export type {
   IncomeCadence,

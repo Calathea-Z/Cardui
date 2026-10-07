@@ -11,13 +11,13 @@ history. They do not say what is next.
 
 **Now**
 
-- Phase 3 in [`roadmap.md`](roadmap.md), recovery calculations, scenarios,
-  and a saved plan. Start with item 1. Reconnect is approved in
-  [`reviews/2026-10-07-007-reconnect.md`](reviews/2026-10-07-007-reconnect.md).
+- Phase 3 item 2 in [`roadmap.md`](roadmap.md): a 30-day cash view and
+  6/12/18-month forecasts. Item 1 is approved in
+  [`reviews/2026-10-07-008-recovery-calculations.md`](reviews/2026-10-07-008-recovery-calculations.md).
 
 **Next**
 
-1. Phase 3 items 2 onward, after item 1. Detail panel keyboard focus stays
+1. Phase 3 items 3 onward, after item 2. Detail panel keyboard focus stays
    tracked and is not scheduled.
 
 **Tracked, not scheduled**

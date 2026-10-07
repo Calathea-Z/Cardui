@@ -167,6 +167,8 @@ These are not scheduled into a phase yet. Each is one review when it is picked u
 
 **Exit:** identical inputs reproduce identical numbers; shortfalls remain visible; smart priority and rollover results reconcile to documented fixtures; refinance/restructuring comparisons include fees and break-even behavior; a saved plan survives edits with version history and can be used without chat.
 
+**Status (October 7, 2026):** Item 1 is approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`. The calculators are pure domain rules in `api/Domain/Recovery`. No schema change. Items 2–11 have not started.
+
 ### Phase 4 — Guided conversation as the main planning entry point
 
 Design the conversation and test scripted prototypes during Phases 1–3. Production chat depends on the ownership, fact and calculation contracts above; it should not become a disconnected demo.

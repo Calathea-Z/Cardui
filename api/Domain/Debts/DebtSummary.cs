@@ -99,7 +99,7 @@ public static class DebtSummary
     /// </summary>
     private static DebtSummaryItem Describe(DebtSummaryInput debt, DateOnly today)
     {
-        var (rate, promotional) = RateInEffect(
+        var (rate, promotional) = DebtRate.InEffect(
             debt.Apr,
             debt.PromotionalApr,
             debt.PromotionalEndsOn,
@@ -115,7 +115,9 @@ public static class DebtSummary
         return new DebtSummaryItem(
             debt.DebtId,
             debt.Currency,
-            MonthlyInterest(debt.Balance, rate),
+            debt.Balance is decimal balance && rate is decimal ratePercent
+                ? DebtInterest.ForMonth(balance, ratePercent)
+                : null,
             rate,
             promotional,
             promotionEnded,
@@ -174,41 +176,6 @@ public static class DebtSummary
             GapCount(items, DebtSummaryGap.RateAfterPromotion),
             pairs.Count(pair => pair.Input.Freshness is DebtLinkFreshness freshness
                 && freshness != DebtLinkFreshness.Current));
-    }
-
-    /// <summary>
-    /// One month of simple interest on the recorded balance.
-    /// The amount is the balance times the rate, divided by 12, rounded to cents.
-    /// Null when the balance or the rate is unknown. It is not the total interest left to pay.
-    /// </summary>
-    private static decimal? MonthlyInterest(decimal? balance, decimal? ratePercent)
-    {
-        if (balance is not decimal amount || ratePercent is not decimal rate)
-        {
-            return null;
-        }
-
-        return AccountLedger.Round(amount * rate / 100m / 12m);
-    }
-
-    /// <summary>
-    /// The rate used for this month's interest.
-    /// A promotional APR applies when it is known and its end date is blank, today, or later.
-    /// After that date, the regular APR is used, and a missing regular APR stays unknown.
-    /// </summary>
-    private static (decimal? Rate, bool Promotional) RateInEffect(
-        decimal? apr,
-        decimal? promotionalApr,
-        DateOnly? promotionalEndsOn,
-        DateOnly today)
-    {
-        if (promotionalApr is not null
-            && (promotionalEndsOn is null || promotionalEndsOn >= today))
-        {
-            return (promotionalApr, true);
-        }
-
-        return (apr, false);
     }
 
     /// <summary>

@@ -25,6 +25,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-07 — Payoff priority](2026-10-07-010-payoff-priority.md) — Approved 2026-10-07
 - [2026-10-07 — Cash forecast](2026-10-07-009-cash-forecast.md) — Approved 2026-10-07
 - [2026-10-07 — Recovery calculations](2026-10-07-008-recovery-calculations.md) — Approved 2026-10-07
 

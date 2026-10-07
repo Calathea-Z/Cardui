@@ -167,7 +167,7 @@ These are not scheduled into a phase yet. Each is one review when it is picked u
 
 **Exit:** identical inputs reproduce identical numbers; shortfalls remain visible; smart priority and rollover results reconcile to documented fixtures; refinance/restructuring comparisons include fees and break-even behavior; a saved plan survives edits with version history and can be used without chat.
 
-**Status (October 7, 2026):** Items 1 and 2 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md` and `docs/reviews/2026-10-07-009-cash-forecast.md`. The calculators and the forecast are pure domain rules in `api/Domain/Recovery`. No schema change. Items 3–11 have not started.
+**Status (October 7, 2026):** Items 1–3 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, and `docs/reviews/2026-10-07-010-payoff-priority.md`. The calculators, the forecast, and the payoff comparison are pure domain rules in `api/Domain/Recovery`. No schema change. Items 4–11 have not started.
 
 ### Phase 4 — Guided conversation as the main planning entry point
 

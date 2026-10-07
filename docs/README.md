@@ -11,14 +11,14 @@ history. They do not say what is next.
 
 **Now**
 
-- Phase 3 item 3 in [`roadmap.md`](roadmap.md): smart payoff
-  prioritization. Item 2 is approved in
-  [`reviews/2026-10-07-009-cash-forecast.md`](reviews/2026-10-07-009-cash-forecast.md).
+- Phase 3 item 4 in [`roadmap.md`](roadmap.md): roll a freed minimum into the
+  next debt. Item 3 is approved in
+  [`reviews/2026-10-07-010-payoff-priority.md`](reviews/2026-10-07-010-payoff-priority.md).
 
 **Next**
 
-1. Phase 3 items 4 onward, after item 3. Detail panel keyboard focus stays
-   tracked and is not scheduled.
+1. Phase 3 item 5, after item 4. Detail panel keyboard focus stays tracked
+   and is not scheduled.
 
 **Tracked, not scheduled**
 

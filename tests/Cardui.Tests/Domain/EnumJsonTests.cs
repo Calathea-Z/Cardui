@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Cardui.Api.Configuration;
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.TransactionImport;
 using Cardui.Api.Models;
 using Xunit;
 

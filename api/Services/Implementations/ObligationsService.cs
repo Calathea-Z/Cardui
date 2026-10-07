@@ -1,5 +1,6 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
+using Cardui.Api.Domain.Obligations;
 using Cardui.Api.Dtos.Obligations;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;

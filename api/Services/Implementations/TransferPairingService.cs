@@ -1,5 +1,8 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
+using Cardui.Api.Domain.Accounts;
+using Cardui.Api.Domain.Categories;
+using Cardui.Api.Domain.Transactions;
 using Cardui.Api.Models;
 using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;

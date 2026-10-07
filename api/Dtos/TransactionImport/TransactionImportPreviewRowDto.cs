@@ -1,4 +1,4 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.TransactionImport;
 
 namespace Cardui.Api.Dtos.TransactionImport;
 

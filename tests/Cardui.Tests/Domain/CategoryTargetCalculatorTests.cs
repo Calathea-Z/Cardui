@@ -1,4 +1,4 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.CategoryTargets;
 using Xunit;
 
 namespace Cardui.Tests.Domain;

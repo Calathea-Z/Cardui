@@ -1,5 +1,5 @@
 using Cardui.Api.Data;
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.Transactions;
 using Cardui.Api.Dtos.Plaid;
 using Cardui.Api.Services.Interfaces;
 using Going.Plaid.Entity;

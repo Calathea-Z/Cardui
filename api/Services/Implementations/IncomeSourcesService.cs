@@ -1,5 +1,6 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
+using Cardui.Api.Domain.Income;
 using Cardui.Api.Dtos.Income;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;

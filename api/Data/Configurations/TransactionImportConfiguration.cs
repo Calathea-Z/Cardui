@@ -1,4 +1,4 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.TransactionImport;
 using Cardui.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

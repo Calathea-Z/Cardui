@@ -11,13 +11,13 @@ history. They do not say what is next.
 
 **Now**
 
-- Phase 3 item 2 in [`roadmap.md`](roadmap.md): a 30-day cash view and
-  6/12/18-month forecasts. Item 1 is approved in
-  [`reviews/2026-10-07-008-recovery-calculations.md`](reviews/2026-10-07-008-recovery-calculations.md).
+- Phase 3 item 3 in [`roadmap.md`](roadmap.md): smart payoff
+  prioritization. Item 2 is approved in
+  [`reviews/2026-10-07-009-cash-forecast.md`](reviews/2026-10-07-009-cash-forecast.md).
 
 **Next**
 
-1. Phase 3 items 3 onward, after item 2. Detail panel keyboard focus stays
+1. Phase 3 items 4 onward, after item 3. Detail panel keyboard focus stays
    tracked and is not scheduled.
 
 **Tracked, not scheduled**

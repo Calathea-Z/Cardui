@@ -11,8 +11,13 @@ public static class DebtAmortization
     /// The projection stops when the balance is gone, a payment does not reduce it, a later rate is unknown,
     /// or the date window or 600 month cap is reached. A freed minimum is not rolled to another debt.
     /// Through is the last due date to include. A null through runs until the projection stops.
+    /// From is the first due date to include. Earlier dates are not payments and do not change the balance.
+    /// A null from starts at the next due date. Later dates still step from that original due date.
     /// </summary>
-    public static DebtSchedule Project(DebtAmortizationInput input, DateOnly? through = null)
+    public static DebtSchedule Project(
+        DebtAmortizationInput input,
+        DateOnly? through = null,
+        DateOnly? from = null)
     {
         var opening = DebtPaymentFacts.Resolve(input);
         if (!opening.IsResolved)
@@ -25,7 +30,7 @@ public static class DebtAmortization
             return Empty(input, opening.Balance, DebtScheduleStop.HorizonReached);
         }
 
-        return ProjectPeriods(input, opening, through);
+        return ProjectPeriods(input, opening, through, from);
     }
 
     #region Private Methods
@@ -33,18 +38,26 @@ public static class DebtAmortization
     /// <summary>
     /// Walks due dates until the debt is paid off or the projection has to stop.
     /// The minimum stays the opening minimum. The rate is read again on each due date.
+    /// Dates before from are skipped. The balance stays at the opening balance until the first included date.
     /// </summary>
     private static DebtSchedule ProjectPeriods(
         DebtAmortizationInput input,
         ResolvedDebtPayment opening,
-        DateOnly? through)
+        DateOnly? through,
+        DateOnly? from)
     {
+        var firstIndex = FirstIndexOnOrAfter(opening.DueDate, from);
+        if (firstIndex is not int start)
+        {
+            return Finish(input, [], opening.Balance, DebtScheduleStop.HorizonReached);
+        }
+
         var periods = new List<DebtPeriod>();
         var balance = opening.Balance;
         var extra = input.ExtraPayment <= 0 ? 0 : AccountLedger.Round(input.ExtraPayment);
-        for (var index = 0; index < DebtRules.MaxRemainingTermMonths; index++)
+        for (var step = 0; step < DebtRules.MaxRemainingTermMonths; step++)
         {
-            if (!TryDueDate(opening.DueDate, index, out var due))
+            if (!TryDueDate(opening.DueDate, start + step, out var due))
             {
                 return Finish(input, periods, balance, DebtScheduleStop.HorizonReached);
             }
@@ -86,6 +99,34 @@ public static class DebtAmortization
         }
 
         return Finish(input, periods, balance, DebtScheduleStop.HorizonReached);
+    }
+
+    /// <summary>
+    /// The first month index whose due date is on or after from.
+    /// Null when the 600 month cap from the original due date still falls before from.
+    /// A null from starts at the first due date.
+    /// </summary>
+    private static int? FirstIndexOnOrAfter(DateOnly firstDue, DateOnly? from)
+    {
+        if (from is not DateOnly start || firstDue >= start)
+        {
+            return 0;
+        }
+
+        for (var index = 1; index < DebtRules.MaxRemainingTermMonths; index++)
+        {
+            if (!TryDueDate(firstDue, index, out var due))
+            {
+                return null;
+            }
+
+            if (due >= start)
+            {
+                return index;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

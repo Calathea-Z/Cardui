@@ -234,6 +234,27 @@ public class DebtAmortizationTests
     }
 
     [Fact]
+    public void Project_SkipsPaymentsBeforeTheStartAndKeepsTheMonthEndDay()
+    {
+        var schedule = DebtAmortization.Project(
+            Loan(100m, 0m, 25m, due: new DateOnly(2026, 1, 31)),
+            new DateOnly(2026, 5, 31),
+            new DateOnly(2026, 2, 1));
+
+        Assert.Equal(
+            [
+                new DateOnly(2026, 2, 28),
+                new DateOnly(2026, 3, 31),
+                new DateOnly(2026, 4, 30),
+                new DateOnly(2026, 5, 31)
+            ],
+            schedule.Periods.Select(period => period.DueDate));
+        Assert.Equal(DebtScheduleStop.PaidOff, schedule.Stop);
+        Assert.Equal(0m, schedule.EndingBalance);
+        Assert.Equal(100m, schedule.Periods.Sum(period => period.Payment));
+    }
+
+    [Fact]
     public void Project_KeepsAMonthEndDueDateAfterFebruary()
     {
         var schedule = DebtAmortization.Project(

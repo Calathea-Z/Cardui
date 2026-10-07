@@ -23,8 +23,9 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
   report on the same date took that date's next free number. Their
   contents did not change.
 
-## Phase 3 — Recovery calculations
+## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-07 — Cash forecast](2026-10-07-009-cash-forecast.md) — Approved 2026-10-07
 - [2026-10-07 — Recovery calculations](2026-10-07-008-recovery-calculations.md) — Approved 2026-10-07
 
 ## Phase 2, linked debts, and the UI plan

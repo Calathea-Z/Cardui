@@ -18,6 +18,7 @@ type DebtFormProps = {
   storedCurrency: string | null;
   isEditing: boolean;
   isSaving: boolean;
+  following: boolean;
   onChange: (form: DebtFormState) => void;
   onPickerOpenChange: (open: boolean) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
@@ -27,6 +28,7 @@ type DebtFormProps = {
  * Form for one debt.
  * The type starts unset on a new debt. A blank term stays unknown and is not stored as zero.
  * The linked account can stay blank. A credit limit is asked for a revolving debt, and months left for an installment debt.
+ * While following, the balance, its date, and the account stay as they are.
  */
 export function DebtForm({
   form,
@@ -36,6 +38,7 @@ export function DebtForm({
   storedCurrency,
   isEditing,
   isSaving,
+  following,
   onChange,
   onPickerOpenChange,
   onSubmit,
@@ -109,9 +112,12 @@ export function DebtForm({
             inputMode="decimal"
             autoComplete="off"
             placeholder="Optional"
+            disabled={following}
           />
           <span className="font-normal text-muted-foreground">
-            What you owe. Leave blank if you don&apos;t know it.
+            {following
+              ? "This balance follows the connected account."
+              : "What you owe. Leave blank if you don't know it."}
           </span>
         </label>
 
@@ -124,6 +130,7 @@ export function DebtForm({
             min="2000-01-01"
             max="2100-12-31"
             onOpenChange={onPickerOpenChange}
+            disabled={following}
           />
           <span className="font-normal text-muted-foreground">
             The date that balance was true. Required when you enter a balance.
@@ -138,9 +145,12 @@ export function DebtForm({
             onChange={(value) => onChange({ ...form, accountId: value })}
             options={accountChoices(accounts, form.accountId, savedAccountName)}
             onOpenChange={onPickerOpenChange}
+            disabled={following}
           />
           <span className="font-normal text-muted-foreground">
-            Optional. The account balance is not copied or changed.
+            {following
+              ? "Stop following before choosing a different account."
+              : "Optional. The account balance is not copied or changed."}
           </span>
         </div>
 

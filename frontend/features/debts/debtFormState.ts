@@ -52,14 +52,17 @@ export function emptyDebtForm(): DebtFormState {
 /**
  * Copies a stored debt into the form.
  * A null term becomes a blank field. Dates keep the calendar day.
+ * While following, the balance shown is the one in use. Saving does not write that balance.
  */
 export function debtToForm(debt: DebtDto): DebtFormState {
   return {
     name: debt.name,
     kind: debt.kind,
     accountId: debt.accountId ?? "",
-    balance: optionalNumber(debt.balance),
-    balanceAsOf: optionalDate(debt.balanceAsOf),
+    balance: optionalNumber(debt.following ? debt.balanceInUse : debt.balance),
+    balanceAsOf: optionalDate(
+      debt.following ? debt.balanceInUseAsOf : debt.balanceAsOf,
+    ),
     apr: optionalNumber(debt.apr),
     minimumPayment: optionalNumber(debt.minimumPayment),
     nextDueDate: optionalDate(debt.nextDueDate),

@@ -53,7 +53,8 @@ public static class DebtSummaryDtoMapper
             MissingRemainingTermCount = currency.MissingRemainingTermCount,
             MissingPromotionalEndCount = currency.MissingPromotionalEndCount,
             MissingPromotionalRateCount = currency.MissingPromotionalRateCount,
-            MissingRateAfterPromotionCount = currency.MissingRateAfterPromotionCount
+            MissingRateAfterPromotionCount = currency.MissingRateAfterPromotionCount,
+            StaleCount = currency.StaleCount
         };
     }
 

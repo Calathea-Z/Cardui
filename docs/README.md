@@ -11,15 +11,15 @@ history. They do not say what is next.
 
 **Now**
 
-- Documentation cleanup: awaiting Zach's review in
+- Documentation cleanup: still awaiting Zach's review in
   [`reviews/2026-10-07-001-documentation-cleanup.md`](reviews/2026-10-07-001-documentation-cleanup.md).
 
 **Next**
 
-1. Linked-debt item 2 of "Sync correctness and linked debts" in
-   [`roadmap.md`](roadmap.md): follow a balance. Items 3–6 follow it.
-   Sync correctness is approved in
-   [`reviews/2026-10-06-002-sync-correctness.md`](reviews/2026-10-06-002-sync-correctness.md).
+1. Linked-debt item 3 of "Sync correctness and linked debts" in
+   [`roadmap.md`](roadmap.md): overrides. Items 4–6 follow it.
+   Follow a balance is approved in
+   [`reviews/2026-10-07-002-follow-a-balance.md`](reviews/2026-10-07-002-follow-a-balance.md).
 
 **Tracked, not scheduled**
 
@@ -41,7 +41,7 @@ history. They do not say what is next.
 | --- | --- |
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
-| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design, approved and not built |
+| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance is built. Later slices are not |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

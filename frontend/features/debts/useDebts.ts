@@ -7,11 +7,27 @@ import {
   chooseAccountBalance,
   createDebt,
   deleteDebt,
+  followDebtAccount,
+  getDebtFollowAccounts,
   getDebtSummary,
+  getDebts,
+  stopFollowingDebt,
+  syncPlaidItem,
   updateDebt,
 } from "@/lib/api/browser";
 import { describeApiError } from "@/lib/api/errors";
-import type { DebtDto, DebtSummaryReportDto } from "@/lib/api/types";
+import type {
+  DebtDto,
+  DebtFollowAccountDto,
+  DebtSummaryReportDto,
+} from "@/lib/api/types";
+import { formatCurrency } from "@/features/accounts/formatCurrency";
+import { formatCalendarDate } from "./debtDisplay";
+import {
+  followedAccountLabel,
+  startedFollowingToast,
+  stoppedFollowingToast,
+} from "./debtFollowCopy";
 import {
   debtToForm,
   emptyDebtForm,
@@ -21,7 +37,8 @@ import {
 
 /**
  * Holds the debt list, its summary, and the create or edit form.
- * A blank term stays unknown. Summary keeps the recorded balance until the person chooses the account balance.
+ * A blank term stays unknown. Choosing an eligible account balance starts following it.
+ * A manual account is copied once. Stopping a follow copies that balance back onto the debt.
  */
 export function useDebts(
   initialDebts: DebtDto[],
@@ -35,7 +52,14 @@ export function useDebts(
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [followDebtId, setFollowDebtId] = useState<string | null>(null);
+  const [followAccounts, setFollowAccounts] = useState<DebtFollowAccountDto[]>(
+    [],
+  );
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followError, setFollowError] = useState<string | null>(null);
   const summaryRequest = useRef(0);
+  const followRequest = useRef(0);
   const confirm = useConfirm();
 
   /**
@@ -137,10 +161,10 @@ export function useDebts(
   }
 
   /**
-   * Stores the linked account's dated balance on the debt after confirmation.
-   * The account balance is not changed. APR, minimum, and due date stay as they are.
+   * Uses the linked account balance after confirmation.
+   * An eligible account starts following. Any other account is copied onto the debt once.
    */
-  async function chooseBalance(debt: DebtDto) {
+  async function chooseBalance(debt: DebtDto, startsFollow: boolean) {
     const comparison = summary?.debts.find(
       (item) => item.debtId === debt.id,
     )?.balanceComparison;
@@ -148,14 +172,26 @@ export function useDebts(
       return;
     }
 
-    const confirmed = await confirm({
-      title: `Use the account balance for ${debt.name}?`,
-      description:
-        debt.balance === null
-          ? "The debt balance stays unknown until you do. This saves the account balance and its date on the debt. The account itself is not changed."
-          : "The plan keeps the recorded balance until you do. This saves the account balance and its date on the debt. The account itself is not changed.",
-      confirmLabel: "Use the account balance",
-    });
+    const accountName = debt.accountName ?? "this account";
+    const confirmed = await confirm(
+      startsFollow
+        ? {
+            title: `Follow ${accountName} for ${debt.name}?`,
+            description:
+              "The plan will use this account's balance from now on. APR, minimum, and due date stay yours. The account itself is not changed.",
+            confirmLabel: "Follow",
+            destructive: false,
+          }
+        : {
+            title: `Use the account balance for ${debt.name}?`,
+            description:
+              debt.balance === null
+                ? "The debt balance stays unknown until you do. This saves the account balance and its date on the debt. The account itself is not changed."
+                : "The plan keeps the recorded balance until you do. This saves the account balance and its date on the debt. The account itself is not changed.",
+            confirmLabel: "Use the account balance",
+            destructive: false,
+          },
+    );
     if (!confirmed) {
       return;
     }
@@ -168,12 +204,161 @@ export function useDebts(
       );
       const refreshed = await refreshSummary();
       if (refreshed) {
-        toast.success("The recorded balance now matches the account.", {
-          id: debtToastId,
-        });
+        toast.success(
+          updated.following
+            ? startedFollowingToast(
+                updated.name,
+                followedAccountLabel(updated.accountName ?? accountName, null),
+              )
+            : "The recorded balance now matches the account.",
+          { id: debtToastId },
+        );
       }
     } catch (err) {
       reportDebtFailure(err, "That account balance could not be saved.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /**
+   * Opens the follow steps for one debt and loads the accounts it may follow.
+   */
+  function startFollowing(debt: DebtDto) {
+    setFollowDebtId(debt.id);
+    setFollowAccounts([]);
+    void loadFollowAccounts(debt.id);
+  }
+
+  /**
+   * Closes the follow steps. A load that is still running is ignored.
+   */
+  function closeFollowing() {
+    followRequest.current += 1;
+    setFollowDebtId(null);
+    setFollowLoading(false);
+    setFollowError(null);
+  }
+
+  /**
+   * Loads the accounts one debt may follow.
+   * A later open or close drops this result.
+   */
+  async function loadFollowAccounts(debtId: string) {
+    const request = followRequest.current + 1;
+    followRequest.current = request;
+    setFollowLoading(true);
+    setFollowError(null);
+    try {
+      const accounts = await getDebtFollowAccounts(debtId);
+      if (followRequest.current === request) {
+        setFollowAccounts(accounts);
+      }
+    } catch (err) {
+      if (followRequest.current === request) {
+        const text = describeApiError(
+          err,
+          "Those accounts could not be loaded.",
+        );
+        setFollowError(text.message);
+      }
+    } finally {
+      if (followRequest.current === request) {
+        setFollowLoading(false);
+      }
+    }
+  }
+
+  /**
+   * Makes the open debt follow the chosen account.
+   * Keep-own records a different balance as the person's value. The toast names the account.
+   */
+  async function follow(accountId: string, keepOwnBalance: boolean) {
+    const debt = debts.find((item) => item.id === followDebtId);
+    if (!debt) {
+      return;
+    }
+
+    const account = followAccounts.find((item) => item.accountId === accountId);
+    setBusyId(debt.id);
+    try {
+      const updated = await followDebtAccount(debt.id, {
+        accountId,
+        keepOwnBalance,
+      });
+      setDebts((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      closeFollowing();
+      toast.success(
+        startedFollowingToast(
+          updated.name,
+          followedAccountLabel(
+            account?.name ?? updated.accountName ?? "the account",
+            account?.mask ?? null,
+          ),
+        ),
+        { id: debtToastId },
+      );
+      void refreshSummary();
+    } catch (err) {
+      reportDebtFailure(err, "That account could not be followed.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /**
+   * Stops following and keeps the last balance.
+   * The toast names the amount that was kept when there is one.
+   */
+  async function stopFollowing(debt: DebtDto) {
+    setBusyId(debt.id);
+    try {
+      const updated = await stopFollowingDebt(debt.id);
+      setDebts((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      const balance =
+        updated.balance === null
+          ? null
+          : formatCurrency(updated.balance, updated.currency);
+      const asOf = updated.balanceAsOf
+        ? formatCalendarDate(updated.balanceAsOf)
+        : null;
+      toast.success(stoppedFollowingToast(updated.name, balance, asOf), {
+        id: debtToastId,
+      });
+      void refreshSummary();
+    } catch (err) {
+      reportDebtFailure(err, "Following could not be stopped.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  /**
+   * Pulls the bank behind a stale followed balance, then reloads the debts.
+   * A sync that is already running does not change the balance.
+   */
+  async function refreshConnection(debt: DebtDto, plaidItemId: string) {
+    setBusyId(debt.id);
+    try {
+      const result = await syncPlaidItem(plaidItemId);
+      if (result.alreadyRunning) {
+        toast.warning("Already syncing", {
+          id: debtToastId,
+          description: "This refresh did nothing.",
+        });
+        return;
+      }
+
+      const next = await getDebts();
+      setDebts(next);
+      toast.success("Refresh finished", { id: debtToastId });
+      void refreshSummary();
+    } catch (err) {
+      reportDebtFailure(err, "That refresh failed. Try again.");
     } finally {
       setBusyId(null);
     }
@@ -223,6 +408,20 @@ export function useDebts(
     closeForm,
     remove,
     chooseBalance,
+    followDebtId,
+    followAccounts,
+    followLoading,
+    followError,
+    startFollowing,
+    closeFollowing,
+    retryFollowing: () => {
+      if (followDebtId) {
+        void loadFollowAccounts(followDebtId);
+      }
+    },
+    follow,
+    stopFollowing,
+    refreshConnection,
   };
 }
 

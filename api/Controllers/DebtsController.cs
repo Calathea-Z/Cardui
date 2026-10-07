@@ -64,7 +64,7 @@ public class DebtsController : ControllerBase
     /// <summary>
     /// GET /api/debts/summary
     /// Returns totals, risks, and missing inputs for the household's debts.
-    /// A linked account balance is included when it differs. It is not copied onto the debt.
+    /// A reference link shows the account balance when it differs. A followed balance is the one in use.
     /// </summary>
     [HttpGet("summary")]
     [ProducesResponseType<DebtSummaryReportDto>(StatusCodes.Status200OK)]
@@ -76,9 +76,57 @@ public class DebtsController : ControllerBase
     }
 
     /// <summary>
+    /// GET /api/debts/{id}/follow-accounts
+    /// Lists the connected credit cards and loans this debt may follow.
+    /// </summary>
+    [HttpGet("{id:guid}/follow-accounts")]
+    [ProducesResponseType<IReadOnlyList<DebtFollowAccountDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<DebtFollowAccountDto>>> GetFollowAccounts(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var accounts = await _debtsService.GetFollowAccountsAsync(id, cancellationToken);
+        return Ok(accounts);
+    }
+
+    /// <summary>
+    /// POST /api/debts/{id}/follow
+    /// Makes the debt follow one connected account. The stored balance is not replaced by sync.
+    /// </summary>
+    [HttpPost("{id:guid}/follow")]
+    [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DebtDto>> FollowAccount(
+        Guid id,
+        [FromBody] FollowDebtAccountDto dto,
+        CancellationToken cancellationToken)
+    {
+        var debt = await _debtsService.FollowAccountAsync(id, dto, cancellationToken);
+        return Ok(debt);
+    }
+
+    /// <summary>
+    /// POST /api/debts/{id}/stop-following
+    /// Stops following and keeps the last balance on the debt. The account stays linked.
+    /// </summary>
+    [HttpPost("{id:guid}/stop-following")]
+    [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DebtDto>> StopFollowing(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var debt = await _debtsService.StopFollowingAsync(id, cancellationToken);
+        return Ok(debt);
+    }
+
+    /// <summary>
     /// POST /api/debts/{id}/use-account-balance
-    /// Stores the linked account's dated balance on the debt.
-    /// The account balance is not changed. APR, minimum, and due date stay as they are.
+    /// Uses the linked account's balance. An eligible account starts a follow.
+    /// An account that cannot be followed is copied onto the debt once. The account itself is not changed.
     /// </summary>
     [HttpPost("{id:guid}/use-account-balance")]
     [ProducesResponseType<DebtDto>(StatusCodes.Status200OK)]

@@ -11,8 +11,9 @@ history. They do not say what is next.
 
 **Now**
 
-- Nothing in progress. Balance overrides are approved in
-  [`reviews/2026-10-07-003-balance-overrides.md`](reviews/2026-10-07-003-balance-overrides.md).
+- Domain folders: awaiting Zach's review in
+  [`reviews/2026-10-07-004-domain-folders.md`](reviews/2026-10-07-004-domain-folders.md).
+  `api/Domain` is grouped into feature folders. No behavior changed.
 
 **Next**
 
@@ -31,6 +32,10 @@ history. They do not say what is next.
 - Where a future Plan screen goes. Targets are `/targets`.
   `.cursor/rules/ui-governance.mdc` keeps three primary destinations and no
   fourth tab until Zach decides otherwise.
+- Whether `.cursor/rules/backend-type-files.mdc` and
+  `backend-domain-rules.mdc` should name the `Domain/<feature>` layout.
+  The proposed wording is in
+  [`reviews/2026-10-07-004-domain-folders.md`](reviews/2026-10-07-004-domain-folders.md).
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.

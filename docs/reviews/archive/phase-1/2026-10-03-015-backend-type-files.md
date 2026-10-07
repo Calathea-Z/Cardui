@@ -11,9 +11,9 @@ rule so those types stay out of services and other behavior classes.
 
 - `TransactionActivityValue`, `TransactionActivityCategoryTotal`, and
   `TransactionActivityTotals` each have a file under `api/Domain`.
-- `CategoryBucket` is now `internal` in `api/Domain/CategoryBucket.cs`.
+- `CategoryBucket` is now `internal` in `api/Domain/Transactions/CategoryBucket.cs`.
   Only the activity calculator uses it.
-- `LedgerTransaction` is in `api/Domain/LedgerTransaction.cs`.
+- `LedgerTransaction` is in `api/Domain/Accounts/LedgerTransaction.cs`.
 - `MerchantHistoryPeriodDto` is in its own file next to
   `MerchantHistoryDto`.
 - The rule is in `AGENTS.md`, `.cursor/rules/backend-type-files.mdc`, and
@@ -32,12 +32,12 @@ rule so those types stay out of services and other behavior classes.
 
 No screen or data change. Spot-check the files, or waive this list.
 
-1. Open `api/Domain/TransactionActivityCalculator.cs`.
+1. Open `api/Domain/Transactions/TransactionActivityCalculator.cs`.
    Expected: the file contains only the calculator. The activity records
    and `CategoryBucket` are gone.
-2. Open `api/Domain/CategoryBucket.cs`.
+2. Open `api/Domain/Transactions/CategoryBucket.cs`.
    Expected: the record is `internal` and sits in its own file.
-3. Open `api/Domain/AccountLedger.cs` and `api/Domain/LedgerTransaction.cs`.
+3. Open `api/Domain/Accounts/AccountLedger.cs` and `api/Domain/Accounts/LedgerTransaction.cs`.
    Expected: the ledger file contains only `AccountLedger`. The transaction
    value is in its own file.
 4. Open `.cursor/rules/backend-type-files.mdc`.

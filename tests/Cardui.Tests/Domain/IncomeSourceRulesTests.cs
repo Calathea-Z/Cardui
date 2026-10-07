@@ -1,4 +1,4 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.Income;
 using Cardui.Api.Models;
 using Xunit;
 

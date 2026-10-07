@@ -1,5 +1,5 @@
 using Cardui.Api.Data;
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.Categories;
 using Cardui.Api.Models;
 using Cardui.Api.Services.Implementations;
 using Microsoft.EntityFrameworkCore;

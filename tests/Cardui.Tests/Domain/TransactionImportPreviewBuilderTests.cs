@@ -1,4 +1,5 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.Categories;
+using Cardui.Api.Domain.TransactionImport;
 using Xunit;
 
 namespace Cardui.Tests.Domain;

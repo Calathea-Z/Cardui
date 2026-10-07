@@ -1,5 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
+using Cardui.Api.Domain.Accounts;
+using Cardui.Api.Domain.Categories;
 using Cardui.Api.Dtos.Account;
 using Cardui.Api.Dtos.Transaction;
 using Cardui.Api.Exceptions;

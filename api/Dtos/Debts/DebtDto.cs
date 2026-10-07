@@ -1,4 +1,4 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.Debts;
 using Cardui.Api.Models;
 
 namespace Cardui.Api.Dtos.Debts;

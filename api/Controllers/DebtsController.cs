@@ -1,4 +1,4 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.Debts;
 using Cardui.Api.Dtos.Debts;
 using Cardui.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,7 @@
 using System.Text;
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
+using Cardui.Api.Domain.TransactionImport;
 using Cardui.Api.Dtos.TransactionImport;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;

@@ -1,4 +1,5 @@
-using Cardui.Api.Domain;
+using Cardui.Api.Domain.Accounts;
+using Cardui.Api.Domain.Debts;
 using Cardui.Api.Models;
 using Xunit;
 

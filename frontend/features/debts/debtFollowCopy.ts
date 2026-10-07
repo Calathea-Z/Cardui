@@ -2,6 +2,7 @@ import type {
   AccountDto,
   DebtAccountBalanceBlock,
   DebtLinkFreshness,
+  DebtMatchReasonDto,
 } from "@/lib/api/types";
 
 type MoneyText = (amount: number, currency: string) => string;
@@ -163,4 +164,64 @@ export function stoppedFollowingToast(
   }
 
   return `${name} is manual again.`;
+}
+
+/**
+ * The sentence for one suggestion reason.
+ * A mask names the digits. A name lists the shared words. A balance names the gap, or says the amounts match.
+ */
+export function matchReasonText(
+  reason: DebtMatchReasonDto,
+  currency: string,
+  money: MoneyText,
+) {
+  switch (reason.kind) {
+    case "Mask":
+      return reason.mask ? `Ends in ${reason.mask}` : null;
+    case "Name":
+      return nameReason(reason.words);
+    case "Balance":
+      if (reason.difference === null) {
+        return null;
+      }
+
+      return reason.difference === 0
+        ? "Same balance as yours"
+        : `Balance within ${money(reason.difference, currency)} of yours`;
+  }
+}
+
+/**
+ * The accessible name for a suggested account.
+ * The account comes first, then each reason.
+ */
+export function suggestionLabel(
+  accountName: string,
+  mask: string | null,
+  reasons: string[],
+) {
+  const detail = reasons.filter((reason) => reason.length > 0);
+  return [followedAccountLabel(accountName, mask), ...detail].join(", ");
+}
+
+/**
+ * A shared-name reason.
+ * One word stands alone. Two use "and". More use a list that ends with "and".
+ */
+function nameReason(words: string[]) {
+  const names = words.filter((word) => word.trim().length > 0);
+  if (names.length === 0) {
+    return null;
+  }
+
+  if (names.length === 1) {
+    return `Name includes ${names[0]}`;
+  }
+
+  if (names.length === 2) {
+    return `Name includes ${names[0]} and ${names[1]}`;
+  }
+
+  const last = names[names.length - 1];
+  return `Name includes ${names.slice(0, -1).join(", ")}, and ${last}`;
 }

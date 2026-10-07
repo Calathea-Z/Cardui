@@ -1,7 +1,7 @@
 # Domain folders
 
 Date: October 7, 2026
-Status: Awaiting review
+Status: Approved 2026-10-07
 PR: [#26](https://github.com/Calathea-Z/Cardui/pull/26), into `dev`
 
 ## Increment
@@ -143,6 +143,10 @@ there blocks the pull or ends up in a conflict.
    `AccountLedger`.
    Expected: the namespace is `Cardui.Api.Domain.Debts`, and the
    definition opens `api/Domain/Accounts/AccountLedger.cs`.
+
+## Approval
+
+Zach approved the folder layout on October 7, 2026, as built. The proposed rule wording was not part of that approval.
 
 ## Pending decision
 

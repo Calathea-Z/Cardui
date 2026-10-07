@@ -51,6 +51,8 @@ export type {
   DebtSummaryItemDto,
   DebtSummaryReportDto,
   DebtKind,
+  DebtMatchReasonDto,
+  DebtMatchReasonKind,
   DebtSyncedField,
   FollowDebtAccountDto,
   SetDebtBalanceOverrideDto,

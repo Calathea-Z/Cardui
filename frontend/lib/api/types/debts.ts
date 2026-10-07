@@ -23,6 +23,26 @@ export const debtSyncedFields = ["Balance"] as const;
 export type DebtSyncedField = (typeof debtSyncedFields)[number];
 
 /**
+ * Why an account was suggested for a debt.
+ * Mask is the last digits. Name is a shared word. Balance is a close amount. No score is shown.
+ */
+export const debtMatchReasonKinds = ["Mask", "Name", "Balance"] as const;
+
+export type DebtMatchReasonKind = (typeof debtMatchReasonKinds)[number];
+
+/**
+ * One plain reason an account was suggested.
+ * `mask` is set for the last digits. `words` are set for a shared name. `difference` is the absolute balance gap.
+ * A difference of zero means the amounts are the same. The other fields are empty for that reason.
+ */
+export type DebtMatchReasonDto = {
+  kind: DebtMatchReasonKind;
+  mask: string | null;
+  words: string[];
+  difference: number | null;
+};
+
+/**
  * How current a followed connection is.
  * Current means the latest snapshot is recent and the last sync succeeded.
  */
@@ -223,6 +243,8 @@ export type UpsertDebtDto = {
  * `balanceInUse` is the amount following would use before the person keeps their own.
  * `balancesDiffer` is true when the debt already has a different balance.
  * `balanceCredit` is the positive credit counted as zero. It is null when the balance is not a credit.
+ * `suggestionOrder` is 1, 2, or 3 when this account is suggested. It is null on the rest of the list.
+ * The number is the order, not a score, and it is not shown. `reasons` is empty when it is not suggested.
  */
 export type DebtFollowAccountDto = {
   accountId: string;
@@ -235,6 +257,8 @@ export type DebtFollowAccountDto = {
   block: DebtAccountBalanceBlock;
   balanceCredit: number | null;
   balancesDiffer: boolean;
+  suggestionOrder: number | null;
+  reasons: DebtMatchReasonDto[];
 };
 
 /**

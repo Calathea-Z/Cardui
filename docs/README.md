@@ -11,16 +11,15 @@ history. They do not say what is next.
 
 **Now**
 
-- Domain folders: awaiting Zach's review in
-  [`reviews/2026-10-07-004-domain-folders.md`](reviews/2026-10-07-004-domain-folders.md).
-  `api/Domain` is grouped into feature folders. No behavior changed.
+- No increment is in progress.
 
 **Next**
 
-1. Linked-debt item 4 of "Sync correctness and linked debts" in
-   [`roadmap.md`](roadmap.md): suggested matches. The design is
+1. Linked-debt item 5 of "Sync correctness and linked debts" in
+   [`roadmap.md`](roadmap.md): credit limit. The design is
    [`design/linked-manual-debts.md`](design/linked-manual-debts.md).
-   Items 5–6 follow it. No schema change.
+   Item 6 follows it. This one changes the model. Ask before generating
+   the migration.
 
 **Tracked, not scheduled**
 
@@ -46,7 +45,7 @@ history. They do not say what is next.
 | --- | --- |
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
-| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance and balance overrides are built. Later slices are not |
+| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, and suggested matches are built. Later slices are not |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

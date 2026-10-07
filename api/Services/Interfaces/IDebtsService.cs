@@ -63,6 +63,7 @@ public interface IDebtsService
 
     /// <summary>
     /// Lists the connected credit cards and loans this debt may follow.
+    /// Up to three are marked as suggestions, with the reasons, when the name or the balance is close.
     /// An account already followed by another debt is left out. A manual account is left out.
     /// </summary>
     Task<IReadOnlyList<DebtFollowAccountDto>> GetFollowAccountsAsync(

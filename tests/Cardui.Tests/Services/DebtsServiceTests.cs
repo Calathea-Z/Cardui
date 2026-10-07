@@ -342,6 +342,8 @@ public class DebtsServiceTests
         Assert.Equal(accountId, choice.AccountId);
         Assert.True(choice.BalancesDiffer);
         Assert.Equal(1240.18m, choice.BalanceInUse);
+        Assert.Null(choice.SuggestionOrder);
+        Assert.Empty(choice.Reasons);
 
         var followed = await service.FollowAccountAsync(
             debt.Id,
@@ -554,6 +556,66 @@ public class DebtsServiceTests
         Assert.Equal("Enter the balance.", blank.Message);
     }
 
+    [Fact]
+    public async Task FollowAccounts_SuggestsTheCloseAccountAndStillListsTheOthers()
+    {
+        await using var dbContext = CreateDbContext();
+        var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
+        var chase = await AddNamedConnectedAccountAsync(
+            dbContext,
+            householdId,
+            "Preferred",
+            "4821",
+            900m,
+            1278.18m,
+            institutionName: "Chase");
+        var other = await AddNamedConnectedAccountAsync(
+            dbContext,
+            householdId,
+            "Everyday",
+            "1111",
+            20m,
+            20m);
+        var loan = await AddNamedConnectedAccountAsync(
+            dbContext,
+            householdId,
+            "Chase Sapphire",
+            "4821",
+            1240.18m,
+            1240.18m,
+            accountType: AccountTypes.Loan);
+        var service = CreateService(dbContext, Bind(householdId));
+        var request = Card(null);
+        request.Name = "Chase Sapphire 4821";
+        request.Balance = 1240.18m;
+        var debt = await service.CreateAsync(request);
+
+        var choices = await service.GetFollowAccountsAsync(debt.Id);
+
+        Assert.Equal(3, choices.Count);
+        var suggested = Assert.Single(choices, choice => choice.SuggestionOrder is not null);
+        Assert.Equal(chase, suggested.AccountId);
+        Assert.Equal(1, suggested.SuggestionOrder);
+        Assert.Contains(
+            suggested.Reasons,
+            reason => reason.Kind == DebtMatchReasonKind.Mask && reason.Mask == "4821");
+        Assert.Contains(
+            suggested.Reasons,
+            reason => reason.Kind == DebtMatchReasonKind.Name && reason.Words.Contains("Chase"));
+        Assert.Contains(
+            suggested.Reasons,
+            reason => reason.Kind == DebtMatchReasonKind.Balance && reason.Difference == 38m);
+        Assert.Contains(choices, choice => choice.AccountId == other);
+        Assert.Contains(choices, choice => choice.AccountId == loan);
+        Assert.All(
+            choices.Where(choice => choice.AccountId != chase),
+            choice =>
+            {
+                Assert.Null(choice.SuggestionOrder);
+                Assert.Empty(choice.Reasons);
+            });
+    }
+
     private static UpsertDebtDto Card(Guid? accountId)
     {
         return new UpsertDebtDto
@@ -650,6 +712,53 @@ public class DebtsServiceTests
             Name = "Visa",
             Mask = "4821",
             Type = AccountTypes.Credit,
+            IsoCurrencyCode = "USD",
+            IsActive = true,
+            CurrentBalance = currentBalance,
+            CreatedAt = Now,
+            UpdatedAt = Now
+        };
+        dbContext.Accounts.Add(account);
+        await dbContext.SaveChangesAsync();
+        await AddSnapshotAsync(dbContext, account.Id, new DateOnly(2026, 10, 5), snapshot, "USD");
+        return account.Id;
+    }
+
+    private static async Task<Guid> AddNamedConnectedAccountAsync(
+        CarduiDBContext dbContext,
+        Guid householdId,
+        string name,
+        string? mask,
+        decimal currentBalance,
+        decimal snapshot,
+        string? officialName = null,
+        string? institutionName = null,
+        string accountType = AccountTypes.Credit)
+    {
+        var item = new PlaidItem
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = householdId,
+            PlaidItemId = Guid.NewGuid().ToString("N"),
+            AccessToken = "stored-token",
+            InstitutionName = institutionName,
+            LastSyncCompletedAt = Now,
+            CreatedAt = Now,
+            UpdatedAt = Now
+        };
+        dbContext.PlaidItems.Add(item);
+        var account = new Account
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = householdId,
+            PlaidItemId = item.Id,
+            PlaidAccountId = Guid.NewGuid().ToString("N"),
+            Source = FinancialRecordSource.Plaid,
+            Provenance = FinancialRecordProvenance.PlaidSync,
+            Name = name,
+            OfficialName = officialName,
+            Mask = mask,
+            Type = accountType,
             IsoCurrencyCode = "USD",
             IsActive = true,
             CurrentBalance = currentBalance,

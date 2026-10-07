@@ -74,6 +74,7 @@ export async function chooseAccountBalance(id: string): Promise<DebtDto> {
 /**
  * GET /api/debts/{id}/follow-accounts
  * Lists the connected credit cards and loans this debt may follow.
+ * Up to three of them include the reasons they were suggested.
  */
 export async function getDebtFollowAccounts(
   id: string,

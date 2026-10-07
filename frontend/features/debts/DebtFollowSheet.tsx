@@ -10,7 +10,14 @@ import {
   creditNote,
   followBlockCopy,
   followedAccountLabel,
+  matchReasonText,
+  suggestionLabel,
 } from "./debtFollowCopy";
+import {
+  followBackTarget,
+  followPanel,
+  suggestedAccounts,
+} from "./debtFollowSteps";
 
 type DebtFollowSheetProps = {
   debt: DebtDto | null;
@@ -24,8 +31,8 @@ type DebtFollowSheetProps = {
 };
 
 /**
- * Nested steps for choosing an account and confirming the follow.
- * Back returns to the list. Escape closes the steps and leaves the debt page in place.
+ * Nested steps for suggesting an account, choosing another, and confirming the follow.
+ * Back returns to the previous step. Escape closes the steps and leaves the debt page in place.
  */
 export function DebtFollowSheet({
   debt,
@@ -46,6 +53,7 @@ export function DebtFollowSheet({
     setListRequested(false);
   }
 
+  const suggestions = suggestedAccounts(accounts);
   const linked =
     !loading && debt
       ? (accounts.find((account) => account.accountId === debt.accountId) ??
@@ -53,19 +61,27 @@ export function DebtFollowSheet({
       : null;
   const picked =
     accounts.find((account) => account.accountId === pickedId) ?? null;
-  const confirming = listRequested ? picked : (picked ?? linked);
+  const step = {
+    linked: linked !== null && picked === null && !listRequested,
+    picked: picked !== null,
+    listRequested,
+    suggestionCount: suggestions.length,
+  };
+  const panel = followPanel(step);
+  const confirming = panel === "confirm" ? (picked ?? linked) : null;
 
   /**
-   * Returns to the account list, or closes when the list was skipped.
+   * Returns to the previous step, or closes when nothing is behind this one.
    */
   function back() {
-    if (pickedId) {
-      setPickedId(null);
-      setListRequested(true);
+    const target = followBackTarget(step);
+    if (target === "close") {
+      onClose();
       return;
     }
 
-    onClose();
+    setPickedId(null);
+    setListRequested(target === "accounts");
   }
 
   return (
@@ -81,12 +97,16 @@ export function DebtFollowSheet({
         <FollowBody
           debt={debt}
           accounts={accounts}
+          suggestions={suggestions}
           confirming={confirming}
+          showSuggestions={panel === "suggestions"}
           loading={loading}
           error={error}
           busy={busy}
           onRetry={onRetry}
           onPick={setPickedId}
+          onChooseAnother={() => setListRequested(true)}
+          onNone={onClose}
           onFollow={onFollow}
         />
       ) : null}
@@ -97,28 +117,36 @@ export function DebtFollowSheet({
 type FollowBodyProps = {
   debt: DebtDto;
   accounts: DebtFollowAccountDto[];
+  suggestions: DebtFollowAccountDto[];
   confirming: DebtFollowAccountDto | null;
+  showSuggestions: boolean;
   loading: boolean;
   error: string | null;
   busy: boolean;
   onRetry: () => void;
   onPick: (accountId: string) => void;
+  onChooseAnother: () => void;
+  onNone: () => void;
   onFollow: (accountId: string, keepOwnBalance: boolean) => void;
 };
 
 /**
- * The account list, or the confirm step for the account that was chosen.
+ * The suggestion step, the full account list, or the confirm step.
  * A failed load offers retry. An empty list says what kind of account can be followed.
  */
 function FollowBody({
   debt,
   accounts,
+  suggestions,
   confirming,
+  showSuggestions,
   loading,
   error,
   busy,
   onRetry,
   onPick,
+  onChooseAnother,
+  onNone,
   onFollow,
 }: FollowBodyProps) {
   if (loading) {
@@ -147,6 +175,18 @@ function FollowBody({
     );
   }
 
+  if (showSuggestions) {
+    return (
+      <SuggestionList
+        debt={debt}
+        suggestions={suggestions}
+        onPick={onPick}
+        onChooseAnother={onChooseAnother}
+        onNone={onNone}
+      />
+    );
+  }
+
   if (accounts.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -156,6 +196,94 @@ function FollowBody({
     );
   }
 
+  return <AccountList debt={debt} accounts={accounts} onPick={onPick} />;
+}
+
+type SuggestionListProps = {
+  debt: DebtDto;
+  suggestions: DebtFollowAccountDto[];
+  onPick: (accountId: string) => void;
+  onChooseAnother: () => void;
+  onNone: () => void;
+};
+
+/**
+ * Up to three accounts that look like the debt.
+ * Choosing one confirms. The other two actions leave the suggestions.
+ */
+function SuggestionList({
+  debt,
+  suggestions,
+  onPick,
+  onChooseAnother,
+  onNone,
+}: SuggestionListProps) {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">
+        These accounts look like {debt.name}.
+      </p>
+      <ul className="flex flex-col gap-2">
+        {suggestions.map((account) => {
+          const reasons = reasonLines(debt, account);
+          return (
+            <li key={account.accountId}>
+              <button
+                type="button"
+                className="flex min-h-11 w-full flex-col items-start justify-center rounded-lg border border-border bg-card px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                aria-label={suggestionLabel(
+                  account.name,
+                  account.mask,
+                  reasons,
+                )}
+                onClick={() => onPick(account.accountId)}
+              >
+                <span className="font-medium">
+                  {followedAccountLabel(account.name, account.mask)}
+                </span>
+                {reasons.map((reason) => (
+                  <span key={reason} className="text-sm text-muted-foreground">
+                    {reason}
+                  </span>
+                ))}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="flex flex-col gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11"
+          onClick={onChooseAnother}
+        >
+          Choose another account
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="min-h-11"
+          onClick={onNone}
+        >
+          None of these
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type AccountListProps = {
+  debt: DebtDto;
+  accounts: DebtFollowAccountDto[];
+  onPick: (accountId: string) => void;
+};
+
+/**
+ * Every account this debt may follow.
+ * The balance is the amount following would use.
+ */
+function AccountList({ debt, accounts, onPick }: AccountListProps) {
   return (
     <ul className="flex flex-col gap-2">
       {accounts.map((account) => {
@@ -179,6 +307,17 @@ function FollowBody({
       })}
     </ul>
   );
+}
+
+/**
+ * The reason lines for one suggestion.
+ * A reason the copy cannot read is left out.
+ */
+function reasonLines(debt: DebtDto, account: DebtFollowAccountDto) {
+  return account.reasons.flatMap((reason) => {
+    const text = matchReasonText(reason, debt.currency, formatCurrency);
+    return text ? [text] : [];
+  });
 }
 
 type ConfirmFollowProps = {

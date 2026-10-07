@@ -112,7 +112,8 @@ public class DebtsService : IDebtsService
     {
         var debt = await FindDebtAsync(debtId, cancellationToken);
         var accounts = await LoadEligibleAccountsAsync(debt, cancellationToken);
-        return accounts.Select(account => ToFollowAccount(debt, account)).ToList();
+        var suggestions = RankSuggestions(debt, accounts);
+        return accounts.Select(account => ToFollowAccount(debt, account, suggestions)).ToList();
     }
 
     /// <inheritdoc />
@@ -1015,12 +1016,71 @@ public class DebtsService : IDebtsService
     }
 
     /// <summary>
+    /// Ranks the accounts that look like this debt.
+    /// The lookup is by account id. An account that was not suggested is absent.
+    /// </summary>
+    private static Dictionary<Guid, DebtAccountSuggestion> RankSuggestions(
+        Debt debt,
+        IReadOnlyList<DebtFollowAccountState> accounts)
+    {
+        return DebtAccountMatcher
+            .Suggest(
+                debt.Kind,
+                debt.Name,
+                debt.Balance,
+                accounts.Select(account => ToMatchCandidate(debt, account)).ToList())
+            .ToDictionary(suggestion => suggestion.AccountId);
+    }
+
+    /// <summary>
+    /// The account values the matcher compares. The dated balance is omitted when it has no date or another currency.
+    /// </summary>
+    private static DebtMatchCandidate ToMatchCandidate(Debt debt, DebtFollowAccountState account)
+    {
+        return new DebtMatchCandidate(
+            account.Id,
+            account.Name,
+            account.OfficialName,
+            account.InstitutionName,
+            account.Mask,
+            account.Type,
+            DatedBalance(debt, account));
+    }
+
+    /// <summary>
+    /// The latest snapshot amount when it has a date and the debt's currency.
+    /// An undated balance is not used as a match signal.
+    /// </summary>
+    private static decimal? DatedBalance(Debt debt, DebtFollowAccountState account)
+    {
+        if (account.Balance is not { } balance || balance.AsOf is null)
+        {
+            return null;
+        }
+
+        var accountCode = balance.Currency?.Trim();
+        var debtCode = debt.Currency.Trim();
+        if (string.IsNullOrEmpty(accountCode)
+            || !string.Equals(accountCode, debtCode, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return balance.Balance;
+    }
+
+    /// <summary>
     /// Describes one account the person can choose to follow.
     /// BalanceInUse is the amount following would use before they keep their own.
+    /// A suggested account carries its order and reasons. The others leave those empty.
     /// </summary>
-    private DebtFollowAccountDto ToFollowAccount(Debt debt, DebtFollowAccountState account)
+    private DebtFollowAccountDto ToFollowAccount(
+        Debt debt,
+        DebtFollowAccountState account,
+        IReadOnlyDictionary<Guid, DebtAccountSuggestion> suggestions)
     {
         var resolution = DebtFollowedBalance.Resolve(PreviewFacts(debt, account));
+        suggestions.TryGetValue(account.Id, out var suggestion);
         return new DebtFollowAccountDto
         {
             AccountId = account.Id,
@@ -1032,7 +1092,25 @@ public class DebtsService : IDebtsService
             BalanceInUseAsOf = resolution.AsOf,
             Block = resolution.Block,
             BalanceCredit = resolution.Credit,
-            BalancesDiffer = DebtFollowedBalance.RecordedDiffers(debt.Balance, resolution.Balance)
+            BalancesDiffer = DebtFollowedBalance.RecordedDiffers(debt.Balance, resolution.Balance),
+            SuggestionOrder = suggestion?.Order,
+            Reasons = suggestion is null
+                ? []
+                : suggestion.Reasons.Select(ToReason).ToList()
+        };
+    }
+
+    /// <summary>
+    /// Copies one match reason into the API shape.
+    /// </summary>
+    private static DebtMatchReasonDto ToReason(DebtMatchReason reason)
+    {
+        return new DebtMatchReasonDto
+        {
+            Kind = reason.Kind,
+            Mask = reason.Mask,
+            Words = reason.Words,
+            Difference = reason.Difference
         };
     }
 
@@ -1157,6 +1235,7 @@ public class DebtsService : IDebtsService
             {
                 account.Id,
                 account.Name,
+                account.OfficialName,
                 account.Mask,
                 account.Source,
                 account.PlaidItemId,
@@ -1198,6 +1277,7 @@ public class DebtsService : IDebtsService
             .Select(item => new
             {
                 item.Id,
+                item.InstitutionName,
                 item.LastSyncCompletedAt,
                 item.LastSyncFailedAt
             })
@@ -1209,10 +1289,12 @@ public class DebtsService : IDebtsService
             latestByAccount.TryGetValue(account.Id, out var snapshot);
             DateTimeOffset? completedAt = null;
             DateTimeOffset? failedAt = null;
+            string? institutionName = null;
             if (account.PlaidItemId is Guid itemId && syncs.TryGetValue(itemId, out var sync))
             {
                 completedAt = sync.LastSyncCompletedAt;
                 failedAt = sync.LastSyncFailedAt;
+                institutionName = sync.InstitutionName;
             }
 
             states[account.Id] = new DebtFollowAccountState(
@@ -1233,7 +1315,9 @@ public class DebtsService : IDebtsService
                     snapshot?.CurrentBalance,
                     snapshot?.IsoCurrencyCode),
                 completedAt,
-                failedAt);
+                failedAt,
+                account.OfficialName,
+                institutionName);
         }
 
         return states;

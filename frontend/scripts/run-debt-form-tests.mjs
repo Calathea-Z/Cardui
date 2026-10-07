@@ -170,6 +170,88 @@ test("update balance is offered when the connection is not current", async () =>
   assert.equal(follow.canUpdateBalance("Disconnected"), true);
   assert.equal(follow.canUpdateBalance("Current"), false);
   assert.equal(follow.canUpdateBalance("AccountMissing"), false);
+
+  const money = (amount) => `$${amount.toFixed(2)}`;
+  assert.equal(
+    follow.matchReasonText(
+      { kind: "Mask", mask: "4821", words: [], difference: null },
+      "USD",
+      money,
+    ),
+    "Ends in 4821",
+  );
+  assert.equal(
+    follow.matchReasonText(
+      {
+        kind: "Name",
+        mask: null,
+        words: ["Chase", "Sapphire", "Freedom"],
+        difference: null,
+      },
+      "USD",
+      money,
+    ),
+    "Name includes Chase, Sapphire, and Freedom",
+  );
+  assert.equal(
+    follow.matchReasonText(
+      { kind: "Balance", mask: null, words: [], difference: 38 },
+      "USD",
+      money,
+    ),
+    "Balance within $38.00 of yours",
+  );
+  assert.equal(
+    follow.matchReasonText(
+      { kind: "Balance", mask: null, words: [], difference: 0 },
+      "USD",
+      money,
+    ),
+    "Same balance as yours",
+  );
+  assert.equal(
+    follow.suggestionLabel("Visa", "4821", ["Balance within $38.00 of yours"]),
+    "Visa ending 4821, Balance within $38.00 of yours",
+  );
+});
+
+test("suggestions come before the full list, and a linked account skips them", async () => {
+  const steps = await loadModule(
+    "features/debts/debtFollowSteps.ts",
+    "debtFollowSteps.mjs",
+  );
+  const suggested = { suggestionOrder: 1 };
+  const other = { suggestionOrder: null };
+  assert.deepEqual(steps.suggestedAccounts([other, suggested]), [suggested]);
+
+  const open = {
+    linked: false,
+    picked: false,
+    listRequested: false,
+    suggestionCount: 2,
+  };
+  assert.equal(steps.followPanel(open), "suggestions");
+  assert.equal(steps.followBackTarget(open), "close");
+  assert.equal(steps.followPanel({ ...open, listRequested: true }), "accounts");
+  assert.equal(
+    steps.followBackTarget({ ...open, listRequested: true }),
+    "suggestions",
+  );
+  assert.equal(
+    steps.followBackTarget({ ...open, picked: true }),
+    "suggestions",
+  );
+  assert.equal(
+    steps.followBackTarget({ ...open, picked: true, listRequested: true }),
+    "accounts",
+  );
+  assert.equal(steps.followPanel({ ...open, suggestionCount: 0 }), "accounts");
+  assert.equal(
+    steps.followBackTarget({ ...open, suggestionCount: 0, picked: true }),
+    "accounts",
+  );
+  assert.equal(steps.followPanel({ ...open, linked: true }), "confirm");
+  assert.equal(steps.followBackTarget({ ...open, linked: true }), "close");
 });
 
 test("dates and rates keep their meaning on the card", () => {

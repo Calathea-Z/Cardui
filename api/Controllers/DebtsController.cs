@@ -78,7 +78,7 @@ public class DebtsController : ControllerBase
 
     /// <summary>
     /// GET /api/debts/{id}/follow-accounts
-    /// Lists the connected credit cards and loans this debt may follow.
+    /// Lists the connected credit cards and loans this debt may follow, including up to three suggestions.
     /// </summary>
     [HttpGet("{id:guid}/follow-accounts")]
     [ProducesResponseType<IReadOnlyList<DebtFollowAccountDto>>(StatusCodes.Status200OK)]

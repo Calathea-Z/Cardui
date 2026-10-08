@@ -25,6 +25,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-07 — Plan recovery screen](2026-10-07-014-plan-recovery.md) — Awaiting review; rework planned, correction note added October 7
 - [2026-10-07 — Plan in the main nav](2026-10-07-013-plan-nav.md) — Approved 2026-10-07
 - [2026-10-07 — Cash-flow recovery](2026-10-07-012-cash-flow-recovery.md) — Approved 2026-10-07; correction note added October 7
 - [2026-10-07 — Payoff rollover](2026-10-07-011-payoff-rollover.md) — Approved 2026-10-07

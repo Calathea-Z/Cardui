@@ -167,7 +167,16 @@ These are not scheduled into a phase yet. Each is one review when it is picked u
 
 **Exit:** identical inputs reproduce identical numbers; shortfalls remain visible; smart priority and rollover results reconcile to documented fixtures; refinance/restructuring comparisons include fees and break-even behavior; a saved plan survives edits with version history and can be used without chat.
 
-**Status (October 7, 2026):** Items 1–5 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, `docs/reviews/2026-10-07-010-payoff-priority.md`, `docs/reviews/2026-10-07-011-payoff-rollover.md`, and `docs/reviews/2026-10-07-012-cash-flow-recovery.md`. Plan is the first primary destination, approved in `docs/reviews/2026-10-07-013-plan-nav.md`. The calculators, the forecast, the payoff comparison, the rollover comparison, and the cash-flow recovery report are pure domain rules in `api/Domain/Recovery`. No schema change. Items 6–11 have not started.
+**Status (October 7, 2026):** Items 1–5 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, `docs/reviews/2026-10-07-010-payoff-priority.md`, `docs/reviews/2026-10-07-011-payoff-rollover.md`, and `docs/reviews/2026-10-07-012-cash-flow-recovery.md`. Plan is the first primary destination, approved in `docs/reviews/2026-10-07-013-plan-nav.md`. The calculators, the forecast, the payoff comparison, the rollover comparison, and the cash-flow recovery report are pure domain rules in `api/Domain/Recovery`. The Plan screen work below puts them on a page. No schema change. Items 6–11 have not started.
+
+### Plan screen — after Phase 3 item 5, before Phase 3 item 6
+
+The approved calculations need a screen before scenarios are built on them. Item 6 scenarios and item 8 spendable estimates change what this page shows. Design: [`docs/design/plan-page.md`](design/plan-page.md), approved October 7, 2026. Forward-looking charts live on Plan and Home keeps history (decision 0008). Each item is one review.
+
+**Status (October 7, 2026):** The first page, in `docs/reviews/2026-10-07-014-plan-recovery.md`, showed the report as two text cards. Zach's review asked for a clear hierarchy and charts, so item 1 reworks that same review. It is still awaiting review.
+
+1. Page and debt charts. Plan opens with a one-sentence answer and one big figure, then Finish your plan for any debt that blocks the projection, a stacked balance chart with one band per debt in eight new jewel series colors, a minimums and breathing room step chart, the payoff order, and the assumptions behind a disclosure. A switch in the title row chooses Rollover or Keep freed payments. The order stays highest interest first with no extra, because those inputs are not stored. No schema change.
+2. Cash outlook. The 30-day cash view and the 6, 12, and 18 month horizons on Plan, following the switch. Starting cash is the Cash total on Accounts, in the household currency. Income uses typical pay, with low pay under a disclosure. Bills come from Bills. Savings stay empty until Phase 2 item 7. The forecast pays debts from the selected path. No schema change expected.
 
 ### Phase 4 — Guided conversation as the main planning entry point
 
@@ -187,7 +196,7 @@ Design the conversation and test scripted prototypes during Phases 1–3. Produc
 
 ### Phase 5 — Follow-through and private-alpha validation
 
-1. Add a Plan home view with next actions, near-term cash outlook, milestones and assumptions needing confirmation.
+1. Add a Plan home view with next actions, near-term cash outlook, milestones and assumptions needing confirmation. The debt charts and the cash outlook are planned earlier, in "Plan screen" after Phase 3 item 5. This item adds next actions, milestones, and assumptions needing confirmation to that page.
 2. Give actions states such as proposed, chosen, waiting, completed and canceled. Support dependencies: unreceived loan funds cannot finance today's payments.
 3. Compare actual paychecks/balances with expected values; propose recalibration after material changes.
 4. Track recovery indicators such as utilization thresholds, removed minimum payments, reserve targets, positive cash flow and refinance-readiness inputs. Celebrate intermediate progress without implying that one threshold guarantees a credit or lending outcome.

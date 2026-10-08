@@ -11,17 +11,19 @@ history. They do not say what is next.
 
 **Now**
 
-- Phase 3 item 6 in [`roadmap.md`](roadmap.md): reproducible scenarios for
-  changed extra payments, income loss, bonuses and windfalls, spending
-  changes, and protected-cash targets. Item 5 is approved in
-  [`reviews/2026-10-07-012-cash-flow-recovery.md`](reviews/2026-10-07-012-cash-flow-recovery.md).
-  Plan is first in the main nav, approved in
-  [`reviews/2026-10-07-013-plan-nav.md`](reviews/2026-10-07-013-plan-nav.md).
+- Plan screen item 1 in [`roadmap.md`](roadmap.md): the Plan page with a
+  one-sentence answer, Finish your plan, two debt charts, and a Rollover
+  or Keep freed payments switch. Design:
+  [`design/plan-page.md`](design/plan-page.md). This reworks
+  [`reviews/2026-10-07-014-plan-recovery.md`](reviews/2026-10-07-014-plan-recovery.md),
+  which is still awaiting review.
 
 **Next**
 
-1. Phase 3 item 7, after item 6. Detail panel keyboard focus stays tracked
-  and is not scheduled.
+1. Plan screen item 2: the cash outlook on Plan, following the switch.
+2. Phase 3 item 6: reproducible scenarios for changed extra payments,
+  income loss, bonuses and windfalls, spending changes, and protected-cash
+  targets. Detail panel keyboard focus stays tracked and is not scheduled.
 
 **Tracked, not scheduled**
 
@@ -41,6 +43,7 @@ history. They do not say what is next.
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
+| [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, and the cash outlook. Approved; item 1 is next |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |
@@ -56,6 +59,7 @@ Decision records:
 - [0005. One light shell and three primary destinations](decisions/0005-light-shell-and-three-destinations.md)
 - [0006. One-shot sync worker on a cron schedule](decisions/0006-one-shot-cron-worker.md)
 - [0007. Plan is first in the main nav](decisions/0007-plan-first-in-main-nav.md)
+- [0008. Forward-looking charts live on Plan](decisions/0008-forward-charts-on-plan.md)
 
 Setup is in the root [`README.md`](../README.md). Agent rules are in the
 root [`AGENTS.md`](../AGENTS.md) and `.cursor/rules/`.

@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
+import { PageApiErrorBanner } from "@/components/page-api-error-banner";
 import { PlanPageClient } from "@/features/plan";
+import { loadPlanPage } from "@/features/plan/server/loadPlanPage";
 
 /**
  * Renders the plan page on each request.
@@ -8,14 +10,19 @@ export const dynamic = "force-dynamic";
 
 /**
  * Plan route.
- * The signed-in layout already requires a session. This page has no rows to load.
+ * Loads the cash-flow recovery report and shows a banner when that load fails.
  */
 export default async function PlanPage() {
   await auth.protect();
 
+  const page = await loadPlanPage();
+
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8">
-      <PlanPageClient />
-    </section>
+    <>
+      {page.error ? <PageApiErrorBanner message={page.error} /> : null}
+      <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8">
+        <PlanPageClient report={page.data} failed={page.error !== null} />
+      </section>
+    </>
   );
 }

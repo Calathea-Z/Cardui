@@ -79,6 +79,7 @@ Light only. Stop forcing `class="dark"` on `<html>`.
 | `--transfer` | `#3d5f8a` | Transfers only. |
 | `--chart-1` | `#1e4d3a` | Net worth and the primary series. |
 | `--chart-2` | `#c4b8a5` | The second series, when a chart compares two things. |
+| `--series-1` to `--series-8` | emerald `#0f7b5f`, sapphire `#2b5fb3`, copper `#b8642e`, amethyst `#7b4fb5`, teal `#1a7f8c`, magenta `#a83f74`, amber `#a8740c`, indigo `#4a4fb0` | A chart that compares several things, such as one band per debt on Plan. Each is at least 3:1 on white. Added October 7, 2026; see `docs/design/plan-page.md`. |
 | `--radius` | `0.5rem` | Cards and fields. From 768px up, a record opens as a right-hand panel, not a bottom sheet. |
 
 Green stays as the accent. It no longer fills the background. Category colors stay the household's colors, and they appear only on that category's bar.
@@ -96,6 +97,8 @@ Cards are white, 1px border, 8px radius, no shadow, no entrance animation. Heade
 Keep Recharts. Do not add a chart library.
 
 Home's chart is one net-worth area: `--chart-1` stroke, a faint fill, no point markers, horizontal grid lines in `--border` only. The range control stays the existing ranges, drawn as text, with the active range in `--primary`. Assets and liabilities are two figures beside that chart, not extra swipe panels. The accounts page already has the metric switcher. Home should not invent a worse one.
+
+A chart that compares several things, such as Plan's balance bands, uses the series tokens in order. Each thing keeps one color everywhere on that page, and a name in the tooltip or a nearby row, so color is not the only signal. No entrance animation.
 
 This-month keeps the three numbers Tortoise already calculates (income, spending, difference) and the category rows with a 4px bar. Those bars use the category color on a `--muted` track. No donut, no gauge, no third palette.
 

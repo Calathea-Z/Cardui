@@ -60,6 +60,12 @@ export type {
   UpsertDebtDto,
 } from "./debts";
 export type {
+  CashFlowRecoveryPathDto,
+  CashFlowRecoveryReportDto,
+  CashFlowRecoveryStepDto,
+  PayoffRolloverKind,
+} from "./plan";
+export type {
   FinancialProfileDto,
   HouseholdContributorDto,
   HouseholdDto,

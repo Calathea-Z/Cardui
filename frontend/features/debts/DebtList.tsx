@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  LoaderCircle,
+  TriangleAlert,
+} from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,7 +92,7 @@ export function DebtList({
       {debts.length === 0 ? (
         <EmptyState
           title="No debts yet"
-          description="Add a card or loan with the balance you know. Leave the APR, minimum, or due date blank if you don't know them."
+          description="Add a card or loan with the balance you know. Leave the interest rate (APR), minimum, or due date blank if you don't know them."
           action={
             <Button
               type="button"
@@ -99,31 +104,62 @@ export function DebtList({
           }
         />
       ) : (
-        <ul className="flex flex-col gap-3">
-          {debts.map((debt) => (
-            <DebtRow
-              key={debt.id}
-              debt={debt}
-              accounts={accounts}
-              followedAccountIds={followedAccountIds(debts, debt.id)}
-              summary={summary}
-              busy={busyId === debt.id}
-              onEdit={(opener) => onEdit(debt, opener)}
-              onRemove={() => onRemove(debt)}
-              onUseAccountBalance={(startsFollow) =>
-                onUseAccountBalance(debt, startsFollow)
-              }
-              onFollow={(opener) => onFollow(debt, opener)}
-              onStopFollowing={() => onStopFollowing(debt)}
-              onRefresh={() => onRefresh(debt)}
-              onReconnect={() => onReconnect(debt)}
-              reconnectingItemId={reconnectingItemId}
-              onUseSyncedValue={() => onUseSyncedValue(debt)}
-              onUseSyncedLimit={() => onUseSyncedLimit(debt)}
-              onUpdateBalance={(amount) => onUpdateBalance(debt, amount)}
-            />
-          ))}
-        </ul>
+        [
+          {
+            key: "active",
+            title: "Active and incomplete",
+            debts: debts.filter((debt) => debt.balanceInUse !== 0),
+          },
+          {
+            key: "zero",
+            title: "Zero balance — review",
+            debts: debts.filter((debt) => debt.balanceInUse === 0),
+          },
+        ]
+          .filter((group) => group.debts.length > 0)
+          .map((group) => (
+            <div key={group.key} className="flex flex-col gap-3">
+              <h2 className="app-section-title">{group.title}</h2>
+              {group.key === "zero" ? (
+                <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
+                  <TriangleAlert
+                    aria-hidden
+                    className="mt-0.5 size-4 shrink-0"
+                  />
+                  <span>
+                    <span className="sr-only">Warning: </span>
+                    Saved terms stay here for review. A zero balance does not
+                    count as active debt, a high rate, or a Plan payment.
+                  </span>
+                </p>
+              ) : null}
+              <ul className="flex flex-col gap-3">
+                {group.debts.map((debt) => (
+                  <DebtRow
+                    key={debt.id}
+                    debt={debt}
+                    accounts={accounts}
+                    followedAccountIds={followedAccountIds(debts, debt.id)}
+                    summary={summary}
+                    busy={busyId === debt.id}
+                    onEdit={(opener) => onEdit(debt, opener)}
+                    onRemove={() => onRemove(debt)}
+                    onUseAccountBalance={(startsFollow) =>
+                      onUseAccountBalance(debt, startsFollow)
+                    }
+                    onFollow={(opener) => onFollow(debt, opener)}
+                    onStopFollowing={() => onStopFollowing(debt)}
+                    onRefresh={() => onRefresh(debt)}
+                    onReconnect={() => onReconnect(debt)}
+                    reconnectingItemId={reconnectingItemId}
+                    onUseSyncedValue={() => onUseSyncedValue(debt)}
+                    onUseSyncedLimit={() => onUseSyncedLimit(debt)}
+                    onUpdateBalance={(amount) => onUpdateBalance(debt, amount)}
+                  />
+                ))}
+              </ul>
+            </div>
+          ))
       )}
     </section>
   );
@@ -264,6 +300,16 @@ function DebtRow({
         onUseSyncedLimit={onUseSyncedLimit}
       />
       <DebtFacts debt={debt} />
+      {item?.needsPaymentReview ? (
+        <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
+          <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <span>
+            <span className="sr-only">Warning: </span>
+            This zero balance still has a saved minimum. Review the terms; Plan
+            leaves this payment out while the balance is zero.
+          </span>
+        </p>
+      ) : null}
       {item ? <DebtSummaryNotes debt={debt} item={item} /> : null}
       <div className="flex flex-wrap gap-2 border-t border-border/70 pt-3 sm:justify-end">
         {debt.following ? (
@@ -380,7 +426,7 @@ function CreditUse({
                 className={cn(
                   "h-full rounded-full",
                   utilizationNotice?.level === "high"
-                    ? "bg-destructive"
+                    ? "bg-warning"
                     : "bg-foreground",
                 )}
                 style={{ width: `${fill}%` }}
@@ -402,14 +448,8 @@ function CreditUse({
         />
       )}
       {utilizationNotice ? (
-        <p
-          className={cn(
-            "flex items-start gap-2 text-sm font-medium",
-            utilizationNotice.level === "high"
-              ? "text-destructive"
-              : "text-foreground",
-          )}
-        >
+        <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
+          <span className="sr-only">Warning: </span>
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>{utilizationNotice.text}</span>
         </p>
@@ -517,7 +557,7 @@ function DebtFacts({ debt }: { debt: DebtDto }) {
   const promotion = promotionText(debt);
   const facts: DebtFact[] = [
     {
-      label: "APR",
+      label: "Interest rate (APR)",
       value: debt.apr === null ? null : formatApr(debt.apr),
     },
     {

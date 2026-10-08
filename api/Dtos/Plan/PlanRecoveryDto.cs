@@ -40,4 +40,15 @@ public class PlanRecoveryDto
     /// Zero means no flexible living-spending amount is recorded.
     /// </summary>
     public decimal LivingSpendingMonthly { get; set; }
+
+    /// <summary>
+    /// Balance sources and dates for every saved debt, including zero-balance debts excluded from payoff calculations.
+    /// </summary>
+    public IReadOnlyList<PlanDebtFactDto> DebtFacts { get; set; } = [];
+
+    public bool HasCashFloor { get; set; }
+
+    public bool HasEmergencyGoal { get; set; }
+
+    public int NamedSavingsGoalCount { get; set; }
 }

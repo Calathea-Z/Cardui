@@ -13,6 +13,8 @@ namespace Cardui.Api.Services.Implementations;
 
 public class AccountsService : IAccountsService
 {
+    private const int StaleBalanceAfterDays = 2;
+
     private readonly CarduiDBContext _dbContext;
     private readonly TimeProvider _timeProvider;
     private readonly HouseholdScope _householdScope;
@@ -114,7 +116,7 @@ public class AccountsService : IAccountsService
     }
 
     /// <inheritdoc />
-    public async Task<decimal> GetCashTotalAsync(
+    public async Task<CashPosition> GetCashPositionAsync(
         CancellationToken cancellationToken = default)
     {
         var planningCurrency = _householdScope.PlanningCurrency;
@@ -122,13 +124,47 @@ public class AccountsService : IAccountsService
             .AsNoTracking()
             .InHousehold(_householdScope)
             .Where(x => x.IsActive && x.ArchivedAt == null)
-            .Select(x => new { x.Type, x.CurrentBalance, x.IsoCurrencyCode })
+            .Select(x => new
+            {
+                x.Id,
+                x.PlaidItemId,
+                x.Type,
+                x.CurrentBalance,
+                x.IsoCurrencyCode
+            })
             .ToListAsync(cancellationToken);
-        return AccountTotalsCalculator.Calculate(
-            accounts
-                .Where(x => PlanningCurrencyRules.IsIncluded(x.IsoCurrencyCode, planningCurrency))
-                .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)))
-            .Cash;
+        var included = accounts
+            .Where(x => AccountTypes.IsCash(x.Type))
+            .Where(x => PlanningCurrencyRules.IsIncluded(x.IsoCurrencyCode, planningCurrency))
+            .ToList();
+        var accountIds = included.Select(account => account.Id).ToList();
+        var latestDates = accountIds.Count == 0
+            ? []
+            : await _dbContext.AccountBalanceSnapshots
+                .AsNoTracking()
+                .Where(snapshot => accountIds.Contains(snapshot.AccountId))
+                .GroupBy(snapshot => snapshot.AccountId)
+                .Select(group => new
+                {
+                    AccountId = group.Key,
+                    AsOf = group.Max(snapshot => snapshot.Date)
+                })
+                .ToListAsync(cancellationToken);
+        var datesByAccount = latestDates.ToDictionary(item => item.AccountId, item => item.AsOf);
+        var knownDates = latestDates.Select(item => item.AsOf).ToList();
+        var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
+        var connected = included.Where(account => account.PlaidItemId is not null).ToList();
+
+        return new CashPosition(
+            AccountLedger.Round(included.Sum(account => account.CurrentBalance)),
+            included.Count,
+            included.Count(account => account.PlaidItemId is null),
+            connected.Count,
+            knownDates.Count == 0 ? null : knownDates.Min(),
+            included.Count(account => !datesByAccount.ContainsKey(account.Id)),
+            connected.Count(account =>
+                !datesByAccount.TryGetValue(account.Id, out var asOf)
+                || today.DayNumber - asOf.DayNumber > StaleBalanceAfterDays));
     }
 
     /// <inheritdoc />

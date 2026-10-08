@@ -2,8 +2,9 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { settingsItems } from "@/components/navigation/nav-items";
+import { settingsGroups } from "@/components/navigation/nav-items";
 import { cn } from "@/lib/utils";
 
 type AccountMenuProps = {
@@ -158,23 +159,40 @@ type SettingsLinksProps = {
 
 /**
  * Lists settings destinations in the account block.
- * Income, Bills, Debts, Targets, Categories, Connections, and Household stay off the primary nav.
+ * Plan inputs and tracking/data settings stay off the primary nav.
+ * The groups reduce discovery work without adding another navigation.
  */
 function SettingsLinks({ onNavigate }: SettingsLinksProps) {
+  const pathname = usePathname();
+
   return (
-    <nav className="space-y-1" aria-label="Settings">
-      {settingsItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={onNavigate}
-          className={cn(
-            "block min-h-11 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition hover:bg-sidebar-accent hover:text-sidebar-foreground",
-            "focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-          )}
-        >
-          {item.label}
-        </Link>
+    <nav className="space-y-3" aria-label="Settings">
+      {settingsGroups.map((group) => (
+        <div key={group.label}>
+          <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
+            {group.label}
+          </p>
+          <div className="space-y-1">
+            {group.items.map((item) => {
+              const active = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "block min-h-11 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                    "focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    active && "bg-sidebar-accent text-primary",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       ))}
     </nav>
   );

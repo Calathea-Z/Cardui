@@ -36,7 +36,8 @@ export function goalToForm(goal: SavingsGoalDto): SavingsFormState {
     name: goal.kind === "Sinking" ? goal.name : "",
     targetAmount: goal.targetAmount === null ? "" : String(goal.targetAmount),
     targetDate: goal.targetDate?.slice(0, 10) ?? "",
-    monthlyAmount: goal.monthlyAmount === null ? "" : String(goal.monthlyAmount),
+    monthlyAmount:
+      goal.monthlyAmount === null ? "" : String(goal.monthlyAmount),
     readyDay: goal.readyDay === null ? "1" : String(goal.readyDay),
     floorAmount: goal.floorAmount === null ? "" : String(goal.floorAmount),
     reservedAmount: String(goal.amountInUse),

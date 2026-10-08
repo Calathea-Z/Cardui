@@ -20,6 +20,9 @@ public class HouseholdSavingsTests
             [Goal(EmergencyId, "Emergency", "USD", 100m, new DateOnly(2026, 4, 1), 40m)]);
 
         Assert.Equal(40m, outlook.StartingReserve);
+        Assert.True(outlook.HasEmergencyGoal);
+        Assert.False(outlook.HasCashFloor);
+        Assert.Equal(0, outlook.NamedGoalCount);
         Assert.Equal(
             [
                 new SavingsContribution(new DateOnly(2026, 1, 1), 15m),
@@ -83,6 +86,8 @@ public class HouseholdSavingsTests
 
         Assert.Equal(800m, outlook.StartingReserve);
         Assert.Equal(800m, outlook.LivingSpendingMonthly);
+        Assert.True(outlook.HasCashFloor);
+        Assert.False(outlook.HasEmergencyGoal);
         Assert.Contains(outlook.Contributions, item =>
             item.Kind == CashFlowKind.LivingSpending && item.Date == new DateOnly(2026, 10, 8) && item.Amount == 300m);
         Assert.DoesNotContain(outlook.Contributions, item => item.Kind == CashFlowKind.Savings);

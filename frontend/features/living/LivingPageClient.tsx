@@ -19,7 +19,7 @@ type LivingPageClientProps = {
 };
 
 /**
- * Living page.
+ * Plan budget page at the existing `/living` route.
  * Contribution shares limit the pay Plan may use, while one monthly amount covers flexible living spending.
  */
 export function LivingPageClient({ page: initial }: LivingPageClientProps) {
@@ -55,7 +55,7 @@ export function LivingPageClient({ page: initial }: LivingPageClientProps) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Living"
+        title="Plan budget"
         description="Choose how much pay enters the shared plan and one monthly amount for flexible living spending."
       />
 
@@ -125,7 +125,7 @@ export function LivingPageClient({ page: initial }: LivingPageClientProps) {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="app-section-title">Monthly living spending</h2>
+        <h2 className="app-section-title">Flexible monthly spending</h2>
         <p className="text-sm text-muted-foreground">
           One amount for groceries, gas, hobbies, and other flexible spending
           not already entered on Bills. A dated trip or other goal stays on{" "}
@@ -134,7 +134,7 @@ export function LivingPageClient({ page: initial }: LivingPageClientProps) {
           </Link>
           . Category{" "}
           <Link href="/targets" className="text-primary underline">
-            Targets
+            Spending targets
           </Link>{" "}
           track actual spending and do not add another amount to Plan.
         </p>
@@ -162,7 +162,7 @@ export function LivingPageClient({ page: initial }: LivingPageClientProps) {
         ) : (
           <div className="flex flex-col gap-3 rounded-lg border border-border/70 p-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
-              No monthly living-spending amount is included in Plan yet.
+              No flexible monthly-spending amount is included in Plan yet.
             </p>
             <Button
               type="button"
@@ -213,8 +213,8 @@ export function LivingPageClient({ page: initial }: LivingPageClientProps) {
         onClose={closeLivingSpending}
         title={
           page.livingSpending
-            ? "Edit monthly living spending"
-            : "Set monthly living spending"
+            ? "Edit flexible monthly spending"
+            : "Set flexible monthly spending"
         }
         presentation="panel"
         headerAction="panel"

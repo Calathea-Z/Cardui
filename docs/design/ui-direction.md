@@ -35,7 +35,7 @@ Leave these out: a second brand color that fills the room, a display face used o
 
 ### The map
 
-Home, Accounts, Activity, and Plan are the objects, in that order. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
+Home, Accounts, Activity, and Plan are the objects, in that order. Income, bills, debts, Plan budget, savings, spending targets, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
 
 The dark canvas is gone. One light theme, and no second theme.
 
@@ -116,7 +116,7 @@ Four primary destinations. Plan is fourth. Everything else is a setting.
 
 The address matches the label.
 
-**Targets** (`/targets`) is a setting in the account menu. It is not a primary destination.
+**Spending targets** (`/targets`) is a setting in the account menu. It is not a primary destination.
 
 **Settings, in the account menu, on both widths:**
 
@@ -125,12 +125,14 @@ The address matches the label.
 | Income | `/income` | Planning inputs, edited now and then. |
 | Bills | `/bills` | Planning inputs, edited now and then. |
 | Debts | `/debts` | The debt inventory, edited now and then. |
-| Targets | `/targets` | A monthly amount for each spending category. |
+| Plan budget | `/living` | The share of household pay available to Plan and one flexible monthly-spending amount. |
+| Savings | `/savings` | Cash to keep, Emergency, and named dated goals. |
+| Spending targets | `/targets` | Activity tracking against a monthly intention; it does not add another amount to Plan. |
 | Categories | `/categories` | A taxonomy for Activity. People open it to fix a name or a color. |
 | Connections | `/connections` | How accounts get linked. |
 | Household | `/household` | Planning currency, time zone, contributors. Already the right kind of page. It is just hidden. |
 
-Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity, Plan.
+Desktop: these nine under the account email. Phone: the same nine in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity, Plan.
 
 Primary pages get a title row and no back button. Back is for a nested flow, not for Home. Page actions (Add on Accounts, Import and Add on Activity) sit in that title row on desktop and in the same row on the phone, wrapping under the title. They stop teleporting into the phone header.
 

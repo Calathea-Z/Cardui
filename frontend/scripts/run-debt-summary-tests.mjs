@@ -65,6 +65,7 @@ function group(overrides = {}) {
     missingPromotionalRateCount: 0,
     missingRateAfterPromotionCount: 0,
     staleCount: 0,
+    zeroBalancePaymentReviewCount: 0,
     ...overrides,
   };
 }
@@ -102,8 +103,8 @@ test("unknown totals stay unknown and a known zero stays an amount", () => {
 });
 
 test("the interest rule is one line and a leftover count stays a detail", () => {
-  assert.match(copy.summaryInterestNote, /debts below/);
-  assert.match(copy.summaryInterestNote, /divided by 12/);
+  assert.match(copy.summaryInterestNote, /positive balances only/);
+  assert.match(copy.summaryInterestNote, /saved terms for review/);
   assert.match(copy.summaryInterestNote, /not the total left to pay/);
 
   const metrics = copy.summaryMetrics(
@@ -217,6 +218,7 @@ test("a missing count names the debts and the blank field", () => {
     aprReachesNotice: false,
     utilizationReachesNotice: false,
     utilizationReachesLimitNotice: false,
+    needsPaymentReview: false,
     gaps,
     balanceComparison: null,
   });
@@ -258,6 +260,46 @@ test("a missing count names the debts and the blank field", () => {
     missing.hint,
     "Store card and Visa need a due date. Car loan needs the months left.",
   );
+});
+
+test("a zero-balance minimum is a warning and is excluded from active totals", () => {
+  const full = {
+    ...report([
+      group({
+        debtCount: 0,
+        minimumPayments: 0,
+        aprNoticeCount: 0,
+        zeroBalancePaymentReviewCount: 1,
+      }),
+    ]),
+    debts: [
+      {
+        debtId: "paid",
+        monthlyInterest: 0,
+        rateInEffect: 29,
+        rateIsPromotional: false,
+        promotionEnded: false,
+        promotionalEndsOn: null,
+        promoEndsWithinNotice: false,
+        dueDatePassed: false,
+        aprReachesNotice: false,
+        utilizationReachesNotice: false,
+        utilizationReachesLimitNotice: false,
+        needsPaymentReview: true,
+        gaps: [],
+        balanceComparison: null,
+      },
+    ],
+  };
+  const signals = copy.summarySignals(full, [
+    { id: "paid", name: "Paid card", currency: "USD" },
+  ]);
+  const review = signals[0];
+
+  assert.equal(review.warning, true);
+  assert.match(review.label, /zero-balance debt needs payment review/);
+  assert.match(review.detail, /excluded from active totals/);
+  assert.match(review.hint, /Paid card has a saved minimum/);
 });
 
 test("a card names a passed due date once and skips an unknown interest line", () => {

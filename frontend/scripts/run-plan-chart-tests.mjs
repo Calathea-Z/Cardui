@@ -58,7 +58,11 @@ function linkMoneyDigits(source) {
 
 const series = await loadModule("planChartSeries");
 const copy = await loadModule("planCopy");
+const readiness = await loadModule("planReadiness");
 const extra = await loadModule("planExtra");
+const cashRange = await loadModule("planCashRange");
+const navigation = await loadModule("planNavigation");
+const debtSummary = await loadModule("planDebtSummary");
 const money = (amount) => `$${amount.toFixed(2)}`;
 const date = (value) => value;
 const utc = (year, month) => Date.UTC(year, month - 1, 1);
@@ -183,11 +187,47 @@ function cashForecast(overrides = {}) {
   };
 }
 
+function affordableCashForecast(overrides = {}) {
+  const forecast = cashForecast({
+    shortfallOn: null,
+    recoveredOn: null,
+    reserveShortfallOn: null,
+    reserveRestoredOn: null,
+  });
+  forecast.days = forecast.days.map((day) => ({ ...day, cash: 300 }));
+  forecast.dayView = cashWindow(
+    "2026-10-07",
+    "2026-11-05",
+    300,
+    300,
+    "2026-10-08",
+  );
+  forecast.horizons = forecast.horizons.map((horizon) => ({
+    ...horizon,
+    window: cashWindow(
+      horizon.window.from,
+      horizon.window.through,
+      horizon.window.endingCash,
+      100,
+      horizon.window.lowestCashOn,
+    ),
+  }));
+  return { ...forecast, ...overrides };
+}
+
 function cashOutlook(overrides = {}) {
   const path = { typical: cashForecast(), lowPay: null };
   return {
     asOf: "2026-10-07",
     startingCash: 1000,
+    startingReserve: 0,
+    startingAvailable: 1000,
+    startingCashAccountCount: 1,
+    startingCashManualAccountCount: 1,
+    startingCashConnectedAccountCount: 0,
+    startingCashOldestAsOf: "2026-10-07",
+    startingCashUnknownDateCount: 0,
+    startingCashStaleConnectedCount: 0,
     hasIncome: true,
     hasBills: true,
     excludedCurrencies: [],
@@ -205,6 +245,23 @@ function report(pathValue, overrides = {}) {
     excludedCurrencies: [],
     missingBalance: [],
     hasDebts: true,
+    debtFacts: [
+      {
+        debtId: "card",
+        name: "Card",
+        balance: 200,
+        balanceAsOf: "2026-10-07",
+        balanceSource: "Manual",
+        freshness: null,
+        minimumPayment: 25,
+        needsPaymentReview: false,
+      },
+    ],
+    hasCashFloor: true,
+    hasEmergencyGoal: true,
+    namedSavingsGoalCount: 0,
+    livingSpendingMonthly: 300,
+    monthlyExtra: 0,
     cashOutlook: cashOutlook(),
     ...overrides,
   };
@@ -330,16 +387,28 @@ test("the payoff order follows the steps with the minimum each one frees", () =>
   const path = rolloverPath();
   const order = series.payoffOrder(path, series.debtColors(path.debts));
   assert.deepEqual(
-    order.map((row) => [row.name, row.paidOffOn, row.minimum, row.color]),
+    order.map((row) => [
+      row.name,
+      row.paidOffOn,
+      row.minimum,
+      row.breathingRoom,
+      row.color,
+    ]),
     [
-      ["Store", "2026-02-15", 50, "var(--series-2)"],
-      ["Card", "2026-04-20", 25, "var(--series-1)"],
+      ["Store", "2026-02-15", 50, 0, "var(--series-2)"],
+      ["Card", "2026-04-20", 25, 75, "var(--series-1)"],
     ],
   );
 });
 
 test("a full payoff leads with the debt-free date at minimums and dates the breathing room after payoff", () => {
-  const summary = copy.planSummary(rolloverPath(), 0, money, date);
+  const summary = copy.planSummary(
+    rolloverPath(),
+    affordableCashForecast(),
+    0,
+    money,
+    date,
+  );
   assert.equal(
     summary.sentence,
     "You're on track to be debt-free paying only your minimums. Anything extra brings that day closer.",
@@ -353,6 +422,29 @@ test("a full payoff leads with the debt-free date at minimums and dates the brea
   ]);
 });
 
+test("a cash shortfall replaces on-track language and makes the payoff date conditional", () => {
+  const summary = copy.planSummary(
+    rolloverPath(),
+    cashForecast(),
+    0,
+    money,
+    date,
+  );
+
+  assert.equal(summary.warning, true);
+  assert.equal(
+    summary.sentence,
+    "This payoff path is not affordable yet. Cash runs short on 2027-02-27.",
+  );
+  assert.equal(summary.figureLabel, "First cash shortfall");
+  assert.equal(summary.figure, "2027-02-27");
+  assert.deepEqual(summary.details[0], {
+    label: "Conditional debt-free estimate",
+    value: "2026-04-20",
+  });
+  assert.equal(summary.sentence.includes("on track"), false);
+});
+
 test("a partial payoff counts the debts paid off and names what stays due", () => {
   const summary = copy.planSummary(
     rolloverPath({
@@ -361,6 +453,7 @@ test("a partial payoff counts the debts paid off and names what stays due", () =
       remainingObligation: 25,
       recurringRoom: 50,
     }),
+    affordableCashForecast(),
     1,
     money,
     date,
@@ -395,7 +488,13 @@ test("no payoff counts the debts needing attention and leads with the total owed
       }),
     ],
   });
-  const summary = copy.planSummary(waiting, 2, money, date);
+  const summary = copy.planSummary(
+    waiting,
+    affordableCashForecast(),
+    2,
+    money,
+    date,
+  );
   assert.equal(
     summary.sentence,
     "2 debts need attention before your plan can project a payoff.",
@@ -408,11 +507,13 @@ test("no payoff counts the debts needing attention and leads with the total owed
   ]);
 
   assert.equal(
-    copy.planSummary(waiting, 1, money, date).sentence,
+    copy.planSummary(waiting, affordableCashForecast(), 1, money, date)
+      .sentence,
     "1 debt needs attention before your plan can project a payoff.",
   );
   const unknown = copy.planSummary(
     { ...waiting, startingObligation: null },
+    affordableCashForecast(),
     0,
     money,
     date,
@@ -533,10 +634,10 @@ test("how this is calculated is one short line per rule and follows the switch",
   const kept = copy.planAssumptions("ReclaimAll", "USD");
   const terms = (rules) => rules.map((rule) => rule.term);
 
-  assert.ok(terms(rollover).includes("Rollover"));
-  assert.ok(!terms(rollover).includes("Keep freed payments"));
-  assert.ok(terms(kept).includes("Keep freed payments"));
-  assert.ok(!terms(kept).includes("Rollover"));
+  assert.ok(terms(rollover).includes("Roll payments forward"));
+  assert.ok(!terms(rollover).includes("Free up cash"));
+  assert.ok(terms(kept).includes("Free up cash"));
+  assert.ok(!terms(kept).includes("Roll payments forward"));
   assert.equal(
     rollover.find((rule) => rule.term === "Currency").detail,
     "Only USD debts are counted.",
@@ -564,66 +665,99 @@ test("the 30-day cash chart has one row per day at UTC midnight and marks the lo
   assert.deepEqual(empty, { rows: [], lowest: null });
 });
 
-test("the cash summary names a shortfall, its recovery, and the lowest point over 18 months", () => {
-  const recovered = copy.cashOutlookSummary(cashForecast(), money, date);
-  assert.equal(recovered.warning, true);
-  assert.equal(recovered.reserveSentence, null);
-  const reserved = copy.cashOutlookSummary(
-    cashForecast({
-      reserveShortfallOn: "2027-02-01",
-      reserveRestoredOn: "2027-02-15",
-    }),
+test("cash ranges use daily points only for 30 days and honest horizon summaries after that", () => {
+  const forecast = cashForecast();
+  const chart = series.cashChart(forecast);
+  const thirty = cashRange.cashRangeView(
+    forecast,
+    rolloverPath(),
+    "30-days",
+    chart,
     money,
     date,
   );
-  assert.match(reserved.reserveSentence, /below zero on 2027-02-01/);
-  assert.match(reserved.reserveSentence, /2027-02-15/);
-  assert.equal(
-    recovered.sentence,
-    "Cash runs short on 2027-02-27 and is back above zero on 2027-03-05. Lowest point: $-45.50 on 2027-03-01.",
-  );
-
-  const stays = copy.cashOutlookSummary(
-    cashForecast({ recoveredOn: null }),
+  const six = cashRange.cashRangeView(
+    forecast,
+    rolloverPath(),
+    "6-months",
+    chart,
     money,
     date,
   );
-  assert.equal(
-    stays.sentence,
-    "Cash runs short on 2027-02-27 and stays short through 2028-04-06. Lowest point: $-45.50 on 2027-03-01.",
+  const twelve = cashRange.cashRangeView(
+    forecast,
+    rolloverPath(),
+    "12-months",
+    chart,
+    money,
+    date,
+  );
+  const eighteen = cashRange.cashRangeView(
+    forecast,
+    rolloverPath(),
+    "18-months",
+    chart,
+    money,
+    date,
   );
 
-  const forecast = cashForecast({ shortfallOn: null, recoveredOn: null });
-  forecast.horizons[2].window = cashWindow(
-    "2026-10-07",
-    "2028-04-06",
-    1500,
-    120,
-    "2027-03-01",
+  assert.equal(thirty.label, "30 days");
+  assert.equal(thirty.warning, false);
+  assert.equal(thirty.chartRows.length, 3);
+  assert.match(thirty.chartLabel, /ending at \$300\.00/);
+  assert.equal(six.warningText, "6 months cash runs short on 2027-02-27.");
+  assert.equal(six.ending, "$120.00");
+  assert.equal(six.lowest, "$-45.50");
+  assert.equal(six.minimums, "$45.00 a month, 1 not included");
+  assert.equal(six.chartRows.length, 0);
+  assert.equal(twelve.minimums, "None");
+  assert.equal(eighteen.minimums, "Unknown");
+});
+
+test("a selected range names protected-cash pressure only when it falls inside that period", () => {
+  const forecast = cashForecast({
+    reserveShortfallOn: "2027-02-01",
+    reserveRestoredOn: "2027-02-15",
+  });
+  const chart = series.cashChart(forecast);
+  const thirty = cashRange.cashRangeView(
+    forecast,
+    rolloverPath(),
+    "30-days",
+    chart,
+    money,
+    date,
   );
-  const fine = copy.cashOutlookSummary(forecast, money, date);
-  assert.equal(fine.warning, false);
+  const six = cashRange.cashRangeView(
+    forecast,
+    rolloverPath(),
+    "6-months",
+    chart,
+    money,
+    date,
+  );
+
+  assert.equal(thirty.reserveWarningText, null);
   assert.equal(
-    fine.sentence,
-    "Cash stays above zero through 2028-04-06. Lowest point: $120.00 on 2027-03-01.",
+    six.reserveWarningText,
+    "6 months available cash after protected savings runs short on 2027-02-01.",
   );
 });
 
-test("each horizon card names ending cash, the lowest point, and the minimums still due", () => {
-  const cards = copy.cashHorizonCards(cashForecast(), money, date);
-  assert.deepEqual(
-    cards.map((card) => [card.title, card.through, card.ending, card.warning]),
-    [
-      ["6 months", "Through 2027-04-06", "$120.00", true],
-      ["12 months", "Through 2027-10-06", "$800.00", true],
-      ["18 months", "Through 2028-04-06", "$1500.00", true],
-    ],
+test("a missing horizon is unavailable instead of reusing the 30-day values", () => {
+  const forecast = cashForecast({ horizons: [] });
+  const view = cashRange.cashRangeView(
+    forecast,
+    rolloverPath(),
+    "12-months",
+    series.cashChart(forecast),
+    money,
+    date,
   );
-  assert.equal(cards[0].lowest, "$-45.50 on 2027-03-01");
-  assert.deepEqual(
-    cards.map((card) => card.minimums),
-    ["$45.00 a month, 1 not included", "None", "Unknown"],
-  );
+
+  assert.equal(view.available, false);
+  assert.equal(view.ending, "Unavailable");
+  assert.equal(view.chartRows.length, 0);
 });
 
 test("the cash outlook line says where cash starts and follows the switch", () => {
@@ -641,7 +775,7 @@ test("the cash outlook line says where cash starts and follows the switch", () =
   );
   assert.equal(
     copy.cashOutlookDescription("Rollover", false, 1000, money, 0, 200, 800),
-    "Starts from $1000.00 in Cash on Accounts today. $200.00 is set aside. $800.00 is left to spend.",
+    "Starts from $1000.00 in Cash on Accounts today. $200.00 is protected. $800.00 is available after protected savings.",
   );
 });
 
@@ -687,13 +821,6 @@ test("cash outlook notes name debts whose payments are left out, then missing bi
   );
 });
 
-test("the cash chart label says the dates, where cash ends, and the lowest day", () => {
-  assert.equal(
-    copy.cashChartLabel(cashForecast(), money, date),
-    "Cash at the end of each day from 2026-10-07 to 2026-11-05, ending at $300.00. Lowest is $300.00 on 2026-10-08.",
-  );
-});
-
 test("how this is calculated names the due date, cash outlook, and low pay rules", () => {
   const terms = copy
     .planAssumptions("Rollover", "USD")
@@ -703,24 +830,85 @@ test("how this is calculated names the due date, cash outlook, and low pay rules
   }
 });
 
-test("the switch offers Rollover and Keep freed payments with a line for each", () => {
+test("the switch offers plain-language payment paths with a line for each", () => {
   assert.deepEqual(
     copy.planPathOptions.map((option) => option.label),
-    ["Rollover", "Keep freed payments"],
+    ["Roll payments forward", "Free up cash"],
+  );
+  assert.match(copy.planPathDescription("Rollover"), /moves to the next debt/);
+  assert.match(copy.planPathDescription("ReclaimAll"), /available cash/);
+});
+
+test("readiness preserves stale and inconsistent facts after affordability is clear", () => {
+  const value = report(rolloverPath(), {
+    debtFacts: [
+      {
+        debtId: "paid",
+        name: "Paid card",
+        balance: 0,
+        balanceAsOf: "2026-10-01",
+        balanceSource: "Synced",
+        freshness: "Stale",
+        minimumPayment: 125,
+        needsPaymentReview: true,
+      },
+      {
+        debtId: "card",
+        name: "Card",
+        balance: 200,
+        balanceAsOf: "2026-10-07",
+        balanceSource: "Manual",
+        freshness: null,
+        minimumPayment: 25,
+        needsPaymentReview: false,
+      },
+    ],
+  });
+  const result = readiness.planReadiness(
+    value,
+    affordableCashForecast(),
+    0,
+    date,
+  );
+
+  assert.equal(result.next.title, "Refresh debt balances");
+  assert.equal(result.next.href, "/debts");
+  assert.match(
+    result.rows.find((row) => row.key === "debts").detail,
+    /zero-balance payment review/,
   );
   assert.match(
-    copy.planDescription("Rollover", true),
-    /moves to the next debt/,
-  );
-  assert.match(copy.planDescription("ReclaimAll", true), /comes back to you/);
-  assert.match(copy.planDescription("ReclaimAll", true), /no extra payment/);
-  assert.match(
-    copy.planDescription("ReclaimAll", false),
-    /Payoff charts appear once a debt can be paid off/,
+    result.rows.find((row) => row.key === "cash").detail,
+    /oldest balance date/i,
   );
 });
 
-test("a tried extra replaces the minimums-only wording and stays under one line", () => {
+test("readiness leads to Plan budget when complete inputs still run short", () => {
+  const result = readiness.planReadiness(
+    report(rolloverPath()),
+    cashForecast(),
+    0,
+    date,
+  );
+
+  assert.equal(result.next.title, "Fix the dated cash shortfall");
+  assert.equal(result.next.href, "/living");
+  assert.equal(result.next.label, "Review shortfall");
+});
+
+test("readiness keeps protected-cash affordability ahead of setup improvements", () => {
+  const result = readiness.planReadiness(
+    report(rolloverPath(), { hasEmergencyGoal: false }),
+    affordableCashForecast({ reserveShortfallOn: "2026-10-20" }),
+    0,
+    date,
+  );
+
+  assert.equal(result.next.title, "Review protected savings");
+  assert.equal(result.next.href, "/savings");
+});
+
+test("a tried extra updates plan copy and names the applied forecast while loading", () => {
   assert.equal(extra.parsePlanExtra(""), 0);
   assert.equal(extra.parsePlanExtra("  200.005 "), 200.01);
   assert.equal(extra.parsePlanExtra("-1"), null);
@@ -728,16 +916,14 @@ test("a tried extra replaces the minimums-only wording and stays under one line"
   assert.equal(extra.parsePlanExtra("1,200"), 1200);
   assert.equal(extra.parsePlanExtra("$1,200.50"), 1200.5);
 
-  assert.equal(
-    copy.planDescription("Rollover", true, 200, money),
-    "When a debt is paid off, its payment moves to the next debt. Highest interest first, with $200.00 extra each month.",
+  const summary = copy.planSummary(
+    rolloverPath(),
+    affordableCashForecast(),
+    0,
+    money,
+    date,
+    200,
   );
-  assert.match(
-    copy.planDescription("ReclaimAll", false, 50, money),
-    /\$50\.00 extra each month/,
-  );
-
-  const summary = copy.planSummary(rolloverPath(), 0, money, date, 200);
   assert.equal(
     summary.sentence,
     "You're on track to be debt-free with $200.00 extra each month.",
@@ -763,9 +949,42 @@ test("a tried extra replaces the minimums-only wording and stays under one line"
   );
   assert.equal(
     copy.planExtraHelp(),
-    "Blank is minimums only. Tried on this page. Leaving clears it.",
+    "Enter 0 for minimums only. The preview updates when you leave the field or press Enter.",
   );
-  assert.equal(copy.planExtraStatus("updating"), "Updating the plan.");
-  assert.match(copy.planExtraStatus("error"), /could not be applied/);
+  assert.equal(
+    copy.planExtraStatus("updating", 200, 0, money),
+    "Updating the preview for $200.00 extra. Results still show $0.00 extra until it finishes.",
+  );
+  assert.equal(
+    copy.planExtraStatus("error", 200, 0, money),
+    "The $200.00 extra preview could not be applied. Results still show $0.00 extra. Leave the field or press Enter to try again.",
+  );
   assert.equal(copy.planExtraInvalid(), "Enter a zero or positive amount.");
+});
+
+test("Plan tab keys wrap and support Home and End", () => {
+  assert.equal(navigation.movePlanTab("overview", "ArrowLeft"), "debt");
+  assert.equal(navigation.movePlanTab("debt", "ArrowRight"), "overview");
+  assert.equal(navigation.movePlanTab("cash", "Home"), "overview");
+  assert.equal(navigation.movePlanTab("cash", "End"), "debt");
+});
+
+test("debt milestones distinguish rolled payments from available cash", () => {
+  const rollover = debtSummary.debtMilestones(
+    rolloverPath(),
+    "Rollover",
+    money,
+    date,
+  );
+  const reclaimed = debtSummary.debtMilestones(
+    { ...rolloverPath(), kind: "ReclaimAll" },
+    "ReclaimAll",
+    money,
+    date,
+  );
+
+  assert.equal(rollover.currentMinimums, "$75.00 a month");
+  assert.equal(rollover.firstPayoff, "Store · 2026-02-15");
+  assert.match(rollover.breathingRoomNote, /no modeled debt can take/);
+  assert.match(reclaimed.breathingRoomNote, /other uses/);
 });

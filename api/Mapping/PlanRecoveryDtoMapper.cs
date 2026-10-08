@@ -1,3 +1,4 @@
+using Cardui.Api.Domain.Accounts;
 using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Plan;
 
@@ -18,7 +19,8 @@ public static class PlanRecoveryDtoMapper
         CashFlowRecoveryReport report,
         IReadOnlyList<HouseholdRecoveryMissingBalance> missingBalance,
         bool hasDebts,
-        HouseholdCashOutlookReport cashOutlook)
+        HouseholdCashOutlookReport cashOutlook,
+        CashPosition cashPosition)
     {
         return new PlanRecoveryDto
         {
@@ -30,7 +32,7 @@ public static class PlanRecoveryDtoMapper
                 .Select(debt => new PlanMissingBalanceDto { DebtId = debt.DebtId, Name = debt.Name })
                 .ToList(),
             HasDebts = hasDebts,
-            CashOutlook = PlanCashOutlookDtoMapper.Map(cashOutlook),
+            CashOutlook = PlanCashOutlookDtoMapper.Map(cashOutlook, cashPosition),
             MonthlyExtra = comparison.MonthlyExtra
         };
     }

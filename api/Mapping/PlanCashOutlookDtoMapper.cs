@@ -1,3 +1,4 @@
+using Cardui.Api.Domain.Accounts;
 using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Plan;
 
@@ -10,7 +11,9 @@ public static class PlanCashOutlookDtoMapper
     /// Each day keeps its ending cash and the day's income, bills, and debt payments as totals, not the individual rows.
     /// The starting reserve is the amount already set aside. The written assumptions are not sent; the page writes its own copy.
     /// </summary>
-    public static PlanCashOutlookDto Map(HouseholdCashOutlookReport report)
+    public static PlanCashOutlookDto Map(
+        HouseholdCashOutlookReport report,
+        CashPosition cashPosition)
     {
         return new PlanCashOutlookDto
         {
@@ -18,6 +21,12 @@ public static class PlanCashOutlookDtoMapper
             StartingCash = report.StartingCash,
             StartingReserve = report.StartingReserve,
             StartingAvailable = report.StartingAvailable,
+            StartingCashAccountCount = cashPosition.AccountCount,
+            StartingCashManualAccountCount = cashPosition.ManualAccountCount,
+            StartingCashConnectedAccountCount = cashPosition.ConnectedAccountCount,
+            StartingCashOldestAsOf = cashPosition.OldestBalanceAsOf,
+            StartingCashUnknownDateCount = cashPosition.UnknownBalanceDateCount,
+            StartingCashStaleConnectedCount = cashPosition.StaleConnectedAccountCount,
             HasIncome = report.HasIncome,
             HasBills = report.HasBills,
             ExcludedCurrencies = report.ExcludedCurrencies,

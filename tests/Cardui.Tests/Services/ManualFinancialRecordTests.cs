@@ -26,6 +26,32 @@ public class ManualFinancialRecordTests
         Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 
     [Fact]
+    public async Task GetCashPosition_NamesTheManualSourceAndOldestBalanceDate()
+    {
+        await using var dbContext = CreateDbContext();
+        var scope = Bind(HouseholdA);
+        var time = new FakeTimeProvider(Now);
+        var accounts = new AccountsService(dbContext, time, scope);
+        await accounts.CreateManualAccountAsync(new CreateManualAccountDto
+        {
+            Name = "Checking",
+            Type = "Depository",
+            OpeningBalance = 500m,
+            OpeningBalanceDate = new DateOnly(2026, 10, 1)
+        });
+
+        var position = await accounts.GetCashPositionAsync();
+
+        Assert.Equal(500m, position.Total);
+        Assert.Equal(1, position.AccountCount);
+        Assert.Equal(1, position.ManualAccountCount);
+        Assert.Equal(0, position.ConnectedAccountCount);
+        Assert.Equal(new DateOnly(2026, 10, 3), position.OldestBalanceAsOf);
+        Assert.Equal(0, position.UnknownBalanceDateCount);
+        Assert.Equal(0, position.StaleConnectedAccountCount);
+    }
+
+    [Fact]
     public async Task CreateManualAccount_KeepsTheOpeningBalanceOutOfIncome()
     {
         await using var dbContext = CreateDbContext();

@@ -54,7 +54,12 @@ export function contributionNote(
   }
 
   if (person.limit === "Shared") {
-    return `At today's pay, the shared plan uses ${money(person.sharedMonthly)} a month and ${person.name} keeps ${money(person.keptMonthly)}. Low pay and future raises keep this same share.${unscheduled}`;
+    const benchmark = person.monthlyAmount ?? person.sharedMonthly;
+    const average =
+      benchmark === person.sharedMonthly
+        ? ""
+        : ` Applied to dated paychecks, the current monthly average is ${money(person.sharedMonthly)}.`;
+    return `The saved monthly benchmark is ${money(benchmark)}.${average} ${person.name} keeps about ${money(person.keptMonthly)} at today's pay. Low pay and future raises keep this same share.${unscheduled}`;
   }
 
   if (person.recordedMonthly === null) {

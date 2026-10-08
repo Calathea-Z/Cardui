@@ -1,4 +1,5 @@
 import type { PlanRecoveryDto } from "../types";
+import { isCurrentPlanRecovery } from "../validatePlanRecovery";
 import { serverClient } from "../server-client";
 
 /**
@@ -7,7 +8,12 @@ import { serverClient } from "../server-client";
  * This first load uses no extra. A tried amount is requested in the browser and is not saved.
  */
 export async function getPlanRecovery(): Promise<PlanRecoveryDto> {
-  const response =
-    await serverClient.get<PlanRecoveryDto>("/api/plan/recovery");
+  const response = await serverClient.get<unknown>("/api/plan/recovery");
+  if (!isCurrentPlanRecovery(response.data)) {
+    throw new Error(
+      "Plan data is temporarily out of date. Refresh after the API finishes updating.",
+    );
+  }
+
   return response.data;
 }

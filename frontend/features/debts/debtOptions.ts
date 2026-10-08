@@ -8,8 +8,8 @@ export const debtKindOptions: Array<{
   value: DebtKind;
   label: string;
 }> = [
-  { value: "Revolving", label: "Revolving" },
-  { value: "Installment", label: "Installment" },
+  { value: "Revolving", label: "Credit card or line" },
+  { value: "Installment", label: "Loan" },
 ];
 
 /**

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import type { HouseholdContributorDto } from "@/lib/api/types";
 
 type ContributorRowProps = {
@@ -34,17 +35,15 @@ export function ContributorRow({
           autoComplete="off"
         />
       </label>
-      <label className="flex items-center gap-2 pb-2 text-sm">
-        <input
-          type="checkbox"
-          className="size-4 accent-primary"
+      <div className="sm:w-36">
+        <Switch
           checked={contributor.isVisible}
-          onChange={(event) =>
-            onChange({ ...contributor, isVisible: event.target.checked })
+          onCheckedChange={(checked) =>
+            onChange({ ...contributor, isVisible: checked })
           }
+          label="Shown"
         />
-        Shown
-      </label>
+      </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" onClick={onSave}>
           Save

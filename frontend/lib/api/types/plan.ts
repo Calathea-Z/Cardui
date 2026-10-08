@@ -1,3 +1,5 @@
+import type { DebtFieldSource, DebtLinkFreshness } from "./debts";
+
 /**
  * Which way a path treats cash freed by a paid-off debt.
  * Rollover sends it to the next debt. ReclaimAll keeps every freed dollar.
@@ -159,11 +161,32 @@ export type PlanCashOutlookDto = {
   startingCash: number;
   startingReserve: number;
   startingAvailable: number;
+  startingCashAccountCount: number;
+  startingCashManualAccountCount: number;
+  startingCashConnectedAccountCount: number;
+  startingCashOldestAsOf: string | null;
+  startingCashUnknownDateCount: number;
+  startingCashStaleConnectedCount: number;
   hasIncome: boolean;
   hasBills: boolean;
   excludedCurrencies: string[];
   rollover: PlanCashOutlookPathDto;
   reclaimAll: PlanCashOutlookPathDto;
+};
+
+/**
+ * The source and freshness of one debt balance used by Plan.
+ * A zero balance with a saved positive minimum remains stored but needs review.
+ */
+export type PlanDebtFactDto = {
+  debtId: string;
+  name: string;
+  balance: number | null;
+  balanceAsOf: string | null;
+  balanceSource: DebtFieldSource;
+  freshness: DebtLinkFreshness | null;
+  minimumPayment: number | null;
+  needsPaymentReview: boolean;
 };
 
 /**
@@ -183,4 +206,8 @@ export type PlanRecoveryDto = {
   cashOutlook: PlanCashOutlookDto;
   monthlyExtra: number;
   livingSpendingMonthly: number;
+  debtFacts: PlanDebtFactDto[];
+  hasCashFloor: boolean;
+  hasEmergencyGoal: boolean;
+  namedSavingsGoalCount: number;
 };

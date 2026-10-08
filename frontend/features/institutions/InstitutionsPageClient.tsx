@@ -4,9 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BackButton } from "@/components/navigation/back-button";
 import { PageHeader } from "@/components/navigation/page-header";
-import { useSetMobileHeaderLeading } from "@/components/navigation/mobile-header-actions";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -59,13 +57,6 @@ export function InstitutionsPageClient({
     () => groupAccountsByInstitution(accounts),
     [accounts],
   );
-
-  const mobileHeaderLeading = useMemo(
-    () => <BackButton fallbackHref="/accounts" />,
-    [],
-  );
-
-  useSetMobileHeaderLeading(mobileHeaderLeading);
 
   /**
    * Names the bank for a toast.
@@ -254,8 +245,6 @@ export function InstitutionsPageClient({
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
       <PageHeader
-        showBack
-        backFallbackHref="/accounts"
         title="Connections"
         description="Manage linked banks and the accounts synced from each institution."
         actions={

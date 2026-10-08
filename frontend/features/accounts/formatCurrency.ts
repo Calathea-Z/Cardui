@@ -9,10 +9,7 @@ export function moneyDigits(value: string): string | null {
     return null;
   }
 
-  if (
-    compact.includes(",") &&
-    !/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(compact)
-  ) {
+  if (compact.includes(",") && !/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(compact)) {
     return null;
   }
 
@@ -30,10 +27,7 @@ export function moneyDigits(value: string): string | null {
  */
 export function moneyCommaError(value: string): string | null {
   const compact = value.trim().replace(/[$\s]/g, "");
-  if (
-    !compact.includes(",") ||
-    /^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(compact)
-  ) {
+  if (!compact.includes(",") || /^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(compact)) {
     return null;
   }
 

@@ -50,7 +50,7 @@ public class PlanService : IPlanService
         var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
         var loaded = await LoadCashFactsAsync(today, cancellationToken);
-        return ProjectPlan(debts, loaded.Input, monthlyExtra, loaded.LivingSpendingMonthly);
+        return ProjectPlan(debts, loaded, monthlyExtra);
     }
 
     #region Private Methods
@@ -70,11 +70,11 @@ public class PlanService : IPlanService
     /// Loads the starting cash, income, bills, and savings the cash outlook reads, for a forecast that starts today.
     /// The loads run one after another because they share one database context.
     /// </summary>
-    private async Task<(HouseholdCashOutlookInput Input, decimal LivingSpendingMonthly)> LoadCashFactsAsync(
+    private async Task<PlanCashFacts> LoadCashFactsAsync(
         DateOnly today,
         CancellationToken cancellationToken)
     {
-        var startingCash = await _accountsService.GetCashTotalAsync(cancellationToken);
+        var cashPosition = await _accountsService.GetCashPositionAsync(cancellationToken);
         var incomes = await _incomeSourcesService.GetOutlookIncomesAsync(cancellationToken);
         var bills = await _obligationsService.GetOutlookBillsAsync(cancellationToken);
         var savings = await _savingsGoalsService.GetOutlookAsync(today, cancellationToken);
@@ -82,12 +82,18 @@ public class PlanService : IPlanService
         var input = new HouseholdCashOutlookInput(
             _householdScope.PlanningCurrency,
             today,
-            startingCash,
+            cashPosition.Total,
             sharedIncomes,
             bills,
             savings.StartingReserve,
             savings.Contributions);
-        return (input, AccountLedger.Round(savings.LivingSpendingMonthly));
+        return new PlanCashFacts(
+            input,
+            cashPosition,
+            AccountLedger.Round(savings.LivingSpendingMonthly),
+            savings.HasCashFloor,
+            savings.HasEmergencyGoal,
+            savings.NamedGoalCount);
     }
 
     /// <summary>
@@ -96,20 +102,29 @@ public class PlanService : IPlanService
     /// </summary>
     private static PlanRecoveryDto ProjectPlan(
         IReadOnlyList<DebtDto> debts,
-        HouseholdCashOutlookInput cash,
-        decimal monthlyExtra,
-        decimal livingSpendingMonthly)
+        PlanCashFacts facts,
+        decimal monthlyExtra)
     {
         var prepared = HouseholdRecovery.Prepare(
-            cash.PlanningCurrency,
-            cash.AsOf,
+            facts.Input.PlanningCurrency,
+            facts.Input.AsOf,
             debts.Select(ToDebt).ToList(),
             monthlyExtra);
         var comparison = PayoffRollover.Compare(prepared.Rollover);
         var report = CashFlowRecovery.Track(comparison);
-        var outlook = HouseholdCashOutlook.Project(cash, prepared.Rollover.Debts, comparison);
-        var plan = PlanRecoveryDtoMapper.Map(comparison, report, prepared.MissingBalance, debts.Count > 0, outlook);
-        plan.LivingSpendingMonthly = livingSpendingMonthly;
+        var outlook = HouseholdCashOutlook.Project(facts.Input, prepared.Rollover.Debts, comparison);
+        var plan = PlanRecoveryDtoMapper.Map(
+            comparison,
+            report,
+            prepared.MissingBalance,
+            debts.Count > 0,
+            outlook,
+            facts.CashPosition);
+        plan.LivingSpendingMonthly = facts.LivingSpendingMonthly;
+        plan.HasCashFloor = facts.HasCashFloor;
+        plan.HasEmergencyGoal = facts.HasEmergencyGoal;
+        plan.NamedSavingsGoalCount = facts.NamedSavingsGoalCount;
+        plan.DebtFacts = debts.Select(ToDebtFact).ToList();
         return plan;
     }
 
@@ -131,6 +146,25 @@ public class PlanService : IPlanService
             debt.RemainingTermMonths,
             debt.NextDueDate,
             debt.CreditLimitInUse);
+    }
+
+    /// <summary>
+    /// Copies the balance provenance Plan needs to explain its debt claims.
+    /// A saved minimum on a zero balance is retained and marked for review.
+    /// </summary>
+    private static PlanDebtFactDto ToDebtFact(DebtDto debt)
+    {
+        return new PlanDebtFactDto
+        {
+            DebtId = debt.Id,
+            Name = debt.Name,
+            Balance = debt.BalanceInUse,
+            BalanceAsOf = debt.BalanceInUseAsOf,
+            BalanceSource = debt.BalanceSource,
+            Freshness = debt.Freshness,
+            MinimumPayment = debt.MinimumPayment,
+            NeedsPaymentReview = debt.BalanceInUse == 0 && debt.MinimumPayment > 0
+        };
     }
 
     #endregion

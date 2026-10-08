@@ -42,12 +42,14 @@ export type PlanObligationRow = {
 /**
  * One debt in the payoff order.
  * `paidOffOn` is the payment that clears it. `minimum` is the monthly payment it frees.
+ * `breathingRoom` is the cumulative amount available for other uses after that payoff.
  */
 export type PlanPayoffRow = {
   debtId: string;
   name: string;
   paidOffOn: string;
   minimum: number;
+  breathingRoom: number;
   color: string;
 };
 
@@ -157,6 +159,7 @@ export function payoffOrder(
     name: step.name,
     paidOffOn: step.endedOn,
     minimum: step.minimum,
+    breathingRoom: step.breathingRoom,
     color: colors[step.debtId] ?? seriesColor(index),
   }));
 }

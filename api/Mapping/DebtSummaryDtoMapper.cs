@@ -54,7 +54,8 @@ public static class DebtSummaryDtoMapper
             MissingPromotionalEndCount = currency.MissingPromotionalEndCount,
             MissingPromotionalRateCount = currency.MissingPromotionalRateCount,
             MissingRateAfterPromotionCount = currency.MissingRateAfterPromotionCount,
-            StaleCount = currency.StaleCount
+            StaleCount = currency.StaleCount,
+            ZeroBalancePaymentReviewCount = currency.ZeroBalancePaymentReviewCount
         };
     }
 
@@ -76,6 +77,7 @@ public static class DebtSummaryDtoMapper
             AprReachesNotice = item.AprReachesNotice,
             UtilizationReachesNotice = item.UtilizationReachesNotice,
             UtilizationReachesLimitNotice = item.UtilizationReachesLimitNotice,
+            NeedsPaymentReview = item.NeedsPaymentReview,
             Gaps = item.Gaps,
             BalanceComparison = item.BalanceComparison is null
                 ? null

@@ -7,7 +7,7 @@ import type { PageLoadState } from "@/lib/pageLoadState";
  * An empty living page used when the load fails.
  * The banner carries the error. The lists stay empty.
  */
-function emptyLivingPage(): LivingPageDto {
+export function emptyLivingPage(): LivingPageDto {
   return {
     planningCurrency: "USD",
     contributions: [],

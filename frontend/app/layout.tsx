@@ -17,7 +17,7 @@ const inter = Inter({
  */
 export const metadata: Metadata = {
   title: "Tortoise",
-  description: "Personal finance tracking",
+  description: "Build a clear, realistic financial recovery plan",
 };
 
 /**

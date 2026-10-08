@@ -11,11 +11,19 @@ history. They do not say what is next.
 
 **Now**
 
-- The Phase 2 product and UX audit is approved in
-  [`reviews/2026-10-08-006-phase-2-ux-audit.md`](reviews/2026-10-08-006-phase-2-ux-audit.md).
-  Its recommended decisions and one focused UX closure increment are approved.
-  That increment is current and comes before more Phase 3 work. Home, Accounts,
+- The Plan page refinement is implemented, manually checked, and awaiting
+  review in
+  [`reviews/2026-10-08-008-plan-page-refinement.md`](reviews/2026-10-08-008-plan-page-refinement.md).
+  Overview, Cash outlook, and Debt payoff now separate the existing report;
+  the deferred extra-payment layout is included without adding calculations
+  or saved scenarios.
+- The bounded Phase 2 UX closure is implemented and awaiting review in
+  [`reviews/2026-10-08-007-phase-2-ux-closure.md`](reviews/2026-10-08-007-phase-2-ux-closure.md).
+  Plan now leads with cash affordability and a next action, explains material
+  source freshness, and reconciles zero-balance debt terms. Home, Accounts,
   Activity, Plan remains the approved primary order.
+- The source Phase 2 product and UX audit is approved in
+  [`reviews/2026-10-08-006-phase-2-ux-audit.md`](reviews/2026-10-08-006-phase-2-ux-audit.md).
 - Phase 2 item 8, simplified Living, is approved in
   [`reviews/2026-10-08-005-simplified-living.md`](reviews/2026-10-08-005-simplified-living.md).
   The contribution and cleanup migrations are applied. Phase 2 is complete.
@@ -31,21 +39,15 @@ history. They do not say what is next.
 
 **Next**
 
-1. Implement the audit's bounded Phase 2 UX closure increment: make Plan honest
-   about affordability, add readiness and next actions, reconcile debt totals,
-   use recovery-oriented framing, and clarify freshness and the Plan
-   budget/Savings/Targets boundaries.
-2. After that increment is approved, resume the rest of Phase 3 item 6: income
-   loss, windfalls, spending changes, and protected-cash targets. The extra
-   field layout and detail panel keyboard focus stay tracked and are not
-   scheduled. The separate Planning UX review remains a proposal until Zach
-   approves a change from it.
+1. Review and approve the Plan page refinement and separately approve the
+   bounded Phase 2 UX closure. Neither review is marked approved yet.
+2. After both approvals, resume the rest of Phase 3 item 6: income loss,
+   windfalls, spending changes, and protected-cash targets. Detail panel
+   keyboard focus stays tracked and is not scheduled. The separate Planning
+   UX review remains a proposal until Zach approves a change from it.
 
 **Tracked, not scheduled**
 
-- The extra-each-month field layout on Plan. Zach approved the behavior
-  and asked to leave the layout for later. See "Tracked UI follow-ups" in
-  [`roadmap.md`](roadmap.md).
 - Detail panel keyboard focus. See "Tracked UI follow-ups" in
   [`roadmap.md`](roadmap.md).
 
@@ -62,9 +64,9 @@ history. They do not say what is next.
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
-| [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, the cash outlook, and extra each month. Approved. The extra field layout is tracked and not scheduled |
+| [`design/plan-page.md`](design/plan-page.md) | Plan page design: Overview, focused Cash outlook, chart-led Debt payoff, and the temporary scenario controls. The three-view refinement is awaiting review |
 | [`design/savings.md`](design/savings.md) | Savings design: cash to keep, an emergency goal, and named goals under Saving for. Monthly living spending is edited on Living |
-| [`design/living.md`](design/living.md) | Living design: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check |
+| [`design/living.md`](design/living.md) | Plan budget design at `/living`: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

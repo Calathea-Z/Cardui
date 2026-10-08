@@ -122,7 +122,7 @@ export function PlanCashChart({
               type="number"
               dataKey="timestamp"
               domain={[first.timestamp, last.timestamp]}
-              ticks={evenTicks(rows)}
+              ticks={evenTicks(rows, 4)}
               tickFormatter={formatDayTick}
               tick={{ fill: "var(--muted-foreground)" }}
               fontSize={12}
@@ -185,6 +185,31 @@ export function PlanCashChart({
           </ComposedChart>
         </ResponsiveContainer>
       </div>
+      <details className="mt-3 rounded-md border border-border">
+        <summary className="min-h-11 cursor-pointer px-3 py-2.5 text-sm font-medium text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
+          View 30-day values
+        </summary>
+        <ol className="divide-y divide-border/70 border-t border-border">
+          {rows.map((row) => (
+            <li key={row.timestamp} className="px-3 py-2.5">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-medium text-foreground">
+                  {formatDayLabel(row.timestamp)}
+                </span>
+                <span className="text-sm text-foreground tabular-nums">
+                  {formatChartCurrency(row.cash, currency)} ending cash
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Income +{formatChartCurrency(row.income, currency)} · Bills −
+                {formatChartCurrency(row.bills, currency)} · Living −
+                {formatChartCurrency(row.livingSpending, currency)} · Debt −
+                {formatChartCurrency(row.debtPayments, currency)}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </details>
     </div>
   );
 }

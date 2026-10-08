@@ -52,6 +52,12 @@ public class DebtSummaryItemDto
     /// </summary>
     public bool UtilizationReachesLimitNotice { get; set; }
 
+    /// <summary>
+    /// True when a known zero balance still has a saved positive minimum.
+    /// The terms stay saved, but the debt is excluded from active totals until reviewed.
+    /// </summary>
+    public bool NeedsPaymentReview { get; set; }
+
     public IReadOnlyList<DebtSummaryGap> Gaps { get; set; } = [];
 
     /// <summary>

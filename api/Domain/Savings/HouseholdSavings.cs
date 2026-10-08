@@ -58,7 +58,13 @@ public static class HouseholdSavings
             }
         }
 
-        return new SavingsOutlook(reserve, events, everyday);
+        return new SavingsOutlook(
+            reserve,
+            events,
+            everyday,
+            goals.Any(goal => goal.Kind == SavingsGoalKind.Floor),
+            goals.Any(goal => goal.Kind == SavingsGoalKind.Emergency),
+            goals.Count(goal => goal.Kind == SavingsGoalKind.Sinking));
     }
 
     #region Private Methods

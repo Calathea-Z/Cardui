@@ -62,8 +62,8 @@ public static class LivingGapCalculator
     }
 
     /// <summary>
-    /// Adds known minimums in the planning currency.
-    /// A missing minimum is named. Zero is included.
+    /// Adds known minimums for positive balances in the planning currency.
+    /// A missing balance or minimum is named. A known zero balance has no active payment.
     /// </summary>
     private static decimal Minimums(
         IReadOnlyList<LivingDebtMinimum> minimums,
@@ -76,6 +76,17 @@ public static class LivingGapCalculator
             if (!PlanningCurrencyRules.IsIncluded(minimum.Currency, planningCurrency))
             {
                 leftOut.Add($"{minimum.Name} is in {minimum.Currency}.");
+                continue;
+            }
+
+            if (minimum.Balance is null)
+            {
+                leftOut.Add($"{minimum.Name} has no balance yet.");
+                continue;
+            }
+
+            if (minimum.Balance <= 0)
+            {
                 continue;
             }
 

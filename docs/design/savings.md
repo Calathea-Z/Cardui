@@ -5,21 +5,24 @@ Updated: 2026-10-08
 
 ## Problem
 
-Phase 2 item 7. The household can set monthly living spending, a cash floor, an emergency goal, and named goals for costs that have a date. Living spending and the floor are stored, so Plan's cash outlook no longer leaves those inputs at zero.
+Phase 2 item 7. The household can set flexible monthly spending, a cash floor, an emergency goal, and named goals for costs that have a date. Flexible spending and the floor are stored, so Plan's cash outlook no longer leaves those inputs at zero.
 
 Reserving money is not a second expense. Moving money between accounts the household owns is not income. The forecast already treats a savings amount that way: it raises the protected reserve and leaves cash unchanged. What is left to spend is cash minus that reserve.
 
 ## Screen
 
-Savings is a setting in the account menu, at `/savings`, after Living and before Targets. It is not a tab. Targets stays the monthly spending page.
+Savings is a setting in the account menu, at `/savings`, after Plan budget and before Spending targets. It is not a tab. Spending targets stays the monthly activity-tracking page.
 
-The page title is Savings. Cash to keep and Emergency are always there. Named goals are a list under Saving for. Save for something is the one primary action. A goal opens in a panel from 768px up and a full-screen sheet under it.
+The page title is Savings. Cash to keep and Emergency are always there. Named goals are a list under Saving for. The primary action sets Cash to keep first, then Emergency, then becomes Save for something. Existing named goals remain visible. A goal opens in a panel from 768px up and a full-screen sheet under it.
 
-Monthly living spending is edited on Living, at `/living`. The stored row is still an operating goal. Savings does not show that card.
+When the existing Plan budget average is short, Savings shows that warning and
+links to the dated cash outlook. It does not run another affordability rule.
 
-Monthly living spending is the one flexible-spending total used by Plan. It stores a monthly amount, the day of the month that spending counts (Ready by, default the 1st), and how much is available now. It leaves cash on that day. After the day has passed, only what is left this month leaves cash, on today. Later months count the full monthly amount. It does not finish, and it does not join the protected pile.
+Flexible monthly spending is edited on Plan budget, at `/living`. The stored row is still an operating goal. Savings does not show that card.
 
-Cash to keep is a floor. It stores the amount to always keep available, and how much is available now. The plan protects the full floor. It does not leave cash and it has no date. A household has one of each card. Emergency and each named goal still have a target and a date.
+Flexible monthly spending is the one flexible-spending total used by Plan. It stores a monthly amount, the day of the month that spending counts (Ready by, default the 1st), and how much is available now. It leaves cash on that day. After the day has passed, only what is left this month leaves cash, on today. Later months count the full monthly amount. It does not finish, and it does not join the protected pile.
+
+Cash to keep is a floor. It stores the amount to always keep available, and how much is available now. The plan protects the full floor. It does not leave cash and it has no date. A household has one of each card. Emergency and each named goal still have a target and a date. Cash to keep is added to Emergency and named goals; none contains another.
 
 An empty card says what is missing and offers Set. Removing a row asks first and names it. Names under Saving for are unique in the household, ignoring case. The stored kinds are `Operating`, `Floor`, `Emergency`, and `Sinking`.
 

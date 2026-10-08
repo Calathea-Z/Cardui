@@ -215,7 +215,7 @@ export function DebtForm({
         </div>
 
         <label className="flex flex-col gap-1.5 text-sm font-medium">
-          APR
+          Interest rate (APR)
           <Input
             value={form.apr}
             onChange={(event) => onChange({ ...form, apr: event.target.value })}

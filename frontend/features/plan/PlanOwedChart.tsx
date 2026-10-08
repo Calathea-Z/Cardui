@@ -10,6 +10,7 @@ type PlanOwedChartProps = {
   shares: PlanOwedShare[];
   currency: string;
   missingBalanceNames: string[];
+  embedded?: boolean;
 };
 
 /**
@@ -22,6 +23,7 @@ export function PlanOwedChart({
   shares,
   currency,
   missingBalanceNames,
+  embedded = false,
 }: PlanOwedChartProps) {
   const [activeDebtId, setActiveDebtId] = useState<string | null>(null);
   const total = shares.reduce((sum, share) => sum + share.balance, 0);
@@ -34,7 +36,10 @@ export function PlanOwedChart({
     .join("; ")}.`;
 
   return (
-    <section className="app-panel p-4" aria-labelledby="plan-owed-title">
+    <section
+      className={cn("p-4", !embedded && "app-panel")}
+      aria-labelledby="plan-owed-title"
+    >
       <h2 id="plan-owed-title" className="app-section-title">
         What you owe today
       </h2>

@@ -1,36 +1,47 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
+import { TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/navigation/page-header";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import type { SavingsAccountDto, SavingsGoalDto } from "@/lib/api/types";
+import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { SavingsGoalForm } from "./SavingsGoalForm";
 import { SavingsGoalSections } from "./SavingsGoalSections";
+import type { SavingsPageData } from "./savingsPageData";
 import { useSavingsGoals } from "./useSavingsGoals";
-
-type SavingsPageClientProps = {
-  goals: SavingsGoalDto[];
-  accounts: SavingsAccountDto[];
-  planningCurrency: string;
-};
 
 /**
  * Savings page.
  * Cash to keep and the emergency goal are single cards. Saving for is the named list.
- * Monthly living spending is on Living.
+ * Flexible monthly spending is on Plan budget.
  * Saving a goal does not move money.
  */
 export function SavingsPageClient({
   goals,
   accounts,
   planningCurrency,
-}: SavingsPageClientProps) {
+  planBudgetShortfall,
+}: SavingsPageData) {
   const savings = useSavingsGoals(goals, accounts);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [openPickerCount, setOpenPickerCount] = useState(0);
   const editing = savings.goals.find((goal) => goal.id === savings.editingId);
+  const hasFloor = savings.goals.some((goal) => goal.kind === "Floor");
+  const hasEmergency = savings.goals.some((goal) => goal.kind === "Emergency");
+  const primaryKind = !hasFloor
+    ? "Floor"
+    : !hasEmergency
+      ? "Emergency"
+      : "Sinking";
+  const primaryLabel =
+    primaryKind === "Floor"
+      ? "Set cash to keep"
+      : primaryKind === "Emergency"
+        ? "Set emergency goal"
+        : "Save for something";
 
   /**
    * Remembers the control that opened the form, then runs that open action.
@@ -43,7 +54,7 @@ export function SavingsPageClient({
 
   /**
    * Closes the form and returns focus to the control that opened it.
-   * A control that has left the page falls back to Save for something.
+   * A control that has left the page falls back to the current foundation action.
    */
   function closeForm() {
     savings.closeForm();
@@ -70,7 +81,7 @@ export function SavingsPageClient({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Savings"
-        description="Cash to keep, an emergency goal, and goals with a date. Saving does not move money. Monthly living spending is on Living."
+        description="Protect a cash floor, then add emergency or named goals. These amounts stay in cash; saving a goal does not move money."
         actions={
           <Button
             ref={addButtonRef}
@@ -78,14 +89,47 @@ export function SavingsPageClient({
             className="min-h-11 w-full sm:w-auto"
             onClick={(event) =>
               openForm(event.currentTarget, () =>
-                savings.startAdding("Sinking"),
+                savings.startAdding(primaryKind),
               )
             }
           >
-            Save for something
+            {primaryLabel}
           </Button>
         }
       />
+      <div className="app-panel p-4 text-sm text-muted-foreground">
+        <p>
+          Cash to keep is the always-available floor. Emergency and named goals
+          are added to that floor; together they reduce what Plan treats as
+          available without spending or moving the cash.
+        </p>
+        <p className="mt-2">
+          Flexible monthly spending belongs on{" "}
+          <Link href="/living" className="text-primary underline">
+            Plan budget
+          </Link>
+          .{" "}
+          <Link href="/targets" className="text-primary underline">
+            Spending targets
+          </Link>{" "}
+          track posted Activity and do not add another amount to Plan.
+        </p>
+      </div>
+      {planBudgetShortfall !== null && planBudgetShortfall > 0 ? (
+        <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
+          <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <span>
+            <span className="sr-only">Warning: </span>
+            Plan budget is already short{" "}
+            {formatCurrency(planBudgetShortfall, planningCurrency)} a month.
+            Savings protections add to that constraint.{" "}
+            <Link href="/plan" className="underline">
+              Review dated cash on Plan
+            </Link>
+            .
+          </span>
+        </p>
+      ) : null}
       <SavingsGoalSections
         goals={savings.goals}
         busyId={savings.busyId}

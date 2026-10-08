@@ -1,8 +1,10 @@
 import { firstApiError, safeApiCall } from "@/lib/api/server";
 import { getFinancialProfile } from "@/lib/api/server/households";
 import { getSavingsAccounts, getSavingsGoals } from "@/lib/api/server/savings";
+import { getLivingPage } from "@/lib/api/server/living";
 import type { PageLoadState } from "@/lib/pageLoadState";
 import { emptyFinancialProfile } from "@/features/household/server/loadHouseholdPage";
+import { emptyLivingPage } from "@/features/living/server/loadLivingPage";
 import type { SavingsPageData } from "../savingsPageData";
 
 /**
@@ -12,10 +14,11 @@ import type { SavingsPageData } from "../savingsPageData";
 export async function loadSavingsPage(): Promise<
   PageLoadState<SavingsPageData>
 > {
-  const [goals, accounts, profile] = await Promise.all([
+  const [goals, accounts, profile, planBudget] = await Promise.all([
     safeApiCall(getSavingsGoals, []),
     safeApiCall(getSavingsAccounts, []),
     safeApiCall(getFinancialProfile, emptyFinancialProfile()),
+    safeApiCall(getLivingPage, emptyLivingPage()),
   ]);
 
   return {
@@ -23,7 +26,10 @@ export async function loadSavingsPage(): Promise<
       goals: goals.data,
       accounts: accounts.data,
       planningCurrency: profile.data.planningCurrency,
+      planBudgetShortfall: planBudget.error
+        ? null
+        : planBudget.data.gap.shortfall,
     },
-    error: firstApiError(goals, accounts, profile),
+    error: firstApiError(goals, accounts, profile, planBudget),
   };
 }

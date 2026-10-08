@@ -9,7 +9,7 @@ export type NavItem = {
 /**
  * Primary destinations in sidebar and tab-bar order.
  * Home, Accounts, and Activity come first; Plan is fourth. Income,
- * Bills, Debts, Living, Savings, and Targets stay routes under settings.
+ * Bills, Debts, Plan budget, Savings, and Spending targets stay routes under settings.
  */
 export const navItems: NavItem[] = [
   {
@@ -32,8 +32,8 @@ export const navItems: NavItem[] = [
 
 /**
  * Destinations in the account block.
- * These stay off the primary nav, including Income, Bills, Debts, Living, Savings, and Targets.
- * Each href matches the screen name.
+ * These stay off the primary nav. Plan budget keeps the approved `/living`
+ * route, and Spending targets keeps `/targets`.
  */
 export const settingsItems: NavItem[] = [
   {
@@ -49,7 +49,7 @@ export const settingsItems: NavItem[] = [
     href: "/debts",
   },
   {
-    label: "Living",
+    label: "Plan budget",
     href: "/living",
   },
   {
@@ -57,7 +57,7 @@ export const settingsItems: NavItem[] = [
     href: "/savings",
   },
   {
-    label: "Targets",
+    label: "Spending targets",
     href: "/targets",
   },
   {
@@ -71,6 +71,21 @@ export const settingsItems: NavItem[] = [
   {
     label: "Household",
     href: "/household",
+  },
+];
+
+/**
+ * Visual groups for the existing account-menu destinations.
+ * They do not add routes or change the approved primary navigation.
+ */
+export const settingsGroups = [
+  {
+    label: "Plan inputs",
+    items: settingsItems.slice(0, 5),
+  },
+  {
+    label: "Tracking and data",
+    items: settingsItems.slice(5),
   },
 ];
 

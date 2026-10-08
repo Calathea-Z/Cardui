@@ -84,6 +84,7 @@ export type {
   PlanCashOutlookDto,
   PlanCashOutlookPathDto,
   PlanCashWindowDto,
+  PlanDebtFactDto,
   PlanDebtOutcomeDto,
   PlanMissingBalanceDto,
   PlanRecoveryDto,

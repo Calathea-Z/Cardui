@@ -93,7 +93,13 @@ public class LivingService : ILivingService
         var gap = LivingGapCalculator.Measure(
             share.SharedMonthly,
             bills,
-            debts.Select(debt => new LivingDebtMinimum(debt.Name, debt.MinimumPayment, debt.Currency)).ToList(),
+            debts
+                .Select(debt => new LivingDebtMinimum(
+                    debt.Name,
+                    debt.BalanceInUse,
+                    debt.MinimumPayment,
+                    debt.Currency))
+                .ToList(),
             LivingSpendingAmount(livingSpending),
             currency);
         return LivingPageMapper.Map(currency, share, livingSpending, accounts, gap);

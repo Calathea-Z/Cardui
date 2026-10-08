@@ -1,5 +1,5 @@
 Date: October 8, 2026
-Status: Awaiting review
+Status: Approved 2026-10-08
 PR:
 
 # Documentation audit
@@ -72,4 +72,5 @@ Please read these and say if any cut went too far:
 
 ## Approval
 
-Awaiting Zach's review.
+Approved by Zach on October 8, 2026, with the other reviews that were
+waiting.

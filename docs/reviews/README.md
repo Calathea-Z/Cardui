@@ -33,17 +33,17 @@ For a new screen or substantial UI change, follow section 9 of
 ## UX assessments
 
 - [2026-10-08 — Phase 2 product and UX audit](2026-10-08-006-phase-2-ux-audit.md) — Approved 2026-10-08
-- [2026-10-08 — Planning UX review](2026-10-08-003-planning-ux-review.md) — Awaiting review
+- [2026-10-08 — Planning UX review](2026-10-08-003-planning-ux-review.md) — Approved 2026-10-08. The assessment is approved. Unimplemented proposals stay unscheduled
 
 ## Rules and handoff
 
-- [2026-10-08 — Documentation audit](2026-10-08-010-documentation-audit.md) — Awaiting review
-- [2026-10-08 — Responsive UI/UX governance](2026-10-08-009-responsive-ui-governance.md) — Awaiting review
-- [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Awaiting review
+- [2026-10-08 — Documentation audit](2026-10-08-010-documentation-audit.md) — Approved 2026-10-08
+- [2026-10-08 — Responsive UI/UX governance](2026-10-08-009-responsive-ui-governance.md) — Approved 2026-10-08
+- [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Approved 2026-10-08
 
 ## Phase 3 — Recovery calculations and forecasts
 
-- [2026-10-08 — Plan page refinement](2026-10-08-008-plan-page-refinement.md) — Awaiting review
+- [2026-10-08 — Plan page refinement](2026-10-08-008-plan-page-refinement.md) — Approved 2026-10-08
 - [2026-10-07 — Plan extra payment](2026-10-07-016-plan-extra-payment.md) — Approved 2026-10-08
 - [2026-10-07 — Plan cash outlook](2026-10-07-015-plan-cash-outlook.md) — Approved 2026-10-07
 - [2026-10-07 — Plan recovery screen](2026-10-07-014-plan-recovery.md) — Approved; reworked as Plan screen item 1 on October 7, with correction notes
@@ -58,7 +58,8 @@ For a new screen or substantial UI change, follow section 9 of
 
 Newest first.
 
-- [2026-10-08 — Phase 2 UX closure](2026-10-08-007-phase-2-ux-closure.md) — Awaiting review
+- [2026-10-08 — Phase 2 standards review](2026-10-08-011-phase-2-standards-review.md) — Approved 2026-10-08
+- [2026-10-08 — Phase 2 UX closure](2026-10-08-007-phase-2-ux-closure.md) — Approved 2026-10-08
 - [2026-10-08 — Simplified Living](2026-10-08-005-simplified-living.md) — Approved 2026-10-08
 - [2026-10-08 — Living](2026-10-08-004-living.md) — Superseded by the simplified Living review
 - [2026-10-08 — Savings](2026-10-08-002-savings.md) — Approved 2026-10-08

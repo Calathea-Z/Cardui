@@ -1,7 +1,7 @@
 # Phase 2 UX closure
 
 Date: October 8, 2026
-Status: Awaiting review
+Status: Approved 2026-10-08
 PR:
 
 ## Increment
@@ -83,7 +83,9 @@ the existing editors during testing would persist as usual.
 
 ## Approval
 
-Awaiting Zach's review.
+Approved by Zach on October 8, 2026, with the other reviews that were
+waiting. This approval includes the response-contract correction below.
+Phase 3 item 6 can resume.
 
 ## Pending decision
 

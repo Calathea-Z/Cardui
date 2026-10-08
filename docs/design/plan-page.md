@@ -1,7 +1,7 @@
 # Plan page
 
 Status: Current design record. The original recovery and cash views are
-approved. The implemented three-view refinement is awaiting review. Broader
+approved. The implemented three-view refinement is approved. Broader
 redesign proposals are not approved.
 Date: October 7, 2026
 Updated: 2026-10-08
@@ -15,8 +15,8 @@ accessibility rules are in
 
 The first Plan page was two text cards. Zach's October 7 review replaced
 that with one long page. The October 8 refinement split the same report
-into Overview, Cash outlook, and Debt payoff. That refinement is implemented
-and awaiting review in
+into Overview, Cash outlook, and Debt payoff. That refinement is approved
+in
 [`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
 
 Forward-looking charts still live on Plan. Home keeps historical results. See
@@ -41,8 +41,7 @@ Plan has three tabs in one component tree: **Overview**, **Cash outlook**,
 and **Debt payoff**. Overview is the default. The selected payoff behavior,
 extra payment, cash timeframe, and highlighted debt stay in the page-level
 state, so changing tabs or widths does not reset them. Only the selected
-tab's analysis renders. This arrangement is awaiting review; describing it as
-current does not mark that review approved.
+tab's analysis renders. This arrangement is the approved Plan layout.
 
 ### Overview
 
@@ -194,7 +193,7 @@ review.
 3. **Three-view refinement.** Overview, Cash outlook, and Debt payoff reduce
    the initial scroll while preserving the same report, path comparison,
    extra-payment request, warnings, and source links. The extra field layout
-   is included. It is awaiting review in
+   is included. It is approved in
    [`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
    No schema, route, dependency, or new financial calculation.
 

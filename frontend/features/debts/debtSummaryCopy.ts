@@ -632,6 +632,10 @@ function namedRows(debts: SummaryDebtName[], items: DebtSummaryItemDto[]) {
   });
 }
 
+/**
+ * Adds one count to the missing-input sentence.
+ * Zero is left out. One uses the singular word, and any larger count uses the plural.
+ */
 function pushMissing(
   details: string[],
   countValue: number,

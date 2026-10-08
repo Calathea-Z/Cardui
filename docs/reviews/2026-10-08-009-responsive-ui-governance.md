@@ -1,5 +1,5 @@
 Date: October 8, 2026
-Status: Awaiting review
+Status: Approved 2026-10-08
 PR:
 
 # Responsive UI/UX governance
@@ -68,7 +68,9 @@ was required.
 
 ## Approval
 
-Awaiting Zach's review.
+Approved by Zach on October 8, 2026, with the other reviews that were
+waiting. The governance text stays the rule for new screens and substantial
+changes. No new product behavior was approved with it.
 
 ## Pending decision
 

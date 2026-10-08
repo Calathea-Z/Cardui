@@ -1,7 +1,7 @@
 # UI direction
 
 Status: Current. The light shell is approved. The October 8 governance
-clarification is awaiting review in
+clarification is approved in
 [`2026-10-08-009-responsive-ui-governance.md`](../reviews/2026-10-08-009-responsive-ui-governance.md).
 Updated: 2026-10-08
 
@@ -149,5 +149,6 @@ is not a source for new screens. The light shell was approved on October 5,
 - [`2026-10-05-007-signed-in-layout.md`](../reviews/2026-10-05-007-signed-in-layout.md)
 
 The current Plan page is in [`plan-page.md`](plan-page.md). Its three-view
-refinement is awaiting review. The Planning UX assessment is a proposal.
+refinement is approved. The Planning UX assessment is approved as an
+assessment. Proposals it made that are not already built stay unscheduled.
 This direction does not approve a further Plan redesign.

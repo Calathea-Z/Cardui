@@ -1,4 +1,5 @@
 import { MANUAL_ACCOUNT_TYPES, type ManualAccountType } from "@/lib/api/types";
+import { moneyDigits } from "./formatCurrency";
 
 /**
  * Labels for the manual account types, in the same order as the API list.
@@ -47,15 +48,15 @@ export function todayDateInput() {
 
 /**
  * Parses a money field into cents-rounded dollars.
- * Blank or non-numeric text is null so the form can ask for a real amount.
+ * A thousands comma is part of the amount, so 30,000 is 30000. Blank or other text is null.
  */
 export function parseMoney(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) {
+  const digits = moneyDigits(value);
+  if (digits === null) {
     return null;
   }
 
-  const parsed = Number(trimmed);
+  const parsed = Number(digits);
   if (!Number.isFinite(parsed)) {
     return null;
   }

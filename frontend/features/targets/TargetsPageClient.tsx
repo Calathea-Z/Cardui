@@ -21,7 +21,7 @@ import { useCategoryTargets } from "./useCategoryTargets";
 type TargetsPageClientProps = TargetsPageData;
 
 /**
- * Targets page.
+ * Spending targets page.
  * One month is on screen. A preview from an earlier month is saved only when it is used, edited, or started fresh.
  */
 export function TargetsPageClient({
@@ -60,8 +60,8 @@ export function TargetsPageClient({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Targets"
-        description="Monthly targets for spending categories."
+        title="Spending targets"
+        description="Monthly targets compare categorized Activity with your intentions. They do not add another spending amount to Plan."
         actions={
           month ? (
             <Select

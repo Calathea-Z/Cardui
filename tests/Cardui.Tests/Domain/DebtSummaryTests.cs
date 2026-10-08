@@ -26,6 +26,7 @@ public class DebtSummaryTests
         Assert.DoesNotContain(DebtSummaryGap.Apr, item.Gaps);
 
         Assert.Equal(0m, report.Debts.Single(debt => debt.DebtId == zero.DebtId).MonthlyInterest);
+        Assert.False(report.Debts.Single(debt => debt.DebtId == zero.DebtId).AprReachesNotice);
         Assert.Null(report.Debts.Single(debt => debt.DebtId == missingRate.DebtId).MonthlyInterest);
         Assert.Contains(
             DebtSummaryGap.Apr,
@@ -36,7 +37,7 @@ public class DebtSummaryTests
         Assert.Equal(942.50m, totals.RecordedBalance);
         Assert.Equal(1, totals.UnknownBalanceCount);
         Assert.Equal(14.03m, totals.MonthlyInterest);
-        Assert.Equal(2, totals.UnknownInterestCount);
+        Assert.Equal(1, totals.UnknownInterestCount);
         Assert.Equal(20m, report.AprNoticePercent);
         Assert.Equal(0.30m, report.UtilizationNotice);
         Assert.Equal(0.90m, report.UtilizationLimitNotice);
@@ -171,14 +172,38 @@ public class DebtSummaryTests
         var dollars = report.Currencies.Single(group => group.Currency == "USD");
         Assert.Equal(40m, dollars.RecordedBalance);
         Assert.Equal(0, dollars.UnknownBalanceCount);
-        Assert.Equal(0m, dollars.MinimumPayments);
+        Assert.Null(dollars.MinimumPayments);
         Assert.Equal(1, dollars.UnknownMinimumCount);
-        Assert.Equal(0m, dollars.MonthlyInterest);
+        Assert.Null(dollars.MonthlyInterest);
 
         var canada = report.Currencies.Single(group => group.Currency == "CAD");
         Assert.Equal(25m, canada.RecordedBalance);
         Assert.Equal(5m, canada.MinimumPayments);
         Assert.Equal(2, report.Currencies.Count);
+    }
+
+    [Fact]
+    public void Calculate_KeepsZeroBalanceTermsForReviewAndExcludesThemFromActiveTotals()
+    {
+        var active = Card(balance: 500m, minimumPayment: 50m, apr: 18m, creditLimit: 1000m);
+        var paid = Card(
+            nameId: 2,
+            balance: 0m,
+            minimumPayment: 125m,
+            apr: 29m,
+            creditLimit: 1000m);
+
+        var report = DebtSummary.Calculate([active, paid], Today);
+        var totals = Assert.Single(report.Currencies);
+        var paidItem = Item(report, paid.DebtId);
+
+        Assert.Equal(1, totals.DebtCount);
+        Assert.Equal(50m, totals.MinimumPayments);
+        Assert.Equal(0, totals.AprNoticeCount);
+        Assert.Equal(1, totals.UtilizationDebtCount);
+        Assert.Equal(1, totals.ZeroBalancePaymentReviewCount);
+        Assert.True(paidItem.NeedsPaymentReview);
+        Assert.Empty(paidItem.Gaps);
     }
 
     [Fact]

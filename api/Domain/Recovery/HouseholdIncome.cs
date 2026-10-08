@@ -5,7 +5,7 @@ namespace Cardui.Api.Domain.Recovery;
 /// <summary>
 /// One income source as the cash outlook reads it.
 /// TypicalAmount and LowAmount are one payment. LowAmount is null when no low payment is recorded.
-/// Raises are later typical amounts.
+/// Raises are later typical amounts. ContributorId is null when the paycheck is not assigned to a person.
 /// </summary>
 public sealed record HouseholdIncome(
     Guid Id,
@@ -15,4 +15,5 @@ public sealed record HouseholdIncome(
     decimal? LowAmount,
     IncomeCadence Cadence,
     DateOnly NextPaymentDate,
-    IReadOnlyList<DatedIncomeRaise> Raises);
+    IReadOnlyList<DatedIncomeRaise> Raises,
+    Guid? ContributorId);

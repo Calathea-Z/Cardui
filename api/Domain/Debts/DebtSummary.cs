@@ -99,6 +99,7 @@ public static class DebtSummary
     /// </summary>
     private static DebtSummaryItem Describe(DebtSummaryInput debt, DateOnly today)
     {
+        var active = debt.Balance is decimal balanceInUse && balanceInUse > 0;
         var (rate, promotional) = DebtRate.InEffect(
             debt.Apr,
             debt.PromotionalApr,
@@ -108,7 +109,7 @@ public static class DebtSummary
         var promoEndsWithinNotice = debt.PromotionalEndsOn is DateOnly promoEnd
             && promoEnd >= today
             && promoEnd <= today.AddDays(PromotionalNoticeDays);
-        var utilization = debt.Kind == DebtKind.Revolving
+        var utilization = active && debt.Kind == DebtKind.Revolving
             ? DebtRules.Utilization(debt.Balance, debt.CreditLimit)
             : null;
 
@@ -123,12 +124,13 @@ public static class DebtSummary
             promotionEnded,
             debt.PromotionalEndsOn,
             promoEndsWithinNotice,
-            debt.NextDueDate is DateOnly due && due < today,
-            rate is decimal apr && apr >= AprNoticePercent,
+            active && debt.NextDueDate is DateOnly due && due < today,
+            active && rate is decimal apr && apr >= AprNoticePercent,
             utilization is decimal notice
                 && notice >= UtilizationNotice
                 && notice < UtilizationLimitNotice,
             utilization is decimal nearLimit && nearLimit >= UtilizationLimitNotice,
+            debt.Balance == 0 && debt.MinimumPayment > 0,
             Gaps(debt, rate, promotional),
             CompareBalances(debt, debt.LinkedBalance));
     }
@@ -141,18 +143,24 @@ public static class DebtSummary
         string currency,
         IReadOnlyList<(DebtSummaryInput Input, DebtSummaryItem Item)> pairs)
     {
-        var items = pairs.Select(pair => pair.Item).ToList();
+        var allItems = pairs.Select(pair => pair.Item).ToList();
+        var active = pairs
+            .Where(pair => pair.Input.Balance is decimal balance && balance > 0)
+            .ToList();
+        var items = active.Select(pair => pair.Item).ToList();
         var (recordedBalance, unknownBalances) = SumKnown(
             pairs.Select(pair => pair.Input.Balance));
         var (monthlyInterest, unknownInterest) = SumKnown(
-            items.Select(item => item.MonthlyInterest));
+            items.Select(item => item.MonthlyInterest),
+            emptyIsZero: true);
         var (minimums, unknownMinimums) = SumKnown(
-            pairs.Select(pair => pair.Input.MinimumPayment));
-        var (utilization, utilizationCount, unknownUtilization) = CombinedUtilization(pairs);
+            active.Select(pair => pair.Input.MinimumPayment),
+            emptyIsZero: true);
+        var (utilization, utilizationCount, unknownUtilization) = CombinedUtilization(active);
 
         return new DebtCurrencySummary(
             currency,
-            items.Count,
+            active.Count,
             recordedBalance,
             unknownBalances,
             monthlyInterest,
@@ -168,14 +176,15 @@ public static class DebtSummary
             items.Count(item => item.AprReachesNotice),
             items.Count(item => item.UtilizationReachesNotice),
             items.Count(item => item.UtilizationReachesLimitNotice),
-            items.Count(item => item.BalanceComparison is not null),
-            GapCount(items, DebtSummaryGap.DueDate),
-            GapCount(items, DebtSummaryGap.RemainingTerm),
-            GapCount(items, DebtSummaryGap.PromotionalEnd),
-            GapCount(items, DebtSummaryGap.PromotionalRate),
-            GapCount(items, DebtSummaryGap.RateAfterPromotion),
-            pairs.Count(pair => pair.Input.Freshness is DebtLinkFreshness freshness
-                && freshness != DebtLinkFreshness.Current));
+            allItems.Count(item => item.BalanceComparison is not null),
+            GapCount(allItems, DebtSummaryGap.DueDate),
+            GapCount(allItems, DebtSummaryGap.RemainingTerm),
+            GapCount(allItems, DebtSummaryGap.PromotionalEnd),
+            GapCount(allItems, DebtSummaryGap.PromotionalRate),
+            GapCount(allItems, DebtSummaryGap.RateAfterPromotion),
+            active.Count(pair => pair.Input.Freshness is DebtLinkFreshness freshness
+                && freshness != DebtLinkFreshness.Current),
+            allItems.Count(item => item.NeedsPaymentReview));
     }
 
     /// <summary>
@@ -187,6 +196,11 @@ public static class DebtSummary
         decimal? rateInEffect,
         bool rateIsPromotional)
     {
+        if (debt.Balance == 0)
+        {
+            return [];
+        }
+
         var gaps = new List<DebtSummaryGap>();
         if (debt.Balance is null)
         {
@@ -327,12 +341,16 @@ public static class DebtSummary
     /// Sums the known amounts. The unknown count is how many were left out.
     /// An empty set of known amounts stays null rather than becoming zero.
     /// </summary>
-    private static (decimal? Total, int UnknownCount) SumKnown(IEnumerable<decimal?> values)
+    private static (decimal? Total, int UnknownCount) SumKnown(
+        IEnumerable<decimal?> values,
+        bool emptyIsZero = false)
     {
         decimal? total = null;
         var unknown = 0;
+        var count = 0;
         foreach (var value in values)
         {
+            count++;
             if (value is decimal amount)
             {
                 total = (total ?? 0) + amount;
@@ -341,6 +359,11 @@ public static class DebtSummary
             {
                 unknown++;
             }
+        }
+
+        if (count == 0 && emptyIsZero)
+        {
+            return (0m, 0);
         }
 
         return (total is decimal sum ? AccountLedger.Round(sum) : null, unknown);

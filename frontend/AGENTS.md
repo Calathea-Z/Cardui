@@ -15,7 +15,14 @@ Never put a Clerk secret, a Plaid token, or a session token in a
 `NEXT_PUBLIC_` value, a log, or source control. See
 `.cursor/rules/security.mdc`.
 
-New Tortoise screens follow the light shell, the account-menu map, and the shared action, state, and accessibility conventions. When a UX choice is uncertain, ask Zach and offer options before building it. See `.cursor/rules/ui-governance.mdc`.
+For a new screen or substantial UI change, state the primary user question,
+next action when applicable, and supporting detail before implementation.
+Reassess the whole page instead of appending cards, and define intentional
+desktop and mobile arrangements that share behavior and state. Follow the
+light shell, local-navigation, warning, chart, action, state, accessibility,
+and UX-review conventions in `.cursor/rules/ui-governance.mdc`. Make routine
+reversible layout choices; ask Zach only when an unresolved choice materially
+changes workflow, product behavior, scope, or adds a dependency.
 
 Until Zach says Cardui has reached MVP and has shipped, delete a route or
 file that nothing uses. A renamed screen does not keep the old address.

@@ -1,3 +1,7 @@
+import {
+  moneyCommaError,
+  moneyDigits,
+} from "@/features/accounts/formatCurrency";
 import type { CategoryTargetLineDto } from "@/lib/api/types";
 
 /**
@@ -34,11 +38,16 @@ export function readTargetAmount(
     return { ok: false, error: "Enter the target as zero or more." };
   }
 
-  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
-    return { ok: false, error: "Enter the target in dollars and cents." };
+  const digits = moneyDigits(trimmed);
+  if (digits === null || !/^\d+(\.\d{1,2})?$/.test(digits)) {
+    return {
+      ok: false,
+      error:
+        moneyCommaError(trimmed) ?? "Enter the target in dollars and cents.",
+    };
   }
 
-  const amount = Number(trimmed);
+  const amount = Number(digits);
   if (!Number.isFinite(amount) || amount < 0) {
     return { ok: false, error: "Enter the target as zero or more." };
   }

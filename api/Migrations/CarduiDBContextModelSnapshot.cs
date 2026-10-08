@@ -472,6 +472,10 @@ namespace Cardui.Api.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<decimal?>("MonthlyContribution")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -721,6 +725,93 @@ namespace Cardui.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("PlaidItems");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.SavingsGoal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("AccountFollowedSince")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<decimal?>("FloorAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<decimal?>("MonthlyAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int?>("ReadyDay")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ReservedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTimeOffset?>("ReservedOverriddenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("TargetAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateOnly?>("TargetDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_SavingsGoals_AccountId_Followed")
+                        .HasFilter("\"AccountFollowedSince\" IS NOT NULL");
+
+                    b.HasIndex("HouseholdId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_SavingsGoals_HouseholdId_Emergency")
+                        .HasFilter("\"Kind\" = 'Emergency'");
+
+                    b.HasIndex(new[] { "HouseholdId" }, "IX_SavingsGoals_HouseholdId_Floor")
+                        .IsUnique()
+                        .HasFilter("\"Kind\" = 'Floor'");
+
+                    b.HasIndex(new[] { "HouseholdId" }, "IX_SavingsGoals_HouseholdId_Lookup")
+                        .HasDatabaseName("IX_SavingsGoals_HouseholdId");
+
+                    b.HasIndex(new[] { "HouseholdId" }, "IX_SavingsGoals_HouseholdId_Operating")
+                        .IsUnique()
+                        .HasFilter("\"Kind\" = 'Operating'");
+
+                    b.ToTable("SavingsGoals");
                 });
 
             modelBuilder.Entity("Cardui.Api.Models.SubGroup", b =>
@@ -1080,6 +1171,24 @@ namespace Cardui.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.SavingsGoal", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Cardui.Api.Models.Household", "Household")
+                        .WithMany("SavingsGoals")
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.SubGroup", b =>
                 {
                     b.HasOne("Cardui.Api.Models.Group", "Group")
@@ -1169,6 +1278,8 @@ namespace Cardui.Api.Migrations
                     b.Navigation("IncomeSources");
 
                     b.Navigation("Obligations");
+
+                    b.Navigation("SavingsGoals");
                 });
 
             modelBuilder.Entity("Cardui.Api.Models.IncomeSource", b =>

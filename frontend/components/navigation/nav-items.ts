@@ -8,8 +8,8 @@ export type NavItem = {
 
 /**
  * Primary destinations in sidebar and tab-bar order.
- * Plan is first. Home, Accounts, and Activity are the daily jobs. Income,
- * Bills, Debts, and Targets stay routes under settings.
+ * Home, Accounts, and Activity come first; Plan is fourth. Income,
+ * Bills, Debts, Plan budget, Savings, and Spending targets stay routes under settings.
  */
 export const navItems: NavItem[] = [
   {
@@ -32,8 +32,8 @@ export const navItems: NavItem[] = [
 
 /**
  * Destinations in the account block.
- * These stay off the primary nav, including Income, Bills, Debts, and Targets.
- * Each href matches the screen name.
+ * These stay off the primary nav. Plan budget keeps the approved `/living`
+ * route, and Spending targets keeps `/targets`.
  */
 export const settingsItems: NavItem[] = [
   {
@@ -49,7 +49,15 @@ export const settingsItems: NavItem[] = [
     href: "/debts",
   },
   {
-    label: "Targets",
+    label: "Plan budget",
+    href: "/living",
+  },
+  {
+    label: "Savings",
+    href: "/savings",
+  },
+  {
+    label: "Spending targets",
     href: "/targets",
   },
   {
@@ -67,8 +75,23 @@ export const settingsItems: NavItem[] = [
 ];
 
 /**
+ * Visual groups for the existing account-menu destinations.
+ * They do not add routes or change the approved primary navigation.
+ */
+export const settingsGroups = [
+  {
+    label: "Plan inputs",
+    items: settingsItems.slice(0, 5),
+  },
+  {
+    label: "Tracking and data",
+    items: settingsItems.slice(5),
+  },
+];
+
+/**
  * Phone tab-bar destinations.
- * The list is the primary items, with Plan first.
+ * The list uses the same Home, Accounts, Activity, Plan order.
  */
 export const bottomNavItems = navItems;
 

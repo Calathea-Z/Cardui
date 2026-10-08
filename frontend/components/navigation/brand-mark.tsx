@@ -3,7 +3,7 @@ type BrandMarkProps = {
 };
 
 /**
- * Tortoise wordmark. The sidebar shows it at the page-title size with the Personal ledger tagline.
+ * Tortoise wordmark. The sidebar names the product as a financial recovery plan.
  * The phone header shows the wordmark alone at a smaller size, so it stays quieter than the page's h1.
  */
 export function BrandMark({ variant = "sidebar" }: BrandMarkProps) {
@@ -21,7 +21,7 @@ export function BrandMark({ variant = "sidebar" }: BrandMarkProps) {
         Tortoise
       </p>
       <p className="mt-2 text-xs font-medium text-muted-foreground">
-        Personal ledger
+        Financial recovery plan
       </p>
     </div>
   );

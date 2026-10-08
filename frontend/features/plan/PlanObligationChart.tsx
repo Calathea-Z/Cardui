@@ -20,10 +20,12 @@ import {
   evenTicks,
   type PlanObligationRow,
 } from "./planChartSeries";
+import { cn } from "@/lib/utils";
 
 type PlanObligationChartProps = {
   rows: PlanObligationRow[];
   currency: string;
+  embedded?: boolean;
 };
 
 type ObligationTooltipProps = {
@@ -76,12 +78,16 @@ function ObligationTooltip({
 export function PlanObligationChart({
   rows,
   currency,
+  embedded = false,
 }: PlanObligationChartProps) {
   const last = rows[rows.length - 1];
   const label = `Monthly minimums and breathing room from ${formatMonthLabel(rows[0].timestamp)}. Minimums fall from ${formatChartCurrency(rows[0].minimums, currency)} to ${formatChartCurrency(last.minimums, currency)}. Breathing room rises to ${formatChartCurrency(last.room, currency)} a month.`;
 
   return (
-    <section className="app-panel p-4" aria-labelledby="plan-obligation-title">
+    <section
+      className={cn("p-4", !embedded && "app-panel")}
+      aria-labelledby="plan-obligation-title"
+    >
       <h2 id="plan-obligation-title" className="app-section-title">
         Minimums and breathing room
       </h2>

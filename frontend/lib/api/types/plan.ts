@@ -1,3 +1,5 @@
+import type { DebtFieldSource, DebtLinkFreshness } from "./debts";
+
 /**
  * Which way a path treats cash freed by a paid-off debt.
  * Rollover sends it to the next debt. ReclaimAll keeps every freed dollar.
@@ -86,7 +88,8 @@ export type PlanMissingBalanceDto = {
 
 /**
  * Cash at the end of one day. Negative `cash` is a shortfall.
- * `income`, `bills`, and `debtPayments` are that day's totals, each zero or more.
+ * `income`, `bills`, `debtPayments`, and `livingSpending` are that day's totals, each zero or more.
+ * Living spending leaves cash and is not a bill.
  */
 export type PlanCashDayDto = {
   date: string;
@@ -94,6 +97,7 @@ export type PlanCashDayDto = {
   income: number;
   bills: number;
   debtPayments: number;
+  livingSpending: number;
 };
 
 /**
@@ -123,7 +127,8 @@ export type PlanCashHorizonDto = {
 
 /**
  * One cash forecast: the first 30 days, that 30-day window, and the horizons in month order.
- * `shortfallOn` is the first day below zero inside 18 months, and `recoveredOn` the first later day back at zero or above. Each is null when it does not happen.
+ * `shortfallOn` is the first day cash is below zero inside 18 months, and `recoveredOn` the first later day back at zero or above.
+ * `reserveShortfallOn` is the first day what is left after the reserve is below zero. Each is null when it does not happen.
  */
 export type PlanCashForecastDto = {
   days: PlanCashDayDto[];
@@ -131,6 +136,8 @@ export type PlanCashForecastDto = {
   horizons: PlanCashHorizonDto[];
   shortfallOn: string | null;
   recoveredOn: string | null;
+  reserveShortfallOn: string | null;
+  reserveRestoredOn: string | null;
 };
 
 /**
@@ -145,12 +152,21 @@ export type PlanCashOutlookPathDto = {
 /**
  * The cash outlook on both payoff paths.
  * `startingCash` is the Cash total on Accounts on `asOf`, before that day's payments.
+ * `startingReserve` is the amount already set aside. `startingAvailable` is cash minus that reserve and can be negative.
  * `hasIncome` and `hasBills` are true when at least one counts in the planning currency.
  * `excludedCurrencies` are income, bill, and debt codes left out.
  */
 export type PlanCashOutlookDto = {
   asOf: string;
   startingCash: number;
+  startingReserve: number;
+  startingAvailable: number;
+  startingCashAccountCount: number;
+  startingCashManualAccountCount: number;
+  startingCashConnectedAccountCount: number;
+  startingCashOldestAsOf: string | null;
+  startingCashUnknownDateCount: number;
+  startingCashStaleConnectedCount: number;
   hasIncome: boolean;
   hasBills: boolean;
   excludedCurrencies: string[];
@@ -159,10 +175,26 @@ export type PlanCashOutlookDto = {
 };
 
 /**
+ * The source and freshness of one debt balance used by Plan.
+ * A zero balance with a saved positive minimum remains stored but needs review.
+ */
+export type PlanDebtFactDto = {
+  debtId: string;
+  name: string;
+  balance: number | null;
+  balanceAsOf: string | null;
+  balanceSource: DebtFieldSource;
+  freshness: DebtLinkFreshness | null;
+  minimumPayment: number | null;
+  needsPaymentReview: boolean;
+};
+
+/**
  * The household's payoff on rollover and on keeping every freed payment, and the cash outlook on each.
  * `excludedCurrencies` are debt codes left out of the planning currency.
  * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
  * `monthlyExtra` is shared extra tried for this response. Zero is minimums only, and the amount is not saved.
+ * `livingSpendingMonthly` is the one monthly flexible-spending amount from Living.
  */
 export type PlanRecoveryDto = {
   planningCurrency: string;
@@ -173,4 +205,9 @@ export type PlanRecoveryDto = {
   hasDebts: boolean;
   cashOutlook: PlanCashOutlookDto;
   monthlyExtra: number;
+  livingSpendingMonthly: number;
+  debtFacts: PlanDebtFactDto[];
+  hasCashFloor: boolean;
+  hasEmergencyGoal: boolean;
+  namedSavingsGoalCount: number;
 };

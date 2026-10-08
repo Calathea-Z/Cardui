@@ -46,12 +46,12 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 ## 4. Release boundaries
 
-| Release | Outcome | Boundary |
-| --- | --- | --- |
-| Foundation checkpoint | Trustworthy account/transaction baseline with original MVP summaries | Internal use; not a public launch claim |
-| Recovery MVP / private alpha | Multi-session guided intake, debt-health view, usable life-with-debt budget, protected cash buffer, smart payoff order, automatic payment rollover, core refinance/restructuring comparisons, 6/12/18-month projections, saved actions and review | Requires ownership/access controls before inviting external users |
-| Public beta | Proven isolation, operational recovery, connection lifecycle, export/deletion, validated recovery comparisons and an affordable operating model | Validate calculations, costs and usability before broad access |
-| Expanded decision support | Richer restructuring, retirement-plan loans, contribution/match and employment tradeoffs | Add only with validated calculations, plan-specific inputs, explicit assumptions and appropriate source handling |
+| Release                      | Outcome                                                                                                                                                                                                                                           | Boundary                                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Foundation checkpoint        | Trustworthy account/transaction baseline with original MVP summaries                                                                                                                                                                              | Internal use; not a public launch claim                                                                          |
+| Recovery MVP / private alpha | Multi-session guided intake, debt-health view, usable life-with-debt budget, protected cash buffer, smart payoff order, automatic payment rollover, core refinance/restructuring comparisons, 6/12/18-month projections, saved actions and review | Requires ownership/access controls before inviting external users                                                |
+| Public beta                  | Proven isolation, operational recovery, connection lifecycle, export/deletion, validated recovery comparisons and an affordable operating model                                                                                                   | Validate calculations, costs and usability before broad access                                                   |
+| Expanded decision support    | Richer restructuring, retirement-plan loans, contribution/match and employment tradeoffs                                                                                                                                                          | Add only with validated calculations, plan-specific inputs, explicit assumptions and appropriate source handling |
 
 ## 5. Ordered implementation backlog
 
@@ -104,18 +104,18 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
 
-**Status (October 7, 2026):** Items 1–6 are done. Item 6 is approved in `docs/reviews/2026-10-05-019-category-targets.md`. `20261006031630_AddCategoryTargets` is applied. Items 1–6 of "Sync correctness and linked debts" are approved.
+**Status (October 8, 2026):** Items 1–8 are done, so Phase 2 is implementation-complete. Item 6 is approved in `docs/reviews/2026-10-05-019-category-targets.md`. `20261006031630_AddCategoryTargets` is applied. Items 1–6 of "Sync correctness and linked debts" are approved. Item 7 is approved in `docs/reviews/2026-10-08-002-savings.md`. `20261008143017_AddEverydaySpendingAndCashToKeep` is applied. Item 8 is approved in `docs/reviews/2026-10-08-005-simplified-living.md`. Plan budget uses one monthly flexible-spending amount instead of a second list of allowances. Contribution benchmarks keep the same share through low pay and raises. `20261008152308_AddLivingContributionsAndAllowances` and `20261008154357_SimplifyLivingModel` are applied; together they keep `MonthlyContribution` and remove the empty allowance table. The all-or-nothing living-to-debt comparison was removed. A user-selected spending-change comparison remains in Phase 3 item 6. The Phase 2 product and UX audit was approved on October 8. Its bounded experience-closure increment is implemented and awaiting review in `docs/reviews/2026-10-08-007-phase-2-ux-closure.md`; it does not reopen the Phase 2 data-model backlog.
 
-| Item | Status | Reviews |
-| --- | --- | --- |
-| 1. Income sources, scenarios, expected raises | Done | `docs/reviews/2026-10-04-016-income-sources.md`, `docs/reviews/2026-10-05-009-income-scenarios-and-raises.md`, `docs/reviews/2026-10-05-010-income-form-feedback.md` |
-| 2. Paycheck schedules and gross pay | Done | `docs/reviews/2026-10-05-011-paycheck-schedules.md` |
-| 3. Bills and recurring suggestions | Done | `docs/reviews/2026-10-05-012-bills.md`, `docs/reviews/2026-10-05-013-recurring-suggestions.md` |
-| 4. Debts | Done | `docs/reviews/2026-10-05-014-debts.md` |
-| 5. Debt inventory and health view | Done | `docs/reviews/2026-10-05-016-debt-summary.md` |
-| 6. Monthly category targets | Done | `docs/reviews/2026-10-05-019-category-targets.md` |
-| 7. Reserve, emergency goal, sinking funds | Not started | — |
-| 8. Household contributions and discretionary spending | Not started | — |
+| Item                                                  | Status                                                    | Reviews                                                                                                                                                              |
+| ----------------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Income sources, scenarios, expected raises         | Done                                                      | `docs/reviews/2026-10-04-016-income-sources.md`, `docs/reviews/2026-10-05-009-income-scenarios-and-raises.md`, `docs/reviews/2026-10-05-010-income-form-feedback.md` |
+| 2. Paycheck schedules and gross pay                   | Done                                                      | `docs/reviews/2026-10-05-011-paycheck-schedules.md`                                                                                                                  |
+| 3. Bills and recurring suggestions                    | Done                                                      | `docs/reviews/2026-10-05-012-bills.md`, `docs/reviews/2026-10-05-013-recurring-suggestions.md`                                                                       |
+| 4. Debts                                              | Done                                                      | `docs/reviews/2026-10-05-014-debts.md`                                                                                                                               |
+| 5. Debt inventory and health view                     | Done                                                      | `docs/reviews/2026-10-05-016-debt-summary.md`                                                                                                                        |
+| 6. Monthly category targets                           | Done                                                      | `docs/reviews/2026-10-05-019-category-targets.md`                                                                                                                    |
+| 7. Reserve, emergency goal, sinking funds             | Done. `AddEverydaySpendingAndCashToKeep` is applied       | [`docs/reviews/2026-10-08-002-savings.md`](reviews/2026-10-08-002-savings.md)                                                                                        |
+| 8. Household contributions and discretionary spending | Done. The contribution and cleanup migrations are applied | [`docs/reviews/2026-10-08-005-simplified-living.md`](reviews/2026-10-08-005-simplified-living.md)                                                                    |
 
 Rules that came out of items 1–5:
 
@@ -150,7 +150,7 @@ A model change in items 2 and 5 updates the model and `DbContext` configuration,
 These are not scheduled into a phase yet. Each is one review when it is picked up.
 
 1. Detail panel keyboard focus. While a record panel or full-screen sheet is open, and while a nested picker is open inside it, Tab and Shift+Tab stay inside the top surface. Escape closes only that surface. When it closes, focus returns to the control that opened it. Today the panel moves focus into itself when it opens, but Tab can leave it and focus does not return to the opener. Found in `docs/reviews/2026-10-05-017-ui-review-notes.md`. Required by `.cursor/rules/ui-governance.mdc` section 3. No schema change.
-2. Extra-each-month field layout on Plan. The behavior is approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. Zach found the layout poor on October 8, 2026, and asked to leave it and keep going. No schema change.
+2. Extra-each-month field layout on Plan. The behavior is approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. The October 8 Plan-page refinement groups it with the payment strategy under one temporary-scenario disclosure and is awaiting review in `docs/reviews/2026-10-08-008-plan-page-refinement.md`. No schema change.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 
@@ -168,16 +168,16 @@ These are not scheduled into a phase yet. Each is one review when it is picked u
 
 **Exit:** identical inputs reproduce identical numbers; shortfalls remain visible; smart priority and rollover results reconcile to documented fixtures; refinance/restructuring comparisons include fees and break-even behavior; a saved plan survives edits with version history and can be used without chat.
 
-**Status (October 7, 2026):** Items 1–5 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, `docs/reviews/2026-10-07-010-payoff-priority.md`, `docs/reviews/2026-10-07-011-payoff-rollover.md`, and `docs/reviews/2026-10-07-012-cash-flow-recovery.md`. Plan is the first primary destination, approved in `docs/reviews/2026-10-07-013-plan-nav.md`. The calculators, the forecast, the payoff comparison, the rollover comparison, and the cash-flow recovery report are pure domain rules in `api/Domain/Recovery`. The Plan screen work below puts them on a page. No schema change. Item 6 has started: a shared extra payment tried on Plan and not saved, approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. The field layout is tracked and not scheduled. Income loss, windfalls, spending changes, and protected cash have not started. Items 7–11 have not started.
+**Status (October 8, 2026):** Items 1–5 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, `docs/reviews/2026-10-07-010-payoff-priority.md`, `docs/reviews/2026-10-07-011-payoff-rollover.md`, and `docs/reviews/2026-10-07-012-cash-flow-recovery.md`. Plan is the fourth primary destination, after Home, Accounts, and Activity. It became primary in `docs/reviews/2026-10-07-013-plan-nav.md`; the October 8 correction and decision 0009 record its current position. The calculators, the forecast, the payoff comparison, the rollover comparison, and the cash-flow recovery report are pure domain rules in `api/Domain/Recovery`. The Plan screen work below puts them on a page. No schema change. Item 6 has started: a shared extra payment tried on Plan and not saved, approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. Its field layout is included in `docs/reviews/2026-10-08-008-plan-page-refinement.md` and is awaiting review. Income loss, windfalls, spending changes, and protected cash have not started. Item 6 remains paused until the implemented Phase 2 UX closure in `docs/reviews/2026-10-08-007-phase-2-ux-closure.md` is approved. Items 7–11 have not started.
 
 ### Plan screen — after Phase 3 item 5, before Phase 3 item 6
 
 The approved calculations need a screen before scenarios are built on them. Item 6 scenarios and item 8 spendable estimates change what this page shows. Design: [`docs/design/plan-page.md`](design/plan-page.md), approved October 7, 2026. Forward-looking charts live on Plan and Home keeps history (decision 0008). Each item is one review.
 
-**Status (October 7, 2026):** The first page, in `docs/reviews/2026-10-07-014-plan-recovery.md`, showed the report as two text cards. Zach's review asked for a clear hierarchy and charts, so item 1 reworks that same review. Item 1 is approved in that report. Item 2 is approved in `docs/reviews/2026-10-07-015-plan-cash-outlook.md`. The Plan screen work is done. The eight jewel series tokens are in `globals.css`. No schema change.
+**Status (October 8, 2026):** The first page, in `docs/reviews/2026-10-07-014-plan-recovery.md`, showed the report as two text cards. Zach's review asked for a clear hierarchy and charts, so item 1 reworked that same review. Item 1 is approved in that report. Item 2 is approved in `docs/reviews/2026-10-07-015-plan-cash-outlook.md`. Those item descriptions record the original approved one-page layout and calculation scope. The implemented Overview, Cash outlook, and Debt payoff refinement is the current layout and is awaiting review in `docs/reviews/2026-10-08-008-plan-page-refinement.md`. The eight jewel series tokens are in `globals.css`. No schema change.
 
-1. Page and debt charts. Plan opens with a one-sentence answer and one big figure, then Finish your plan for any debt that blocks the projection, a stacked balance chart with one band per debt in eight new jewel series colors, a minimums and breathing room step chart, the payoff order, and the assumptions behind a disclosure. A switch in the title row chooses Rollover or Keep freed payments. The order stays highest interest first with no extra, because those inputs are not stored. No schema change.
-2. Cash outlook. The 30-day cash view and the 6, 12, and 18 month horizons on Plan, following the switch. Starting cash is the Cash total on Accounts, in the household currency. Income uses typical pay, with low pay under a disclosure. Bills come from Bills. Savings stay empty until Phase 2 item 7. The forecast pays debts from the selected path. No schema change expected.
+1. Page and debt charts. The original approved layout opened with a one-sentence answer and one big figure, then Finish your plan for any debt that blocked the projection, a stacked balance chart with one band per debt in eight new jewel series colors, a minimums and breathing room step chart, the payoff order, and assumptions behind disclosure. A switch chose Rollover or Keep freed payments. The order stayed highest interest first with no extra because those inputs were not stored. The current refined layout preserves this analysis under local views; see `docs/design/plan-page.md`. No schema change.
+2. Cash outlook. The approved calculation provides the 30-day cash view and 6, 12, and 18 month horizons on Plan. Starting cash is the Cash total on Accounts in the household currency. Typical income, Bills, Plan budget, protected savings, and the selected debt path feed the forecast, with low pay under disclosure. The current refined layout selects one supported timeframe at a time and does not invent intermediate points. No schema change.
 
 ### Phase 4 — Guided conversation as the main planning entry point
 
@@ -232,32 +232,32 @@ Design the conversation and test scripted prototypes during Phases 1–3. Produc
 
 ## 6. Full capability traceability
 
-| Supplied capability | First useful version | Expansion |
-| --- | --- | --- |
-| Income normalization | Phase 2: cadence, dated net pay, scenarios | Validated gross-to-net estimates |
-| Household budgeting | Phase 2: contributors and unequal contributions | Shared access/permissions |
-| Debt inventory | Phase 2: balances, APR, minimums, utilization, types and transparent health indicators; optional linked debts that follow a connected balance and credit limit | Richer statement/term capture; Plaid Liabilities deferred, not planned |
-| Debt prioritization | Phase 3: avalanche baseline plus explained minimum-release, utilization and user-constraint tradeoffs | Complex promotions and constraints |
-| Automatic payment rollover | Phase 3: roll freed minimum/extra payments into the next debt with alternatives | Adaptive rollover proposals based on actuals |
-| Debt restructuring | Phase 3: core consolidation, balance-transfer and replacement-loan comparisons | Phase 7 multiple offers, partial coverage and richer sensitivities |
-| Refinance analysis | Phase 3: APR, fees, term, interest, break-even and cash-flow comparison | Variable rates and offer monitoring |
-| Opportunity cost | Phase 3: upfront cash, reserve and debt-cost tradeoffs | Phase 7 retirement/investment ranges and sensitivities |
-| Cash-flow recovery | Phase 3: dated baseline, obligation removal and recurring breathing-room changes | Actual-versus-plan recovery history |
-| Emergency buffers | Phases 2–3: operating reserve and emergency goal | Adaptive goals with user review |
-| Sinking funds | Phase 2: target/date/reserved amounts | Recurring target automation |
-| Behavioral guardrails | Phases 2–5: protected cash, realistic spending, warnings and chosen actions | Personalized opt-in check-ins |
-| Life-with-debt budgeting | Phase 2: sustainable discretionary and quality-of-life allocations | Scenario-based preference tuning |
-| Retirement contributions | Phase 2 records actual payroll effect; Phase 5 review conditions | Phase 7 strategy/match comparisons |
-| Employment risk | Phase 3 supports income-loss scenarios | Phase 7 plan-loan-specific consequences |
-| Scenario planning | Phase 3: extra payments, income changes, windfalls, protected cash and core restructuring over 6/12/18 months | Phase 7 richer comparisons |
-| Milestones and recovery indicators | Phases 3–5: utilization, removed minimums, buffers, positive cash flow and refinance readiness | Richer celebrations/progress history |
-| Variable-income rules | Phases 2–3: lean base and extra allocation | Automated proposals from actuals |
-| Windfall rules | Phase 3: saved allocation preferences | Phase 5 review when funds arrive |
-| Quality of life | Phase 2 budget and goal priorities | Phase 5 new goals after stabilization |
-| Decision support and action plans | Phases 3–4: ordered actions, reasons, cash-flow effects and supported calculations | Phase 7 specialized decisions |
-| Second-opinion summary | Phases 3–4 printable/exportable plan | Source-backed specialized comparisons |
-| Action generation | Phases 3–5 dependencies and completion | Optional reminders |
-| Ongoing recalibration | Phase 4 manual conversation changes; Phase 5 actuals review | Event-driven proposals |
+| Supplied capability                | First useful version                                                                                                                                           | Expansion                                                              |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Income normalization               | Phase 2: cadence, dated net pay, scenarios                                                                                                                     | Validated gross-to-net estimates                                       |
+| Household budgeting                | Phase 2: contributors and unequal contributions                                                                                                                | Shared access/permissions                                              |
+| Debt inventory                     | Phase 2: balances, APR, minimums, utilization, types and transparent health indicators; optional linked debts that follow a connected balance and credit limit | Richer statement/term capture; Plaid Liabilities deferred, not planned |
+| Debt prioritization                | Phase 3: avalanche baseline plus explained minimum-release, utilization and user-constraint tradeoffs                                                          | Complex promotions and constraints                                     |
+| Automatic payment rollover         | Phase 3: roll freed minimum/extra payments into the next debt with alternatives                                                                                | Adaptive rollover proposals based on actuals                           |
+| Debt restructuring                 | Phase 3: core consolidation, balance-transfer and replacement-loan comparisons                                                                                 | Phase 7 multiple offers, partial coverage and richer sensitivities     |
+| Refinance analysis                 | Phase 3: APR, fees, term, interest, break-even and cash-flow comparison                                                                                        | Variable rates and offer monitoring                                    |
+| Opportunity cost                   | Phase 3: upfront cash, reserve and debt-cost tradeoffs                                                                                                         | Phase 7 retirement/investment ranges and sensitivities                 |
+| Cash-flow recovery                 | Phase 3: dated baseline, obligation removal and recurring breathing-room changes                                                                               | Actual-versus-plan recovery history                                    |
+| Emergency buffers                  | Phases 2–3: operating reserve and emergency goal                                                                                                               | Adaptive goals with user review                                        |
+| Sinking funds                      | Phase 2: target/date/reserved amounts                                                                                                                          | Recurring target automation                                            |
+| Behavioral guardrails              | Phases 2–5: protected cash, realistic spending, warnings and chosen actions                                                                                    | Personalized opt-in check-ins                                          |
+| Life-with-debt budgeting           | Phase 2: sustainable discretionary and quality-of-life allocations                                                                                             | Scenario-based preference tuning                                       |
+| Retirement contributions           | Phase 2 records actual payroll effect; Phase 5 review conditions                                                                                               | Phase 7 strategy/match comparisons                                     |
+| Employment risk                    | Phase 3 supports income-loss scenarios                                                                                                                         | Phase 7 plan-loan-specific consequences                                |
+| Scenario planning                  | Phase 3: extra payments, income changes, windfalls, protected cash and core restructuring over 6/12/18 months                                                  | Phase 7 richer comparisons                                             |
+| Milestones and recovery indicators | Phases 3–5: utilization, removed minimums, buffers, positive cash flow and refinance readiness                                                                 | Richer celebrations/progress history                                   |
+| Variable-income rules              | Phases 2–3: lean base and extra allocation                                                                                                                     | Automated proposals from actuals                                       |
+| Windfall rules                     | Phase 3: saved allocation preferences                                                                                                                          | Phase 5 review when funds arrive                                       |
+| Quality of life                    | Phase 2 budget and goal priorities                                                                                                                             | Phase 5 new goals after stabilization                                  |
+| Decision support and action plans  | Phases 3–4: ordered actions, reasons, cash-flow effects and supported calculations                                                                             | Phase 7 specialized decisions                                          |
+| Second-opinion summary             | Phases 3–4 printable/exportable plan                                                                                                                           | Source-backed specialized comparisons                                  |
+| Action generation                  | Phases 3–5 dependencies and completion                                                                                                                         | Optional reminders                                                     |
+| Ongoing recalibration              | Phase 4 manual conversation changes; Phase 5 actuals review                                                                                                    | Event-driven proposals                                                 |
 
 ## 7. Technical shape and contracts
 

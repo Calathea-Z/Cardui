@@ -28,9 +28,22 @@ function emptyPlanRecovery(): PlanRecoveryDto {
     missingBalance: [],
     hasDebts: false,
     monthlyExtra: 0,
+    livingSpendingMonthly: 0,
+    debtFacts: [],
+    hasCashFloor: false,
+    hasEmergencyGoal: false,
+    namedSavingsGoalCount: 0,
     cashOutlook: {
       asOf: "",
       startingCash: 0,
+      startingReserve: 0,
+      startingAvailable: 0,
+      startingCashAccountCount: 0,
+      startingCashManualAccountCount: 0,
+      startingCashConnectedAccountCount: 0,
+      startingCashOldestAsOf: null,
+      startingCashUnknownDateCount: 0,
+      startingCashStaleConnectedCount: 0,
       hasIncome: false,
       hasBills: false,
       excludedCurrencies: [],
@@ -57,6 +70,8 @@ function emptyForecast(): PlanCashForecastDto {
     horizons: [],
     shortfallOn: null,
     recoveredOn: null,
+    reserveShortfallOn: null,
+    reserveRestoredOn: null,
   };
 }
 

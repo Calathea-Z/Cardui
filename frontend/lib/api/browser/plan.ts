@@ -1,5 +1,6 @@
 import { browserClient } from "../browser-client";
 import type { PlanRecoveryDto } from "../types";
+import { isCurrentPlanRecovery } from "../validatePlanRecovery";
 
 /**
  * GET /api/plan/recovery
@@ -9,9 +10,14 @@ import type { PlanRecoveryDto } from "../types";
 export async function getPlanRecovery(
   monthlyExtra: number,
 ): Promise<PlanRecoveryDto> {
-  const response = await browserClient.get<PlanRecoveryDto>(
-    "/api/plan/recovery",
-    { params: { monthlyExtra } },
-  );
+  const response = await browserClient.get<unknown>("/api/plan/recovery", {
+    params: { monthlyExtra },
+  });
+  if (!isCurrentPlanRecovery(response.data)) {
+    throw new Error(
+      "Plan data is temporarily out of date. Refresh after the API finishes updating.",
+    );
+  }
+
   return response.data;
 }

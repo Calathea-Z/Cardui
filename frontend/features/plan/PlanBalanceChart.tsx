@@ -121,7 +121,7 @@ export function PlanBalanceChart({
               type="number"
               dataKey="timestamp"
               domain={[rows[0].timestamp, last.timestamp]}
-              ticks={evenTicks(rows)}
+              ticks={evenTicks(rows, 4)}
               tickFormatter={formatMonthTick}
               tick={{ fill: "var(--muted-foreground)" }}
               fontSize={12}

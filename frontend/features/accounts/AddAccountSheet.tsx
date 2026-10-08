@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import { moneyCommaError } from "@/features/accounts/formatCurrency";
 import { createManualAccount } from "@/lib/api/browser";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { usePlaidLinkFlow } from "@/features/plaid/usePlaidLinkFlow";
@@ -79,6 +80,12 @@ function AddAccountSheetContent({
    */
   async function saveManualAccount() {
     const openingBalance = parseMoney(form.openingBalance);
+    const comma = moneyCommaError(form.openingBalance);
+    if (comma) {
+      setManualError(comma);
+      return;
+    }
+
     if (
       !form.name.trim() ||
       openingBalance === null ||

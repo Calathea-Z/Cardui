@@ -46,6 +46,7 @@ export function NavLink({
     <Link
       href={item.href}
       onClick={onNavigate}
+      aria-current={isActive ? "page" : undefined}
       className={cn(className, isActive ? activeClassName : inactiveClassName)}
     >
       {showIcon && <NavIcon href={item.href} />}

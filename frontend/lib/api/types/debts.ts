@@ -174,6 +174,7 @@ export type DebtSummaryItemDto = {
   aprReachesNotice: boolean;
   utilizationReachesNotice: boolean;
   utilizationReachesLimitNotice: boolean;
+  needsPaymentReview: boolean;
   gaps: DebtSummaryGap[];
   balanceComparison: DebtBalanceComparisonDto | null;
 };
@@ -211,6 +212,7 @@ export type DebtCurrencySummaryDto = {
    * Their balance is still included in the totals.
    */
   staleCount: number;
+  zeroBalancePaymentReviewCount: number;
 };
 
 /**

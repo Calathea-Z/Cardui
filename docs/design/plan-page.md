@@ -1,110 +1,123 @@
 # Plan page
 
-Status: Implemented. Items 1 and 2 and extra each month are approved. The extra field layout is tracked and not scheduled.
+Status: Current design record. The original recovery and cash views are
+approved. The implemented three-view refinement is awaiting review. Broader
+redesign proposals are not approved.
 Date: October 7, 2026
 Updated: 2026-10-08
 
-## Problem
+This document records page-specific Plan choices. It is not a universal page
+template. Shared hierarchy, responsive, warning, chart, action, and
+accessibility rules are in
+[`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
 
-The first Plan page, in `docs/reviews/2026-10-07-014-plan-recovery.md`,
-rendered the cash-flow recovery report the way the report is built: two
-path cards, each with a large "$0.00 a month" and a server-written
-paragraph. Zach's review on October 7, 2026: the hierarchy does not tell
-the eye where to look, and at a glance the screen does not say what it
-does. The two cards were identical whenever nothing paid off. The things a
-person can act on, a debt missing its terms and a debt that never pays
-down, were buried in that paragraph.
+## Historical problem and design evolution
 
-This note designs the Plan page as an answer first, then what blocks the
-plan, then the charts that show it working. Forward-looking charts live
-here. Home keeps what already happened. See decision 0008.
+The first Plan page rendered the cash-flow recovery report as two path cards.
+Zach's October 7 review found that the hierarchy did not say what the screen
+did or make actionable blockers easy to find. The approved replacement led
+with an answer and then used one long page sequence: blockers, debt
+composition, balance chart, minimums and breathing room, payoff order, cash
+outlook, and assumptions.
+
+That sequence is a historical implementation step, not a prescribed stack for
+future screens. The October 8 refinement reorganized the same supported report
+into Overview, Cash outlook, and Debt payoff so the initial page is shorter.
+The refinement is implemented and manually checked, but its review remains
+awaiting approval in
+[`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
+
+Forward-looking charts still live on Plan. Home keeps historical results. See
+[decision 0008](../decisions/0008-forward-charts-on-plan.md).
 
 ## What exists today
 
-- `GET /api/plan/recovery` loads the household's debts through
-  `DebtsService.GetDebtsAsync`, so a followed balance and a followed
-  credit limit are the amounts in use. `HouseholdRecovery.Prepare` builds
-  the rollover input: avalanche order, no shared extra, no per-debt extra,
-  no reclaim. `PayoffRollover.Compare` and `CashFlowRecovery.Track`
-  produce the report. Nothing is saved.
-- `PayoffRolloverPath` returns each debt's outcome, with its stop reason,
-  payoff date, and interest. It does not return balances month by month.
-- `CashForecast` (Phase 3 item 2) produces a 30-day view and 6, 12, and
-  18 month horizons from income, bills, debts, savings, and starting
-  cash. It pays each debt its own minimum and its own extra. It does not
-  roll a freed minimum to another debt. No endpoint calls it.
-- `recharts` is already used by `AccountsBalanceChart`. The chart tokens
-  give three distinct colors: `--chart-1` and `--chart-3` are both
-  `#1e4d3a`, and `--chart-2` and `--chart-4` are both `#c4b8a5`. Only
-  `--chart-1` and `--chart-2` are used.
+- `GET /api/plan/recovery` returns the debt-recovery paths and cash outlook
+  used by the page. Followed debt balances and limits are the current debt
+  amounts in that calculation.
+- The report includes debt outcomes and monthly balance points, plus 30-day
+  cash points and 6, 12, and 18 month cash summaries. It does not invent
+  intermediate points for the longer horizons.
+- The extra monthly amount and payoff behavior are temporary scenarios.
+  Nothing on Plan is saved, and the page does not schedule a payment.
+- `recharts` and the implemented chart and series tokens are reused. No second
+  chart library or palette is part of this design.
 
-## The page
+## Current implemented layout
 
-Top to bottom.
+Plan has three tabs in one component tree: **Overview**, **Cash outlook**,
+and **Debt payoff**. Overview is the default. The selected payoff behavior,
+extra payment, cash timeframe, and highlighted debt stay in the page-level
+state, so changing tabs or widths does not reset them. Only the selected
+tab's analysis renders. This arrangement is awaiting review; describing it as
+current does not mark that review approved.
 
-1. **Title row.** The title is Plan. A switch with two options,
-   Rollover and Keep freed payments, sits in the title row. It changes the
-   summary, both charts, and the payoff order. A partial reclaim is not
-   shown, because no reclaim amount is stored and zero matches rollover.
-2. **Summary.** One sentence and one big figure. With a payoff, for
-   example: "Debt-free by Aug 15, 2028. Minimums drop from $145 to $0."
-   The big figure is recurring breathing room a month. Debt-free date and
-   total interest are two quieter figures beside it. Without a payoff:
-   "Your plan can't project a payoff yet," and the figure is today's
-   monthly minimums.
-3. **Finish your plan.** Shown only when something blocks the projection.
-   One row per debt, with the fix, linking to Debts:
-   - Missing a rate, a minimum, or a due date: name what is missing.
-   - Does not pay down: "$45 a month doesn't pay this down."
-   - Stops at the 50-year cap: say the payoff falls past that limit.
-   - No balance: ask for the balance.
-   - Another currency: name the currency the plan leaves out.
-4. **Balance chart.** Stacked areas, one band per debt. The top edge is
-   the total owed, and each band thins to nothing at its payoff. Bands
-   stack in payoff order, first payoff on top, so the total steps down as
-   each band goes. The tooltip and the payoff order name every debt, so
-   color is not the only signal. See "Chart colors and style."
-5. **Minimums and breathing room chart.** A step chart with two series:
-   monthly minimums in `--chart-1` stepping down on each removal date, and
-   breathing room in `--success` stepping up over a faint fill. On
-   Rollover, breathing room stays flat until the last debt that can take a
-   payment stops. On Keep freed payments, it rises at each payoff. Both
-   series are labeled in text.
-6. **Payoff order.** One row per debt: a swatch in that debt's chart
-   color, the name, the payoff date, and the minimum it frees. Hovering or
-   focusing a row highlights that debt's band.
-7. **How this is calculated.** A disclosure with one row per rule: a
-   short term (Order, Payments, Interest, Payoff month, Rollover or Keep
-   freed payments, Left out, Currency, Limit, Saved) and one plain
-   sentence. Only the freed-payment row follows the switch. The page
-   writes these; the server's assumption paragraphs are not sent.
+### Overview
 
-Without a payoff, both charts are hidden and Finish your plan leads. A
-household with no debts sees the empty state that links to Debts. A
-failed load keeps the error banner.
+1. **Combined status and next action.** The dated cash result controls the
+   primary answer. A first cash shortfall leads with **Review shortfall**.
+   Any payoff date is explicitly conditional while cash or available cash
+   after protected savings runs short. When the plan is affordable, payoff
+   remains the secondary result and the action opens Debt payoff.
+2. **Try a scenario.** One disclosure groups **Roll payments forward**,
+   **Free up cash**, and the extra monthly payment. Its closed summary names
+   the applied strategy and amount. Updating or failed requests state which
+   older amount the visible forecast still represents.
+3. **Next 30 days.** A compact cash summary and the supported daily chart
+   show ending cash and the lowest day. Cash balance is named separately
+   from available cash after protected savings.
+4. **Attention.** The primary issue is already in the status. A compact
+   count opens to the other warning areas, healthy inputs, named debt
+   blockers, freshness, exclusions, and links to the existing editors.
 
-Revised October 7, 2026, after Zach saw the page with nothing paying off
-(two identical screens and no chart):
+On a wide screen, the 30-day forecast sits beside the narrower Attention
+panel. On a phone, status and its action come first, then the scenario
+disclosure, chart, and collapsed attention details.
 
-- **What you owe today** is always shown after Finish your plan: a donut
-  with one slice per debt sized by balance, the total in the middle, and a
-  legend with each debt's balance and whole-number percent. Debts with no
-  balance are named under it.
-- Until a debt can be paid off, the switch is hidden, because both paths
-  are the same. The line under the title says payoff charts appear once a
-  debt can be paid off.
-- Without a payoff, the summary says how many debts need attention, the
-  big figure is the total owed today, and the known minimums sit beside it.
-- With a full payoff, the big figure is the debt-free date, labeled
-  "Debt-free at minimums only", and the sentence says anything extra
-  brings that day closer. Breathing room sits beside it as "Back to you
-  after payoff", so it is not read as money available today. Once extra
-  payments exist, the same figure shows the earlier date.
-- A debt whose payment does not cover interest names that interest and the
-  whole-dollar payment that starts paying it down. Each Finish your plan
-  row names its action, such as Add due date or Update payment. Each
-  `PayoffBalancePoint` also carries that month's interest and payment for
-  this.
+### Cash outlook
+
+- A 30 days / 6 months / 12 months / 18 months control selects one view.
+- Each view names its timeframe and shows ending cash, the lowest cash and
+  date, and the relevant known minimum obligation.
+- Only 30 days has daily points, so only that range draws a line. Longer
+  ranges render the API's ending and low summaries and explicitly say that
+  no intermediate line is available. The page does not invent values.
+- The low-pay comparison follows the selected range under a disclosure.
+  Source accounts, protected savings, Plan budget, omitted payments, bills,
+  and currencies sit under a separate disclosure.
+- Selected-period cash and protected-savings warnings name the period. The
+  Overview status can still name a later first shortfall without implying
+  that it occurs inside the 30-day chart.
+
+### Debt payoff
+
+- A compact milestone row names current minimums, the first payoff and
+  removed payment, and modeled breathing room.
+- The declining stacked balance chart is primary. Payoff order sits beside
+  it on a wide screen and below it on a phone. Selecting a payoff row
+  highlights its chart band.
+- Every payoff row puts the debt name first, then labeled date and payment
+  details. It says whether the removed payment rolls into another debt or
+  is actually available for other uses.
+- The minimums/breathing-room chart, current debt-share donut, and
+  calculation assumptions are optional disclosures. The payoff rows and
+  chart summaries keep essential information available without hover.
+
+Without a payoff, Debt payoff explains what must be completed and Overview
+keeps the debt details under Attention. A household with no debts gets a
+Debts action. A failed load keeps the existing visible error.
+
+### Desktop and mobile behavior
+
+- The page uses a bounded `max-w-6xl` container. Related chart and attention
+  content becomes two columns only when space permits.
+- Under `md`, the page is one column with 16px horizontal padding. The
+  three-tab bar stays visible below the fixed app header and does not add a
+  second sticky panel.
+- All tab and scenario controls retain 44px targets. Time ranges use two
+  rows when needed. Charts use fewer axis labels, and the 30-day chart has
+  a keyboard-readable values disclosure.
+- There are no nested scroll areas or phone-only copies of the content.
 
 ### Type and controls
 
@@ -114,10 +127,9 @@ Revised October 7, 2026, after Zach saw the page with nothing paying off
 - Money uses `formatCurrency`. Chart labels use the chart formatters. The
   server-written explanation sentences, which write "45.00 USD", are not
   sent to the page. The page builds its copy from structured fields.
-- The switch is a pressed-button group with `aria-pressed` and a 44px
-  target on a phone. Three screens now use that pattern, so it becomes a
-  shared `segmented-control` primitive in `frontend/components/ui`. The
-  two Accounts selectors stay as they are.
+- Scenario and range choices use the existing pressed-button
+  `segmented-control` with a 44px target on a phone. Plan's three primary
+  views use tab semantics and arrow/Home/End keyboard movement.
 - Each chart has `role="img"` and an `aria-label` that says what it shows.
 
 ### Chart colors and style
@@ -156,7 +168,7 @@ for one band per debt.
 - Motion: no entrance animation. The highlight fades over 150ms, and not
   at all under `prefers-reduced-motion`.
 - Phone: the chart is 220px tall, and tapping opens the tooltip.
-- A debt that cannot be projected is not drawn. Finish your plan lists
+- A debt that cannot be projected is not drawn. Overview Attention lists
   it.
 
 ## Data
@@ -166,34 +178,33 @@ for one band per debt.
   `PayoffBalancePoint(DebtId, DueDate, Balance)`. No schema change.
 - `HouseholdRecovery.Prepare` also returns the debts left out for a
   missing balance, so the page can name them.
-- The plan DTO carries only what the page renders, for the rollover and
-  keep-all paths: steps, starting and remaining obligation, recurring
-  room, debt-free date, total interest, each debt's outcome (stop reason,
-  balance, minimum, payoff date), and balance points. It also carries
-  excluded currencies and the debts with no balance. The partial-reclaim
-  path, `ReclaimAmount`, `Explanation`, and the written assumptions leave
-  the DTO.
-- Pure frontend rules build the chart series and the copy:
-  `planChartSeries.ts` and `planCopy.ts`, tested from a node script in
-  `pnpm test`.
+- The response uses structured fields for the recovery paths, cash outlook,
+  exclusions, source facts, and debt blockers the page renders. The frontend
+  does not depend on server-written explanation paragraphs.
+- Pure frontend rules build chart series, hierarchy copy, and readiness copy.
+  Focused Node tests cover those transformations.
 
 ## Items
 
-Each item is one review.
+The first two items are approved. The third is implemented and awaiting
+review.
 
-1. **Page and debt charts.** The title-row switch, the summary, Finish
-   your plan, the balance chart, the minimums and breathing room chart,
-   the payoff order, and the assumptions disclosure. This reworks review
-   `2026-10-07-014-plan-recovery.md`, which is still awaiting review.
-   No schema change.
+1. **Page and debt charts.** The original summary, blocker list, balance
+   chart, minimums and breathing room chart, payoff order, and assumptions
+   disclosure were approved in
+   [`2026-10-07-014-plan-recovery.md`](../reviews/2026-10-07-014-plan-recovery.md).
 2. **Cash outlook.** The 30-day cash view and the 6, 12, and 18 month
    horizons, on Plan, following the switch. Starting cash is the Cash
-   total on Accounts, in the household currency. Income uses typical pay.
-   A low-pay view sits under a disclosure. Bills come from Bills. Savings
-   contributions stay empty until Phase 2 item 7 adds a reserve. The
-   forecast pays each debt from the selected path, not from its own
-   minimum, so Rollover keeps a freed minimum in debt payments and Keep
-   freed payments returns it to cash. No schema change expected.
+   total on Accounts, in the household currency. Typical income, Bills,
+   Plan budget, protected savings, and the selected debt path feed the
+   forecast. A low-pay view sits under disclosure. Rollover keeps a freed
+   minimum in debt payments; Keep freed payments returns it to cash.
+3. **Three-view refinement.** Overview, Cash outlook, and Debt payoff reduce
+   the initial scroll while preserving the same report, path comparison,
+   extra-payment request, warnings, and source links. The extra field layout
+   is included. It is awaiting review in
+   [`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
+   No schema, route, dependency, or new financial calculation.
 
 ## Decisions
 
@@ -201,11 +212,11 @@ Each item is one review.
   approved calculations can be checked against real debts. Item 6
   scenarios and item 8 spendable estimates change what these charts show.
 - Forward-looking charts live on Plan. Home keeps what already happened.
-  Decision 0008.
-- Two reviews: the page and both debt charts first, the cash outlook
-  next.
-- Rollover versus keeping freed payments is a switch, not two stacked
-  sections.
+  See [decision 0008](../decisions/0008-forward-charts-on-plan.md).
+- The original implementation sequence used separate reviews for debt charts
+  and cash outlook. The later three-view refinement has its own review.
+- Rollover versus keeping freed payments is one scenario choice, not two
+  stacked projections.
 - The balance chart is stacked areas, one band per debt, in eight new
   jewel series colors. Zach chose jewel over earth and tonal sets, and
   stacked bands over one line per debt.
@@ -224,49 +235,50 @@ Each item is one review.
 
 ### Cash outlook layout
 
-Zach chose on October 7, 2026:
-
-- One Cash outlook section after the payoff order, before How this is
-  calculated. The debt answer stays first.
-- The line under its title names the starting cash and, when the switch
-  shows, what happens to a freed payment.
-- One sentence about the next 18 months: the first short day and when
-  cash recovers, or that it stays above zero, then the lowest point. A
-  shortfall is a `--warning` callout.
-- A 30-day step chart of cash at the end of each day, with a dashed zero
-  line and a dot on the lowest day. Nothing is written inside the plot,
-  so the tooltip covers no text. The tooltip names the day's income,
-  bills, and debt payments with a plus or a minus.
-- Three cards for 6, 12, and 18 months: ending cash, the lowest point,
-  and the minimums still due. A card that goes short gets the warning
-  border and icon.
-- Notes: payments the plan can't project yet are left out for the debts
-  Finish your plan lists, as a warning; no bills; another currency.
-- "If pay comes in low" is a disclosure with the same sentence, chart,
-  and cards at low pay. Low pay uses each source's low amount where
-  recorded and leaves out raises. Without any low amount it says so.
-- Without income, the section asks for an income source and links to
-  Income.
+The original 30-day chart and three horizon cards were consolidated during
+the October 8 refinement. The selected range now owns the heading, warning,
+ending cash, low point, and minimum obligation. The API supports daily
+inspection only for 30 days; 6/12/18 months remain honest horizon summaries.
+Low pay follows the same selection under a disclosure. Without income, the
+section still asks for an income source and links to Income.
 
 ### Extra each month
 
 Zach chose on October 7, 2026: the first scenario is one shared extra,
 tried on the page, and the page replaces its numbers with that amount.
 
-- A field above the summary, labeled Extra each month. Blank or zero is
-  the minimums-only plan. A positive amount is applied when the field is
-  left or Enter is pressed.
+- The field is under **Try a scenario**, labeled Extra monthly payment.
+  Zero is shown explicitly and is the minimums-only plan. A positive amount
+  is applied when the field is left or Enter is pressed.
 - The summary, both payoff charts, the payoff order, and the cash outlook
   all use that amount. The extra goes to the highest-interest debt that
   can take it, then to the next debt after that one is gone. It is part
   of the debt payments in the cash outlook.
 - Leaving Plan clears it. Nothing is saved. A negative amount is not sent.
+  While a request runs or fails, the page names the applied amount still
+  represented by the visible results.
+
+## Proposed future redesign
+
+The awaiting
+[`2026-10-08-003-planning-ux-review.md`](../reviews/2026-10-08-003-planning-ux-review.md)
+proposes broader guidance for the next payment action, affordability
+breakdowns, scenario comparisons, source links, and beginner-facing language.
+Those recommendations are an assessment, not an approved design. They are not
+implemented by the three-view refinement or by the shared governance update.
+
+Any later Plan redesign must reconcile that proposal with the roadmap,
+approved calculations, and this page's financial qualifications. It should be
+recorded here as page-specific work before implementation. The shared
+governance does not prescribe the number of Plan tabs, cards, charts, or
+sections.
 
 ## Out of scope
 
 - A custom payoff order or a reclaim amount. Those remain for a later
   scenario and for saved-plan facts in Phase 3 item 10.
 - Saving the extra amount. The field above is tried on the page only.
-- Opening one debt directly from a Finish your plan row. Rows link to
+- Opening one debt directly from an Attention item. Current source links open
   Debts.
-- Moving the two Accounts selectors onto the new primitive.
+- Implementing the broader Planning UX proposals or the remaining Phase 3
+  scenarios.

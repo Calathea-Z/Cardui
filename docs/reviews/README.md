@@ -26,12 +26,34 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
   would skip an earlier roadmap item that is still not started, ask Zach
   before writing it.
 
+## UI/UX implementation reviews
+
+For a new screen or substantial UI change, keep the report concise and record:
+
+- what the user sees and can do first;
+- what is secondary and how the user reaches it;
+- how the layout adapts on mobile; and
+- which visual and interaction checks await Zach.
+
+Zach remains the manual visual, usability, and end-to-end tester. Agent checks
+cover appropriate compilation, lint, formatting, and focused behavior. A
+passing build does not establish visual usability. Small changes do not
+require automated browser QA or a large UX checklist. The enforceable screen
+rules are in [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
+
+## UX assessments
+
+- [2026-10-08 — Phase 2 product and UX audit](2026-10-08-006-phase-2-ux-audit.md) — Approved 2026-10-08
+- [2026-10-08 — Planning UX review](2026-10-08-003-planning-ux-review.md) — Awaiting review
+
 ## Rules and handoff
 
+- [2026-10-08 — Responsive UI/UX governance](2026-10-08-009-responsive-ui-governance.md) — Awaiting review
 - [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Awaiting review
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-08 — Plan page refinement](2026-10-08-008-plan-page-refinement.md) — Awaiting review
 - [2026-10-07 — Plan extra payment](2026-10-07-016-plan-extra-payment.md) — Approved 2026-10-08
 - [2026-10-07 — Plan cash outlook](2026-10-07-015-plan-cash-outlook.md) — Approved 2026-10-07
 - [2026-10-07 — Plan recovery screen](2026-10-07-014-plan-recovery.md) — Approved; reworked as Plan screen item 1 on October 7, with correction notes
@@ -46,6 +68,10 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 Newest first.
 
+- [2026-10-08 — Phase 2 UX closure](2026-10-08-007-phase-2-ux-closure.md) — Awaiting review
+- [2026-10-08 — Simplified Living](2026-10-08-005-simplified-living.md) — Approved 2026-10-08
+- [2026-10-08 — Living](2026-10-08-004-living.md) — Superseded by the simplified Living review
+- [2026-10-08 — Savings](2026-10-08-002-savings.md) — Approved 2026-10-08
 - [2026-10-07 — Reconnect](2026-10-07-007-reconnect.md) — Approved 2026-10-07
 - [2026-10-07 — Credit limit](2026-10-07-006-credit-limit.md) — Approved 2026-10-07
 - [2026-10-07 — Suggested matches](2026-10-07-005-suggested-matches.md) — Approved 2026-10-07

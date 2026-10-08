@@ -6,6 +6,7 @@ namespace Cardui.Api.Domain.Debts;
 /// RateIsPromotional means the interest estimate uses the promotional APR.
 /// UtilizationReachesNotice is 30 percent or more and under 90. UtilizationReachesLimitNotice is 90 percent or more.
 /// BalanceComparison is null when there is nothing to set beside the recorded balance.
+/// NeedsPaymentReview keeps a saved positive minimum visible on a known zero balance without treating it as active.
 /// </summary>
 public sealed record DebtSummaryItem(
     Guid DebtId,
@@ -20,5 +21,6 @@ public sealed record DebtSummaryItem(
     bool AprReachesNotice,
     bool UtilizationReachesNotice,
     bool UtilizationReachesLimitNotice,
+    bool NeedsPaymentReview,
     IReadOnlyList<DebtSummaryGap> Gaps,
     DebtBalanceComparison? BalanceComparison);

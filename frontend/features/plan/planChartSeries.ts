@@ -42,12 +42,14 @@ export type PlanObligationRow = {
 /**
  * One debt in the payoff order.
  * `paidOffOn` is the payment that clears it. `minimum` is the monthly payment it frees.
+ * `breathingRoom` is the cumulative amount available for other uses after that payoff.
  */
 export type PlanPayoffRow = {
   debtId: string;
   name: string;
   paidOffOn: string;
   minimum: number;
+  breathingRoom: number;
   color: string;
 };
 
@@ -66,7 +68,7 @@ export type PlanOwedShare = {
 /**
  * One day on the 30-day cash chart.
  * `timestamp` is that day at midnight UTC. `cash` is the ending cash, negative when short.
- * `income`, `bills`, and `debtPayments` are that day's totals.
+ * `income`, `bills`, `debtPayments`, and `livingSpending` are that day's totals.
  */
 export type PlanCashRow = {
   timestamp: number;
@@ -74,6 +76,7 @@ export type PlanCashRow = {
   income: number;
   bills: number;
   debtPayments: number;
+  livingSpending: number;
 };
 
 /**
@@ -156,6 +159,7 @@ export function payoffOrder(
     name: step.name,
     paidOffOn: step.endedOn,
     minimum: step.minimum,
+    breathingRoom: step.breathingRoom,
     color: colors[step.debtId] ?? seriesColor(index),
   }));
 }
@@ -285,6 +289,7 @@ export function cashChart(forecast: PlanCashForecastDto): {
     income: day.income,
     bills: day.bills,
     debtPayments: day.debtPayments,
+    livingSpending: day.livingSpending ?? 0,
   }));
   if (rows.length === 0) {
     return { rows, lowest: null };

@@ -5,6 +5,7 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/navigation/page-header";
 import type { FinancialProfileDto } from "@/lib/api/types";
 import { ContributorRow } from "./ContributorRow";
@@ -24,8 +25,8 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Financial profile"
-        description="One planning currency, the household time zone, and the people whose finances belong here. Contributors are names you keep, not separate sign-ins."
+        title="Household"
+        description="Set the planning currency, time zone, and people. Income assigns pay to a person; Plan budget decides how much of that pay enters the shared plan."
       />
 
       <Form
@@ -85,7 +86,8 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
           <h2 className="app-section-title">Contributors</h2>
           <p className="app-section-meta">
             Hide a person to keep the fact without showing them as part of the
-            household. Hiding does not change account totals.
+            household. Hiding does not change account totals, Income, or their
+            Plan budget contribution.
           </p>
         </div>
 
@@ -125,17 +127,11 @@ export function HouseholdPageClient({ profile }: HouseholdPageClientProps) {
               autoComplete="off"
             />
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="size-4 accent-primary"
-              checked={household.newVisible}
-              onChange={(event) =>
-                household.setNewVisible(event.target.checked)
-              }
-            />
-            Shown in the household
-          </label>
+          <Switch
+            checked={household.newVisible}
+            onCheckedChange={household.setNewVisible}
+            label="Shown in the household"
+          />
           {household.contributorError ? (
             <Alert variant="destructive">{household.contributorError}</Alert>
           ) : null}

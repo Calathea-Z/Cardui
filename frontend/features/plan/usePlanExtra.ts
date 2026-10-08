@@ -18,14 +18,17 @@ export type PlanExtraStatus = "ready" | "updating" | "error";
 export function usePlanExtra(baseline: PlanRecoveryDto) {
   const [report, setReport] = useState(baseline);
   const [status, setStatus] = useState<PlanExtraStatus>("ready");
+  const [requestedAmount, setRequestedAmount] = useState<number | null>(null);
   const request = useRef(0);
 
   const applyExtra = useCallback(
     async (amount: number) => {
       const id = ++request.current;
+      setRequestedAmount(amount);
       if (amount <= 0) {
         setReport(baseline);
         setStatus("ready");
+        setRequestedAmount(null);
         return;
       }
 
@@ -38,6 +41,7 @@ export function usePlanExtra(baseline: PlanRecoveryDto) {
 
         setReport(next);
         setStatus("ready");
+        setRequestedAmount(null);
       } catch {
         if (request.current !== id) {
           return;
@@ -49,5 +53,5 @@ export function usePlanExtra(baseline: PlanRecoveryDto) {
     [baseline],
   );
 
-  return { report, status, applyExtra };
+  return { report, status, requestedAmount, applyExtra };
 }

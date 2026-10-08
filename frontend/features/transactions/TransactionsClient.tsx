@@ -99,7 +99,7 @@ export function TransactionsClient({
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 md:px-8 md:py-8">
         <PageHeader
           title="Activity"
@@ -126,9 +126,24 @@ export function TransactionsClient({
           isLoading={isLoading}
         />
 
+        {isLoading ? (
+          <p
+            className="text-sm text-muted-foreground"
+            role="status"
+            aria-live="polite"
+          >
+            Updating activity. The previous rows stay visible until the refresh
+            finishes.
+          </p>
+        ) : null}
+
         {errorMessage ? <Alert variant="panel">{errorMessage}</Alert> : null}
 
-        <div className="app-panel overflow-visible!">
+        <div
+          className="app-panel overflow-visible!"
+          aria-busy={isLoading}
+          aria-label="Activity results"
+        >
           <div>
             {transactionsByDate.map((group) => (
               <TransactionDateGroup
@@ -148,6 +163,13 @@ export function TransactionsClient({
                     : query.hasActiveFilters
                       ? "Try adjusting your filters."
                       : "We couldn't find any transactions."
+                }
+                action={
+                  !query.trimmedSearch && !query.hasActiveFilters ? (
+                    <Button type="button" onClick={() => setIsAddOpen(true)}>
+                      Add transaction
+                    </Button>
+                  ) : undefined
                 }
               />
             ) : null}
@@ -200,6 +222,6 @@ export function TransactionsClient({
         onClose={() => setIsImportOpen(false)}
         onImported={() => void loadPage(1)}
       />
-    </main>
+    </div>
   );
 }

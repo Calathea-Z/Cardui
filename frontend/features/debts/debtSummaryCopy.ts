@@ -33,6 +33,7 @@ export type SummarySignal = {
   label: string;
   detail: string | null;
   hint?: string | null;
+  warning?: boolean;
 };
 
 /**
@@ -63,7 +64,7 @@ export type BalanceComparisonCopy = {
  * The figures are the debts on this page. Interest is one month on each recorded balance, not the total left to pay.
  */
 export const summaryInterestNote =
-  "Totals for the debts below. Interest is each recorded balance times its rate, divided by 12. That is this month, not the total left to pay.";
+  "Active totals use positive balances only. Zero balances keep their saved terms for review. Interest is one month, not the total left to pay.";
 
 /**
  * The four summary figures for one currency.
@@ -133,6 +134,19 @@ export function summarySignals(
   debts: SummaryDebtName[] = [],
 ): SummarySignal[] {
   const signals: SummarySignal[] = [];
+  const paymentReview = sum(report, "zeroBalancePaymentReviewCount");
+  if (paymentReview > 0) {
+    signals.push({
+      label:
+        paymentReview === 1
+          ? "1 zero-balance debt needs payment review"
+          : `${paymentReview} zero-balance debts need payment review`,
+      detail: "Saved minimum kept · excluded from active totals",
+      hint: paymentReviewHint(namedRows(debts, report.debts)),
+      warning: true,
+    });
+  }
+
   const stale = sum(report, "staleCount");
   if (stale > 0) {
     signals.push({
@@ -492,6 +506,7 @@ type GapRow = {
   name: string;
   gaps: DebtSummaryGap[];
   monthlyInterest: number | null;
+  needsPaymentReview: boolean;
 };
 
 /**
@@ -542,6 +557,20 @@ function stillMissingHint(rows: GapRow[]) {
     .map((gap) => gapHint(rows, gap))
     .filter((sentence) => sentence !== null);
   return sentences.length > 0 ? sentences.join(" ") : null;
+}
+
+/**
+ * Names zero-balance debts whose saved positive minimum needs review.
+ */
+function paymentReviewHint(rows: GapRow[]) {
+  const names = rows
+    .filter((row) => row.needsPaymentReview)
+    .map((row) => row.name);
+  if (names.length === 0) {
+    return null;
+  }
+
+  return `${joinList(names)} ${names.length === 1 ? "has" : "have"} a saved minimum but no active balance.`;
 }
 
 /**
@@ -597,6 +626,7 @@ function namedRows(debts: SummaryDebtName[], items: DebtSummaryItemDto[]) {
         currency: debt.currency,
         gaps: item.gaps,
         monthlyInterest: item.monthlyInterest,
+        needsPaymentReview: item.needsPaymentReview,
       },
     ];
   });

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { formatCurrency } from "@/features/accounts/formatCurrency";
+import {
+  formatCurrency,
+  moneyCommaError,
+} from "@/features/accounts/formatCurrency";
 import {
   archiveAccount,
   reconcileAccountBalance,
@@ -65,6 +68,12 @@ export function useAccountDetail({
    */
   async function saveAccount() {
     const openingBalance = parseMoney(form.openingBalance);
+    const openingComma = moneyCommaError(form.openingBalance);
+    if (openingComma) {
+      setErrorMessage(openingComma);
+      return;
+    }
+
     if (
       !form.name.trim() ||
       openingBalance === null ||
@@ -102,6 +111,12 @@ export function useAccountDetail({
    */
   async function matchStatement() {
     const balance = parseMoney(statementBalance);
+    const statementComma = moneyCommaError(statementBalance);
+    if (statementComma) {
+      setErrorMessage(statementComma);
+      return;
+    }
+
     if (balance === null || !asOfDate) {
       setErrorMessage("Enter the statement balance and date.");
       return;

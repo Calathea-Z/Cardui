@@ -1,3 +1,5 @@
+using Cardui.Api.Domain.Accounts;
+
 namespace Cardui.Api.Domain.Recovery;
 
 public static class HouseholdCashOutlook
@@ -6,7 +8,7 @@ public static class HouseholdCashOutlook
     /// Forecasts cash on each payoff path, at typical pay and at low pay.
     /// Debt payments follow the path, so rollover keeps a freed minimum in debt payments and keeping freed payments returns it to cash.
     /// Low pay uses each source's low amount where recorded, otherwise typical, and leaves out expected raises, which are typical amounts.
-    /// No savings contribution or protected reserve is stored yet, so the reserve stays at zero.
+    /// A savings contribution raises the reserve and leaves cash unchanged. Available cash is cash minus the reserve.
     /// Debts are the ones the comparison was built from. A debt the comparison left out pays nothing.
     /// </summary>
     public static HouseholdCashOutlookReport Project(
@@ -18,9 +20,12 @@ public static class HouseholdCashOutlook
         var typical = Forecast(input, terms, ForecastIncomeBasis.Typical);
         var low = HasLowPay(input) ? Forecast(input, terms, ForecastIncomeBasis.Conservative) : null;
         var rollover = ForPath(comparison.Rollover, typical, low);
+        var reserve = input.StartingReserve <= 0 ? 0m : AccountLedger.Round(input.StartingReserve);
         return new HouseholdCashOutlookReport(
             input.AsOf,
             input.StartingCash,
+            reserve,
+            AccountLedger.Round(input.StartingCash - reserve),
             input.Incomes.Any(income => Included(income.Currency, input.PlanningCurrency)),
             input.Bills.Any(bill => Included(bill.Currency, input.PlanningCurrency)),
             rollover.Typical.ExcludedCurrencies,
@@ -61,11 +66,11 @@ public static class HouseholdCashOutlook
             basis,
             input.AsOf,
             input.StartingCash,
-            0m,
+            input.StartingReserve,
             input.Incomes.Select(income => Dated(income, basis)).ToList(),
             input.Bills,
             debts,
-            []);
+            input.Savings);
     }
 
     /// <summary>

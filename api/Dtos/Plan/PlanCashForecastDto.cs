@@ -23,4 +23,14 @@ public class PlanCashForecastDto
     /// The first day after ShortfallOn that cash is back to zero or above. Null when it does not recover inside 18 months.
     /// </summary>
     public DateOnly? RecoveredOn { get; set; }
+
+    /// <summary>
+    /// The first day what is left after the reserve goes below zero. Null when it never does.
+    /// </summary>
+    public DateOnly? ReserveShortfallOn { get; set; }
+
+    /// <summary>
+    /// The first day after ReserveShortfallOn that the leftover is back to zero or above. Null when it does not recover.
+    /// </summary>
+    public DateOnly? ReserveRestoredOn { get; set; }
 }

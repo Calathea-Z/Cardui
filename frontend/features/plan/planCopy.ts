@@ -19,7 +19,7 @@ type FormatDate = (date: string) => string;
 /**
  * The answer at the top of Plan.
  * `figure` is the one big number. `details` are the quieter figures beside it.
- * `warning` is true while the path cannot project a payoff for every debt.
+ * `warning` is true while cash is unaffordable or the path cannot project every payoff.
  */
 export type PlanSummaryCopy = {
   warning: boolean;
@@ -39,29 +39,6 @@ export type PlanFinishItem = {
   fix: string;
   action: string;
   isDebt: boolean;
-};
-
-/**
- * The cash outlook's answer: one sentence about the next 18 months.
- * `warning` is true when cash goes below zero in that time.
- */
-export type PlanCashSummaryCopy = {
-  warning: boolean;
-  sentence: string;
-};
-
-/**
- * One horizon card in the cash outlook.
- * `warning` is true when cash goes below zero at any point up to that horizon.
- */
-export type PlanCashHorizonCopy = {
-  key: string;
-  title: string;
-  through: string;
-  ending: string;
-  lowest: string;
-  minimums: string;
-  warning: boolean;
 };
 
 /**
@@ -121,18 +98,18 @@ export function planAssumptions(
     },
     kind === "Rollover"
       ? {
-          term: "Rollover",
+          term: "Roll payments forward",
           detail:
             "A freed payment goes to the next debt. It becomes breathing room once no debt can take it.",
         }
       : {
-          term: "Keep freed payments",
+          term: "Free up cash",
           detail: "A freed payment becomes breathing room right away.",
         },
     {
       term: "Cash outlook",
       detail:
-        "Starts from Cash on Accounts, adds income at typical pay, and takes out bills and this path's debt payments.",
+        "Starts with Cash on Accounts, adds shared pay, and takes out bills, living spending, and debt payments. Set-aside money stays in cash.",
     },
     {
       term: "Low pay",
@@ -166,38 +143,22 @@ export function planAssumptions(
  * The two paths the title-row switch offers, in order.
  */
 export const planPathOptions: { value: PayoffRolloverKind; label: string }[] = [
-  { value: "Rollover", label: "Rollover" },
-  { value: "ReclaimAll", label: "Keep freed payments" },
+  { value: "Rollover", label: "Roll payments forward" },
+  { value: "ReclaimAll", label: "Free up cash" },
 ];
 
 /**
- * One line under the title.
- * With a payoff it says what the selected path does. Without one the switch is hidden, so it says when the payoff charts appear.
- * A tried extra is named in the same line. Zero extra says there is none, because the amount is not stored.
+ * Explains where a paid-off debt's payment goes in the selected temporary scenario.
  */
-export function planDescription(
-  kind: PayoffRolloverKind,
-  hasPayoff: boolean,
-  monthlyExtra = 0,
-  money: FormatMoney = String,
-) {
-  const extra =
-    monthlyExtra > 0
-      ? `with ${money(monthlyExtra)} extra each month`
-      : "with no extra payment";
-  if (!hasPayoff) {
-    return `Debts are paid highest interest first, ${extra}. Payoff charts appear once a debt can be paid off.`;
-  }
-
-  const lead =
-    kind === "Rollover"
-      ? "When a debt is paid off, its payment moves to the next debt."
-      : "When a debt is paid off, its payment comes back to you.";
-  return `${lead} Highest interest first, ${extra}.`;
+export function planPathDescription(kind: PayoffRolloverKind) {
+  return kind === "Rollover"
+    ? "A paid-off debt's payment moves to the next debt. It becomes available cash only when no modeled debt can take it."
+    : "A paid-off debt's payment becomes available cash after that debt ends instead of moving to the next debt.";
 }
 
 /**
  * The one-sentence answer and the big figure for a path.
+ * A dated cash or protected-reserve shortfall overrides payoff reassurance and makes any payoff date conditional.
  * With every debt paid off and no extra, the big figure is the debt-free date at minimums only.
  * With an extra, that same figure is the earlier date and the sentence names the amount.
  * Breathing room is labeled as what comes back after payoff, not money available today.
@@ -206,11 +167,39 @@ export function planDescription(
  */
 export function planSummary(
   path: PlanRecoveryPathDto,
+  cash: PlanCashForecastDto,
   attentionCount: number,
   money: FormatMoney,
   date: FormatDate,
   monthlyExtra = 0,
 ): PlanSummaryCopy {
+  const cashShortfallOn = forecastShortfallOn(cash);
+  const affordabilityShortfallOn = cashShortfallOn ?? cash.reserveShortfallOn;
+  if (affordabilityShortfallOn) {
+    const longest =
+      cash.horizons[cash.horizons.length - 1]?.window ?? cash.dayView;
+    return {
+      warning: true,
+      sentence: cashShortfallOn
+        ? `This payoff path is not affordable yet. Cash runs short on ${date(cashShortfallOn)}.`
+        : `This payoff path is not affordable yet. Money left after protected savings runs short on ${date(affordabilityShortfallOn)}.`,
+      figureLabel: cashShortfallOn
+        ? "First cash shortfall"
+        : "Protected cash shortfall",
+      figure: date(affordabilityShortfallOn),
+      details: [
+        {
+          label: "Conditional debt-free estimate",
+          value: path.paidOffOn ? date(path.paidOffOn) : "Not projected yet",
+        },
+        {
+          label: "Lowest forecast cash",
+          value: money(longest.lowestCash),
+        },
+      ],
+    };
+  }
+
   if (path.steps.length === 0) {
     return waitingSummary(path, attentionCount, money);
   }
@@ -257,6 +246,25 @@ export function planSummary(
 }
 
 /**
+ * Finds the first negative-cash date even when an older response omitted the summary field.
+ */
+function forecastShortfallOn(forecast: PlanCashForecastDto): string | null {
+  if (forecast.shortfallOn) {
+    return forecast.shortfallOn;
+  }
+
+  const day = forecast.days.find((item) => item.cash < 0);
+  if (day) {
+    return day.date;
+  }
+
+  return (
+    forecast.horizons.find((horizon) => horizon.window.lowestCash < 0)?.window
+      .lowestCashOn ?? null
+  );
+}
+
+/**
  * Everything that keeps this path from projecting a payoff, one row each.
  * Debts on the path come first in the rollover order, then debts with no balance, then each currency left out.
  */
@@ -293,6 +301,7 @@ export function finishPlanItems(
 /**
  * The line under the Cash outlook title: where cash starts and, when the switch is shown, what happens to a freed payment.
  * A tried extra is included in the debt payments, so the line names that amount.
+ * A reserve above zero names how much is set aside and what is left after it.
  */
 export function cashOutlookDescription(
   kind: PayoffRolloverKind,
@@ -300,6 +309,8 @@ export function cashOutlookDescription(
   startingCash: number,
   money: FormatMoney,
   monthlyExtra = 0,
+  startingReserve = 0,
+  startingAvailable = 0,
 ) {
   const start = `Starts from ${money(startingCash)} in Cash on Accounts today.`;
   const path = !hasPayoff
@@ -307,9 +318,13 @@ export function cashOutlookDescription(
     : kind === "Rollover"
       ? `${start} A paid-off debt's payment moves to the next debt.`
       : `${start} A paid-off debt's payment comes back as cash.`;
-  return monthlyExtra > 0
-    ? `${path} ${money(monthlyExtra)} extra each month is included in the debt payments.`
-    : path;
+  const sentence =
+    monthlyExtra > 0
+      ? `${path} ${money(monthlyExtra)} extra each month is included in the debt payments.`
+      : path;
+  return startingReserve > 0
+    ? `${sentence} ${money(startingReserve)} is protected. ${money(startingAvailable)} is available after protected savings.`
+    : sentence;
 }
 
 /**
@@ -317,17 +332,22 @@ export function cashOutlookDescription(
  * Blank is the minimums-only plan. The amount is kept in the page until the user leaves.
  */
 export function planExtraHelp() {
-  return "Blank is minimums only. Tried on this page. Leaving clears it.";
+  return "Enter 0 for minimums only. The preview updates when you leave the field or press Enter.";
 }
 
 /**
- * The status under the extra field while a tried amount is loading or has failed.
- * Ready has no status line. The previous plan stays on screen either way.
+ * The status shown while a tried amount is loading or has failed.
+ * It names the amount still represented by the visible results so an old forecast cannot look newly applied.
  */
-export function planExtraStatus(status: "updating" | "error") {
+export function planExtraStatus(
+  status: "updating" | "error",
+  requestedAmount: number,
+  appliedAmount: number,
+  money: FormatMoney,
+) {
   return status === "updating"
-    ? "Updating the plan."
-    : "This extra amount could not be applied. Leave the field to try it again.";
+    ? `Updating the preview for ${money(requestedAmount)} extra. Results still show ${money(appliedAmount)} extra until it finishes.`
+    : `The ${money(requestedAmount)} extra preview could not be applied. Results still show ${money(appliedAmount)} extra. Leave the field or press Enter to try again.`;
 }
 
 /**
@@ -335,72 +355,6 @@ export function planExtraStatus(status: "updating" | "error") {
  */
 export function planExtraInvalid() {
   return "Enter a zero or positive amount.";
-}
-
-/**
- * The cash outlook's one sentence for the longest horizon, usually 18 months.
- * A shortfall names the first short day, then the day cash is back above zero or that it stays short, then the lowest point.
- * Without a shortfall it says cash stays above zero and names the lowest point.
- */
-export function cashOutlookSummary(
-  forecast: PlanCashForecastDto,
-  money: FormatMoney,
-  date: FormatDate,
-): PlanCashSummaryCopy {
-  const window =
-    forecast.horizons[forecast.horizons.length - 1]?.window ?? forecast.dayView;
-  const lowest = `Lowest point: ${money(window.lowestCash)} on ${date(window.lowestCashOn)}.`;
-  if (forecast.shortfallOn === null) {
-    return {
-      warning: false,
-      sentence: `Cash stays above zero through ${date(window.through)}. ${lowest}`,
-    };
-  }
-
-  const after = forecast.recoveredOn
-    ? `and is back above zero on ${date(forecast.recoveredOn)}.`
-    : `and stays short through ${date(window.through)}.`;
-  return {
-    warning: true,
-    sentence: `Cash runs short on ${date(forecast.shortfallOn)} ${after} ${lowest}`,
-  };
-}
-
-/**
- * The spoken label for the 30-day cash chart: the dates it covers, where cash ends, and its lowest day.
- */
-export function cashChartLabel(
-  forecast: PlanCashForecastDto,
-  money: FormatMoney,
-  date: FormatDate,
-) {
-  const view = forecast.dayView;
-  return `Cash at the end of each day from ${date(view.from)} to ${date(view.through)}, ending at ${money(view.endingCash)}. Lowest is ${money(view.lowestCash)} on ${date(view.lowestCashOn)}.`;
-}
-
-/**
- * One card per horizon: ending cash, the lowest point, and the monthly minimums still due.
- * Minimums read None when nothing is still due, Unknown when every remaining minimum is missing a term,
- * and name how many debts they leave out otherwise.
- */
-export function cashHorizonCards(
-  forecast: PlanCashForecastDto,
-  money: FormatMoney,
-  date: FormatDate,
-): PlanCashHorizonCopy[] {
-  return forecast.horizons.map((horizon) => ({
-    key: `${horizon.months}`,
-    title: `${horizon.months} months`,
-    through: `Through ${date(horizon.window.through)}`,
-    ending: money(horizon.window.endingCash),
-    lowest: `${money(horizon.window.lowestCash)} on ${date(horizon.window.lowestCashOn)}`,
-    minimums: minimumsStillDue(
-      horizon.minimumObligation,
-      horizon.unknownMinimumCount,
-      money,
-    ),
-    warning: horizon.window.cashShortfall,
-  }));
 }
 
 /**
@@ -433,7 +387,7 @@ export function cashOutlookNotes(
   if (!outlook.hasBills) {
     notes.push({
       key: "no-bills",
-      text: "No bills yet, so only debt payments come out of cash. Add them on Bills.",
+      text: "No bills yet. Add them on Bills. Monthly living spending and debt payments still come out of cash.",
       warning: false,
     });
   }
@@ -552,26 +506,6 @@ function minimumsSentence(
 
   const to = remaining === null ? "an unknown amount" : money(remaining);
   return `Minimums drop from ${money(starting)} to ${to}.`;
-}
-
-/**
- * The monthly minimums still due at a horizon.
- * None when nothing remains, Unknown when every remaining minimum is missing a term, and the count left out of a known sum.
- */
-function minimumsStillDue(
-  obligation: number | null,
-  unknownCount: number,
-  money: FormatMoney,
-) {
-  if (obligation === null) {
-    return "Unknown";
-  }
-
-  if (unknownCount > 0) {
-    return `${money(obligation)} a month, ${unknownCount} not included`;
-  }
-
-  return obligation === 0 ? "None" : `${money(obligation)} a month`;
 }
 
 /**

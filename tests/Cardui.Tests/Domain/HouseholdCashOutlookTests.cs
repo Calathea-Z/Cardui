@@ -86,7 +86,8 @@ public class HouseholdCashOutlookTests
             800m,
             IncomeCadence.Monthly,
             new DateOnly(2026, 1, 5),
-            [new DatedIncomeRaise(new DateOnly(2026, 3, 1), 1200m)]);
+            [new DatedIncomeRaise(new DateOnly(2026, 3, 1), 1200m)],
+            null);
         var comparison = PayoffRollover.Compare(Rollover(Start, []));
 
         var outlook = HouseholdCashOutlook.Project(
@@ -112,7 +113,8 @@ public class HouseholdCashOutlookTests
             null,
             IncomeCadence.Monthly,
             new DateOnly(2026, 1, 5),
-            []);
+            [],
+            null);
 
         var outlook = HouseholdCashOutlook.Project(
             Outlook(incomes: [income]),
@@ -121,6 +123,54 @@ public class HouseholdCashOutlookTests
 
         Assert.Null(outlook.Rollover.LowPay);
         Assert.Null(outlook.ReclaimAll.LowPay);
+    }
+
+    [Fact]
+    public void Project_KeepsCashAndRaisesTheReserveWhenMoneyIsSetAside()
+    {
+        var goalId = Guid.Parse("70000000-0000-0000-0000-000000000005");
+        var outlook = HouseholdCashOutlook.Project(
+            new HouseholdCashOutlookInput(
+                "USD",
+                Start,
+                1000m,
+                [],
+                [],
+                200m,
+                [new CashFlowEvent(Start, CashFlowKind.Savings, goalId, "Emergency", 50m, "USD")]),
+            [],
+            PayoffRollover.Compare(Rollover(Start, [])));
+
+        var day = outlook.Rollover.Typical.Days.Single(item => item.Date == Start);
+        Assert.Equal(200m, outlook.StartingReserve);
+        Assert.Equal(800m, outlook.StartingAvailable);
+        Assert.Equal(1000m, day.Cash);
+        Assert.Equal(250m, day.Reserve);
+        Assert.Equal(750m, day.Available);
+        Assert.False(day.ReserveShortfall);
+    }
+
+    [Fact]
+    public void Project_LivingSpendingLeavesCashAndDoesNotRaiseTheReserve()
+    {
+        var goalId = Guid.Parse("70000000-0000-0000-0000-000000000006");
+        var outlook = HouseholdCashOutlook.Project(
+            new HouseholdCashOutlookInput(
+                "USD",
+                Start,
+                1000m,
+                [],
+                [],
+                0m,
+                [new CashFlowEvent(Start, CashFlowKind.LivingSpending, goalId, "Monthly living spending", 300m, "USD")]),
+            [],
+            PayoffRollover.Compare(Rollover(Start, [])));
+
+        var day = outlook.Rollover.Typical.Days.Single(item => item.Date == Start);
+        Assert.Equal(0m, outlook.StartingReserve);
+        Assert.Equal(700m, day.Cash);
+        Assert.Equal(0m, day.Reserve);
+        Assert.Equal(700m, day.Available);
     }
 
     private static IEnumerable<DateOnly> DebtPaymentDates(CashForecastReport forecast)
@@ -136,7 +186,14 @@ public class HouseholdCashOutlookTests
         IReadOnlyList<HouseholdIncome>? incomes = null,
         IReadOnlyList<DatedBill>? bills = null)
     {
-        return new HouseholdCashOutlookInput("USD", Start, cash, incomes ?? [], bills ?? []);
+        return new HouseholdCashOutlookInput(
+            "USD",
+            Start,
+            cash,
+            incomes ?? [],
+            bills ?? [],
+            0m,
+            []);
     }
 
     private static PayoffRolloverInput Rollover(DateOnly asOf, IReadOnlyList<PayoffDebt> debts)

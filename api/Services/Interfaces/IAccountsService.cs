@@ -1,4 +1,5 @@
 using Cardui.Api.Dtos.Account;
+using Cardui.Api.Domain.Accounts;
 
 namespace Cardui.Api.Services.Interfaces;
 
@@ -21,10 +22,10 @@ public interface IAccountsService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// The Cash total shown on Accounts: active, unarchived cash accounts in
-    /// the planning currency. Plan's cash outlook starts from it.
+    /// The Cash total shown on Accounts, plus its source and balance dates.
+    /// Active, unarchived cash accounts in the planning currency are included.
     /// </summary>
-    Task<decimal> GetCashTotalAsync(
+    Task<CashPosition> GetCashPositionAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>

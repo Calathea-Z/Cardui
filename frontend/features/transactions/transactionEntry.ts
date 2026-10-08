@@ -1,3 +1,5 @@
+import { moneyCommaError } from "@/features/accounts/formatCurrency";
+import { parseMoney } from "@/features/accounts/manualAccount";
 import type {
   CategoryDto,
   TransactionCategoryDto,
@@ -46,8 +48,8 @@ export function directionFor(amount: number): AmountDirection {
  * Money in is negative, money out is positive, and an unreadable amount returns null.
  */
 export function toSignedAmount(amount: string, direction: AmountDirection) {
-  const parsed = Number(amount);
-  if (!Number.isFinite(parsed)) {
+  const parsed = parseMoney(amount);
+  if (parsed === null) {
     return null;
   }
 
@@ -148,7 +150,7 @@ export function toUpdateDto(
 
   const amount = toSignedAmount(form.amount, form.direction);
   if (amount === null) {
-    throw new Error("Enter an amount.");
+    throw new Error(moneyCommaError(form.amount) ?? "Enter an amount.");
   }
 
   const name = form.name.trim();

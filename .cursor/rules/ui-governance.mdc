@@ -3,50 +3,187 @@ description: Follow the Tortoise look, screen, and accessibility conventions
 alwaysApply: true
 ---
 
-## 1. Look and feel
+# UI governance
 
-Use this shell for every new screen.
+These rules apply to new screens and substantial changes to existing screens.
+Page-specific product decisions stay in that page's design document.
 
-- One light theme. Do not add a dark theme, a `.dark` palette, or `class="dark"` on `<html>`.
-- Inter, loaded with `next/font/google`, is the only product face for titles, navigation, and money. Money uses `formatCurrency` and `tabular-nums`.
-- Use the tokens already in `frontend/app/globals.css` (`--background`, `--card`, `--foreground`, `--muted`, `--border`, `--primary`, `--success`, `--destructive`, `--transfer`, `--warning`, and the chart tokens). Do not invent a second palette.
-- Status colors: `--destructive` is a failure or a destructive action. `--warning` is something the user must finish or fix that is not a failure, such as a missing term or a payment that does not cover interest. A warning uses the warning icon (`TriangleAlert` for a summary, `CircleAlert` for a row), `text-warning`, and a `border-warning/40` panel or a `bg-warning/10` callout. Do not mark a warning in `--destructive`, and do not leave it as plain text.
-- Chart tokens: `--chart-1` is the main stroke, such as net worth. `--chart-2` is a comparison. The eight jewel series tokens, `--series-1` through `--series-8`, are for a chart that compares several things, such as one band per debt. Neighbors contrast, and each is at least 3:1 on white. A ninth item reuses `--series-1`, and its name still tells it apart. A tooltip or hover label never covers text inside the chart; a donut shows the hovered item in its center instead of a floating tooltip.
-- `--primary` is a mark: the active destination, a link, or the main chart stroke. It does not fill the page. A category color appears only on that category.
-- Four primary destinations, in order: Plan `/plan`, Home `/`, Accounts `/accounts`, Activity `/activity`. Plan is first. The phone tab bar is those four.
-- Settings live in the account menu on both widths: Income, Bills, Debts, Targets, Categories, Connections, and Household. Targets are `/targets`. Connections are `/connections`. A new screen is either one of those primary destinations or a setting in that menu. It does not become a fifth tab or a second navigation.
-- The shell breaks at 768px (`md`). From there up, a left sidebar sits beside the page. Under it, the same screens stack, with the tab bar and the existing safe-area padding. One component tree.
-- A record or a form opens as a right-hand panel from 768px up and as a full-screen sheet under it. A top-level surface closes with the close icon on desktop and the back control on a phone. A nested step uses back at both widths.
-- A choice opens as a popover from 768px up and as a bottom sheet under it. Choice lists use `Select`. Dates use `DateField`.
-- The page is a flat light canvas and white cards with a 1px border. Leave out a second font, a script wordmark, wallpaper, a panel rail, an entrance animation, and a highlighter behind a number.
+## 1. Product shell
 
-## 2. Building a screen
+- Use one light theme. Do not add a dark theme, a `.dark` palette, or
+  `class="dark"` on `<html>`.
+- Inter, loaded with `next/font/google`, is the only product face for titles,
+  navigation, and money. Money uses `formatCurrency` and `tabular-nums`.
+- Use the tokens in `frontend/app/globals.css` (`--background`, `--card`,
+  `--foreground`, `--muted`, `--border`, `--primary`, `--success`,
+  `--destructive`, `--transfer`, `--warning`, and the chart and series
+  tokens). Do not invent a second palette.
+- `--destructive` is a failure or destructive action. `--warning` is something
+  the user must finish or fix that is not a failure. Pair a warning with
+  `TriangleAlert` for a summary or `CircleAlert` for a row, `text-warning`,
+  and a `border-warning/40` panel or `bg-warning/10` callout. Do not render a
+  warning as destructive or as unmarked plain text.
+- `--chart-1` is the main stroke and `--chart-2` is a comparison. Use
+  `--series-1` through `--series-8` for several compared items. Neighbors
+  contrast and each is at least 3:1 on white. A ninth item reuses
+  `--series-1`, and its name still distinguishes it.
+- `--primary` is a mark for the active destination, a link, or the main chart
+  stroke. It does not fill the page. A category color appears only on that
+  category.
+- Primary destinations remain Home `/`, Accounts `/accounts`, Activity
+  `/activity`, and Plan `/plan`, in that order. The phone tab bar uses those
+  four.
+- Settings remain in the account menu at both widths: Income, Bills, Debts,
+  Plan budget, Savings, Spending targets, Categories, Connections, and
+  Household. A new screen is one of the four primary destinations or a
+  setting; it does not become a fifth primary destination.
+- The shell breaks at 768px (`md`). From that width up, use the left sidebar.
+  Below it, use the tab bar and existing safe-area padding.
+- A record or form opens as a right-hand panel from `md` up and a full-screen
+  sheet below it. A top-level surface uses close on desktop and back on a
+  phone. A nested step uses back at both widths.
+- A choice opens as a popover from `md` up and a bottom sheet below it. Choice
+  lists use `Select`; dates use `DateField`.
+- Use a flat light canvas and white groups with a 1px border. Leave out a
+  second font, script wordmark, wallpaper, panel rail, entrance animation,
+  and highlighter behind a number.
 
-A new screen should feel like the rest of Tortoise. Match the shell above. Do not invent a new visual language for one page.
+## 2. Purpose and hierarchy
 
-- One primary action per view. Anything else is quieter and secondary.
-- One page title, then sections, then rows. The title is the only `h1`. A section title is sentence case and smaller than the page title.
-- Labels, buttons, and navigation are sentence case.
-- Buttons on one page share one size. Use `buttonVariants` sizes, not hand-sized pills. A column of row actions shares one fixed width, so the buttons line up whatever their labels say.
-- Show the next decision. Put rare or advanced choices behind a disclosure instead of stacking every control above the content.
-- Put actions in the same place at both widths: the page title row for a primary page, and the panel header for a record or a form. Do not move them into a different bar on the phone.
-- A save, a sync, and a destructive action each say what happened. A destructive action names the thing it will remove and asks first.
-- Every view has an explicit loading state, an empty state, an error state, and a stale state when the data can be out of date. Empty copy says what is missing and offers the one action that fills it. An error says what failed and how to retry. Stale data stays visible and says that a refresh is in progress or has failed.
+- Before implementation, identify the screen's primary user question, its
+  next action when it has one, and its supporting details. Briefly state that
+  hierarchy in the implementation plan or a progress update. This is not a
+  separate artifact or approval gate.
+- Lead with the answer and the relevant action. Put analysis, healthy checks,
+  and explanation after them or behind disclosure.
+- Organize a screen around user tasks and decisions, not the order or nesting
+  of an API response.
+- When adding content to an existing screen, reassess the whole screen's
+  hierarchy and length. Choose the main flow, an existing section, a
+  disclosure, local tabs, or a detail surface deliberately. Do not default to
+  appending another card.
+- Preserve access to useful information while removing repeated copy, repeated
+  status, and competing visual emphasis.
+- Use one `h1`. Section titles are sentence case and smaller than the page
+  title. Labels, buttons, and navigation are sentence case.
 
-## 3. Accessibility
+## 3. Composition and responsive behavior
 
-Build these in with the screen. Do not treat them as a later pass.
+- Define the desktop and mobile arrangements before implementation. Share
+  data, behavior, state ownership, and reusable components while adapting
+  grouping, control layout, and disclosure to the available space.
+- Choose content width for the task. Bound prose and forms to a comfortable
+  reading width. Let analytical views use a wider bounded layout when related
+  information benefits from appearing together.
+- Reduce repetition and secondary content before shrinking type or spacing.
+  Use cards for meaningful groups, not every element. Do not impose a
+  universal card count, chart count, or above-the-fold quota.
+- On mobile, keep the primary answer and action before supporting detail. Fit
+  controls and labels without horizontal page scrolling. Keep amounts, dates,
+  warnings, and text readable at narrow widths and with text zoom.
+- Make chart information available through touch and keyboard interaction or
+  an equivalent readable data view.
+- Use comfortable touch targets and visible focus. Sticky elements must not
+  cover content, controls, or keyboard focus.
+- Avoid unnecessary nested scrolling and mobile-only copies of the same
+  feature. Preserve relevant input and selection state when resizing or
+  changing a local view.
+- Keep one web product. Do not introduce a separate mobile information
+  architecture, native app, or PWA for responsive layout.
 
-- Use semantic elements: `button`, `a`, `nav`, `main`, headings, `label`, and lists. A clickable `div` is not a control.
-- Every control has an accessible name. A placeholder is not that name. Icon-only actions still have a name.
-- The screen works from the keyboard. Tab reaches every control. Enter or Space activates it. Escape closes the open panel or popover and leaves the screen behind it in place. Focus returns to the control that opened it.
-- Focus is visible on the light canvas. Do not remove the outline unless a visible replacement stays on the light background.
-- Text, icons, and the accent stay readable on `#f3f2ee` and on white. Meta text is for secondary information, not for the label the user must read.
-- On a phone, primary controls and tab items have a target of at least 44px.
-- Color does not carry the meaning alone. Pair income, spending, transfer, and error colors with text or an icon.
-- Honor `prefers-reduced-motion`. Panel and sheet motion is not required to use the screen.
-- A custom widget exposes its name, role, and value. A panel is a dialog. A popover names itself. A tab exposes which item is selected. A toggle uses `aria-pressed` or `aria-expanded`. A switch uses `role="switch"` and `aria-checked`, and the word On or Off stays beside the track.
+## 4. Navigation and progressive disclosure
 
-## 4. Uncertain UX
+- Local tabs separate distinct tasks within one destination. Filters change
+  the same dataset or view. Disclosures reveal supporting detail. Panels
+  support focused inspection or editing.
+- The prohibition on a second navigation means a competing app-level
+  navigation. It does not prohibit useful local tabs.
+- Preserve relevant state across local tabs and other local view changes.
+- Critical errors, required actions, and missing inputs that make a result
+  invalid remain discoverable while supporting details are collapsed.
+- A top-level destination does not show a back control. Back is for a nested
+  flow.
 
-When a UX choice is uncertain, ask Zach before building it. Offer two or three options, and say what each one is for. A choice that already matches this shell can proceed.
+## 5. Warnings and result reliability
+
+- Give each issue one primary presentation within a view. Rank issues by their
+  effect on the user's task and the reliability of the result.
+- Summarize additional issues with a count and access to details. Keep healthy
+  checks quiet. Repeat a warning only where it is needed to interpret a nearby
+  result or action.
+- Keep material financial qualifications visible. Simplifying a page must not
+  hide a shortfall, missing input, stale source, exclusion, or assumption that
+  changes how a result should be understood.
+- Retain the semantic colors and warning icons in section 1. Color never
+  carries the meaning alone.
+
+## 6. Charts and metrics
+
+- Each chart or prominent metric answers a distinct user question. Use a
+  concise summary when a visualization adds little.
+- Keep units, timeframes, and material qualifications beside the result.
+  Distinguish actual values, forecasts, and temporary scenarios.
+- Essential information does not depend on hover or color. Tooltips and hover
+  labels do not cover chart text. A donut shows the inspected item in its
+  center instead of covering the chart with a floating tooltip.
+- Preserve a series' identity across related charts and lists. Do not invent
+  precision or intermediate values the application does not provide.
+
+## 7. Actions and states
+
+- When a view has an actionable purpose, give it one clearly dominant action
+  and keep other actions quieter. Do not manufacture an action for a
+  read-only view.
+- Keep screen-level actions predictably associated with the page heading or
+  primary result, and panel actions in the panel header. A contextual next
+  action may sit beside the result it addresses. Preserve that relationship
+  across widths, but allow controls to wrap or stack instead of forcing an
+  awkward phone title row.
+- Related buttons use the shared `buttonVariants` sizes, not hand-sized pills.
+  Repeated row actions align when that improves scanning.
+- A save, sync, and destructive action each says what happened. A destructive
+  action names the thing it removes and asks first.
+- Every view has an explicit loading, empty, and error state, plus a stale
+  state when data can be out of date. Empty copy says what is missing and
+  offers the action that fills it. An error says what failed and how to retry.
+  Stale data remains visible and says whether refresh is running or failed.
+
+## 8. Accessibility
+
+- Use semantic elements: `button`, `a`, `nav`, `main`, headings, `label`, and
+  lists. A clickable `div` is not a control.
+- Every control has an accessible name. A placeholder is not that name.
+  Icon-only actions still have a name.
+- Tab reaches every control. Enter or Space activates it. Escape closes the
+  top panel or popover while leaving the underlying screen in place. Focus
+  returns to the control that opened it.
+- Keep focus visible on the light canvas. Do not remove the outline without a
+  visible replacement.
+- Text, icons, and the accent remain readable on `#f3f2ee` and white. Meta text
+  is secondary information, not a required label.
+- Primary phone controls and tab items have a target of at least 44px.
+- Pair income, spending, transfer, warning, and error colors with text or an
+  icon.
+- Honor `prefers-reduced-motion`. Motion is not required to use a panel,
+  sheet, chart, or control.
+- A custom widget exposes its name, role, and value. A panel is a dialog. A
+  popover names itself. A tab exposes selection. A toggle uses `aria-pressed`
+  or `aria-expanded`. A switch uses `role="switch"` and `aria-checked`, with
+  On or Off beside the track.
+
+## 9. Decisions and UX verification
+
+- Make routine, reversible layout choices that follow these rules without
+  asking for approval.
+- Ask Zach when an unresolved choice materially changes the user workflow,
+  product behavior, scope, or adds a dependency. Offer concise options and a
+  recommendation. Spacing and ordinary component arrangement do not require
+  approval.
+- A review for a new screen or substantial UI change briefly records what the
+  user sees and can do first, what is secondary and how it is reached, how the
+  layout adapts on mobile, and which visual or interaction checks await Zach.
+- Zach remains the manual visual, usability, and end-to-end tester. Agents run
+  appropriate compilation, lint, formatting, and focused behavior checks for
+  implementation changes. A passing build does not establish visual
+  usability. Do not make automated browser QA or a large checklist mandatory
+  for every small change.

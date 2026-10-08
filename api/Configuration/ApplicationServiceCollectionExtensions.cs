@@ -29,6 +29,8 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IIncomeSourcesService, IncomeSourcesService>();
         services.AddScoped<IObligationsService, ObligationsService>();
         services.AddScoped<IDebtsService, DebtsService>();
+        services.AddScoped<ISavingsGoalsService, SavingsGoalsService>();
+        services.AddScoped<ILivingService, LivingService>();
         services.AddScoped<IPlanService, PlanService>();
         services.AddScoped<ICategoryTargetsService, CategoryTargetsService>();
         services.AddScoped<IAccountsService, AccountsService>();

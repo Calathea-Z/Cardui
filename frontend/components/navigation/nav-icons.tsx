@@ -4,6 +4,7 @@ import {
   Building2,
   CreditCard,
   LayoutDashboard,
+  PiggyBank,
   PieChart,
   Receipt,
   Route,
@@ -33,6 +34,8 @@ export function NavIcon({ href }: NavIconProps) {
       return <Receipt className={className} aria-hidden />;
     case "/debts":
       return <CreditCard className={className} aria-hidden />;
+    case "/savings":
+      return <PiggyBank className={className} aria-hidden />;
     case "/connections":
       return <Building2 className={className} aria-hidden />;
     case "/plan":

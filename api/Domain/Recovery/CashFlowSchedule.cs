@@ -268,7 +268,8 @@ public static class CashFlowSchedule
             CashFlowKind.Bill => 1,
             CashFlowKind.DebtPayment => 2,
             CashFlowKind.Savings => 3,
-            _ => 4
+            CashFlowKind.LivingSpending => 4,
+            _ => 5
         };
     }
 

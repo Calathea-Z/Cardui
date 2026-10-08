@@ -22,9 +22,38 @@ async function loadModule(fileName) {
   });
   const tempDir = path.resolve(".tmp-tests");
   await mkdir(tempDir, { recursive: true });
+  await writeMoneyDigits(tempDir);
   const compiledPath = path.join(tempDir, fileName.replace(/\.ts$/, ".mjs"));
-  await writeFile(compiledPath, output.outputText);
+  await writeFile(compiledPath, linkMoneyDigits(output.outputText));
   return import(pathToFileURL(compiledPath).href);
+}
+
+/**
+ * Writes the shared money reader next to a transpiled test module.
+ * The test file cannot resolve the app's `@/` import on its own.
+ */
+async function writeMoneyDigits(tempDir) {
+  const source = await readFile(
+    path.resolve("features/accounts/formatCurrency.ts"),
+    "utf8",
+  );
+  const output = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ES2022,
+      target: ts.ScriptTarget.ES2022,
+    },
+  });
+  await writeFile(path.join(tempDir, "formatCurrency.mjs"), output.outputText);
+}
+
+/**
+ * Points a transpiled module at the local money reader.
+ */
+function linkMoneyDigits(source) {
+  return source.replaceAll(
+    'from "@/features/accounts/formatCurrency"',
+    'from "./formatCurrency.mjs"',
+  );
 }
 
 const copy = await loadModule("categoryTargetCopy.ts");
@@ -161,6 +190,9 @@ test("a blank target is not zero and zero is kept", () => {
   assert.equal(form.readTargetAmount("12.50").amount, 12.5);
   assert.equal(form.readTargetAmount("12.501").ok, false);
   assert.equal(form.readTargetAmount("-1").ok, false);
+  assert.equal(form.readTargetAmount("30,000").amount, 30000);
+  assert.equal(form.readTargetAmount("30,00").ok, false);
+  assert.match(form.readTargetAmount("30,44").error, /30\.44/);
   assert.equal(form.targetToForm({ target: null, rollover: true }).amount, "");
   assert.equal(form.targetToForm({ target: 0, rollover: false }).amount, "0");
 });

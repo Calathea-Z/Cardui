@@ -22,6 +22,13 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 - On October 7, 2026, five reports that shared a number with another
   report on the same date took that date's next free number. Their
   contents did not change.
+- The next-chat prompt follows `.cursor/rules/handoff.mdc`. If that prompt
+  would skip an earlier roadmap item that is still not started, ask Zach
+  before writing it.
+
+## Rules and handoff
+
+- [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Awaiting review
 
 ## Phase 3 — Recovery calculations and forecasts
 

@@ -1,5 +1,5 @@
 ---
-description: After an approved increment, give a commit message and the next-chat prompt
+description: After an approved increment, give a commit message and the next-chat prompt. Ask before a prompt that skips open roadmap work.
 alwaysApply: true
 ---
 
@@ -18,6 +18,23 @@ in the same reply. Do not start the next increment in that reply.
    `docs/README.md`, the latest review, `docs/reviews/README.md`, and the
    pending decision or next roadmap item. A new chat should be able to start
    from those files alone.
+
+Before writing that prompt, compare the item it would name with
+`docs/roadmap.md`. The plan is out of order when that item would skip an
+earlier item in the same phase, or an earlier phase item the roadmap still
+lists as not started. An inserted section the roadmap places before that
+earlier item is in order. Skipping past it is not.
+
+When it is out of order, stop before the prompt. Name the earlier items
+that are still open and the later item the prompt would start. Ask Zach
+whether he knows the plan is out of order and wants to continue with that
+later work. Ask again before every later prompt that would skip those
+items. A yes on one prompt does not cover the next handoff. Write the
+prompt only after he says to continue. If he says no, the prompt names
+the earliest open item instead.
+
+On October 8, 2026, Phase 2 items 7 and 8 were still not started when a
+prompt said to start Phase 3. That prompt should have waited for a yes.
 
 Stay in the current chat if the increment is unfinished or the reasoning is
 not in the repository yet.

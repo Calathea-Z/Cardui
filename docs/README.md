@@ -11,25 +11,19 @@ history. They do not say what is next.
 
 **Now**
 
-- The extra-payment scenario is approved in
+- The handoff must ask before a next-chat prompt that skips an earlier
+  roadmap item still marked not started. Awaiting review in
+  [`reviews/2026-10-08-001-handoff-roadmap-order.md`](reviews/2026-10-08-001-handoff-roadmap-order.md).
+  The extra-payment scenario is approved in
   [`reviews/2026-10-07-016-plan-extra-payment.md`](reviews/2026-10-07-016-plan-extra-payment.md).
-  Blank or zero stays the minimums-only plan. A positive amount replaces
-  the payoff path and the cash outlook, and leaving Plan clears it. Zach
-  found the field layout poor and asked to leave it. The Plan screen items
-  are approved in
-  [`reviews/2026-10-07-014-plan-recovery.md`](reviews/2026-10-07-014-plan-recovery.md)
-  and
-  [`reviews/2026-10-07-015-plan-cash-outlook.md`](reviews/2026-10-07-015-plan-cash-outlook.md).
-  Design: [`design/plan-page.md`](design/plan-page.md).
 
 **Next**
 
-1. The rest of Phase 3 item 6, one scenario at a time. Still open: income
-  loss, bonuses and windfalls, spending changes, and protected-cash
-  targets. The next chat agrees on which one to build before writing it.
-  None of those are saved until a later choice. Item 10, saved plans, has
-  not started. The extra field layout and detail panel keyboard focus stay
-  tracked and are not scheduled.
+1. Phase 2 item 7, after this rule is approved: an operating cash reserve,
+  an emergency goal, and sinking funds. Phase 2 item 8 waits until item 7
+  is approved. The rest of Phase 3 item 6 stays after those. The extra
+  field layout and detail panel keyboard focus stay tracked and are not
+  scheduled.
 
 **Tracked, not scheduled**
 

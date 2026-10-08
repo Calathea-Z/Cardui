@@ -36,8 +36,14 @@ When Zach approves an increment, or asks for the wrap-up, give a commit
 message and a paste-ready prompt for the next chat. The prompt should name
 this file, `docs/README.md`, the latest review, `docs/reviews/README.md`,
 and the pending decision or next roadmap item. Do not commit unless asked.
-Do not start the next increment in that reply. See
-`.cursor/rules/handoff.mdc`.
+Do not start the next increment in that reply.
+
+Before that prompt, compare the next item with `docs/roadmap.md`. If it
+would skip an earlier roadmap item that is still not started, ask Zach
+whether he knows and wants to continue out of order. Ask again before
+every later prompt that would skip those items. A previous yes does not
+cover the next prompt. Write the prompt only after he says to continue.
+See `.cursor/rules/handoff.mdc`.
 
 ## Security
 

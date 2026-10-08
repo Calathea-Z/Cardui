@@ -35,7 +35,7 @@ Leave these out: a second brand color that fills the room, a display face used o
 
 ### The map
 
-Home, Accounts, and Activity are the objects. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
+Plan, Home, Accounts, and Activity are the objects. Plan is first. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
 
 The dark canvas is gone. One light theme, and no second theme.
 
@@ -101,17 +101,18 @@ This-month keeps the three numbers Tortoise already calculates (income, spending
 
 ## 4. Information architecture
 
-Three primary destinations. Everything else is a setting.
+Four primary destinations. Plan is first. Everything else is a setting.
 
 | Label | Path | Job |
 | --- | --- | --- |
+| Plan | `/plan` | When each payoff removes a monthly obligation, and the breathing room that follows. |
 | Home | `/` | Where the household stands. Net worth chart, this month, recent activity. |
 | Accounts | `/accounts` | Balances, the balance chart, the grouped list. |
 | Activity | `/activity` | The ledger. Search, filters, the row, the detail. |
 
 The address matches the label.
 
-**Targets** (`/targets`) is a setting in the account menu. It is not a fourth tab. Where a future Plan screen goes is an open decision in `docs/README.md`.
+**Targets** (`/targets`) is a setting in the account menu. It is not a primary destination.
 
 **Settings, in the account menu, on both widths:**
 
@@ -125,7 +126,7 @@ The address matches the label.
 | Connections | `/connections` | How accounts get linked. |
 | Household | `/household` | Planning currency, time zone, contributors. Already the right kind of page. It is just hidden. |
 
-Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity.
+Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Plan, Home, Accounts, Activity.
 
 Primary pages get a title row and no back button. Back is for a nested flow, not for Home. Page actions (Add on Accounts, Import and Add on Activity) sit in that title row on desktop and in the same row on the phone, wrapping under the title. They stop teleporting into the phone header.
 
@@ -143,7 +144,7 @@ A PWA would not fix it. There is no web manifest and no service worker (the only
 
 - One component tree. `md` remains the shell breakpoint.
 - From 768px up: light sidebar, title row, Home in two columns from 1024px.
-- Under 768px: the same three pages, stacked, with a three-item tab bar and safe-area padding that already exists.
+- Under 768px: the same primary pages, stacked, with the tab bar and safe-area padding that already exists.
 - Same routes, same hooks, same formatters.
 
 **Later**

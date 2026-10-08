@@ -20,8 +20,8 @@ sheet under it.
 ## Consequences
 
 A new screen is a primary destination or a setting, not a fourth tab.
-Where Plan goes when it has a real screen is an open decision in
-`docs/README.md`.
+On October 7, 2026, Plan became the first primary destination. See
+[0007](0007-plan-first-in-main-nav.md).
 
 Source: `docs/design/ui-direction.md`, `.cursor/rules/ui-governance.mdc`,
 `docs/reviews/2026-10-05-018-ui-governance.md`.

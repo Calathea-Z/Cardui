@@ -275,10 +275,28 @@ public static class PayoffRolloverProjection
                 run.DebtId,
                 run.Debt.Terms.Name,
                 run.PaidOffOn!.Value,
+                RemovalDate(run),
                 run.Opening.Minimum,
                 run.OwnExtra,
                 AccountLedger.Round(run.Opening.Minimum + run.OwnExtra)))
             .ToList();
+    }
+
+    /// <summary>
+    /// The next due date after the payoff, counted from the first due date.
+    /// That is when the minimum is no longer paid. The payoff month still pays the debt.
+    /// Null when the date cannot be represented or is after the latest date the debt rules allow.
+    /// </summary>
+    private static DateOnly? RemovalDate(PayoffRolloverRun run)
+    {
+        if (run.PaymentsUntilPaidOff is not int paid
+            || !TryDueDate(run.Opening.DueDate, paid, out var starts)
+            || starts > DebtRules.LatestDate)
+        {
+            return null;
+        }
+
+        return starts;
     }
 
     /// <summary>

@@ -8,8 +8,8 @@ export type NavItem = {
 
 /**
  * Primary destinations in sidebar and tab-bar order.
- * Home, Accounts, and Activity are the daily jobs. Income, Bills, Debts, and
- * Targets stay routes under settings, not extra primary items.
+ * Plan is first. Home, Accounts, and Activity are the daily jobs. Income,
+ * Bills, Debts, and Targets stay routes under settings.
  */
 export const navItems: NavItem[] = [
   {
@@ -23,6 +23,10 @@ export const navItems: NavItem[] = [
   {
     label: "Activity",
     href: "/activity",
+  },
+  {
+    label: "Plan",
+    href: "/plan",
   },
 ];
 
@@ -64,7 +68,7 @@ export const settingsItems: NavItem[] = [
 
 /**
  * Phone tab-bar destinations.
- * The list is the three primary items.
+ * The list is the primary items, with Plan first.
  */
 export const bottomNavItems = navItems;
 

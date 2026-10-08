@@ -11,14 +11,16 @@ history. They do not say what is next.
 
 **Now**
 
-- Phase 3 item 5 in [`roadmap.md`](roadmap.md): track when each payoff removes
-  a monthly obligation and how much recurring breathing room it creates.
-  Item 4 is approved in
-  [`reviews/2026-10-07-011-payoff-rollover.md`](reviews/2026-10-07-011-payoff-rollover.md).
+- Phase 3 item 6 in [`roadmap.md`](roadmap.md): reproducible scenarios for
+  changed extra payments, income loss, bonuses and windfalls, spending
+  changes, and protected-cash targets. Item 5 is approved in
+  [`reviews/2026-10-07-012-cash-flow-recovery.md`](reviews/2026-10-07-012-cash-flow-recovery.md).
+  Plan is first in the main nav, approved in
+  [`reviews/2026-10-07-013-plan-nav.md`](reviews/2026-10-07-013-plan-nav.md).
 
 **Next**
 
-1. Phase 3 item 6, after item 5. Detail panel keyboard focus stays tracked
+1. Phase 3 item 7, after item 6. Detail panel keyboard focus stays tracked
   and is not scheduled.
 
 **Tracked, not scheduled**
@@ -28,9 +30,6 @@ history. They do not say what is next.
 
 **Open decisions**
 
-- Where a future Plan screen goes. Targets are `/targets`.
-  `.cursor/rules/ui-governance.mdc` keeps three primary destinations and no
-  fourth tab until Zach decides otherwise.
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
@@ -56,6 +55,7 @@ Decision records:
 - [0004. A debt stays separate from a connected account](decisions/0004-debt-separate-from-connected-account.md)
 - [0005. One light shell and three primary destinations](decisions/0005-light-shell-and-three-destinations.md)
 - [0006. One-shot sync worker on a cron schedule](decisions/0006-one-shot-cron-worker.md)
+- [0007. Plan is first in the main nav](decisions/0007-plan-first-in-main-nav.md)
 
 Setup is in the root [`README.md`](../README.md). Agent rules are in the
 root [`AGENTS.md`](../AGENTS.md) and `.cursor/rules/`.

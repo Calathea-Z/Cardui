@@ -5,7 +5,7 @@ import { navItems } from "./nav-items";
 
 /**
  * Side navigation for wide screens.
- * Shows the brand, the three primary destinations, and the account menu, and stays hidden below the md breakpoint.
+ * Shows the brand, the primary destinations with Plan first, and the account menu, and stays hidden below the md breakpoint.
  */
 export function DesktopSidebar() {
   return (

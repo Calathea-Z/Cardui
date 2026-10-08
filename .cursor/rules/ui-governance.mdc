@@ -11,8 +11,8 @@ Use this shell for every new screen.
 - Inter, loaded with `next/font/google`, is the only product face for titles, navigation, and money. Money uses `formatCurrency` and `tabular-nums`.
 - Use the tokens already in `frontend/app/globals.css` (`--background`, `--card`, `--foreground`, `--muted`, `--border`, `--primary`, `--success`, `--destructive`, `--transfer`, and the chart tokens). Do not invent a second palette.
 - `--primary` is a mark: the active destination, a link, or the main chart stroke. It does not fill the page. A category color appears only on that category.
-- Three primary destinations, in order: Home `/`, Accounts `/accounts`, Activity `/activity`. The phone tab bar is those three.
-- Settings live in the account menu on both widths: Income, Bills, Debts, Targets, Categories, Connections, and Household. Targets are `/targets`. Connections are `/connections`. A new screen is either one of those primary destinations or a setting in that menu. It does not become a fourth tab or a second navigation.
+- Four primary destinations, in order: Plan `/plan`, Home `/`, Accounts `/accounts`, Activity `/activity`. Plan is first. The phone tab bar is those four.
+- Settings live in the account menu on both widths: Income, Bills, Debts, Targets, Categories, Connections, and Household. Targets are `/targets`. Connections are `/connections`. A new screen is either one of those primary destinations or a setting in that menu. It does not become a fifth tab or a second navigation.
 - The shell breaks at 768px (`md`). From there up, a left sidebar sits beside the page. Under it, the same screens stack, with the tab bar and the existing safe-area padding. One component tree.
 - A record or a form opens as a right-hand panel from 768px up and as a full-screen sheet under it. A top-level surface closes with the close icon on desktop and the back control on a phone. A nested step uses back at both widths.
 - A choice opens as a popover from 768px up and as a bottom sheet under it. Choice lists use `Select`. Dates use `DateField`.

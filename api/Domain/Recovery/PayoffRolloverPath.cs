@@ -5,6 +5,7 @@ namespace Cardui.Api.Domain.Recovery;
 /// DebtIds is the order extra follows. TotalInterest is the sum of each debt's interest.
 /// PaidOffOn is the last due date that clears a calculable debt, and it is null when any calculable debt is still open.
 /// FreedPayments lists each debt whose balance reached zero, including the last one, which has no next debt to receive it.
+/// StartsOn on each payment is the next due date, when that minimum is no longer paid.
 /// CashReclaimed is freed cash kept for savings or spending while a debt was still open. CashRolled is freed cash applied to a later debt.
 /// InterestDifference is this path's interest minus rollover. It is zero on the rollover path.
 /// </summary>

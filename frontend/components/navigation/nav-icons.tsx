@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   PieChart,
   Receipt,
+  Route,
   Tags,
   Wallet,
 } from "lucide-react";
@@ -34,6 +35,8 @@ export function NavIcon({ href }: NavIconProps) {
       return <CreditCard className={className} aria-hidden />;
     case "/connections":
       return <Building2 className={className} aria-hidden />;
+    case "/plan":
+      return <Route className={className} aria-hidden />;
     case "/targets":
       return <PieChart className={className} aria-hidden />;
     case "/categories":

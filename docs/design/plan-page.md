@@ -1,6 +1,6 @@
 # Plan page
 
-Status: Approved. Item 1 is built and awaiting review. Item 2 follows it.
+Status: Implemented. Items 1 and 2 are approved.
 Date: October 7, 2026
 Updated: 2026-10-07
 
@@ -211,11 +211,42 @@ Each item is one review.
   stacked bands over one line per debt.
 - The cash outlook uses typical pay, with low pay under a disclosure.
 
-## To settle when item 2 starts
+## Settled when item 2 started
 
-- A stored due date before today. The forecast does not replay it. The
-  rollover projection starts from the stored date. The cash outlook and
-  the payoff path have to agree on that date before they share a screen.
+- A stored due date before today. Zach chose on October 7, 2026: the
+  payoff path and the cash outlook both start at the first monthly date
+  on or after today, stepped from the stored date, so January 31 still
+  goes to February 28 and then March 31. Past dates are not replayed, and
+  the balance stays today's balance until that payment. Nothing moves a
+  stored due date forward, so every date goes stale a month after entry;
+  for that reason there is no warning. How this is calculated has a Due
+  dates rule.
+
+### Cash outlook layout
+
+Zach chose on October 7, 2026:
+
+- One Cash outlook section after the payoff order, before How this is
+  calculated. The debt answer stays first.
+- The line under its title names the starting cash and, when the switch
+  shows, what happens to a freed payment.
+- One sentence about the next 18 months: the first short day and when
+  cash recovers, or that it stays above zero, then the lowest point. A
+  shortfall is a `--warning` callout.
+- A 30-day step chart of cash at the end of each day, with a dashed zero
+  line and a dot on the lowest day. Nothing is written inside the plot,
+  so the tooltip covers no text. The tooltip names the day's income,
+  bills, and debt payments with a plus or a minus.
+- Three cards for 6, 12, and 18 months: ending cash, the lowest point,
+  and the minimums still due. A card that goes short gets the warning
+  border and icon.
+- Notes: payments the plan can't project yet are left out for the debts
+  Finish your plan lists, as a warning; no bills; another currency.
+- "If pay comes in low" is a disclosure with the same sentence, chart,
+  and cards at low pay. Low pay uses each source's low amount where
+  recorded and leaves out raises. Without any low amount it says so.
+- Without income, the section asks for an income source and links to
+  Income.
 
 ## Out of scope
 

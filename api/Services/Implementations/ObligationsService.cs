@@ -1,6 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Domain.Obligations;
+using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Obligations;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;
@@ -32,6 +33,26 @@ public class ObligationsService : IObligationsService
         CancellationToken cancellationToken = default)
     {
         return await LoadObligationsAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<DatedBill>> GetOutlookBillsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        return await _dbContext.Obligations
+            .AsNoTracking()
+            .Where(obligation => obligation.HouseholdId == householdId)
+            .OrderBy(obligation => obligation.Name)
+            .ThenBy(obligation => obligation.Id)
+            .Select(obligation => new DatedBill(
+                obligation.Id,
+                obligation.Name,
+                obligation.Currency,
+                obligation.Amount,
+                obligation.Cadence,
+                obligation.NextDueDate))
+            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />

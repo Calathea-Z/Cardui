@@ -86,6 +86,87 @@ function rolloverPath(overrides = {}) {
   };
 }
 
+function cashWindow(from, through, endingCash, lowestCash, lowestCashOn) {
+  return {
+    from,
+    through,
+    endingCash,
+    lowestCash,
+    lowestCashOn,
+    cashShortfall: lowestCash < 0,
+  };
+}
+
+/**
+ * Three days of cash from Oct 7: payday, then rent, then nothing.
+ * The 6-month horizon goes short; 12 and 18 recover.
+ */
+function cashForecast(overrides = {}) {
+  return {
+    days: [
+      { date: "2026-10-07", cash: 900, income: 0, bills: 0, debtPayments: 100 },
+      { date: "2026-10-08", cash: 300, income: 0, bills: 600, debtPayments: 0 },
+      { date: "2026-10-09", cash: 300, income: 0, bills: 0, debtPayments: 0 },
+    ],
+    dayView: cashWindow("2026-10-07", "2026-11-05", 300, 300, "2026-10-08"),
+    horizons: [
+      {
+        months: 6,
+        window: cashWindow(
+          "2026-10-07",
+          "2027-04-06",
+          120,
+          -45.5,
+          "2027-03-01",
+        ),
+        minimumObligation: 45,
+        unknownMinimumCount: 1,
+      },
+      {
+        months: 12,
+        window: cashWindow(
+          "2026-10-07",
+          "2027-10-06",
+          800,
+          -45.5,
+          "2027-03-01",
+        ),
+        minimumObligation: 0,
+        unknownMinimumCount: 0,
+      },
+      {
+        months: 18,
+        window: cashWindow(
+          "2026-10-07",
+          "2028-04-06",
+          1500,
+          -45.5,
+          "2027-03-01",
+        ),
+        minimumObligation: null,
+        unknownMinimumCount: 2,
+      },
+    ],
+    shortfallOn: "2027-02-27",
+    recoveredOn: "2027-03-05",
+    ...overrides,
+  };
+}
+
+function cashOutlook(overrides = {}) {
+  const path = { typical: cashForecast(), lowPay: null };
+  return {
+    asOf: "2026-10-07",
+    startingCash: 1000,
+    hasIncome: true,
+    hasBills: true,
+    excludedCurrencies: [],
+    rollover: path,
+    reclaimAll: path,
+    ...overrides,
+  };
+}
+
 function report(pathValue, overrides = {}) {
   return {
     planningCurrency: "USD",
@@ -94,6 +175,7 @@ function report(pathValue, overrides = {}) {
     excludedCurrencies: [],
     missingBalance: [],
     hasDebts: true,
+    cashOutlook: cashOutlook(),
     ...overrides,
   };
 }
@@ -206,11 +288,11 @@ test("a removal date outside the projection is not stepped", () => {
 
 test("month ticks stay at six or fewer and keep both ends", () => {
   const rows = Array.from({ length: 25 }, (_, index) => ({ timestamp: index }));
-  const ticks = series.monthTicks(rows);
+  const ticks = series.evenTicks(rows);
   assert.equal(ticks.length, 6);
   assert.equal(ticks[0], 0);
   assert.equal(ticks[5], 24);
-  assert.deepEqual(series.monthTicks(rows.slice(0, 3)), [0, 1, 2]);
+  assert.deepEqual(series.evenTicks(rows.slice(0, 3)), [0, 1, 2]);
   assert.equal(series.formatMonthTick(utc(2027, 1)), "Jan 27");
 });
 
@@ -431,6 +513,148 @@ test("how this is calculated is one short line per rule and follows the switch",
   );
   for (const rule of [...rollover, ...kept]) {
     assert.ok(rule.detail.length <= 140, `${rule.term} stays short`);
+  }
+});
+
+test("the 30-day cash chart has one row per day at UTC midnight and marks the lowest day", () => {
+  const { rows, lowest } = series.cashChart(cashForecast());
+  assert.deepEqual(
+    rows.map((row) => [row.timestamp, row.cash, row.bills, row.debtPayments]),
+    [
+      [Date.UTC(2026, 9, 7), 900, 0, 100],
+      [Date.UTC(2026, 9, 8), 300, 600, 0],
+      [Date.UTC(2026, 9, 9), 300, 0, 0],
+    ],
+  );
+  assert.equal(lowest.timestamp, Date.UTC(2026, 9, 8));
+  assert.equal(series.formatDayTick(Date.UTC(2026, 9, 7)), "Oct 7");
+  assert.equal(series.formatDayLabel(Date.UTC(2026, 9, 7)), "Wed, Oct 7");
+
+  const empty = series.cashChart(cashForecast({ days: [] }));
+  assert.deepEqual(empty, { rows: [], lowest: null });
+});
+
+test("the cash summary names a shortfall, its recovery, and the lowest point over 18 months", () => {
+  const recovered = copy.cashOutlookSummary(cashForecast(), money, date);
+  assert.equal(recovered.warning, true);
+  assert.equal(
+    recovered.sentence,
+    "Cash runs short on 2027-02-27 and is back above zero on 2027-03-05. Lowest point: $-45.50 on 2027-03-01.",
+  );
+
+  const stays = copy.cashOutlookSummary(
+    cashForecast({ recoveredOn: null }),
+    money,
+    date,
+  );
+  assert.equal(
+    stays.sentence,
+    "Cash runs short on 2027-02-27 and stays short through 2028-04-06. Lowest point: $-45.50 on 2027-03-01.",
+  );
+
+  const forecast = cashForecast({ shortfallOn: null, recoveredOn: null });
+  forecast.horizons[2].window = cashWindow(
+    "2026-10-07",
+    "2028-04-06",
+    1500,
+    120,
+    "2027-03-01",
+  );
+  const fine = copy.cashOutlookSummary(forecast, money, date);
+  assert.equal(fine.warning, false);
+  assert.equal(
+    fine.sentence,
+    "Cash stays above zero through 2028-04-06. Lowest point: $120.00 on 2027-03-01.",
+  );
+});
+
+test("each horizon card names ending cash, the lowest point, and the minimums still due", () => {
+  const cards = copy.cashHorizonCards(cashForecast(), money, date);
+  assert.deepEqual(
+    cards.map((card) => [card.title, card.through, card.ending, card.warning]),
+    [
+      ["6 months", "Through 2027-04-06", "$120.00", true],
+      ["12 months", "Through 2027-10-06", "$800.00", true],
+      ["18 months", "Through 2028-04-06", "$1500.00", true],
+    ],
+  );
+  assert.equal(cards[0].lowest, "$-45.50 on 2027-03-01");
+  assert.deepEqual(
+    cards.map((card) => card.minimums),
+    ["$45.00 a month, 1 not included", "None", "Unknown"],
+  );
+});
+
+test("the cash outlook line says where cash starts and follows the switch", () => {
+  assert.equal(
+    copy.cashOutlookDescription("Rollover", false, 1000, money),
+    "Starts from $1000.00 in Cash on Accounts today.",
+  );
+  assert.match(
+    copy.cashOutlookDescription("Rollover", true, 1000, money),
+    /moves to the next debt\.$/,
+  );
+  assert.match(
+    copy.cashOutlookDescription("ReclaimAll", true, 1000, money),
+    /comes back as cash\.$/,
+  );
+});
+
+test("cash outlook notes name debts whose payments are left out, then missing bills, then currencies", () => {
+  const path = rolloverPath({
+    debts: [
+      debt("rei", "REI Mastercard", { stop: "DoesNotPayDown" }),
+      debt("paypal", "PayPal Credit", { stop: "DueDateUnknown" }),
+      debt("long", "Mortgage", { stop: "HorizonReached" }),
+      debt("done", "Done"),
+    ],
+  });
+  const notes = copy.cashOutlookNotes(
+    report(path, {
+      missingBalance: [{ debtId: "blank", name: "Blank card" }],
+      cashOutlook: cashOutlook({
+        hasBills: false,
+        excludedCurrencies: ["CAD"],
+      }),
+    }),
+    path,
+  );
+
+  assert.deepEqual(
+    notes.map((note) => [note.key, note.warning]),
+    [
+      ["left-out", true],
+      ["no-bills", false],
+      ["currency", false],
+    ],
+  );
+  assert.equal(
+    notes[0].text,
+    "Payments the plan can't project yet are left out for REI Mastercard, PayPal Credit, and Blank card, so cash may be lower than shown. Finish your plan to include them.",
+  );
+  assert.equal(
+    notes[2].text,
+    "Amounts in CAD are left out. The outlook uses USD.",
+  );
+  assert.deepEqual(
+    copy.cashOutlookNotes(report(rolloverPath()), rolloverPath()),
+    [],
+  );
+});
+
+test("the cash chart label says the dates, where cash ends, and the lowest day", () => {
+  assert.equal(
+    copy.cashChartLabel(cashForecast(), money, date),
+    "Cash at the end of each day from 2026-10-07 to 2026-11-05, ending at $300.00. Lowest is $300.00 on 2026-10-08.",
+  );
+});
+
+test("how this is calculated names the due date, cash outlook, and low pay rules", () => {
+  const terms = copy
+    .planAssumptions("Rollover", "USD")
+    .map((rule) => rule.term);
+  for (const term of ["Due dates", "Cash outlook", "Low pay"]) {
+    assert.ok(terms.includes(term), term);
   }
 });
 

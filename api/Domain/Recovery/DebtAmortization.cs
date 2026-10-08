@@ -46,7 +46,7 @@ public static class DebtAmortization
         DateOnly? through,
         DateOnly? from)
     {
-        var firstIndex = FirstIndexOnOrAfter(opening.DueDate, from);
+        var firstIndex = DebtDueDates.FirstIndexOnOrAfter(opening.DueDate, from);
         if (firstIndex is not int start)
         {
             return Finish(input, [], opening.Balance, DebtScheduleStop.HorizonReached);
@@ -57,7 +57,7 @@ public static class DebtAmortization
         var extra = input.ExtraPayment <= 0 ? 0 : AccountLedger.Round(input.ExtraPayment);
         for (var step = 0; step < DebtRules.MaxRemainingTermMonths; step++)
         {
-            if (!TryDueDate(opening.DueDate, start + step, out var due))
+            if (!DebtDueDates.TryStep(opening.DueDate, start + step, out var due))
             {
                 return Finish(input, periods, balance, DebtScheduleStop.HorizonReached);
             }
@@ -99,52 +99,6 @@ public static class DebtAmortization
         }
 
         return Finish(input, periods, balance, DebtScheduleStop.HorizonReached);
-    }
-
-    /// <summary>
-    /// The first month index whose due date is on or after from.
-    /// Null when the 600 month cap from the original due date still falls before from.
-    /// A null from starts at the first due date.
-    /// </summary>
-    private static int? FirstIndexOnOrAfter(DateOnly firstDue, DateOnly? from)
-    {
-        if (from is not DateOnly start || firstDue >= start)
-        {
-            return 0;
-        }
-
-        for (var index = 1; index < DebtRules.MaxRemainingTermMonths; index++)
-        {
-            if (!TryDueDate(firstDue, index, out var due))
-            {
-                return null;
-            }
-
-            if (due >= start)
-            {
-                return index;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// The due date that many months after the first, counted from the first date each time.
-    /// A month that cannot be represented ends the projection.
-    /// </summary>
-    private static bool TryDueDate(DateOnly firstDue, int monthsLater, out DateOnly due)
-    {
-        try
-        {
-            due = firstDue.AddMonths(monthsLater);
-            return true;
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            due = default;
-            return false;
-        }
     }
 
     /// <summary>

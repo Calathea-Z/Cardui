@@ -1,3 +1,4 @@
+using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Obligations;
 
 namespace Cardui.Api.Services.Interfaces;
@@ -9,6 +10,13 @@ public interface IObligationsService
     /// Each stored amount is one payment. A monthly equivalent is not returned.
     /// </summary>
     Task<IReadOnlyList<ObligationDto>> GetObligationsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads the household's bills for Plan's cash outlook: amount, cadence,
+    /// and next due date. Each amount is one payment.
+    /// </summary>
+    Task<IReadOnlyList<DatedBill>> GetOutlookBillsAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -14,11 +14,15 @@ public static class CashForecast
     /// Cash changes with income, bills, and debt payments. A savings contribution adds to the reserve and leaves cash as it is.
     /// Available cash is cash minus the reserve. A shortfall stays negative.
     /// Debt payments before the start are not replayed. Another currency is left out.
+    /// A schedule given for a debt replaces that debt's own amortization, so a payoff path can roll a freed payment
+    /// into another debt. Those schedules must start on or after AsOf. A debt with no schedule pays its own minimum and extra.
     /// </summary>
-    public static CashForecastReport Project(CashForecastInput input)
+    public static CashForecastReport Project(
+        CashForecastInput input,
+        IReadOnlyList<DebtSchedule>? debtSchedules = null)
     {
         var through = WalkThrough(input.AsOf);
-        var paths = ProjectDebts(input, through);
+        var paths = ProjectDebts(input, through, debtSchedules);
         var events = Events(input, paths, through);
         var walked = Walk(input, events, through);
         var days = FirstDays(walked);
@@ -32,7 +36,7 @@ public static class CashForecast
             Horizons(input.AsOf, walked, paths),
             Milestones(walked, paths),
             excluded,
-            Assumptions(input, excluded));
+            Assumptions(input, excluded, debtSchedules is not null));
     }
 
     #region Private Methods
@@ -90,11 +94,17 @@ public static class CashForecast
     }
 
     /// <summary>
-    /// Projects each debt in the planning currency from the forecast start through the walk.
-    /// A debt in another currency is left out.
+    /// Pairs each debt in the planning currency with its schedule from the forecast start through the walk.
+    /// A given schedule is used as it is. Otherwise the debt is amortized on its own. A debt in another currency is left out.
     /// </summary>
-    private static List<ForecastDebtPath> ProjectDebts(CashForecastInput input, DateOnly through)
+    private static List<ForecastDebtPath> ProjectDebts(
+        CashForecastInput input,
+        DateOnly through,
+        IReadOnlyList<DebtSchedule>? debtSchedules)
     {
+        var given = (debtSchedules ?? [])
+            .GroupBy(schedule => schedule.DebtId)
+            .ToDictionary(group => group.Key, group => group.First());
         var paths = new List<ForecastDebtPath>();
         foreach (var debt in input.Debts)
         {
@@ -105,7 +115,8 @@ public static class CashForecast
 
             paths.Add(new ForecastDebtPath(
                 debt,
-                DebtAmortization.Project(debt, through, input.AsOf)));
+                given.GetValueOrDefault(debt.DebtId)
+                    ?? DebtAmortization.Project(debt, through, input.AsOf)));
         }
 
         return paths;
@@ -601,16 +612,19 @@ public static class CashForecast
 
     /// <summary>
     /// The interest, payment, income, reserve, and currency rules this result used.
-    /// The income sentence names the basis the caller supplied.
+    /// The income sentence names the basis the caller supplied. The payment sentence says whether a payoff path was followed.
     /// </summary>
     private static IReadOnlyList<string> Assumptions(
         CashForecastInput input,
-        IReadOnlyList<string> excluded)
+        IReadOnlyList<string> excluded,
+        bool followsPath)
     {
         var assumptions = new List<string>
         {
             "Interest is one month of simple interest on the balance at the start of the period, rounded to cents away from zero. It is not an average daily balance.",
-            "A debt payment is the stored minimum, or the level payment when an installment minimum is blank, plus extra recorded on that debt. Extra stays on that debt. A freed minimum is not rolled onto another debt. A payment that leaves the balance the same or higher stops that debt's schedule, and the higher balance stays visible.",
+            followsPath
+                ? "A debt payment is what the payoff path given to this forecast pays on that date, including a freed payment rolled into it. A payment that leaves the balance the same or higher stops that debt's schedule, and the higher balance stays visible."
+                : "A debt payment is the stored minimum, or the level payment when an installment minimum is blank, plus extra recorded on that debt. Extra stays on that debt. A freed minimum is not rolled onto another debt. A payment that leaves the balance the same or higher stops that debt's schedule, and the higher balance stays visible.",
             "Income and bills stay on their dates. A repeating payment is not rewritten as a monthly average. A raise replaces the payment on and after its date.",
             BasisSentence(input.IncomeBasis),
             "A debt due date before the forecast start is not replayed. The next payment is the first monthly date on or after the start, and the balance stays the balance given until then.",

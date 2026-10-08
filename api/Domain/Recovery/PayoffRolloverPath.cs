@@ -8,6 +8,7 @@ namespace Cardui.Api.Domain.Recovery;
 /// StartsOn on each payment is the next due date, when that minimum is no longer paid.
 /// BalancePoints holds each debt's balance after every modeled payment, by due date and then by DebtIds order.
 /// A debt that could not be calculated has no points.
+/// Schedules holds each debt's payments on this path in DebtIds order, including rolled cash, so a cash forecast can follow it.
 /// CashReclaimed is freed cash kept for savings or spending while a debt was still open. CashRolled is freed cash applied to a later debt.
 /// InterestDifference is this path's interest minus rollover. It is zero on the rollover path.
 /// </summary>
@@ -19,6 +20,7 @@ public sealed record PayoffRolloverPath(
     IReadOnlyList<PayoffDebtOutcome> Debts,
     IReadOnlyList<PayoffFreedPayment> FreedPayments,
     IReadOnlyList<PayoffBalancePoint> BalancePoints,
+    IReadOnlyList<DebtSchedule> Schedules,
     decimal CashReclaimed,
     decimal CashRolled,
     decimal InterestDifference,

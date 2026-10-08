@@ -8,9 +8,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { formatCalendarDate } from "@/features/debts/debtDisplay";
-import type { PayoffRolloverKind, PlanRecoveryDto } from "@/lib/api/types";
+import type {
+  PayoffRolloverKind,
+  PlanCashForecastDto,
+  PlanRecoveryDto,
+} from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { PlanBalanceChart } from "./PlanBalanceChart";
+import { PlanCashOutlook, type PlanCashForecastView } from "./PlanCashOutlook";
 import { PlanFinishList } from "./PlanFinishList";
 import { PlanObligationChart } from "./PlanObligationChart";
 import { PlanOwedChart } from "./PlanOwedChart";
@@ -18,12 +23,18 @@ import { PlanPayoffOrder } from "./PlanPayoffOrder";
 import { PlanSummary } from "./PlanSummary";
 import {
   balanceChart,
+  cashChart,
   debtColors,
   obligationChart,
   owedShares,
   payoffOrder,
 } from "./planChartSeries";
 import {
+  cashChartLabel,
+  cashHorizonCards,
+  cashOutlookDescription,
+  cashOutlookNotes,
+  cashOutlookSummary,
   finishPlanItems,
   planAssumptions,
   planDescription,
@@ -41,6 +52,7 @@ type PlanPageClientProps = {
  * What you owe today is always shown. The title-row switch picks Rollover or Keep freed payments, and the summary, Finish your plan,
  * both payoff charts, and the payoff order follow it. Until a debt can be paid off, the switch and the payoff charts are hidden,
  * because both paths would be the same. A failed load keeps the error above the page. No debts asks for one on Debts.
+ * The cash outlook follows the same path, so Rollover keeps a freed payment in debt payments and Keep freed payments returns it to cash.
  */
 export function PlanPageClient({ report, failed }: PlanPageClientProps) {
   const [kind, setKind] = useState<PayoffRolloverKind>("Rollover");
@@ -48,8 +60,11 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
   const [pinnedDebtId, setPinnedDebtId] = useState<string | null>(null);
   const showPlan = !failed && report.hasDebts;
   const hasPayoff = report.rollover.steps.length > 0;
-  const path =
-    kind === "Rollover" || !hasPayoff ? report.rollover : report.reclaimAll;
+  const onRollover = kind === "Rollover" || !hasPayoff;
+  const path = onRollover ? report.rollover : report.reclaimAll;
+  const outlook = onRollover
+    ? report.cashOutlook.rollover
+    : report.cashOutlook.reclaimAll;
   const currency = report.planningCurrency;
 
   const view = useMemo(() => {
@@ -57,6 +72,17 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
     const money = (amount: number) => formatCurrency(amount, currency);
     const finish = finishPlanItems(report, path, money);
     return {
+      cash: {
+        description: cashOutlookDescription(
+          kind,
+          hasPayoff,
+          report.cashOutlook.startingCash,
+          money,
+        ),
+        typical: forecastView(outlook.typical, money),
+        lowPay: outlook.lowPay ? forecastView(outlook.lowPay, money) : null,
+        notes: cashOutlookNotes(report, path),
+      },
       summary: planSummary(
         path,
         finish.filter((item) => item.isDebt).length,
@@ -70,7 +96,7 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
       order: payoffOrder(path, colors),
       assumptions: planAssumptions(path.kind, currency),
     };
-  }, [report, path, currency]);
+  }, [report, path, outlook, kind, hasPayoff, currency]);
 
   /**
    * Pins one debt's band, or clears the pin when that debt is pressed again.
@@ -150,6 +176,14 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
               onTogglePin={togglePin}
             />
           ) : null}
+          <PlanCashOutlook
+            description={view.cash.description}
+            hasIncome={report.cashOutlook.hasIncome}
+            typical={view.cash.typical}
+            lowPay={view.cash.lowPay}
+            notes={view.cash.notes}
+            currency={currency}
+          />
           <details className="app-panel">
             <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-medium text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
               How this is calculated
@@ -174,4 +208,21 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
       )}
     </div>
   );
+}
+
+/**
+ * Builds what one cash forecast shows: its sentence, the 30-day chart rows with the lowest day, and the horizon cards.
+ */
+function forecastView(
+  forecast: PlanCashForecastDto,
+  money: (amount: number) => string,
+): PlanCashForecastView {
+  const chart = cashChart(forecast);
+  return {
+    summary: cashOutlookSummary(forecast, money, formatCalendarDate),
+    rows: chart.rows,
+    lowest: chart.lowest,
+    chartLabel: cashChartLabel(forecast, money, formatCalendarDate),
+    cards: cashHorizonCards(forecast, money, formatCalendarDate),
+  };
 }

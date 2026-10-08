@@ -7,9 +7,11 @@ public static class HouseholdRecovery
     /// Shared extra, a custom order, and a reclaim amount are not stored, so this uses avalanche, no shared extra, and no reclaim.
     /// Each debt's own extra is zero because that amount is not stored either.
     /// A missing balance is left out of the input, because zero would be read as already paid off. That debt is listed instead.
+    /// Payments start on or after asOf, so a stored due date that has already passed is not replayed against today's balance.
     /// </summary>
     public static HouseholdRecoveryInput Prepare(
         string planningCurrency,
+        DateOnly asOf,
         IReadOnlyList<HouseholdRecoveryDebt> debts)
     {
         return new HouseholdRecoveryInput(
@@ -18,7 +20,8 @@ public static class HouseholdRecovery
                 0m,
                 Included(debts),
                 [],
-                0m),
+                0m,
+                asOf),
             MissingBalance(debts));
     }
 

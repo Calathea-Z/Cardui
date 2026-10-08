@@ -379,7 +379,8 @@ public class PayoffRolloverTests
             extra,
             debts,
             order ?? [],
-            reclaim);
+            reclaim,
+            DateOnly.MinValue);
     }
 
     private static PayoffDebt Debt(

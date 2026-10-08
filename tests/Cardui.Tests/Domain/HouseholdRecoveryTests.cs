@@ -10,12 +10,14 @@ public class HouseholdRecoveryTests
     private static readonly Guid StoreId = Guid.Parse("60000000-0000-0000-0000-000000000002");
     private static readonly Guid BlankId = Guid.Parse("60000000-0000-0000-0000-000000000003");
     private static readonly Guid OtherBlankId = Guid.Parse("60000000-0000-0000-0000-000000000004");
+    private static readonly DateOnly Today = new(2026, 1, 1);
 
     [Fact]
     public void Prepare_UsesTheBalanceInUseAndNoExtra()
     {
         var prepared = HouseholdRecovery.Prepare(
             "USD",
+            Today,
             [
                 Debt(
                     CardId,
@@ -43,6 +45,7 @@ public class HouseholdRecoveryTests
     {
         var input = HouseholdRecovery.Prepare(
             "USD",
+            Today,
             [
                 Debt(CardId, "Card", balance: 100m, apr: 12m, minimum: 25m, due: new DateOnly(2026, 1, 15)),
                 Debt(
@@ -67,6 +70,7 @@ public class HouseholdRecoveryTests
     {
         var input = HouseholdRecovery.Prepare(
             "USD",
+            Today,
             [Debt(CardId, "Card", balance: 100m, apr: null, minimum: null, due: null)]).Rollover;
 
         var debt = Assert.Single(input.Debts);
@@ -85,6 +89,7 @@ public class HouseholdRecoveryTests
     {
         var prepared = HouseholdRecovery.Prepare(
             "USD",
+            Today,
             [
                 Debt(BlankId, "Blank", balance: null, apr: 12m, minimum: 25m, due: new DateOnly(2026, 1, 15)),
                 Debt(CardId, "Card", balance: 100m, apr: 12m, minimum: 25m, due: new DateOnly(2026, 1, 15)),

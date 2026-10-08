@@ -1,6 +1,10 @@
 import { safeApiCall } from "@/lib/api/server";
 import { getPlanRecovery } from "@/lib/api/server/plan";
-import type { PlanRecoveryDto, PlanRecoveryPathDto } from "@/lib/api/types";
+import type {
+  PlanCashForecastDto,
+  PlanRecoveryDto,
+  PlanRecoveryPathDto,
+} from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
 /**
@@ -23,6 +27,35 @@ function emptyPlanRecovery(): PlanRecoveryDto {
     excludedCurrencies: [],
     missingBalance: [],
     hasDebts: false,
+    cashOutlook: {
+      asOf: "",
+      startingCash: 0,
+      hasIncome: false,
+      hasBills: false,
+      excludedCurrencies: [],
+      rollover: { typical: emptyForecast(), lowPay: null },
+      reclaimAll: { typical: emptyForecast(), lowPay: null },
+    },
+  };
+}
+
+/**
+ * An empty cash forecast with no days or horizons.
+ */
+function emptyForecast(): PlanCashForecastDto {
+  return {
+    days: [],
+    dayView: {
+      from: "",
+      through: "",
+      endingCash: 0,
+      lowestCash: 0,
+      lowestCashOn: "",
+      cashShortfall: false,
+    },
+    horizons: [],
+    shortfallOn: null,
+    recoveredOn: null,
   };
 }
 

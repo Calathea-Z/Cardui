@@ -23,4 +23,9 @@ public class PlanRecoveryDto
     /// A debt with no balance is still counted. It is left out of the payoff, because zero would mean already paid off.
     /// </summary>
     public bool HasDebts { get; set; }
+
+    /// <summary>
+    /// Cash over 30 days and 6, 12, and 18 months, with debt payments from each path.
+    /// </summary>
+    public required PlanCashOutlookDto CashOutlook { get; set; }
 }

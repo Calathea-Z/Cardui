@@ -1,3 +1,4 @@
+using Cardui.Api.Domain;
 using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Debts;
 using Cardui.Api.Dtos.Plan;
@@ -10,11 +11,25 @@ namespace Cardui.Api.Services.Implementations;
 public class PlanService : IPlanService
 {
     private readonly IDebtsService _debtsService;
+    private readonly IIncomeSourcesService _incomeSourcesService;
+    private readonly IObligationsService _obligationsService;
+    private readonly IAccountsService _accountsService;
+    private readonly TimeProvider _timeProvider;
     private readonly HouseholdScope _householdScope;
 
-    public PlanService(IDebtsService debtsService, HouseholdScope householdScope)
+    public PlanService(
+        IDebtsService debtsService,
+        IIncomeSourcesService incomeSourcesService,
+        IObligationsService obligationsService,
+        IAccountsService accountsService,
+        TimeProvider timeProvider,
+        HouseholdScope householdScope)
     {
         _debtsService = debtsService;
+        _incomeSourcesService = incomeSourcesService;
+        _obligationsService = obligationsService;
+        _accountsService = accountsService;
+        _timeProvider = timeProvider;
         _householdScope = householdScope;
     }
 
@@ -22,24 +37,47 @@ public class PlanService : IPlanService
     public async Task<PlanRecoveryDto> GetRecoveryAsync(
         CancellationToken cancellationToken = default)
     {
+        var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
-        return ProjectRecovery(debts);
+        var cash = await LoadCashFactsAsync(today, cancellationToken);
+        return ProjectPlan(debts, cash);
     }
 
     #region Private Methods
 
     /// <summary>
-    /// Runs the approved rollover and recovery rules for these debts, then shapes the result for the page.
-    /// The planning currency is the household's. Extra and reclaim stay at the baseline.
+    /// Loads the starting cash, income, and bills the cash outlook reads, for a forecast that starts today.
+    /// The loads run one after another because they share one database context.
     /// </summary>
-    private PlanRecoveryDto ProjectRecovery(IReadOnlyList<DebtDto> debts)
+    private async Task<HouseholdCashOutlookInput> LoadCashFactsAsync(
+        DateOnly today,
+        CancellationToken cancellationToken)
+    {
+        var startingCash = await _accountsService.GetCashTotalAsync(cancellationToken);
+        var incomes = await _incomeSourcesService.GetOutlookIncomesAsync(cancellationToken);
+        var bills = await _obligationsService.GetOutlookBillsAsync(cancellationToken);
+        return new HouseholdCashOutlookInput(
+            _householdScope.PlanningCurrency,
+            today,
+            startingCash,
+            incomes,
+            bills);
+    }
+
+    /// <summary>
+    /// Runs the approved rollover and recovery rules from the outlook's start date, then the cash outlook on both paths,
+    /// and shapes the result for the page. Extra and reclaim stay at the baseline.
+    /// </summary>
+    private static PlanRecoveryDto ProjectPlan(IReadOnlyList<DebtDto> debts, HouseholdCashOutlookInput cash)
     {
         var prepared = HouseholdRecovery.Prepare(
-            _householdScope.PlanningCurrency,
+            cash.PlanningCurrency,
+            cash.AsOf,
             debts.Select(ToDebt).ToList());
         var comparison = PayoffRollover.Compare(prepared.Rollover);
         var report = CashFlowRecovery.Track(comparison);
-        return PlanRecoveryDtoMapper.Map(comparison, report, prepared.MissingBalance, debts.Count > 0);
+        var outlook = HouseholdCashOutlook.Project(cash, prepared.Rollover.Debts, comparison);
+        return PlanRecoveryDtoMapper.Map(comparison, report, prepared.MissingBalance, debts.Count > 0, outlook);
     }
 
     /// <summary>

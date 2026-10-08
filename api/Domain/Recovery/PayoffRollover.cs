@@ -24,7 +24,8 @@ public static class PayoffRollover
             NonNegative(input.ReclaimAmount),
             input.Order is { Count: > 0 },
             ordered,
-            included.Excluded);
+            included.Excluded,
+            input.AsOf);
     }
 
     #region Private Methods
@@ -66,23 +67,27 @@ public static class PayoffRollover
         decimal reclaim,
         bool orderProvided,
         IReadOnlyList<PayoffDebt> ordered,
-        IReadOnlyList<string> excluded)
+        IReadOnlyList<string> excluded,
+        DateOnly asOf)
     {
         var rollover = PayoffRolloverProjection.Project(
             PayoffRolloverKind.Rollover,
             ordered,
             extra,
-            0);
+            0,
+            asOf);
         var partial = PayoffRolloverProjection.Project(
             PayoffRolloverKind.Reclaim,
             ordered,
             extra,
-            reclaim);
+            reclaim,
+            asOf);
         var all = PayoffRolloverProjection.Project(
             PayoffRolloverKind.ReclaimAll,
             ordered,
             extra,
-            null);
+            null,
+            asOf);
         var partialGap = partial.TotalInterest - rollover.TotalInterest;
         var allGap = all.TotalInterest - rollover.TotalInterest;
         return new PayoffRolloverComparison(
@@ -131,7 +136,7 @@ public static class PayoffRollover
             "Unused shared extra and unused rolled cash are not carried to the next month.",
             "A debt that does not pay off does not free its payment. A missing rate, minimum, or due date stays unknown and is not given rolled cash. A balance that is already zero is left out.",
             "Reclaiming keeps some of the freed cash each month for savings or spending, and the rest rolls. Reclaiming all keeps every freed dollar out of the next debt. Those totals count only while a debt is still open.",
-            "One round is one payment on each debt, stepped monthly from its own due date. Debts with different due dates still share a round. Interest is one month of simple interest on the balance at the start of the period, rounded to cents away from zero.",
+            "One round is one payment on each debt, stepped monthly from its own due date. A due date before the start is not replayed; the first payment is the first monthly date on or after the start. Debts with different due dates still share a round. Interest is one month of simple interest on the balance at the start of the period, rounded to cents away from zero.",
             "The same inputs produce the same payments and the same cents."
         };
         if (excluded.Count > 0)

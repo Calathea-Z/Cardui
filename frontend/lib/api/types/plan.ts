@@ -85,8 +85,82 @@ export type PlanMissingBalanceDto = {
 };
 
 /**
- * The household's payoff on rollover and on keeping every freed payment.
- * `excludedCurrencies` are codes left out of the planning currency.
+ * Cash at the end of one day. Negative `cash` is a shortfall.
+ * `income`, `bills`, and `debtPayments` are that day's totals, each zero or more.
+ */
+export type PlanCashDayDto = {
+  date: string;
+  cash: number;
+  income: number;
+  bills: number;
+  debtPayments: number;
+};
+
+/**
+ * Cash across a stretch of days, both ends included.
+ * `lowestCashOn` is the first day that reaches `lowestCash`. `cashShortfall` is true when any day ends below zero.
+ */
+export type PlanCashWindowDto = {
+  from: string;
+  through: string;
+  endingCash: number;
+  lowestCash: number;
+  lowestCashOn: string;
+  cashShortfall: boolean;
+};
+
+/**
+ * Cash at 6, 12, or 18 months.
+ * `minimumObligation` is the known monthly minimums still due then, and null when every remaining debt is missing a term.
+ * `unknownMinimumCount` is how many remaining debts that sum leaves out.
+ */
+export type PlanCashHorizonDto = {
+  months: number;
+  window: PlanCashWindowDto;
+  minimumObligation: number | null;
+  unknownMinimumCount: number;
+};
+
+/**
+ * One cash forecast: the first 30 days, that 30-day window, and the horizons in month order.
+ * `shortfallOn` is the first day below zero inside 18 months, and `recoveredOn` the first later day back at zero or above. Each is null when it does not happen.
+ */
+export type PlanCashForecastDto = {
+  days: PlanCashDayDto[];
+  dayView: PlanCashWindowDto;
+  horizons: PlanCashHorizonDto[];
+  shortfallOn: string | null;
+  recoveredOn: string | null;
+};
+
+/**
+ * The cash forecast for one payoff path.
+ * `lowPay` uses low pay where recorded and leaves out raises. It is null when no income source has a low amount.
+ */
+export type PlanCashOutlookPathDto = {
+  typical: PlanCashForecastDto;
+  lowPay: PlanCashForecastDto | null;
+};
+
+/**
+ * The cash outlook on both payoff paths.
+ * `startingCash` is the Cash total on Accounts on `asOf`, before that day's payments.
+ * `hasIncome` and `hasBills` are true when at least one counts in the planning currency.
+ * `excludedCurrencies` are income, bill, and debt codes left out.
+ */
+export type PlanCashOutlookDto = {
+  asOf: string;
+  startingCash: number;
+  hasIncome: boolean;
+  hasBills: boolean;
+  excludedCurrencies: string[];
+  rollover: PlanCashOutlookPathDto;
+  reclaimAll: PlanCashOutlookPathDto;
+};
+
+/**
+ * The household's payoff on rollover and on keeping every freed payment, and the cash outlook on each.
+ * `excludedCurrencies` are debt codes left out of the planning currency.
  * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
  */
 export type PlanRecoveryDto = {
@@ -96,4 +170,5 @@ export type PlanRecoveryDto = {
   excludedCurrencies: string[];
   missingBalance: PlanMissingBalanceDto[];
   hasDebts: boolean;
+  cashOutlook: PlanCashOutlookDto;
 };

@@ -5,10 +5,11 @@ namespace Cardui.Api.Domain.Recovery;
 /// <summary>
 /// Mutable month-by-month state for one debt inside a rollover projection.
 /// The projection owns it. Callers do not see it.
+/// FirstIndex is how many months after the stored due date the first payment falls, so a date before the start is not replayed.
 /// </summary>
 internal sealed class PayoffRolloverRun
 {
-    public PayoffRolloverRun(PayoffDebt debt)
+    public PayoffRolloverRun(PayoffDebt debt, DateOnly asOf)
     {
         Debt = debt;
         Opening = DebtPaymentFacts.Resolve(debt.Terms);
@@ -18,12 +19,24 @@ internal sealed class PayoffRolloverRun
         {
             Stop = Opening.Skip;
             Finished = true;
+            return;
         }
+
+        if (DebtDueDates.FirstIndexOnOrAfter(Opening.DueDate, asOf) is int first)
+        {
+            FirstIndex = first;
+            return;
+        }
+
+        Stop = DebtScheduleStop.HorizonReached;
+        Finished = true;
     }
 
     public PayoffDebt Debt { get; }
 
     public ResolvedDebtPayment Opening { get; }
+
+    public int FirstIndex { get; }
 
     public decimal Balance { get; set; }
 
@@ -41,7 +54,7 @@ internal sealed class PayoffRolloverRun
 
     public decimal? EndingUtilization { get; set; }
 
-    public List<PayoffBalancePoint> BalancePoints { get; } = [];
+    public List<DebtPeriod> Periods { get; } = [];
 
     public Guid DebtId => Debt.Terms.DebtId;
 }

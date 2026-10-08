@@ -1,3 +1,4 @@
+using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Income;
 
 namespace Cardui.Api.Services.Interfaces;
@@ -10,6 +11,13 @@ public interface IIncomeSourcesService
     /// The monthly average has no date. Raises are ordered by the date they start.
     /// </summary>
     Task<IReadOnlyList<IncomeSourceDto>> GetIncomeSourcesAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads the household's income for Plan's cash outlook: typical and low pay,
+    /// cadence, next payment date, and raises. Each amount is one payment.
+    /// </summary>
+    Task<IReadOnlyList<HouseholdIncome>> GetOutlookIncomesAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>

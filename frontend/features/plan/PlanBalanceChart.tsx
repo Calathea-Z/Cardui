@@ -16,7 +16,7 @@ import {
 import {
   formatMonthLabel,
   formatMonthTick,
-  monthTicks,
+  evenTicks,
   type PlanBalanceRow,
   type PlanBand,
 } from "./planChartSeries";
@@ -109,7 +109,7 @@ export function PlanBalanceChart({
       <p className="app-section-meta">
         The top edge is the total owed. Each band is one debt.
       </p>
-      <div className="mt-3 h-[220px] md:h-72" role="img" aria-label={label}>
+      <div className="mt-3 h-55 md:h-72" role="img" aria-label={label}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={rows}
@@ -121,7 +121,7 @@ export function PlanBalanceChart({
               type="number"
               dataKey="timestamp"
               domain={[rows[0].timestamp, last.timestamp]}
-              ticks={monthTicks(rows)}
+              ticks={evenTicks(rows)}
               tickFormatter={formatMonthTick}
               tick={{ fill: "var(--muted-foreground)" }}
               fontSize={12}

@@ -12,17 +12,19 @@ public static class PayoffRolloverProjection
     /// including leftover in the same month, and unused extra is not carried forward.
     /// A freed minimum and that debt's planned extra join that extra on the following month, after the payment that ends the debt.
     /// A null reclaim keeps every freed dollar. Zero rolls all of it. A positive amount keeps that much each month and rolls the rest.
+    /// Each debt's first payment is its first monthly due date on or after asOf. A stored date before asOf is not replayed.
     /// The interest difference and the explanation stay empty here. The comparison fills them once all three paths exist.
     /// </summary>
     public static PayoffRolloverPath Project(
         PayoffRolloverKind kind,
         IReadOnlyList<PayoffDebt> order,
         decimal monthlyExtra,
-        decimal? reclaimAmount)
+        decimal? reclaimAmount,
+        DateOnly asOf)
     {
         var extra = monthlyExtra <= 0 ? 0 : AccountLedger.Round(monthlyExtra);
         var reclaim = reclaimAmount is > 0 ? AccountLedger.Round(reclaimAmount.Value) : reclaimAmount;
-        var runs = order.Select(debt => new PayoffRolloverRun(debt)).ToList();
+        var runs = order.Select(debt => new PayoffRolloverRun(debt, asOf)).ToList();
         decimal cashReclaimed = 0;
         decimal cashRolled = 0;
         for (var step = 0; step < DebtRules.MaxRemainingTermMonths && runs.Any(run => !run.Finished); step++)
@@ -119,7 +121,8 @@ public static class PayoffRolloverProjection
         ref decimal rollLeft,
         ref decimal cashRolled)
     {
-        if (!TryDueDate(run.Opening.DueDate, step, out var due) || due > DebtRules.LatestDate)
+        if (!DebtDueDates.TryStep(run.Opening.DueDate, run.FirstIndex + step, out var due)
+            || due > DebtRules.LatestDate)
         {
             run.Stop = DebtScheduleStop.HorizonReached;
             run.Finished = true;
@@ -149,12 +152,7 @@ public static class PayoffRolloverProjection
         run.Interest += period.Interest;
         run.Balance = period.EndingBalance;
         run.EndingUtilization = CurrentUtilization(run);
-        run.BalancePoints.Add(new PayoffBalancePoint(
-            run.DebtId,
-            due,
-            period.EndingBalance <= 0 ? 0 : period.EndingBalance,
-            period.Interest,
-            period.Payment));
+        run.Periods.Add(period);
         if (period.EndingBalance <= 0)
         {
             run.PaidOffOn = due;
@@ -204,24 +202,6 @@ public static class PayoffRolloverProjection
     }
 
     /// <summary>
-    /// The due date that many months after the first, counted from the first date each time.
-    /// A month that cannot be represented ends the projection. This matches debt amortization.
-    /// </summary>
-    private static bool TryDueDate(DateOnly firstDue, int monthsLater, out DateOnly due)
-    {
-        try
-        {
-            due = firstDue.AddMonths(monthsLater);
-            return true;
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            due = default;
-            return false;
-        }
-    }
-
-    /// <summary>
     /// Assembles the path from the runs.
     /// PaidOffOn is set only when every calculable debt has cleared. InterestDifference and the explanation are filled by the comparison.
     /// </summary>
@@ -240,6 +220,7 @@ public static class PayoffRolloverProjection
             debts,
             FreedPayments(runs),
             BalancePoints(runs),
+            Schedules(runs),
             cashReclaimed,
             cashRolled,
             0,
@@ -296,7 +277,7 @@ public static class PayoffRolloverProjection
     private static IReadOnlyList<PayoffBalancePoint> BalancePoints(List<PayoffRolloverRun> runs)
     {
         return runs
-            .SelectMany((run, index) => run.BalancePoints.Select(point => (point, index)))
+            .SelectMany((run, index) => run.Periods.Select(period => (point: Point(run, period), index)))
             .OrderBy(entry => entry.point.DueDate)
             .ThenBy(entry => entry.index)
             .Select(entry => entry.point)
@@ -304,14 +285,44 @@ public static class PayoffRolloverProjection
     }
 
     /// <summary>
-    /// The next due date after the payoff, counted from the first due date.
+    /// One debt's balance after one payment. A balance at or below zero is shown as zero.
+    /// </summary>
+    private static PayoffBalancePoint Point(PayoffRolloverRun run, DebtPeriod period)
+    {
+        return new PayoffBalancePoint(
+            run.DebtId,
+            period.DueDate,
+            period.EndingBalance <= 0 ? 0 : period.EndingBalance,
+            period.Interest,
+            period.Payment);
+    }
+
+    /// <summary>
+    /// Each debt's payments on this path, in DebtIds order, so a cash forecast can pay what this path pays.
+    /// A debt that could not be calculated has no periods and keeps its stop reason.
+    /// </summary>
+    private static IReadOnlyList<DebtSchedule> Schedules(List<PayoffRolloverRun> runs)
+    {
+        return runs
+            .Select(run => new DebtSchedule(
+                run.DebtId,
+                run.Debt.Terms.Name,
+                run.Debt.Terms.Currency,
+                run.Stop ?? DebtScheduleStop.HorizonReached,
+                run.Stop == DebtScheduleStop.PaidOff ? 0 : run.Balance,
+                run.Periods))
+            .ToList();
+    }
+
+    /// <summary>
+    /// The next due date after the payoff, counted from the stored due date.
     /// That is when the minimum is no longer paid. The payoff month still pays the debt.
     /// Null when the date cannot be represented or is after the latest date the debt rules allow.
     /// </summary>
     private static DateOnly? RemovalDate(PayoffRolloverRun run)
     {
         if (run.PaymentsUntilPaidOff is not int paid
-            || !TryDueDate(run.Opening.DueDate, paid, out var starts)
+            || !DebtDueDates.TryStep(run.Opening.DueDate, run.FirstIndex + paid, out var starts)
             || starts > DebtRules.LatestDate)
         {
             return null;

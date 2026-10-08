@@ -17,7 +17,7 @@ import {
 import {
   formatMonthLabel,
   formatMonthTick,
-  monthTicks,
+  evenTicks,
   type PlanObligationRow,
 } from "./planChartSeries";
 
@@ -109,7 +109,7 @@ export function PlanObligationChart({
               type="number"
               dataKey="timestamp"
               domain={[rows[0].timestamp, last.timestamp]}
-              ticks={monthTicks(rows)}
+              ticks={evenTicks(rows)}
               tickFormatter={formatMonthTick}
               tick={{ fill: "var(--muted-foreground)" }}
               fontSize={12}

@@ -114,6 +114,24 @@ public class AccountsService : IAccountsService
     }
 
     /// <inheritdoc />
+    public async Task<decimal> GetCashTotalAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var planningCurrency = _householdScope.PlanningCurrency;
+        var accounts = await _dbContext.Accounts
+            .AsNoTracking()
+            .InHousehold(_householdScope)
+            .Where(x => x.IsActive && x.ArchivedAt == null)
+            .Select(x => new { x.Type, x.CurrentBalance, x.IsoCurrencyCode })
+            .ToListAsync(cancellationToken);
+        return AccountTotalsCalculator.Calculate(
+            accounts
+                .Where(x => PlanningCurrencyRules.IsIncluded(x.IsoCurrencyCode, planningCurrency))
+                .Select(x => new AccountBalanceValue(x.Type, x.CurrentBalance)))
+            .Cash;
+    }
+
+    /// <inheritdoc />
     public async Task<AccountDto> CreateManualAccountAsync(
         CreateManualAccountDto dto,
         CancellationToken cancellationToken = default)

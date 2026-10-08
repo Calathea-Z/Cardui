@@ -11,22 +11,24 @@ history. They do not say what is next.
 
 **Now**
 
-- Plan screen item 1 in [`roadmap.md`](roadmap.md) is approved in
-  [`reviews/2026-10-07-014-plan-recovery.md`](reviews/2026-10-07-014-plan-recovery.md):
-  the debt-free summary, Finish your plan with warnings, the What you owe
-  today donut, the stacked balance chart, the minimums and breathing room
-  chart, the payoff order, and the Rollover or Keep freed payments switch.
-  Design: [`design/plan-page.md`](design/plan-page.md). More UI polish on
-  Plan comes as later work brings it up.
+- The Plan screen in [`roadmap.md`](roadmap.md) is done. Item 2 is
+  approved in
+  [`reviews/2026-10-07-015-plan-cash-outlook.md`](reviews/2026-10-07-015-plan-cash-outlook.md):
+  the Cash outlook on Plan, with the next 30 days, 6, 12, and 18 month
+  cards, and low pay under a disclosure, following the switch. A stored
+  due date before today now starts at its next monthly date on or after
+  today, in both the payoff path and the outlook. Item 1 is approved in
+  [`reviews/2026-10-07-014-plan-recovery.md`](reviews/2026-10-07-014-plan-recovery.md).
+  Design: [`design/plan-page.md`](design/plan-page.md).
 
 **Next**
 
-1. Plan screen item 2: the cash outlook on Plan, following the switch.
-   Settle the stored due date before today first; see "To settle when
-   item 2 starts" in the design.
-2. Phase 3 item 6: reproducible scenarios for changed extra payments,
+1. Phase 3 item 6: reproducible scenarios for changed extra payments,
   income loss, bonuses and windfalls, spending changes, and protected-cash
-  targets. Detail panel keyboard focus stays tracked and is not scheduled.
+  targets. Zach said at approval that he is not yet sure he understands
+  the goal, so the next chat restates where Plan is heading and agrees on
+  the first scenario with him before building. Detail panel keyboard focus
+  stays tracked and is not scheduled.
 
 **Tracked, not scheduled**
 
@@ -46,7 +48,7 @@ history. They do not say what is next.
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
-| [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, and the cash outlook. Approved; item 1 is built and awaiting review |
+| [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, and the cash outlook. Implemented; both items are approved |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

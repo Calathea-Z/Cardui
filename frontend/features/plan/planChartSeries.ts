@@ -1,4 +1,8 @@
-import type { PlanDebtOutcomeDto, PlanRecoveryPathDto } from "@/lib/api/types";
+import type {
+  PlanCashForecastDto,
+  PlanDebtOutcomeDto,
+  PlanRecoveryPathDto,
+} from "@/lib/api/types";
 
 /**
  * Number of jewel series tokens in `globals.css`.
@@ -57,6 +61,19 @@ export type PlanOwedShare = {
   balance: number;
   percent: number;
   color: string;
+};
+
+/**
+ * One day on the 30-day cash chart.
+ * `timestamp` is that day at midnight UTC. `cash` is the ending cash, negative when short.
+ * `income`, `bills`, and `debtPayments` are that day's totals.
+ */
+export type PlanCashRow = {
+  timestamp: number;
+  cash: number;
+  income: number;
+  bills: number;
+  debtPayments: number;
 };
 
 /**
@@ -255,9 +272,35 @@ export function obligationChart(
 }
 
 /**
- * Picks up to `maxTicks` evenly spaced month ticks from the rows, always including the first and the last.
+ * Builds the 30-day cash chart: one row per day, and the row for the lowest day in that window.
+ * The lowest day is the first day that reaches the window's lowest cash. It is null when there are no days.
  */
-export function monthTicks(rows: { timestamp: number }[], maxTicks = 6) {
+export function cashChart(forecast: PlanCashForecastDto): {
+  rows: PlanCashRow[];
+  lowest: PlanCashRow | null;
+} {
+  const rows = forecast.days.map((day) => ({
+    timestamp: dayTimestamp(day.date),
+    cash: day.cash,
+    income: day.income,
+    bills: day.bills,
+    debtPayments: day.debtPayments,
+  }));
+  if (rows.length === 0) {
+    return { rows, lowest: null };
+  }
+
+  const lowestOn = dayTimestamp(forecast.dayView.lowestCashOn);
+  const lowest =
+    rows.find((row) => row.timestamp === lowestOn) ??
+    rows.reduce((low, row) => (row.cash < low.cash ? row : low));
+  return { rows, lowest };
+}
+
+/**
+ * Picks up to `maxTicks` evenly spaced ticks from the rows, always including the first and the last.
+ */
+export function evenTicks(rows: { timestamp: number }[], maxTicks = 6) {
   if (rows.length <= maxTicks) {
     return rows.map((row) => row.timestamp);
   }
@@ -293,6 +336,41 @@ export function formatMonthLabel(timestamp: number) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(timestamp));
+}
+
+/**
+ * Short day label for a chart axis, such as "Oct 7".
+ * The timestamp is read in UTC, the same way the rows are built.
+ */
+export function formatDayTick(timestamp: number) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(timestamp));
+}
+
+/**
+ * Weekday and date for a chart tooltip, such as "Wed, Oct 7".
+ */
+export function formatDayLabel(timestamp: number) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(timestamp));
+}
+
+/**
+ * Midnight UTC for a `YYYY-MM-DD` date, so a calendar day does not shift with the browser's time zone.
+ */
+function dayTimestamp(date: string) {
+  return Date.UTC(
+    Number(date.slice(0, 4)),
+    Number(date.slice(5, 7)) - 1,
+    Number(date.slice(8, 10)),
+  );
 }
 
 /**

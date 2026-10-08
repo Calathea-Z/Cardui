@@ -17,7 +17,8 @@ public class PlanController : ControllerBase
 
     /// <summary>
     /// GET /api/plan/recovery
-    /// Returns the payoff on rollover and on keeping every freed payment: balances over time, each minimum removed, and the breathing room that follows.
+    /// Returns the payoff on rollover and on keeping every freed payment: balances over time, each minimum removed, the breathing room that follows,
+    /// and the cash outlook for 30 days and 6, 12, and 18 months on each path.
     /// The order is highest interest first and extra is zero, because those choices are not stored yet.
     /// </summary>
     [HttpGet("recovery")]

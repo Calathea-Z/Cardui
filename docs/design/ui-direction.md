@@ -1,170 +1,255 @@
 # UI direction
 
-Status: Implemented. Approved October 5, 2026 and built the same day.
-Updated: 2026-10-07
+Status: Current. The light shell is implemented and approved; the October 8
+governance clarification is awaiting review in
+[`2026-10-08-009-responsive-ui-governance.md`](../reviews/2026-10-08-009-responsive-ui-governance.md).
+Updated: 2026-10-08
 
-The enforceable conventions for new screens are in `.cursor/rules/ui-governance.mdc`. Where this note and that rule differ, the rule wins. This note keeps the reasoning behind the shell, the visual system, and the map.
+The enforceable conventions for new screens and substantial UI changes are in
+[`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
+Where this rationale differs from that rule, the rule wins. Page-specific
+choices belong in page-specific design documents.
 
-Built in `docs/reviews/2026-10-05-002-light-shell-home.md` (light shell and Home), `docs/reviews/2026-10-05-003-detail-surface.md` (right-hand panel), `docs/reviews/2026-10-05-004-picker-popovers.md` (popovers), `docs/reviews/2026-10-05-005-accounts-chart-header.md`, and `docs/reviews/2026-10-05-007-signed-in-layout.md`.
+The signed-in app is branded **Tortoise** in `frontend/app/layout.tsx`. The
+repository and roadmap call the product Cardui. This document explains the
+shared visual and interaction direction for the Next.js frontend.
 
-The signed-in app is branded **Tortoise** (`frontend/app/layout.tsx`). The repo and roadmap call it Cardui. This note is about the Next.js app in `frontend/` (Next.js 16, React 19, Tailwind 4).
+## 1. Product direction
 
-## 1. What this direction replaced (historical)
+Tortoise should make a financial answer and the next useful decision easier to
+find than the analysis behind them. A screen begins with one question:
 
-Before October 5, 2026, the app was a dark journal theme in a phone shell. At 768px and up it showed a dark sidebar beside the same phone column. It had two navigations on a phone (a four-item tab bar and a drawer with all six destinations), no page title on the main desktop pages, a swipe carousel on Home at every width, and bottom sheets for detail and choices on a laptop. It loaded three faces and painted wallpaper, a panel rail, and a highlighter behind figures. None of that is in the current app. The full description is in git history, in the version of this file from `dbe4c27`.
+- What does the user need to know here?
+- What can they do next, if the view is actionable?
+- Which details help them trust, inspect, or change that answer?
 
-## 2. What the product should feel like
+That order is the intended hierarchy. It is not a fixed page template. A
+read-only history view may have no action. An editor may lead with the form.
+An analytical view may need related results side by side. The shared rule is
+to organize around the task instead of mirroring an API response.
 
-Tortoise is one light finance product. The picture of the money, the chrome, and the map are the same choices at every width.
+Adding a useful fact should not automatically add another equal-weight card.
+The designer should reconsider the whole page: the fact may belong in the
+main answer, an existing group, a local task tab, a disclosure, or a focused
+detail surface. Useful information remains reachable, but healthy checks and
+long explanations do not compete with the decision.
 
-### The picture
+## 2. Visual foundation
 
-Home leads with one number and one chart: net worth over time, with the accounts gathered under it. The other picture is the one Tortoise already has data for: a category name, a thin bar, and the amount spent.
-
-Home is that pair. One net-worth chart. One this-month block with money in, money out, and a short category list. Recent activity sits under both, as rows, not as a third product.
-
-Leave these out: a serif display face, cream as a brand, a promo banner, a download-an-app path, and a second budgeting mode. Tortoise has no budget data yet. Do not invent one.
-
-### The chrome
-
-The page is a light canvas and a left sidebar. Active navigation uses one accent. There is no paper texture, no script wordmark, and no highlighter behind a number.
-
-Money in, money out, and a short category list use that same light frame.
-
-Leave these out: a second brand color that fills the room, a display face used only for headings, and a long catalog of products in the sidebar. Tortoise has three daily jobs. Extra destinations would make the split worse.
-
-### The map
-
-Home, Accounts, Activity, and Plan are the objects, in that order. Income, bills, debts, Plan budget, savings, spending targets, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
-
-The dark canvas is gone. One light theme, and no second theme.
-
-Leave these out: a custom dashboard builder, a pile of measures, marketing-size headlines, an AI prompt, a logo wall, and team or payables reporting. Clicking a chart later can open the rows underneath. It does not need a new viewer in this pass.
-
-## 3. Visual system
-
-Change tokens and type. Keep the Tailwind token names (`--background`, `--card`, `--primary`, and the rest) so screens do not need a class rewrite to pick up the palette. Drop the decorative layer.
+The product is one light interface. Inter, restrained color, flat surfaces,
+and strong spacing should make financial values readable without making every
+value a headline.
 
 ### Type
 
-Use **Inter**, loaded with `next/font/google` the same way Sora is loaded now. No new package. Inter is the one product sans for titles, navigation, and money.
+Inter is the product face for titles, navigation, body copy, and money. Money
+uses `tabular-nums`; it does not use a terminal-style face.
 
-Remove Shantell Sans and JetBrains Mono from `layout.tsx`. Page titles stop using `font-brand`. Money uses the same sans with `tabular-nums`. A code face on every balance is why the ledger feels like a terminal.
+| Role                   | Typical treatment            | Rationale                                       |
+| ---------------------- | ---------------------------- | ----------------------------------------------- |
+| Page title             | 1.75rem, 600, tight tracking | One clear destination heading                   |
+| Prominent result       | 2rem, 600, tabular numbers   | A result, not decorative display type           |
+| Section title          | 0.875rem, 600, sentence case | Clear hierarchy without competing with the page |
+| Body, navigation, rows | 0.875rem, 400/500            | Comfortable scanning                            |
+| Meta and tab labels    | 0.75rem, 500                 | Secondary, but still readable                   |
 
-| Role | Size | Weight | Notes |
-| --- | --- | --- | --- |
-| Page title | 1.75rem | 600 | Tracking `-0.02em`. One per primary page. |
-| Big figure | 2rem | 600 | Tabular numbers. One per card, not a highlighter. |
-| Section title | 0.875rem | 600 | Sentence case. |
-| Body, nav, rows | 0.875rem | 400 / 500 | Nav labels at 500. |
-| Meta, tab label | 0.75rem | 500 | Phone tab labels were 10px before this direction. 12px is the floor. |
-
-Eyebrows in 11px with `0.18em` tracking go away. They are the journal voice.
+These sizes describe the implemented system, not a reason to force every
+screen into the same density. Reduce repeated and secondary content before
+making text or spacing smaller.
 
 ### Color
 
-Light only. Stop forcing `class="dark"` on `<html>`.
+| Token                            | Value                                                             | Use                                                         |
+| -------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| `--background`, `--sidebar`      | `#f3f2ee`                                                         | Page and sidebar                                            |
+| `--card`, `--popover`, `--input` | `#ffffff`                                                         | Cards, sheets, fields                                       |
+| `--foreground`                   | `#1c1b19`                                                         | Text and figures                                            |
+| `--muted`                        | `#eeede8`                                                         | Bar tracks and hover                                        |
+| `--muted-foreground`             | `#6d6a64`                                                         | Secondary information                                       |
+| `--border`, `--sidebar-border`   | `#e3e0d8`                                                         | Rules and group boundaries                                  |
+| `--primary`                      | `#1e4d3a`                                                         | Active navigation, links, main chart stroke                 |
+| `--success`                      | `#1f7a4a`                                                         | Positive result or money in                                 |
+| `--destructive`                  | `#9f3a32`                                                         | Failure, destructive action, or negative sign when material |
+| `--warning`                      | `#8f5a00`                                                         | Something to finish or fix that is not a failure            |
+| `--transfer`                     | `#3d5f8a`                                                         | Transfers                                                   |
+| `--chart-1`                      | `#1e4d3a`                                                         | Primary series                                              |
+| `--chart-2`                      | `#c4b8a5`                                                         | A comparison series                                         |
+| `--series-1` to `--series-8`     | Emerald, sapphire, copper, amethyst, teal, magenta, amber, indigo | Several named items in one analysis                         |
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--background`, `--sidebar` | `#f3f2ee` | Page and sidebar. Same color, so the chrome is one surface. |
-| `--card`, `--popover`, `--input` | `#ffffff` | Cards, sheets, fields. |
-| `--foreground` | `#1c1b19` | Text and figures. |
-| `--muted` | `#eeede8` | Bar tracks, hover. |
-| `--muted-foreground` | `#6d6a64` | Meta. |
-| `--border`, `--sidebar-border` | `#e3e0d8` | 1px rules. |
-| `--primary` | `#1e4d3a` | Active nav, links, the main chart stroke. A mark, not the room. |
-| `--success` | `#1f7a4a` | Money in, positive difference. |
-| `--destructive` | `#9f3a32` | Money out when the sign is the point, and destructive actions. |
-| `--warning` | `#8f5a00` | Something to finish or fix that is not a failure, always with a warning icon. 5.78:1 on white, 5.16:1 on the canvas, 5.05:1 on its 10% tint. Added October 7, 2026; see `docs/reviews/2026-10-07-014-plan-recovery.md`. |
-| `--transfer` | `#3d5f8a` | Transfers only. |
-| `--chart-1` | `#1e4d3a` | Net worth and the primary series. |
-| `--chart-2` | `#c4b8a5` | The second series, when a chart compares two things. |
-| `--series-1` to `--series-8` | emerald `#00806e`, sapphire `#2b5fb3`, copper `#b8642e`, amethyst `#7b4fb5`, teal `#127c99`, magenta `#a83f74`, amber `#a8740c`, indigo `#4a4fb0` | A chart that compares several things, such as one band per debt on Plan. Each is at least 3:1 on white (lowest: amber, 4.06:1). Emerald and teal moved from the starting `#0f7b5f` and `#1a7f8c` so emerald does not read as `--success`. Added October 7, 2026; see `docs/design/plan-page.md` and `docs/reviews/2026-10-07-014-plan-recovery.md`. |
-| `--radius` | `0.5rem` | Cards and fields. From 768px up, a record opens as a right-hand panel, not a bottom sheet. |
+The warning token has at least 5:1 contrast on its current white, canvas, and
+10% tint backgrounds. The eight jewel series are each at least 3:1 on white;
+their exact values and contrast check are recorded in
+[`2026-10-07-014-plan-recovery.md`](../reviews/2026-10-07-014-plan-recovery.md).
+Green remains an accent, not a page fill. Household category colors appear
+only with their categories.
 
-Green stays as the accent. It no longer fills the background. Category colors stay the household's colors, and they appear only on that category's bar.
+### Width, density, and surfaces
 
-Delete the body wallpaper (the three radial gradients and the 40px ruled lines). Delete the panel rail, the gradient header, the animated underline, the ink stroke under the wordmark, and the `.ledger-amount` highlight. The wordmark is "Tortoise" in Inter at the page-title size, with "Personal ledger" in meta type under it. No script, no SVG flourish.
+Content width follows the task:
 
-### Density and surfaces
+- prose and forms stay comfortably bounded;
+- lists use enough width for labels, dates, status, and values to remain
+  readable; and
+- analytical layouts may use a wider bounded container when comparison is
+  easier with related information together.
 
-Page padding is 16px under 768px and 32px from there up. Reading pages (household, categories) can keep a `max-w-6xl` column. Home uses the content width: at `lg` (1024px) it becomes two columns, net worth on the left and this-month on the right, with recent activity full width underneath. Under `lg`, those stack. No horizontal scroller.
+The standard page padding is 16px below `md` and 32px from `md` up. White
+cards have a 1px border, 8px radius, and no shadow or entrance animation.
+Those cards represent meaningful groups. They are not wrappers required
+around every metric, message, or control.
 
-Cards are white, 1px border, 8px radius, no shadow, no entrance animation. Headers inside a card are a label and a figure, then a border. Rows are about 48px, name and meta on the left, amount on the right, hover `--muted`.
+Home's current two-column arrangement at sufficiently wide sizes and Plan's
+current wider analysis container are page-specific examples, not universal
+width or card-count requirements.
 
-### Charts
+## 3. Intentional responsive design
 
-Keep Recharts. Do not add a chart library.
+Desktop and mobile are two arrangements of the same product, not a desktop
+page followed by an automatic stack. Before implementation, decide how each
+arrangement presents the answer, actions, controls, and supporting detail.
 
-Home's chart is one net-worth area: `--chart-1` stroke, a faint fill, no point markers, horizontal grid lines in `--border` only. The range control stays the existing ranges, drawn as text, with the active range in `--primary`. Assets and liabilities are two figures beside that chart, not extra swipe panels. The accounts page already has the metric switcher. Home should not invent a worse one.
+They share routes, data, behavior, state ownership, formatters, and reusable
+components. Grouping can change, controls can wrap or stack, and secondary
+detail can move behind disclosure when space is limited. Relevant input and
+selection state should survive resizing and local view changes.
 
-A chart that compares several things, such as Plan's balance bands, uses the series tokens in order. Each thing keeps one color everywhere on that page, and a name in the tooltip or a nearby row, so color is not the only signal. No entrance animation.
+On a phone:
 
-This-month keeps the three numbers Tortoise already calculates (income, spending, difference) and the category rows with a 4px bar. Those bars use the category color on a `--muted` track. No donut, no gauge, no third palette.
+- the answer and relevant action remain ahead of supporting analysis;
+- controls and labels fit without horizontal page scrolling;
+- long amounts, dates, warnings, and text remain readable with text zoom;
+- chart values have touch and keyboard access or a readable data alternative;
+- sticky headers, tabs, and bottom navigation do not cover content or focus;
+  and
+- the page avoids nested scrolling and duplicate phone-only implementations.
 
-## 4. Information architecture
+The shell still changes at `md`: a sidebar from 768px up and the four-item tab
+bar below it. Record forms still become full-screen sheets below `md`, and
+choice popovers become bottom sheets. Those are shared responsive patterns,
+not a separate mobile information architecture.
 
-Four primary destinations. Plan is fourth. Everything else is a setting.
+A native client or PWA is not a layout remedy. Neither is part of the current
+direction. A later product need can propose one separately.
 
-| Label | Path | Job |
-| --- | --- | --- |
-| Home | `/` | Where the household stands. Net worth chart, this month, recent activity. |
-| Accounts | `/accounts` | Balances, the balance chart, the grouped list. |
-| Activity | `/activity` | The ledger. Search, filters, the row, the detail. |
-| Plan | `/plan` | When each payoff removes a monthly obligation, and the breathing room that follows. |
+## 4. Navigation and progressive disclosure
 
-The address matches the label.
+Four primary destinations remain in this order:
 
-**Spending targets** (`/targets`) is a setting in the account menu. It is not a primary destination.
+| Label    | Path        | Current job                                                    |
+| -------- | ----------- | -------------------------------------------------------------- |
+| Home     | `/`         | Historical orientation: net worth, this month, recent activity |
+| Accounts | `/accounts` | Balances, history, and the account inventory                   |
+| Activity | `/activity` | Search, filter, inspect, and maintain transactions             |
+| Plan     | `/plan`     | Forward-looking affordability and debt-recovery analysis       |
 
-**Settings, in the account menu, on both widths:**
+The account menu remains the secondary map on desktop and phone:
 
-| Label | Path | Why it is not primary |
-| --- | --- | --- |
-| Income | `/income` | Planning inputs, edited now and then. |
-| Bills | `/bills` | Planning inputs, edited now and then. |
-| Debts | `/debts` | The debt inventory, edited now and then. |
-| Plan budget | `/living` | The share of household pay available to Plan and one flexible monthly-spending amount. |
-| Savings | `/savings` | Cash to keep, Emergency, and named dated goals. |
-| Spending targets | `/targets` | Activity tracking against a monthly intention; it does not add another amount to Plan. |
-| Categories | `/categories` | A taxonomy for Activity. People open it to fix a name or a color. |
-| Connections | `/connections` | How accounts get linked. |
-| Household | `/household` | Planning currency, time zone, contributors. Already the right kind of page. It is just hidden. |
+| Label            | Path           | Current job                                    |
+| ---------------- | -------------- | ---------------------------------------------- |
+| Income           | `/income`      | Planning income inputs                         |
+| Bills            | `/bills`       | Scheduled non-debt obligations                 |
+| Debts            | `/debts`       | Debt inventory and maintained terms            |
+| Plan budget      | `/living`      | Household contribution and flexible spending   |
+| Savings          | `/savings`     | Cash to keep, emergency, and named dated goals |
+| Spending targets | `/targets`     | Activity tracking against monthly intentions   |
+| Categories       | `/categories`  | Activity taxonomy                              |
+| Connections      | `/connections` | Linked-account maintenance                     |
+| Household        | `/household`   | Currency, time zone, and contributors          |
 
-Desktop: these nine under the account email. Phone: the same nine in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity, Plan.
+The rule against a second navigation prevents a competing app-level map. It
+does not ban controls that clarify one destination:
 
-Primary pages get a title row and no back button. Back is for a nested flow, not for Home. Page actions (Add on Accounts, Import and Add on Activity) sit in that title row on desktop and in the same row on the phone, wrapping under the title. They stop teleporting into the phone header.
+- **Local tabs** separate distinct tasks, such as Overview and a focused
+  analysis.
+- **Filters** change the same dataset or view.
+- **Disclosures** reveal supporting explanation or optional analysis.
+- **Panels** keep inspection or editing focused without losing page context.
 
-Drill-down stays what the data already supports. A category row on Home can later filter Activity. A chart point does not need a new viewer. The first pass does not have to wire those links. The layout should leave a row that can become one.
+Critical errors, required actions, and missing inputs that invalidate a result
+cannot disappear inside collapsed detail. Local view changes should preserve
+the state that remains relevant to the user's task.
 
-## 5. Mobile strategy
+## 5. Warning hierarchy
 
-**Stay on this Next.js app. Design the desktop layout, then stack it under 768px. Do not start a native app or a PWA.**
+Warnings are part of the result hierarchy, not a second dashboard.
 
-The product is already one web app: App Router, Clerk on the server, Plaid Link in the browser, Recharts, and a shell that switches at `md`. The problem is that the switch replaces the navigation model and still leaves phone sheets and a phone carousel in the wide layout. A second client would duplicate that before Plan exists.
+The issue that most affects the current task or result reliability gets the
+primary presentation. Additional issues can be summarized by count with
+access to details. Healthy checks stay quiet. Repetition is useful only when
+the nearby result or action would otherwise be misunderstood.
 
-A PWA would not fix it. There is no web manifest and no service worker (the only `webmanifest` mention is a Clerk matcher exclusion in `proxy.ts`). Home-screen install, offline, and push are a wrapper around whatever layout we have. Wrap it after the layout is one product.
+This reduction in visual noise does not justify hiding a material financial
+qualification. A cash shortfall, stale balance, missing term, excluded
+currency, or temporary scenario remains visible wherever it changes the
+meaning of the answer.
 
-**Now**
+Warnings use the warning color and icon convention. Failure and destructive
+actions use destructive treatment. Color is always paired with text or an
+icon.
 
-- One component tree. `md` remains the shell breakpoint.
-- From 768px up: light sidebar, title row, Home in two columns from 1024px.
-- Under 768px: the same primary pages, stacked, with the tab bar and safe-area padding that already exists.
-- Same routes, same hooks, same formatters.
+## 6. Charts and metrics
 
-**Later**
+A visualization earns its space by answering a question that a short summary
+cannot answer as clearly. A prominent metric follows the same test. Units,
+timeframe, and material qualifications sit with the result rather than in a
+distant explanation.
 
-- After Home, Accounts, and Activity are comfortable at a phone width, a manifest and icons are enough if a home-screen bookmark is wanted.
-- Native is a later decision, and only for a capability the browser cannot do well (a receipt camera, a system widget, a lock-screen alert). Not for layout, and not while Plan is still a placeholder.
+Actual history, a forecast, and an unsaved scenario are different kinds of
+evidence and should be named that way. The interface does not fabricate
+intermediate points, false decimal precision, or certainty the underlying
+contract does not provide.
 
-**Do not build yet**
+Related charts and lists keep the same identity for each series. Color is not
+the only identifier. Essential values remain available without hover, and
+touch and keyboard users can inspect them or use an equivalent readable
+view.
 
-- React Native, Expo, or a second repo.
-- A service worker, an offline ledger, or an install prompt.
-- A phone-only information architecture.
-- Dark mode. Light replaces the forest theme. Maintaining both now would freeze the split.
+Recharts is already in the application. A new chart dependency needs the
+normal dependency decision described in
+[`.cursor/rules/ui-primitives.mdc`](../../.cursor/rules/ui-primitives.mdc).
 
-## 6. First increment (done)
+## 7. Actions and states
 
-The first increment was the light shell plus Home: tokens, Inter, no dark class, three primary items, settings in the account menu, a title row on Home, Accounts, and Activity, and Home without the carousel. It was approved on October 5, 2026 in `docs/reviews/2026-10-05-002-light-shell-home.md`. The detail surface and picker popovers followed in `docs/reviews/2026-10-05-003-detail-surface.md` and `docs/reviews/2026-10-05-004-picker-popovers.md`.
+An actionable view has one clearly dominant action. Other actions are quieter.
+A read-only view does not need a manufactured button merely to satisfy a
+layout pattern.
+
+Screen-level actions stay associated with the title or primary result.
+Contextual actions can sit beside the result they resolve. On a narrow screen,
+that relationship matters more than keeping every action on the same physical
+line: controls can wrap or stack without moving into a different navigation
+bar.
+
+Loading, empty, error, and stale states preserve the same hierarchy. An empty
+state explains what is missing and offers the action that fills it. A stale or
+partially failed view keeps the last useful data visible and clearly explains
+its reliability.
+
+## 8. Current implementation and historical notes
+
+The light shell, Home direction, right-hand detail surface, choice popovers,
+Accounts chart header, and signed-in responsive layout were implemented and
+approved on October 5, 2026:
+
+- [`2026-10-05-002-light-shell-home.md`](../reviews/2026-10-05-002-light-shell-home.md)
+- [`2026-10-05-003-detail-surface.md`](../reviews/2026-10-05-003-detail-surface.md)
+- [`2026-10-05-004-picker-popovers.md`](../reviews/2026-10-05-004-picker-popovers.md)
+- [`2026-10-05-005-accounts-chart-header.md`](../reviews/2026-10-05-005-accounts-chart-header.md)
+- [`2026-10-05-007-signed-in-layout.md`](../reviews/2026-10-05-007-signed-in-layout.md)
+
+Before that work, the app used a dark journal theme, multiple typefaces, a
+phone carousel, duplicated phone navigation, decorative wallpaper, and bottom
+sheets at laptop widths. That description is historical, not a source for new
+requirements.
+
+Several statements in the original October 5 brief also described that moment
+only: Tortoise now has budget data, Plan is a real destination rather than a
+placeholder, and the product map is not limited to "three daily jobs." The
+old "design desktop, then stack it" instruction is retired in favor of the
+intentional responsive approach above.
+
+The current Plan page is documented separately in
+[`plan-page.md`](plan-page.md). Its implemented three-view refinement is still
+awaiting review, and the broader Planning UX assessment remains a proposal.
+Neither this shared direction nor the governance rule approves a further Plan
+redesign.

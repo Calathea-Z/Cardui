@@ -26,6 +26,21 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
   would skip an earlier roadmap item that is still not started, ask Zach
   before writing it.
 
+## UI/UX implementation reviews
+
+For a new screen or substantial UI change, keep the report concise and record:
+
+- what the user sees and can do first;
+- what is secondary and how the user reaches it;
+- how the layout adapts on mobile; and
+- which visual and interaction checks await Zach.
+
+Zach remains the manual visual, usability, and end-to-end tester. Agent checks
+cover appropriate compilation, lint, formatting, and focused behavior. A
+passing build does not establish visual usability. Small changes do not
+require automated browser QA or a large UX checklist. The enforceable screen
+rules are in [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
+
 ## UX assessments
 
 - [2026-10-08 — Phase 2 product and UX audit](2026-10-08-006-phase-2-ux-audit.md) — Approved 2026-10-08
@@ -33,6 +48,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 ## Rules and handoff
 
+- [2026-10-08 — Responsive UI/UX governance](2026-10-08-009-responsive-ui-governance.md) — Awaiting review
 - [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Awaiting review
 
 ## Phase 3 — Recovery calculations and forecasts

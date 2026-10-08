@@ -11,6 +11,13 @@ history. They do not say what is next.
 
 **Now**
 
+- Responsive UI/UX governance is updated and awaiting review in
+  [`reviews/2026-10-08-009-responsive-ui-governance.md`](reviews/2026-10-08-009-responsive-ui-governance.md).
+  New and substantially changed screens now lead with the user's question and
+  relevant action, define desktop and mobile arrangements intentionally, and
+  reduce repeated surfaces and warning noise without hiding material financial
+  qualifications. This is documentation only; no Plan redesign was
+  implemented.
 - The Plan page refinement is implemented, manually checked, and awaiting
   review in
   [`reviews/2026-10-08-008-plan-page-refinement.md`](reviews/2026-10-08-008-plan-page-refinement.md).
@@ -39,9 +46,10 @@ history. They do not say what is next.
 
 **Next**
 
-1. Review and approve the Plan page refinement and separately approve the
-   bounded Phase 2 UX closure. Neither review is marked approved yet.
-2. After both approvals, resume the rest of Phase 3 item 6: income loss,
+1. Review and approve the responsive UI/UX governance, the Plan page
+   refinement, and separately the bounded Phase 2 UX closure. None of those
+   reviews is marked approved yet.
+2. After those approvals, resume the rest of Phase 3 item 6: income loss,
    windfalls, spending changes, and protected-cash targets. Detail panel
    keyboard focus stays tracked and is not scheduled. The separate Planning
    UX review remains a proposal until Zach approves a change from it.
@@ -59,19 +67,19 @@ history. They do not say what is next.
 
 ## Map
 
-| Path | What it is |
-| --- | --- |
-| [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
-| [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
-| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
-| [`design/plan-page.md`](design/plan-page.md) | Plan page design: Overview, focused Cash outlook, chart-led Debt payoff, and the temporary scenario controls. The three-view refinement is awaiting review |
-| [`design/savings.md`](design/savings.md) | Savings design: cash to keep, an emergency goal, and named goals under Saving for. Monthly living spending is edited on Living |
-| [`design/living.md`](design/living.md) | Plan budget design at `/living`: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check |
-| [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
-| [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
-| [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |
-| [`reviews/`](reviews/README.md) | One report per increment, with an index |
-| [`archive/`](archive/) | Superseded documents kept for reference |
+| Path                                                                                             | What it is                                                                                                                                                 |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`roadmap.md`](roadmap.md)                                                                       | Product direction, the phase backlog, and what each phase built                                                                                            |
+| [`decisions/`](decisions/)                                                                       | Short decision records for product and architecture choices (listed below)                                                                                 |
+| [`design/linked-manual-debts.md`](design/linked-manual-debts.md)                                 | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved                               |
+| [`design/plan-page.md`](design/plan-page.md)                                                     | Plan page design: Overview, focused Cash outlook, chart-led Debt payoff, and the temporary scenario controls. The three-view refinement is awaiting review |
+| [`design/savings.md`](design/savings.md)                                                         | Savings design: cash to keep, an emergency goal, and named goals under Saving for. Monthly living spending is edited on Living                             |
+| [`design/living.md`](design/living.md)                                                           | Plan budget design at `/living`: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check                      |
+| [`design/ui-direction.md`](design/ui-direction.md)                                               | Shared UI rationale and examples; the light shell is implemented and the enforceable rules are in `.cursor/rules/ui-governance.mdc`                        |
+| [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules                                                                                                      |
+| [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md)                 | Manual walkthrough template and the Phase 0 record                                                                                                         |
+| [`reviews/`](reviews/README.md)                                                                  | One report per increment, with an index                                                                                                                    |
+| [`archive/`](archive/)                                                                           | Superseded documents kept for reference                                                                                                                    |
 
 Decision records:
 

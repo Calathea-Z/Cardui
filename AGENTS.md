@@ -127,7 +127,14 @@ before an index migration. See `.cursor/rules/backend-query-access.mdc`.
 
 ## UI governance
 
-New Tortoise screens follow the light shell, the account-menu map, and the shared action, state, and accessibility conventions. When a UX choice is uncertain, ask Zach and offer options before building it. See `.cursor/rules/ui-governance.mdc`.
+For a new screen or substantial UI change, state the primary user question,
+next action when applicable, and supporting detail before implementation.
+Reassess the whole page instead of appending cards, and define intentional
+desktop and mobile arrangements that share behavior and state. Follow the
+light shell, local-navigation, warning, chart, action, state, accessibility,
+and UX-review conventions in `.cursor/rules/ui-governance.mdc`. Make routine
+reversible layout choices; ask Zach only when an unresolved choice materially
+changes workflow, product behavior, scope, or adds a dependency.
 
 ## UI primitives
 

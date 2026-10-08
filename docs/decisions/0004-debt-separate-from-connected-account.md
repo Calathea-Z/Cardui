@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-10-06
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 ## Context
 
@@ -20,8 +20,8 @@ deferred and not planned.
 
 ## Consequences
 
-Linked debts need freshness and stale states, and depend on sync
-correctness first.
+Follow, overrides, freshness, and reconnect are approved. Those rules are
+in [`docs/design/linked-manual-debts.md`](../design/linked-manual-debts.md).
 
 Source: `docs/reviews/2026-10-05-014-debts.md`,
 `docs/design/linked-manual-debts.md`.

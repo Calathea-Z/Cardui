@@ -176,8 +176,8 @@ The approved calculations need a screen before scenarios are built on them. Item
 
 **Status (October 8, 2026):** The first page, in `docs/reviews/2026-10-07-014-plan-recovery.md`, showed the report as two text cards. Zach's review asked for a clear hierarchy and charts, so item 1 reworked that same review. Item 1 is approved in that report. Item 2 is approved in `docs/reviews/2026-10-07-015-plan-cash-outlook.md`. Those item descriptions record the original approved one-page layout and calculation scope. The implemented Overview, Cash outlook, and Debt payoff refinement is the current layout and is awaiting review in `docs/reviews/2026-10-08-008-plan-page-refinement.md`. The eight jewel series tokens are in `globals.css`. No schema change.
 
-1. Page and debt charts. The original approved layout opened with a one-sentence answer and one big figure, then Finish your plan for any debt that blocked the projection, a stacked balance chart with one band per debt in eight new jewel series colors, a minimums and breathing room step chart, the payoff order, and assumptions behind disclosure. A switch chose Rollover or Keep freed payments. The order stayed highest interest first with no extra because those inputs were not stored. The current refined layout preserves this analysis under local views; see `docs/design/plan-page.md`. No schema change.
-2. Cash outlook. The approved calculation provides the 30-day cash view and 6, 12, and 18 month horizons on Plan. Starting cash is the Cash total on Accounts in the household currency. Typical income, Bills, Plan budget, protected savings, and the selected debt path feed the forecast, with low pay under disclosure. The current refined layout selects one supported timeframe at a time and does not invent intermediate points. No schema change.
+1. Page and debt charts. Approved in `docs/reviews/2026-10-07-014-plan-recovery.md`. The page shape is in `docs/design/plan-page.md`. No schema change.
+2. Cash outlook. Approved in `docs/reviews/2026-10-07-015-plan-cash-outlook.md`. The page shape is in `docs/design/plan-page.md`. No schema change.
 
 ### Phase 4 — Guided conversation as the main planning entry point
 
@@ -282,24 +282,7 @@ Financial facts need household ownership, currency, effective/as-of date, source
 
 Use focused unit fixtures for calculations, database integration tests for isolation and reconciliation, and a small number of complete browser journeys. Avoid substituting UI snapshots for financial correctness.
 
-## 9. First development queue
-
-Implement in this order, as reviewable changes:
-
-1. Baseline CI/setup and original-MVP acceptance checklist. Done (Phase 0).
-2. Dashboard spending summaries and consistent financial totals. Done (Phase 0).
-3. Household/authentication schema, data backfill and isolation tests. Done (Phase 1).
-4. Manual account/transaction model and workflows, optional Plaid startup. Done (Phase 1).
-5. Income, obligations and debt-health inventory with direct editing. Done (Phase 2 items 1–5). Linked debts follow, under "Sync correctness and linked debts".
-6. Life-with-debt budgeting, emergency reserve and sinking-fund behavior.
-7. Dated cash-flow, smart payoff priority, automatic rollover, 6/12/18-month scenarios and core refinance/restructuring calculations with reference fixtures.
-8. Versioned recovery plan, cash-flow recovery indicators, ordered actions, milestones and summary export.
-9. Integrated multi-session guided assistant.
-10. Actual-versus-plan review and alpha user journeys.
-
-Conversation scripts and screen sketches can be designed alongside the first items. No calendar estimate is committed: re-estimate after the ownership migration and first complete planning slice reveal implementation effort.
-
-## 10. Success measures and decisions to revisit
+## 9. Success measures and decisions to revisit
 
 Measure completed first plans, time/effort to reach them, unresolved inputs, successful return sessions, completed first reviews, user understanding of next actions, protected-buffer adherence, recurring cash flow freed, minimum payments removed, high utilization reduced, plan relapse/re-borrowing signals, calculation errors and cost per active household. Do not optimize for message count or the fastest theoretical debt-free date alone.
 

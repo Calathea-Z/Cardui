@@ -22,24 +22,13 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 - On October 7, 2026, five reports that shared a number with another
   report on the same date took that date's next free number. Their
   contents did not change.
-- The next-chat prompt follows `.cursor/rules/handoff.mdc`. If that prompt
-  would skip an earlier roadmap item that is still not started, ask Zach
-  before writing it.
+- The next-chat prompt follows
+  [`.cursor/rules/handoff.mdc`](../../.cursor/rules/handoff.mdc).
 
 ## UI/UX implementation reviews
 
-For a new screen or substantial UI change, keep the report concise and record:
-
-- what the user sees and can do first;
-- what is secondary and how the user reaches it;
-- how the layout adapts on mobile; and
-- which visual and interaction checks await Zach.
-
-Zach remains the manual visual, usability, and end-to-end tester. Agent checks
-cover appropriate compilation, lint, formatting, and focused behavior. A
-passing build does not establish visual usability. Small changes do not
-require automated browser QA or a large UX checklist. The enforceable screen
-rules are in [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
+For a new screen or substantial UI change, follow section 9 of
+[`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
 
 ## UX assessments
 
@@ -48,6 +37,7 @@ rules are in [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governan
 
 ## Rules and handoff
 
+- [2026-10-08 — Documentation audit](2026-10-08-010-documentation-audit.md) — Awaiting review
 - [2026-10-08 — Responsive UI/UX governance](2026-10-08-009-responsive-ui-governance.md) — Awaiting review
 - [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Awaiting review
 
@@ -104,49 +94,13 @@ Newest first.
 
 ## Phase 1 — Ownership, manual data, and conventions
 
-Archived in [`archive/phase-1/`](archive/phase-1/). Newest first.
-
-- [2026-10-04 — Backend enums](archive/phase-1/2026-10-04-015-backend-enums.md) — Approved
-- [2026-10-04 — Frontend types](archive/phase-1/2026-10-04-014-frontend-types.md) — Approved
-- [2026-10-04 — Frontend layers](archive/phase-1/2026-10-04-013-frontend-layers.md) — Approved
-- [2026-10-04 — Frontend comment rule](archive/phase-1/2026-10-04-012-frontend-comment-rule.md) — Approved
-- [2026-10-04 — Frontend method comments](archive/phase-1/2026-10-04-011-frontend-method-comments.md) — Approved
-- [2026-10-04 — CSV import UX](archive/phase-1/2026-10-04-010-csv-import-ux.md) — Approved
-- [2026-10-04 — Optional Plaid startup](archive/phase-1/2026-10-04-009-optional-plaid.md) — Approved
-- [2026-10-04 — DotRush hover documentation](archive/phase-1/2026-10-04-018-dotrush-hover-docs.md) — Merged in PR #11; approval not recorded (was `2026-10-04-009-dotrush-hover-docs`)
-- [2026-10-04 — CSV import](archive/phase-1/2026-10-04-008-csv-import.md) — Approved
-- [2026-10-04 — DotRush solution pin](archive/phase-1/2026-10-04-017-dotrush-solution-pin.md) — Merged in PR #9; approval not recorded (was `2026-10-04-008-dotrush-solution-pin`)
-- [2026-10-04 — Security hardening](archive/phase-1/2026-10-04-007-security-hardening.md) — Merged in PR #10; approval not recorded. Its proposed rule was adopted October 7 as `.cursor/rules/security.mdc`
-- [2026-10-04 — Clerk page protection](archive/phase-1/2026-10-04-006-clerk-page-protection.md) — Merged in PR #8; approval not recorded
-- [2026-10-04 — Frontend conventions](archive/phase-1/2026-10-04-005-frontend-conventions.md) — Merged in PR #8; approval not recorded
-- [2026-10-04 — Frontend cleanup](archive/phase-1/2026-10-04-004-frontend-cleanup.md) — Merged in PR #8; approval not recorded. Its pending decision was resolved by 2026-10-04-005
-- [2026-10-04 — Backend query access](archive/phase-1/2026-10-04-003-backend-query-access.md) — Merged in PR #7; approval not recorded
-- [2026-10-04 — Query and index access](archive/phase-1/2026-10-04-002-query-and-index-access.md) — Merged in PR #7; approval not recorded
-- [2026-10-04 — Clean-code follow-up](archive/phase-1/2026-10-04-001-clean-code-follow-up.md) — Merged in PR #7; approval not recorded
-- [2026-10-03 — Financial profile preferences](archive/phase-1/2026-10-03-018-financial-profile.md) — Approved (was `2026-10-03-013-financial-profile`)
-- [2026-10-03 — Method responsibility](archive/phase-1/2026-10-03-017-method-responsibility.md) — Merged in PR #7; approval not recorded
-- [2026-10-03 — Domain classifiers](archive/phase-1/2026-10-03-016-domain-classifiers.md) — Merged in PR #7; approval not recorded
-- [2026-10-03 — Backend type files](archive/phase-1/2026-10-03-015-backend-type-files.md) — Merged in PR #7; approval not recorded
-- [2026-10-03 — Private method regions](archive/phase-1/2026-10-03-014-private-method-regions.md) — Approved
-- [2026-10-03 — Backend method comments](archive/phase-1/2026-10-03-013-backend-method-comments.md) — Approved
-- [2026-10-03 — Manual accounts, transactions, and balance reconciliation](archive/phase-1/2026-10-03-012-manual-accounts-and-transactions.md) — Approved
-- [2026-10-03 — Accounts and transactions independent of Plaid](archive/phase-1/2026-10-03-011-independent-financial-records.md) — Approved
-- [2026-10-03 — Assign existing rows to the household](archive/phase-1/2026-10-03-010-assign-household-rows.md) — Approved
-- [2026-10-03 — Household scope for API reads and writes](archive/phase-1/2026-10-03-009-household-scope.md) — Approved
-- [2026-10-03 — Clerk sign-in and household owner](archive/phase-1/2026-10-03-008-clerk-household-owner.md) — Approved
-- [2026-10-03 — Phase 1 sign-in decision](archive/phase-1/2026-10-03-007-phase-1-sign-in-decision.md) — Approved
+Closed October 4, 2026. The reports are in
+[`archive/phase-1/`](archive/phase-1/). Several October 4 reports were merged
+without a recorded approval. The security rule proposed in
+`2026-10-04-007-security-hardening.md` was adopted on October 7 as
+`.cursor/rules/security.mdc`.
 
 ## Phase 0 — Baseline
 
-Archived in [`archive/phase-0/`](archive/phase-0/). Newest first.
-
-- [2026-10-03 — Phase 0 baseline close](archive/phase-0/2026-10-03-006-phase-0-baseline-close.md) — Approved
-- [2026-10-03 — CI production builds](archive/phase-0/2026-10-03-005-ci-production-builds.md) — Approved
-- [2026-10-03 — CI for API tests, frontend tests, and lint](archive/phase-0/2026-10-03-004-ci-tests-and-lint.md) — Approved
-- [2026-10-03 — Balance history carries the last known balance](archive/phase-0/2026-10-03-003-balance-history-carry-forward.md) — Approved
-- [2026-10-03 — Preserve transaction user edits during Plaid sync](archive/phase-0/2026-10-03-002-preserve-transaction-user-edits.md) — Approved
-- [2026-10-03 — Plaid transaction-page retrieval boundary](archive/phase-0/2026-10-03-001-plaid-transaction-page-boundary.md) — Approved
-- [2026-10-02 — Transaction activity conventions and dashboard accuracy](archive/phase-0/2026-10-02-004-transaction-activity-conventions.md) — Approved (Zach confirmed the checklist)
-- [2026-10-02 — Dashboard spending and consistent financial totals](archive/phase-0/2026-10-02-003-dashboard-spending-and-financial-totals.md) — Approved (Zach confirmed)
-- [2026-10-02 — Development setup and original-MVP acceptance](archive/phase-0/2026-10-02-002-development-setup-and-mvp-acceptance.md) — Approved (Zach reviewed)
-- [2026-10-02 — Recovery roadmap direction](archive/phase-0/2026-10-02-001-recovery-roadmap-direction.md) — Approved (Zach confirmed)
+Closed October 3, 2026. The reports are in
+[`archive/phase-0/`](archive/phase-0/).

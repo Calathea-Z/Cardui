@@ -1,18 +1,17 @@
 # UI direction
 
-Status: Current. The light shell is implemented and approved; the October 8
-governance clarification is awaiting review in
+Status: Current. The light shell is approved. The October 8 governance
+clarification is awaiting review in
 [`2026-10-08-009-responsive-ui-governance.md`](../reviews/2026-10-08-009-responsive-ui-governance.md).
 Updated: 2026-10-08
 
 The enforceable conventions for new screens and substantial UI changes are in
 [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
-Where this rationale differs from that rule, the rule wins. Page-specific
-choices belong in page-specific design documents.
+Where this note differs from that rule, the rule wins. Page-specific choices
+belong in page-specific design documents.
 
 The signed-in app is branded **Tortoise** in `frontend/app/layout.tsx`. The
-repository and roadmap call the product Cardui. This document explains the
-shared visual and interaction direction for the Next.js frontend.
+repository and roadmap call the product Cardui.
 
 ## 1. Product direction
 
@@ -83,55 +82,22 @@ their exact values and contrast check are recorded in
 Green remains an accent, not a page fill. Household category colors appear
 only with their categories.
 
-### Width, density, and surfaces
+### Width and surfaces
 
-Content width follows the task:
-
-- prose and forms stay comfortably bounded;
-- lists use enough width for labels, dates, status, and values to remain
-  readable; and
-- analytical layouts may use a wider bounded container when comparison is
-  easier with related information together.
+Content width follows the task. Prose and forms stay comfortably bounded.
+Lists stay wide enough for labels, dates, status, and values. An analytical
+layout may use a wider bounded container when comparison is easier with
+related information together.
 
 The standard page padding is 16px below `md` and 32px from `md` up. White
 cards have a 1px border, 8px radius, and no shadow or entrance animation.
-Those cards represent meaningful groups. They are not wrappers required
-around every metric, message, or control.
+Those cards represent meaningful groups.
 
 Home's current two-column arrangement at sufficiently wide sizes and Plan's
 current wider analysis container are page-specific examples, not universal
 width or card-count requirements.
 
-## 3. Intentional responsive design
-
-Desktop and mobile are two arrangements of the same product, not a desktop
-page followed by an automatic stack. Before implementation, decide how each
-arrangement presents the answer, actions, controls, and supporting detail.
-
-They share routes, data, behavior, state ownership, formatters, and reusable
-components. Grouping can change, controls can wrap or stack, and secondary
-detail can move behind disclosure when space is limited. Relevant input and
-selection state should survive resizing and local view changes.
-
-On a phone:
-
-- the answer and relevant action remain ahead of supporting analysis;
-- controls and labels fit without horizontal page scrolling;
-- long amounts, dates, warnings, and text remain readable with text zoom;
-- chart values have touch and keyboard access or a readable data alternative;
-- sticky headers, tabs, and bottom navigation do not cover content or focus;
-  and
-- the page avoids nested scrolling and duplicate phone-only implementations.
-
-The shell still changes at `md`: a sidebar from 768px up and the four-item tab
-bar below it. Record forms still become full-screen sheets below `md`, and
-choice popovers become bottom sheets. Those are shared responsive patterns,
-not a separate mobile information architecture.
-
-A native client or PWA is not a layout remedy. Neither is part of the current
-direction. A later product need can propose one separately.
-
-## 4. Navigation and progressive disclosure
+## 3. Screen map
 
 Four primary destinations remain in this order:
 
@@ -156,80 +122,25 @@ The account menu remains the secondary map on desktop and phone:
 | Connections      | `/connections` | Linked-account maintenance                     |
 | Household        | `/household`   | Currency, time zone, and contributors          |
 
-The rule against a second navigation prevents a competing app-level map. It
-does not ban controls that clarify one destination:
+How local tabs, filters, disclosures, and panels differ is in the UI
+governance rule.
 
-- **Local tabs** separate distinct tasks, such as Overview and a focused
-  analysis.
-- **Filters** change the same dataset or view.
-- **Disclosures** reveal supporting explanation or optional analysis.
-- **Panels** keep inspection or editing focused without losing page context.
+## 4. Shared behavior
 
-Critical errors, required actions, and missing inputs that invalidate a result
-cannot disappear inside collapsed detail. Local view changes should preserve
-the state that remains relevant to the user's task.
-
-## 5. Warning hierarchy
-
-Warnings are part of the result hierarchy, not a second dashboard.
-
-The issue that most affects the current task or result reliability gets the
-primary presentation. Additional issues can be summarized by count with
-access to details. Healthy checks stay quiet. Repetition is useful only when
-the nearby result or action would otherwise be misunderstood.
-
-This reduction in visual noise does not justify hiding a material financial
-qualification. A cash shortfall, stale balance, missing term, excluded
-currency, or temporary scenario remains visible wherever it changes the
-meaning of the answer.
-
-Warnings use the warning color and icon convention. Failure and destructive
-actions use destructive treatment. Color is always paired with text or an
-icon.
-
-## 6. Charts and metrics
-
-A visualization earns its space by answering a question that a short summary
-cannot answer as clearly. A prominent metric follows the same test. Units,
-timeframe, and material qualifications sit with the result rather than in a
-distant explanation.
-
-Actual history, a forecast, and an unsaved scenario are different kinds of
-evidence and should be named that way. The interface does not fabricate
-intermediate points, false decimal precision, or certainty the underlying
-contract does not provide.
-
-Related charts and lists keep the same identity for each series. Color is not
-the only identifier. Essential values remain available without hover, and
-touch and keyboard users can inspect them or use an equivalent readable
-view.
+Responsive layout, warnings, charts, actions, states, and accessibility are
+in [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
+This note does not restate them.
 
 Recharts is already in the application. A new chart dependency needs the
-normal dependency decision described in
+decision in
 [`.cursor/rules/ui-primitives.mdc`](../../.cursor/rules/ui-primitives.mdc).
 
-## 7. Actions and states
+## 5. Earlier shell
 
-An actionable view has one clearly dominant action. Other actions are quieter.
-A read-only view does not need a manufactured button merely to satisfy a
-layout pattern.
-
-Screen-level actions stay associated with the title or primary result.
-Contextual actions can sit beside the result they resolve. On a narrow screen,
-that relationship matters more than keeping every action on the same physical
-line: controls can wrap or stack without moving into a different navigation
-bar.
-
-Loading, empty, error, and stale states preserve the same hierarchy. An empty
-state explains what is missing and offers the action that fills it. A stale or
-partially failed view keeps the last useful data visible and clearly explains
-its reliability.
-
-## 8. Current implementation and historical notes
-
-The light shell, Home direction, right-hand detail surface, choice popovers,
-Accounts chart header, and signed-in responsive layout were implemented and
-approved on October 5, 2026:
+Before October 5, 2026, the app used a dark journal theme, more than one
+typeface, a phone carousel, and bottom sheets at laptop widths. That shell
+is not a source for new screens. The light shell was approved on October 5,
+2026:
 
 - [`2026-10-05-002-light-shell-home.md`](../reviews/2026-10-05-002-light-shell-home.md)
 - [`2026-10-05-003-detail-surface.md`](../reviews/2026-10-05-003-detail-surface.md)
@@ -237,19 +148,6 @@ approved on October 5, 2026:
 - [`2026-10-05-005-accounts-chart-header.md`](../reviews/2026-10-05-005-accounts-chart-header.md)
 - [`2026-10-05-007-signed-in-layout.md`](../reviews/2026-10-05-007-signed-in-layout.md)
 
-Before that work, the app used a dark journal theme, multiple typefaces, a
-phone carousel, duplicated phone navigation, decorative wallpaper, and bottom
-sheets at laptop widths. That description is historical, not a source for new
-requirements.
-
-Several statements in the original October 5 brief also described that moment
-only: Tortoise now has budget data, Plan is a real destination rather than a
-placeholder, and the product map is not limited to "three daily jobs." The
-old "design desktop, then stack it" instruction is retired in favor of the
-intentional responsive approach above.
-
-The current Plan page is documented separately in
-[`plan-page.md`](plan-page.md). Its implemented three-view refinement is still
-awaiting review, and the broader Planning UX assessment remains a proposal.
-Neither this shared direction nor the governance rule approves a further Plan
-redesign.
+The current Plan page is in [`plan-page.md`](plan-page.md). Its three-view
+refinement is awaiting review. The Planning UX assessment is a proposal.
+This direction does not approve a further Plan redesign.

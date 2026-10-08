@@ -6,8 +6,8 @@ Updated: 2026-10-08
 
 ## Context
 
-Decision 0005 kept three primary destinations and left Plan's place open.
-Targets stay a setting at `/targets`.
+On October 7, decision 0005 still named three primary destinations and left
+Plan's place open. Targets stay a setting at `/targets`.
 
 ## Historical decision
 

@@ -18,9 +18,7 @@ The page title is Savings. Cash to keep and Emergency are always there. Named go
 When the existing Plan budget average is short, Savings shows that warning and
 links to the dated cash outlook. It does not run another affordability rule.
 
-Flexible monthly spending is edited on Plan budget, at `/living`. The stored row is still an operating goal. Savings does not show that card.
-
-Flexible monthly spending is the one flexible-spending total used by Plan. It stores a monthly amount, the day of the month that spending counts (Ready by, default the 1st), and how much is available now. It leaves cash on that day. After the day has passed, only what is left this month leaves cash, on today. Later months count the full monthly amount. It does not finish, and it does not join the protected pile.
+Flexible monthly spending is edited on Plan budget, at `/living`. The stored row is still an operating goal. Savings does not show that card. How that amount leaves cash is in [`living.md`](living.md). It does not join the protected pile.
 
 Cash to keep is a floor. It stores the amount to always keep available, and how much is available now. The plan protects the full floor. It does not leave cash and it has no date. A household has one of each card. Emergency and each named goal still have a target and a date. Cash to keep is added to Emergency and named goals; none contains another.
 

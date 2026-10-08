@@ -11,20 +11,12 @@ template. Shared hierarchy, responsive, warning, chart, action, and
 accessibility rules are in
 [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
 
-## Historical problem and design evolution
+## How the page got here
 
-The first Plan page rendered the cash-flow recovery report as two path cards.
-Zach's October 7 review found that the hierarchy did not say what the screen
-did or make actionable blockers easy to find. The approved replacement led
-with an answer and then used one long page sequence: blockers, debt
-composition, balance chart, minimums and breathing room, payoff order, cash
-outlook, and assumptions.
-
-That sequence is a historical implementation step, not a prescribed stack for
-future screens. The October 8 refinement reorganized the same supported report
-into Overview, Cash outlook, and Debt payoff so the initial page is shorter.
-The refinement is implemented and manually checked, but its review remains
-awaiting approval in
+The first Plan page was two text cards. Zach's October 7 review replaced
+that with one long page. The October 8 refinement split the same report
+into Overview, Cash outlook, and Debt payoff. That refinement is implemented
+and awaiting review in
 [`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
 
 Forward-looking charts still live on Plan. Home keeps historical results. See

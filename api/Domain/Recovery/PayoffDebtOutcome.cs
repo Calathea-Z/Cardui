@@ -7,7 +7,7 @@ namespace Cardui.Api.Domain.Recovery;
 /// PaymentsUntilPaidOff counts monthly payments from the first due date, and it is null when the debt is not paid off.
 /// PaymentsUntilUnderLimit counts payments until a revolving debt that started at or above 90 percent is under that line.
 /// It is null when the debt did not start that high or never crosses. Utilization is the opening ratio for a revolving debt.
-/// Interest is the sum of the monthly interest this order charged. A freed minimum is not included in another debt's payment.
+/// Interest is the sum of the monthly interest charged while this debt was projected.
 /// </summary>
 public sealed record PayoffDebtOutcome(
     Guid DebtId,

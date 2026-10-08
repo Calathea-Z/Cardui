@@ -11,14 +11,15 @@ history. They do not say what is next.
 
 **Now**
 
-- Phase 3 item 4 in [`roadmap.md`](roadmap.md): roll a freed minimum into the
-  next debt. Item 3 is approved in
-  [`reviews/2026-10-07-010-payoff-priority.md`](reviews/2026-10-07-010-payoff-priority.md).
+- Phase 3 item 5 in [`roadmap.md`](roadmap.md): track when each payoff removes
+  a monthly obligation and how much recurring breathing room it creates.
+  Item 4 is approved in
+  [`reviews/2026-10-07-011-payoff-rollover.md`](reviews/2026-10-07-011-payoff-rollover.md).
 
 **Next**
 
-1. Phase 3 item 5, after item 4. Detail panel keyboard focus stays tracked
-   and is not scheduled.
+1. Phase 3 item 6, after item 5. Detail panel keyboard focus stays tracked
+  and is not scheduled.
 
 **Tracked, not scheduled**
 

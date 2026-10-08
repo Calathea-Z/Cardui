@@ -56,3 +56,8 @@ None in this slice. After approval, the next roadmap item is Phase 3 item 6, rep
 ## Correction
 
 October 7, 2026. Zach decided Plan is the first primary destination. That page is in [`2026-10-07-013-plan-nav.md`](2026-10-07-013-plan-nav.md). This report still adds no payoff numbers to a screen. The app now has a Plan item in the main nav.
+
+October 8, 2026. Zach changed the primary navigation order to Home,
+Accounts, Activity, Plan. Plan remains a primary destination, but its fourth
+position is intentional. The October 7 order above is historical and no longer
+applies. See decision 0009.

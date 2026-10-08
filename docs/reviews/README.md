@@ -28,6 +28,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 ## UX assessments
 
+- [2026-10-08 — Phase 2 product and UX audit](2026-10-08-006-phase-2-ux-audit.md) — Approved 2026-10-08
 - [2026-10-08 — Planning UX review](2026-10-08-003-planning-ux-review.md) — Awaiting review
 
 ## Rules and handoff

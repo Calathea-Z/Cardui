@@ -35,7 +35,7 @@ Leave these out: a second brand color that fills the room, a display face used o
 
 ### The map
 
-Plan, Home, Accounts, and Activity are the objects. Plan is first. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
+Home, Accounts, Activity, and Plan are the objects, in that order. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
 
 The dark canvas is gone. One light theme, and no second theme.
 
@@ -105,14 +105,14 @@ This-month keeps the three numbers Tortoise already calculates (income, spending
 
 ## 4. Information architecture
 
-Four primary destinations. Plan is first. Everything else is a setting.
+Four primary destinations. Plan is fourth. Everything else is a setting.
 
 | Label | Path | Job |
 | --- | --- | --- |
-| Plan | `/plan` | When each payoff removes a monthly obligation, and the breathing room that follows. |
 | Home | `/` | Where the household stands. Net worth chart, this month, recent activity. |
 | Accounts | `/accounts` | Balances, the balance chart, the grouped list. |
 | Activity | `/activity` | The ledger. Search, filters, the row, the detail. |
+| Plan | `/plan` | When each payoff removes a monthly obligation, and the breathing room that follows. |
 
 The address matches the label.
 
@@ -130,7 +130,7 @@ The address matches the label.
 | Connections | `/connections` | How accounts get linked. |
 | Household | `/household` | Planning currency, time zone, contributors. Already the right kind of page. It is just hidden. |
 
-Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Plan, Home, Accounts, Activity.
+Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity, Plan.
 
 Primary pages get a title row and no back button. Back is for a nested flow, not for Home. Page actions (Add on Accounts, Import and Add on Activity) sit in that title row on desktop and in the same row on the phone, wrapping under the title. They stop teleporting into the phone header.
 

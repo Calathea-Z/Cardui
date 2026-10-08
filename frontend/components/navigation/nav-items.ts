@@ -8,7 +8,7 @@ export type NavItem = {
 
 /**
  * Primary destinations in sidebar and tab-bar order.
- * Plan is first. Home, Accounts, and Activity are the daily jobs. Income,
+ * Home, Accounts, and Activity come first; Plan is fourth. Income,
  * Bills, Debts, Living, Savings, and Targets stay routes under settings.
  */
 export const navItems: NavItem[] = [
@@ -76,7 +76,7 @@ export const settingsItems: NavItem[] = [
 
 /**
  * Phone tab-bar destinations.
- * The list is the primary items, with Plan first.
+ * The list uses the same Home, Accounts, Activity, Plan order.
  */
 export const bottomNavItems = navItems;
 

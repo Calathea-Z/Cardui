@@ -11,6 +11,11 @@ history. They do not say what is next.
 
 **Now**
 
+- The Phase 2 product and UX audit is approved in
+  [`reviews/2026-10-08-006-phase-2-ux-audit.md`](reviews/2026-10-08-006-phase-2-ux-audit.md).
+  Its recommended decisions and one focused UX closure increment are approved.
+  That increment is current and comes before more Phase 3 work. Home, Accounts,
+  Activity, Plan remains the approved primary order.
 - Phase 2 item 8, simplified Living, is approved in
   [`reviews/2026-10-08-005-simplified-living.md`](reviews/2026-10-08-005-simplified-living.md).
   The contribution and cleanup migrations are applied. Phase 2 is complete.
@@ -26,10 +31,15 @@ history. They do not say what is next.
 
 **Next**
 
-1. The rest of Phase 3 item 6: income loss, windfalls, spending changes,
-  and protected-cash targets. The extra field layout and detail panel
-  keyboard focus stay tracked and are not scheduled. The planning UX
-  assessment stays a proposal until Zach approves a change from it.
+1. Implement the audit's bounded Phase 2 UX closure increment: make Plan honest
+   about affordability, add readiness and next actions, reconcile debt totals,
+   use recovery-oriented framing, and clarify freshness and the Plan
+   budget/Savings/Targets boundaries.
+2. After that increment is approved, resume the rest of Phase 3 item 6: income
+   loss, windfalls, spending changes, and protected-cash targets. The extra
+   field layout and detail panel keyboard focus stay tracked and are not
+   scheduled. The separate Planning UX review remains a proposal until Zach
+   approves a change from it.
 
 **Tracked, not scheduled**
 
@@ -69,8 +79,9 @@ Decision records:
 - [0004. A debt stays separate from a connected account](decisions/0004-debt-separate-from-connected-account.md)
 - [0005. One light shell and three primary destinations](decisions/0005-light-shell-and-three-destinations.md)
 - [0006. One-shot sync worker on a cron schedule](decisions/0006-one-shot-cron-worker.md)
-- [0007. Plan is first in the main nav](decisions/0007-plan-first-in-main-nav.md)
+- [0007. Historical Plan-first navigation](decisions/0007-plan-first-in-main-nav.md) — superseded by 0009
 - [0008. Forward-looking charts live on Plan](decisions/0008-forward-charts-on-plan.md)
+- [0009. Home, Accounts, Activity, then Plan](decisions/0009-home-accounts-activity-plan-order.md)
 
 Setup is in the root [`README.md`](../README.md). Agent rules are in the
 root [`AGENTS.md`](../AGENTS.md) and `.cursor/rules/`.

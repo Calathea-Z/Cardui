@@ -19,11 +19,16 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
+  --color-series-5: var(--series-5);
+  --color-series-6: var(--series-6);
+  --color-series-7: var(--series-7);
+  --color-series-8: var(--series-8);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -42,6 +47,7 @@
   --color-card: var(--card);
   --color-success: var(--success);
   --color-transfer: var(--transfer);
+  --color-warning: var(--warning);
   --color-panel-header: var(--panel-header);
   --color-mark: var(--mark);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -73,14 +79,22 @@
   --success: #1f7a4a;
   --transfer: #3d5f8a;
   --destructive: #9f3a32;
+  /* Something to finish or fix that is not a failure. 5.78:1 on white, 5.05:1 on its 10% tint. */
+  --warning: #8f5a00;
   --border: #e3e0d8;
   --input: #ffffff;
   --ring: #1e4d3a;
   --chart-1: #1e4d3a;
   --chart-2: #c4b8a5;
-  --chart-3: #1e4d3a;
-  --chart-4: #c4b8a5;
-  --chart-5: #6d6a64;
+  /* Jewel series for charts that compare several things. Each is at least 3:1 on white. */
+  --series-1: #00806e;
+  --series-2: #2b5fb3;
+  --series-3: #b8642e;
+  --series-4: #7b4fb5;
+  --series-5: #127c99;
+  --series-6: #a83f74;
+  --series-7: #a8740c;
+  --series-8: #4a4fb0;
   --radius: 0.5rem;
   --sidebar: #f3f2ee;
   --sidebar-foreground: #1c1b19;

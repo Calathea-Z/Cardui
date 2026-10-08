@@ -60,6 +60,22 @@ export type {
   UpsertDebtDto,
 } from "./debts";
 export type {
+  DebtScheduleStop,
+  PayoffRolloverKind,
+  PlanBalancePointDto,
+  PlanCashDayDto,
+  PlanCashForecastDto,
+  PlanCashHorizonDto,
+  PlanCashOutlookDto,
+  PlanCashOutlookPathDto,
+  PlanCashWindowDto,
+  PlanDebtOutcomeDto,
+  PlanMissingBalanceDto,
+  PlanRecoveryDto,
+  PlanRecoveryPathDto,
+  PlanRecoveryStepDto,
+} from "./plan";
+export type {
   FinancialProfileDto,
   HouseholdContributorDto,
   HouseholdDto,

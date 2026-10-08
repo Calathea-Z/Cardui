@@ -1,7 +1,7 @@
 # Cardui roadmap
 
 Status: Approved. Direction approved October 2, 2026.
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 Prepared September 25, 2026. Zach approved the direction on October 2, 2026 (`docs/reviews/archive/phase-0/2026-10-02-001-recovery-roadmap-direction.md`). It was based on the repository at that time, Zach's private planning notes in an untracked `Plan.md` (gitignored, not in the repository), the planning conversation, and the supplied capability inventory. Release boundaries below are recommendations, not approved scope cuts.
 
@@ -150,6 +150,7 @@ A model change in items 2 and 5 updates the model and `DbContext` configuration,
 These are not scheduled into a phase yet. Each is one review when it is picked up.
 
 1. Detail panel keyboard focus. While a record panel or full-screen sheet is open, and while a nested picker is open inside it, Tab and Shift+Tab stay inside the top surface. Escape closes only that surface. When it closes, focus returns to the control that opened it. Today the panel moves focus into itself when it opens, but Tab can leave it and focus does not return to the opener. Found in `docs/reviews/2026-10-05-017-ui-review-notes.md`. Required by `.cursor/rules/ui-governance.mdc` section 3. No schema change.
+2. Extra-each-month field layout on Plan. The behavior is approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. Zach found the layout poor on October 8, 2026, and asked to leave it and keep going. No schema change.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 
@@ -166,6 +167,17 @@ These are not scheduled into a phase yet. Each is one review when it is picked u
 11. Generate a plain-language decision plan: the three most important actions, their order, why they matter, expected cash-flow effect, assumptions, risks and missing information. Support a printable/shareable export.
 
 **Exit:** identical inputs reproduce identical numbers; shortfalls remain visible; smart priority and rollover results reconcile to documented fixtures; refinance/restructuring comparisons include fees and break-even behavior; a saved plan survives edits with version history and can be used without chat.
+
+**Status (October 7, 2026):** Items 1–5 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, `docs/reviews/2026-10-07-010-payoff-priority.md`, `docs/reviews/2026-10-07-011-payoff-rollover.md`, and `docs/reviews/2026-10-07-012-cash-flow-recovery.md`. Plan is the first primary destination, approved in `docs/reviews/2026-10-07-013-plan-nav.md`. The calculators, the forecast, the payoff comparison, the rollover comparison, and the cash-flow recovery report are pure domain rules in `api/Domain/Recovery`. The Plan screen work below puts them on a page. No schema change. Item 6 has started: a shared extra payment tried on Plan and not saved, approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. The field layout is tracked and not scheduled. Income loss, windfalls, spending changes, and protected cash have not started. Items 7–11 have not started.
+
+### Plan screen — after Phase 3 item 5, before Phase 3 item 6
+
+The approved calculations need a screen before scenarios are built on them. Item 6 scenarios and item 8 spendable estimates change what this page shows. Design: [`docs/design/plan-page.md`](design/plan-page.md), approved October 7, 2026. Forward-looking charts live on Plan and Home keeps history (decision 0008). Each item is one review.
+
+**Status (October 7, 2026):** The first page, in `docs/reviews/2026-10-07-014-plan-recovery.md`, showed the report as two text cards. Zach's review asked for a clear hierarchy and charts, so item 1 reworks that same review. Item 1 is approved in that report. Item 2 is approved in `docs/reviews/2026-10-07-015-plan-cash-outlook.md`. The Plan screen work is done. The eight jewel series tokens are in `globals.css`. No schema change.
+
+1. Page and debt charts. Plan opens with a one-sentence answer and one big figure, then Finish your plan for any debt that blocks the projection, a stacked balance chart with one band per debt in eight new jewel series colors, a minimums and breathing room step chart, the payoff order, and the assumptions behind a disclosure. A switch in the title row chooses Rollover or Keep freed payments. The order stays highest interest first with no extra, because those inputs are not stored. No schema change.
+2. Cash outlook. The 30-day cash view and the 6, 12, and 18 month horizons on Plan, following the switch. Starting cash is the Cash total on Accounts, in the household currency. Income uses typical pay, with low pay under a disclosure. Bills come from Bills. Savings stay empty until Phase 2 item 7. The forecast pays debts from the selected path. No schema change expected.
 
 ### Phase 4 — Guided conversation as the main planning entry point
 
@@ -185,7 +197,7 @@ Design the conversation and test scripted prototypes during Phases 1–3. Produc
 
 ### Phase 5 — Follow-through and private-alpha validation
 
-1. Add a Plan home view with next actions, near-term cash outlook, milestones and assumptions needing confirmation.
+1. Add a Plan home view with next actions, near-term cash outlook, milestones and assumptions needing confirmation. The debt charts and the cash outlook are planned earlier, in "Plan screen" after Phase 3 item 5. This item adds next actions, milestones, and assumptions needing confirmation to that page.
 2. Give actions states such as proposed, chosen, waiting, completed and canceled. Support dependencies: unreceived loan funds cannot finance today's payments.
 3. Compare actual paychecks/balances with expected values; propose recalibration after material changes.
 4. Track recovery indicators such as utilization thresholds, removed minimum payments, reserve targets, positive cash flow and refinance-readiness inputs. Celebrate intermediate progress without implying that one threshold guarantees a credit or lending outcome.

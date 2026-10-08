@@ -35,7 +35,7 @@ Leave these out: a second brand color that fills the room, a display face used o
 
 ### The map
 
-Home, Accounts, and Activity are the objects. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
+Plan, Home, Accounts, and Activity are the objects. Plan is first. Income, bills, debts, categories, connections, and household are settings. A chart on Home answers one question, and the rows under it are the drill-down. Filters change that view. They do not open a second app.
 
 The dark canvas is gone. One light theme, and no second theme.
 
@@ -76,9 +76,11 @@ Light only. Stop forcing `class="dark"` on `<html>`.
 | `--primary` | `#1e4d3a` | Active nav, links, the main chart stroke. A mark, not the room. |
 | `--success` | `#1f7a4a` | Money in, positive difference. |
 | `--destructive` | `#9f3a32` | Money out when the sign is the point, and destructive actions. |
+| `--warning` | `#8f5a00` | Something to finish or fix that is not a failure, always with a warning icon. 5.78:1 on white, 5.16:1 on the canvas, 5.05:1 on its 10% tint. Added October 7, 2026; see `docs/reviews/2026-10-07-014-plan-recovery.md`. |
 | `--transfer` | `#3d5f8a` | Transfers only. |
 | `--chart-1` | `#1e4d3a` | Net worth and the primary series. |
 | `--chart-2` | `#c4b8a5` | The second series, when a chart compares two things. |
+| `--series-1` to `--series-8` | emerald `#00806e`, sapphire `#2b5fb3`, copper `#b8642e`, amethyst `#7b4fb5`, teal `#127c99`, magenta `#a83f74`, amber `#a8740c`, indigo `#4a4fb0` | A chart that compares several things, such as one band per debt on Plan. Each is at least 3:1 on white (lowest: amber, 4.06:1). Emerald and teal moved from the starting `#0f7b5f` and `#1a7f8c` so emerald does not read as `--success`. Added October 7, 2026; see `docs/design/plan-page.md` and `docs/reviews/2026-10-07-014-plan-recovery.md`. |
 | `--radius` | `0.5rem` | Cards and fields. From 768px up, a record opens as a right-hand panel, not a bottom sheet. |
 
 Green stays as the accent. It no longer fills the background. Category colors stay the household's colors, and they appear only on that category's bar.
@@ -97,21 +99,24 @@ Keep Recharts. Do not add a chart library.
 
 Home's chart is one net-worth area: `--chart-1` stroke, a faint fill, no point markers, horizontal grid lines in `--border` only. The range control stays the existing ranges, drawn as text, with the active range in `--primary`. Assets and liabilities are two figures beside that chart, not extra swipe panels. The accounts page already has the metric switcher. Home should not invent a worse one.
 
+A chart that compares several things, such as Plan's balance bands, uses the series tokens in order. Each thing keeps one color everywhere on that page, and a name in the tooltip or a nearby row, so color is not the only signal. No entrance animation.
+
 This-month keeps the three numbers Tortoise already calculates (income, spending, difference) and the category rows with a 4px bar. Those bars use the category color on a `--muted` track. No donut, no gauge, no third palette.
 
 ## 4. Information architecture
 
-Three primary destinations. Everything else is a setting.
+Four primary destinations. Plan is first. Everything else is a setting.
 
 | Label | Path | Job |
 | --- | --- | --- |
+| Plan | `/plan` | When each payoff removes a monthly obligation, and the breathing room that follows. |
 | Home | `/` | Where the household stands. Net worth chart, this month, recent activity. |
 | Accounts | `/accounts` | Balances, the balance chart, the grouped list. |
 | Activity | `/activity` | The ledger. Search, filters, the row, the detail. |
 
 The address matches the label.
 
-**Targets** (`/targets`) is a setting in the account menu. It is not a fourth tab. Where a future Plan screen goes is an open decision in `docs/README.md`.
+**Targets** (`/targets`) is a setting in the account menu. It is not a primary destination.
 
 **Settings, in the account menu, on both widths:**
 
@@ -125,7 +130,7 @@ The address matches the label.
 | Connections | `/connections` | How accounts get linked. |
 | Household | `/household` | Planning currency, time zone, contributors. Already the right kind of page. It is just hidden. |
 
-Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Home, Accounts, Activity.
+Desktop: these seven under the account email. Phone: the same seven in one menu opened from the account button. There is no hamburger drawer. The phone tab bar is Plan, Home, Accounts, Activity.
 
 Primary pages get a title row and no back button. Back is for a nested flow, not for Home. Page actions (Add on Accounts, Import and Add on Activity) sit in that title row on desktop and in the same row on the phone, wrapping under the title. They stop teleporting into the phone header.
 
@@ -143,7 +148,7 @@ A PWA would not fix it. There is no web manifest and no service worker (the only
 
 - One component tree. `md` remains the shell breakpoint.
 - From 768px up: light sidebar, title row, Home in two columns from 1024px.
-- Under 768px: the same three pages, stacked, with a three-item tab bar and safe-area padding that already exists.
+- Under 768px: the same primary pages, stacked, with the tab bar and safe-area padding that already exists.
 - Same routes, same hooks, same formatters.
 
 **Later**

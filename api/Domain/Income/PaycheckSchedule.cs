@@ -1,3 +1,4 @@
+using Cardui.Api.Domain;
 using Cardui.Api.Models;
 
 namespace Cardui.Api.Domain.Income;
@@ -85,111 +86,16 @@ public static class PaycheckSchedule
     /// <summary>
     /// Walks the cadence forward from the next payment, through the latest stored date.
     /// Each step keeps the original anchor so a short month does not move later payments.
+    /// Irregular has no dates.
     /// </summary>
     private static IEnumerable<DateOnly> Enumerate(IncomeCadence cadence, DateOnly anchor)
     {
-        var latest = IncomeSourceRules.LatestPaymentDate;
-        switch (cadence)
+        if (!CadenceDates.TryStep(cadence, out var step))
         {
-            case IncomeCadence.Weekly:
-                for (var date = anchor; date <= latest; date = date.AddDays(7))
-                {
-                    yield return date;
-                }
-
-                yield break;
-            case IncomeCadence.Biweekly:
-                for (var date = anchor; date <= latest; date = date.AddDays(14))
-                {
-                    yield return date;
-                }
-
-                yield break;
-            case IncomeCadence.Monthly:
-                foreach (var date in MonthSteps(anchor, 1, latest))
-                {
-                    yield return date;
-                }
-
-                yield break;
-            case IncomeCadence.Quarterly:
-                foreach (var date in MonthSteps(anchor, 3, latest))
-                {
-                    yield return date;
-                }
-
-                yield break;
-            case IncomeCadence.Yearly:
-                foreach (var date in MonthSteps(anchor, 12, latest))
-                {
-                    yield return date;
-                }
-
-                yield break;
-            case IncomeCadence.Semimonthly:
-                foreach (var date in SemimonthlyDates(anchor, latest))
-                {
-                    yield return date;
-                }
-
-                yield break;
-            default:
-                yield break;
+            return [];
         }
-    }
 
-    /// <summary>
-    /// Adds the same number of months from the anchor for each step.
-    /// A day the target month lacks, such as January 31 in February, uses that month's last day.
-    /// The following step starts from the anchor again, so March 31 returns after February 28.
-    /// </summary>
-    private static IEnumerable<DateOnly> MonthSteps(DateOnly anchor, int monthsPerStep, DateOnly latest)
-    {
-        for (var step = 0; ; step++)
-        {
-            var date = anchor.AddMonths(step * monthsPerStep);
-            if (date > latest)
-            {
-                yield break;
-            }
-
-            yield return date;
-        }
-    }
-
-    /// <summary>
-    /// Two paydays each month, fifteen days apart, using the next payment's day as one of them.
-    /// A day past the end of a short month uses that month's last day. This is not every 14 days.
-    /// </summary>
-    private static IEnumerable<DateOnly> SemimonthlyDates(DateOnly anchor, DateOnly latest)
-    {
-        var earlyDay = anchor.Day <= 15 ? anchor.Day : anchor.Day - 15;
-        var lateDay = earlyDay + 15;
-        var limit = new DateOnly(latest.Year, latest.Month, 1);
-        for (var month = new DateOnly(anchor.Year, anchor.Month, 1); month <= limit; month = month.AddMonths(1))
-        {
-            var early = DayInMonth(month, earlyDay);
-            var late = DayInMonth(month, lateDay);
-            if (early >= anchor && early <= latest)
-            {
-                yield return early;
-            }
-
-            if (late != early && late >= anchor && late <= latest)
-            {
-                yield return late;
-            }
-        }
-    }
-
-    /// <summary>
-    /// A calendar day in that month.
-    /// A day number past the last day of the month uses the last day.
-    /// </summary>
-    private static DateOnly DayInMonth(DateOnly month, int day)
-    {
-        var last = DateTime.DaysInMonth(month.Year, month.Month);
-        return new DateOnly(month.Year, month.Month, Math.Min(day, last));
+        return CadenceDates.Enumerate(step, anchor, IncomeSourceRules.LatestPaymentDate);
     }
 
     /// <summary>

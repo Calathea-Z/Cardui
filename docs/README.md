@@ -1,7 +1,7 @@
 # Cardui documentation
 
 Status: Current
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 ## Status
 
@@ -11,25 +11,36 @@ history. They do not say what is next.
 
 **Now**
 
-- Phase 3 in [`roadmap.md`](roadmap.md), recovery calculations, scenarios,
-  and a saved plan. Start with item 1. Reconnect is approved in
-  [`reviews/2026-10-07-007-reconnect.md`](reviews/2026-10-07-007-reconnect.md).
+- The extra-payment scenario is approved in
+  [`reviews/2026-10-07-016-plan-extra-payment.md`](reviews/2026-10-07-016-plan-extra-payment.md).
+  Blank or zero stays the minimums-only plan. A positive amount replaces
+  the payoff path and the cash outlook, and leaving Plan clears it. Zach
+  found the field layout poor and asked to leave it. The Plan screen items
+  are approved in
+  [`reviews/2026-10-07-014-plan-recovery.md`](reviews/2026-10-07-014-plan-recovery.md)
+  and
+  [`reviews/2026-10-07-015-plan-cash-outlook.md`](reviews/2026-10-07-015-plan-cash-outlook.md).
+  Design: [`design/plan-page.md`](design/plan-page.md).
 
 **Next**
 
-1. Phase 3 items 2 onward, after item 1. Detail panel keyboard focus stays
-   tracked and is not scheduled.
+1. The rest of Phase 3 item 6, one scenario at a time. Still open: income
+  loss, bonuses and windfalls, spending changes, and protected-cash
+  targets. The next chat agrees on which one to build before writing it.
+  None of those are saved until a later choice. Item 10, saved plans, has
+  not started. The extra field layout and detail panel keyboard focus stay
+  tracked and are not scheduled.
 
 **Tracked, not scheduled**
 
+- The extra-each-month field layout on Plan. Zach approved the behavior
+  and asked to leave the layout for later. See "Tracked UI follow-ups" in
+  [`roadmap.md`](roadmap.md).
 - Detail panel keyboard focus. See "Tracked UI follow-ups" in
   [`roadmap.md`](roadmap.md).
 
 **Open decisions**
 
-- Where a future Plan screen goes. Targets are `/targets`.
-  `.cursor/rules/ui-governance.mdc` keeps three primary destinations and no
-  fourth tab until Zach decides otherwise.
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
@@ -41,6 +52,7 @@ history. They do not say what is next.
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
+| [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, the cash outlook, and extra each month. Approved. The extra field layout is tracked and not scheduled |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |
@@ -55,6 +67,8 @@ Decision records:
 - [0004. A debt stays separate from a connected account](decisions/0004-debt-separate-from-connected-account.md)
 - [0005. One light shell and three primary destinations](decisions/0005-light-shell-and-three-destinations.md)
 - [0006. One-shot sync worker on a cron schedule](decisions/0006-one-shot-cron-worker.md)
+- [0007. Plan is first in the main nav](decisions/0007-plan-first-in-main-nav.md)
+- [0008. Forward-looking charts live on Plan](decisions/0008-forward-charts-on-plan.md)
 
 Setup is in the root [`README.md`](../README.md). Agent rules are in the
 root [`AGENTS.md`](../AGENTS.md) and `.cursor/rules/`.

@@ -23,6 +23,18 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
   report on the same date took that date's next free number. Their
   contents did not change.
 
+## Phase 3 — Recovery calculations and forecasts
+
+- [2026-10-07 — Plan extra payment](2026-10-07-016-plan-extra-payment.md) — Approved 2026-10-08
+- [2026-10-07 — Plan cash outlook](2026-10-07-015-plan-cash-outlook.md) — Approved 2026-10-07
+- [2026-10-07 — Plan recovery screen](2026-10-07-014-plan-recovery.md) — Approved; reworked as Plan screen item 1 on October 7, with correction notes
+- [2026-10-07 — Plan in the main nav](2026-10-07-013-plan-nav.md) — Approved 2026-10-07
+- [2026-10-07 — Cash-flow recovery](2026-10-07-012-cash-flow-recovery.md) — Approved 2026-10-07; correction note added October 7
+- [2026-10-07 — Payoff rollover](2026-10-07-011-payoff-rollover.md) — Approved 2026-10-07
+- [2026-10-07 — Payoff priority](2026-10-07-010-payoff-priority.md) — Approved 2026-10-07
+- [2026-10-07 — Cash forecast](2026-10-07-009-cash-forecast.md) — Approved 2026-10-07
+- [2026-10-07 — Recovery calculations](2026-10-07-008-recovery-calculations.md) — Approved 2026-10-07
+
 ## Phase 2, linked debts, and the UI plan
 
 Newest first.

@@ -21,6 +21,13 @@ public interface IAccountsService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// The Cash total shown on Accounts: active, unarchived cash accounts in
+    /// the planning currency. Plan's cash outlook starts from it.
+    /// </summary>
+    Task<decimal> GetCashTotalAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a manual account from an opening balance. That balance is
     /// the starting point, not a transaction, and today's snapshot is stored.
     /// </summary>

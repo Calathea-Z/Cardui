@@ -1,6 +1,7 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain;
 using Cardui.Api.Domain.Income;
+using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Income;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;
@@ -33,6 +34,31 @@ public class IncomeSourcesService : IIncomeSourcesService
     {
         var sources = await LoadIncomeSourcesAsync(cancellationToken);
         return AddSchedules(sources);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<HouseholdIncome>> GetOutlookIncomesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var householdId = _householdScope.RequireHouseholdId();
+        return await _dbContext.IncomeSources
+            .AsNoTracking()
+            .Where(source => source.HouseholdId == householdId)
+            .OrderBy(source => source.Name)
+            .ThenBy(source => source.Id)
+            .Select(source => new HouseholdIncome(
+                source.Id,
+                source.Name,
+                source.Currency,
+                source.TakeHomeAmount,
+                source.LowTakeHomeAmount,
+                source.Cadence,
+                source.NextPaymentDate,
+                source.Raises
+                    .OrderBy(raise => raise.EffectiveDate)
+                    .Select(raise => new DatedIncomeRaise(raise.EffectiveDate, raise.TakeHomeAmount))
+                    .ToList()))
+            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />

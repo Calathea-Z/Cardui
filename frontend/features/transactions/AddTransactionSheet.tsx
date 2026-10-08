@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { moneyCommaError } from "@/features/accounts/formatCurrency";
 import { Alert } from "@/components/ui/alert";
 import { Form } from "@/components/ui/form";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -50,6 +51,12 @@ function AddTransactionForm({
    */
   async function submit() {
     const parsed = parseMoney(amount);
+    const comma = moneyCommaError(amount);
+    if (comma) {
+      setErrorMessage(comma);
+      return;
+    }
+
     if (!accountId || !name.trim() || parsed === null || !date) {
       setErrorMessage("Choose an account and enter a name, amount, and date.");
       return;

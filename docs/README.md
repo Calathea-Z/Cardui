@@ -11,19 +11,23 @@ history. They do not say what is next.
 
 **Now**
 
-- The handoff must ask before a next-chat prompt that skips an earlier
-  roadmap item still marked not started. Awaiting review in
+- A signed-in UX assessment of Plan, Debts, and unfinished Savings is
+  awaiting review in
+  [`reviews/2026-10-08-003-planning-ux-review.md`](reviews/2026-10-08-003-planning-ux-review.md).
+  It proposes improvements; no application changes or roadmap reorder are approved.
+- Phase 2 item 7, savings, is approved in
+  [`reviews/2026-10-08-002-savings.md`](reviews/2026-10-08-002-savings.md).
+  `20261008143017_AddEverydaySpendingAndCashToKeep` is applied.
+- The handoff rule is still awaiting review in
   [`reviews/2026-10-08-001-handoff-roadmap-order.md`](reviews/2026-10-08-001-handoff-roadmap-order.md).
-  The extra-payment scenario is approved in
-  [`reviews/2026-10-07-016-plan-extra-payment.md`](reviews/2026-10-07-016-plan-extra-payment.md).
 
 **Next**
 
-1. Phase 2 item 7, after this rule is approved: an operating cash reserve,
-  an emergency goal, and sinking funds. Phase 2 item 8 waits until item 7
-  is approved. The rest of Phase 3 item 6 stays after those. The extra
-  field layout and detail panel keyboard focus stay tracked and are not
-  scheduled.
+1. Phase 2 item 8, unequal household contributions and sustainable
+  discretionary spending. The rest of Phase 3 item 6 stays after that.
+  The extra field layout and detail panel keyboard focus stay tracked
+  and are not scheduled. The planning UX assessment stays a proposal
+  until Zach approves a change from it.
 
 **Tracked, not scheduled**
 
@@ -47,6 +51,7 @@ history. They do not say what is next.
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
 | [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, the cash outlook, and extra each month. Approved. The extra field layout is tracked and not scheduled |
+| [`design/savings.md`](design/savings.md) | Savings design: everyday spending, an emergency goal, and named goals under Saving for, each with a target and a date. A followed cash account can supply the amount set aside |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

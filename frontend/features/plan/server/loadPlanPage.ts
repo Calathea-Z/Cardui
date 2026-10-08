@@ -31,6 +31,8 @@ function emptyPlanRecovery(): PlanRecoveryDto {
     cashOutlook: {
       asOf: "",
       startingCash: 0,
+      startingReserve: 0,
+      startingAvailable: 0,
       hasIncome: false,
       hasBills: false,
       excludedCurrencies: [],
@@ -57,6 +59,8 @@ function emptyForecast(): PlanCashForecastDto {
     horizons: [],
     shortfallOn: null,
     recoveredOn: null,
+    reserveShortfallOn: null,
+    reserveRestoredOn: null,
   };
 }
 

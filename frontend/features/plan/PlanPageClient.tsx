@@ -86,6 +86,8 @@ export function PlanPageClient({
           report.cashOutlook.startingCash,
           money,
           report.monthlyExtra,
+          report.cashOutlook.startingReserve,
+          report.cashOutlook.startingAvailable,
         ),
         typical: forecastView(outlook.typical, money),
         lowPay: outlook.lowPay ? forecastView(outlook.lowPay, money) : null,

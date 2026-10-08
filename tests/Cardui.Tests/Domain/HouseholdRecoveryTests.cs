@@ -141,7 +141,7 @@ public class HouseholdRecoveryTests
         var prepared = HouseholdRecovery.Prepare("USD", Today, debts, monthlyExtra);
         var comparison = PayoffRollover.Compare(prepared.Rollover);
         var outlook = HouseholdCashOutlook.Project(
-            new HouseholdCashOutlookInput("USD", Today, 1000m, [], []),
+            new HouseholdCashOutlookInput("USD", Today, 1000m, [], [], 0m, []),
             prepared.Rollover.Debts,
             comparison);
         return (comparison.MonthlyExtra, comparison.Rollover.PaidOffOn, outlook);

@@ -44,10 +44,12 @@ export type PlanFinishItem = {
 /**
  * The cash outlook's answer: one sentence about the next 18 months.
  * `warning` is true when cash goes below zero in that time.
+ * `reserveSentence` is set when what is left after the reserve goes below zero, and null when it does not.
  */
 export type PlanCashSummaryCopy = {
   warning: boolean;
   sentence: string;
+  reserveSentence: string | null;
 };
 
 /**
@@ -132,7 +134,7 @@ export function planAssumptions(
     {
       term: "Cash outlook",
       detail:
-        "Starts from Cash on Accounts, adds income at typical pay, and takes out bills and this path's debt payments.",
+        "Starts from Cash on Accounts, adds pay, and takes out bills, everyday spending, and debt payments. Money set aside does not reduce cash.",
     },
     {
       term: "Low pay",
@@ -293,6 +295,7 @@ export function finishPlanItems(
 /**
  * The line under the Cash outlook title: where cash starts and, when the switch is shown, what happens to a freed payment.
  * A tried extra is included in the debt payments, so the line names that amount.
+ * A reserve above zero names how much is set aside and what is left after it.
  */
 export function cashOutlookDescription(
   kind: PayoffRolloverKind,
@@ -300,6 +303,8 @@ export function cashOutlookDescription(
   startingCash: number,
   money: FormatMoney,
   monthlyExtra = 0,
+  startingReserve = 0,
+  startingAvailable = 0,
 ) {
   const start = `Starts from ${money(startingCash)} in Cash on Accounts today.`;
   const path = !hasPayoff
@@ -307,9 +312,13 @@ export function cashOutlookDescription(
     : kind === "Rollover"
       ? `${start} A paid-off debt's payment moves to the next debt.`
       : `${start} A paid-off debt's payment comes back as cash.`;
-  return monthlyExtra > 0
-    ? `${path} ${money(monthlyExtra)} extra each month is included in the debt payments.`
-    : path;
+  const sentence =
+    monthlyExtra > 0
+      ? `${path} ${money(monthlyExtra)} extra each month is included in the debt payments.`
+      : path;
+  return startingReserve > 0
+    ? `${sentence} ${money(startingReserve)} is set aside. ${money(startingAvailable)} is left to spend.`
+    : sentence;
 }
 
 /**
@@ -350,10 +359,12 @@ export function cashOutlookSummary(
   const window =
     forecast.horizons[forecast.horizons.length - 1]?.window ?? forecast.dayView;
   const lowest = `Lowest point: ${money(window.lowestCash)} on ${date(window.lowestCashOn)}.`;
+  const reserveSentence = reserveShortfallSentence(forecast, date);
   if (forecast.shortfallOn === null) {
     return {
       warning: false,
       sentence: `Cash stays above zero through ${date(window.through)}. ${lowest}`,
+      reserveSentence,
     };
   }
 
@@ -363,7 +374,26 @@ export function cashOutlookSummary(
   return {
     warning: true,
     sentence: `Cash runs short on ${date(forecast.shortfallOn)} ${after} ${lowest}`,
+    reserveSentence,
   };
+}
+
+/**
+ * The warning when what is left after the reserve goes below zero.
+ * Null when that does not happen. A later recovery date is included when the leftover comes back.
+ */
+function reserveShortfallSentence(
+  forecast: PlanCashForecastDto,
+  date: FormatDate,
+): string | null {
+  if (!forecast.reserveShortfallOn) {
+    return null;
+  }
+
+  const restored = forecast.reserveRestoredOn
+    ? ` It is back to zero or above on ${date(forecast.reserveRestoredOn)}.`
+    : "";
+  return `What's left after money set aside goes below zero on ${date(forecast.reserveShortfallOn)}.${restored}`;
 }
 
 /**
@@ -433,7 +463,7 @@ export function cashOutlookNotes(
   if (!outlook.hasBills) {
     notes.push({
       key: "no-bills",
-      text: "No bills yet, so only debt payments come out of cash. Add them on Bills.",
+      text: "No bills yet. Add them on Bills. Everyday spending and debt payments still come out of cash.",
       warning: false,
     });
   }

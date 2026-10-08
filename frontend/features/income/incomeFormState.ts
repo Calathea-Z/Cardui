@@ -1,3 +1,4 @@
+import { moneyCommaError } from "@/features/accounts/formatCurrency";
 import { parseMoney } from "@/features/accounts/manualAccount";
 import type {
   IncomeCadence,
@@ -110,6 +111,11 @@ export function toIncomeSourceUpsert(
   form: IncomeSourceFormState,
 ): IncomeSourceUpsertResult {
   const takeHomeAmount = parseMoney(form.takeHomeAmount);
+  const takeHomeComma = moneyCommaError(form.takeHomeAmount);
+  if (takeHomeComma) {
+    return { ok: false, error: takeHomeComma };
+  }
+
   if (
     !form.name.trim() ||
     takeHomeAmount === null ||
@@ -212,7 +218,10 @@ function readOptionalPayment(
 
   const amount = parseMoney(value);
   if (amount === null || amount <= 0) {
-    return { ok: false, error: `Enter the ${label} for one payment.` };
+    return {
+      ok: false,
+      error: moneyCommaError(value) ?? `Enter the ${label} for one payment.`,
+    };
   }
 
   return { ok: true, amount };
@@ -238,6 +247,11 @@ function readRaises(
     }
 
     const amount = parseMoney(amountText);
+    const comma = moneyCommaError(amountText);
+    if (comma) {
+      return { ok: false, error: comma };
+    }
+
     if (!date || amount === null || amount <= 0) {
       return {
         ok: false,

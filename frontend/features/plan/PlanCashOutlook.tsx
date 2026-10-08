@@ -55,6 +55,15 @@ function CashForecastBody({ view, currency }: CashForecastBodyProps) {
       ) : (
         <p className="text-sm text-foreground">{view.summary.sentence}</p>
       )}
+      {view.summary.reserveSentence ? (
+        <p className="flex items-start gap-2 rounded-md bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
+          <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <span>
+            <span className="sr-only">Warning: </span>
+            {view.summary.reserveSentence}
+          </span>
+        </p>
+      ) : null}
       {view.rows.length > 0 ? (
         <div>
           <h3 className="mb-2 text-xs font-medium text-muted-foreground">

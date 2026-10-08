@@ -8,7 +8,7 @@ public static class PlanCashOutlookDtoMapper
     /// <summary>
     /// Copies the cash outlook into the shape the Plan page renders.
     /// Each day keeps its ending cash and the day's income, bills, and debt payments as totals, not the individual rows.
-    /// The reserve is left out because no reserve is stored yet. The written assumptions are not sent; the page writes its own copy.
+    /// The starting reserve is the amount already set aside. The written assumptions are not sent; the page writes its own copy.
     /// </summary>
     public static PlanCashOutlookDto Map(HouseholdCashOutlookReport report)
     {
@@ -16,6 +16,8 @@ public static class PlanCashOutlookDtoMapper
         {
             AsOf = report.AsOf,
             StartingCash = report.StartingCash,
+            StartingReserve = report.StartingReserve,
+            StartingAvailable = report.StartingAvailable,
             HasIncome = report.HasIncome,
             HasBills = report.HasBills,
             ExcludedCurrencies = report.ExcludedCurrencies,
@@ -49,7 +51,9 @@ public static class PlanCashOutlookDtoMapper
             DayView = MapWindow(forecast.DayView),
             Horizons = forecast.Horizons.Select(MapHorizon).ToList(),
             ShortfallOn = MilestoneDate(forecast, ForecastMilestoneKind.CashShortfall),
-            RecoveredOn = MilestoneDate(forecast, ForecastMilestoneKind.CashRecovered)
+            RecoveredOn = MilestoneDate(forecast, ForecastMilestoneKind.CashRecovered),
+            ReserveShortfallOn = MilestoneDate(forecast, ForecastMilestoneKind.ReserveShortfall),
+            ReserveRestoredOn = MilestoneDate(forecast, ForecastMilestoneKind.ReserveRestored)
         };
     }
 
@@ -64,7 +68,8 @@ public static class PlanCashOutlookDtoMapper
             Cash = day.Cash,
             Income = Sum(day, CashFlowKind.Income),
             Bills = Sum(day, CashFlowKind.Bill),
-            DebtPayments = Sum(day, CashFlowKind.DebtPayment)
+            DebtPayments = Sum(day, CashFlowKind.DebtPayment),
+            EverydaySpending = Sum(day, CashFlowKind.EverydaySpending)
         };
     }
 

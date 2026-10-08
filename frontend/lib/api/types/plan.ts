@@ -86,7 +86,8 @@ export type PlanMissingBalanceDto = {
 
 /**
  * Cash at the end of one day. Negative `cash` is a shortfall.
- * `income`, `bills`, and `debtPayments` are that day's totals, each zero or more.
+ * `income`, `bills`, `debtPayments`, and `everydaySpending` are that day's totals, each zero or more.
+ * Everyday spending leaves cash and is not a bill.
  */
 export type PlanCashDayDto = {
   date: string;
@@ -94,6 +95,7 @@ export type PlanCashDayDto = {
   income: number;
   bills: number;
   debtPayments: number;
+  everydaySpending: number;
 };
 
 /**
@@ -123,7 +125,8 @@ export type PlanCashHorizonDto = {
 
 /**
  * One cash forecast: the first 30 days, that 30-day window, and the horizons in month order.
- * `shortfallOn` is the first day below zero inside 18 months, and `recoveredOn` the first later day back at zero or above. Each is null when it does not happen.
+ * `shortfallOn` is the first day cash is below zero inside 18 months, and `recoveredOn` the first later day back at zero or above.
+ * `reserveShortfallOn` is the first day what is left after the reserve is below zero. Each is null when it does not happen.
  */
 export type PlanCashForecastDto = {
   days: PlanCashDayDto[];
@@ -131,6 +134,8 @@ export type PlanCashForecastDto = {
   horizons: PlanCashHorizonDto[];
   shortfallOn: string | null;
   recoveredOn: string | null;
+  reserveShortfallOn: string | null;
+  reserveRestoredOn: string | null;
 };
 
 /**
@@ -145,12 +150,15 @@ export type PlanCashOutlookPathDto = {
 /**
  * The cash outlook on both payoff paths.
  * `startingCash` is the Cash total on Accounts on `asOf`, before that day's payments.
+ * `startingReserve` is the amount already set aside. `startingAvailable` is cash minus that reserve and can be negative.
  * `hasIncome` and `hasBills` are true when at least one counts in the planning currency.
  * `excludedCurrencies` are income, bill, and debt codes left out.
  */
 export type PlanCashOutlookDto = {
   asOf: string;
   startingCash: number;
+  startingReserve: number;
+  startingAvailable: number;
   hasIncome: boolean;
   hasBills: boolean;
   excludedCurrencies: string[];

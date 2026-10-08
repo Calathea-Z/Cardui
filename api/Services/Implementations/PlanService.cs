@@ -15,6 +15,7 @@ public class PlanService : IPlanService
     private readonly IIncomeSourcesService _incomeSourcesService;
     private readonly IObligationsService _obligationsService;
     private readonly IAccountsService _accountsService;
+    private readonly ISavingsGoalsService _savingsGoalsService;
     private readonly TimeProvider _timeProvider;
     private readonly HouseholdScope _householdScope;
 
@@ -23,6 +24,7 @@ public class PlanService : IPlanService
         IIncomeSourcesService incomeSourcesService,
         IObligationsService obligationsService,
         IAccountsService accountsService,
+        ISavingsGoalsService savingsGoalsService,
         TimeProvider timeProvider,
         HouseholdScope householdScope)
     {
@@ -30,6 +32,7 @@ public class PlanService : IPlanService
         _incomeSourcesService = incomeSourcesService;
         _obligationsService = obligationsService;
         _accountsService = accountsService;
+        _savingsGoalsService = savingsGoalsService;
         _timeProvider = timeProvider;
         _householdScope = householdScope;
     }
@@ -60,7 +63,7 @@ public class PlanService : IPlanService
     }
 
     /// <summary>
-    /// Loads the starting cash, income, and bills the cash outlook reads, for a forecast that starts today.
+    /// Loads the starting cash, income, bills, and savings the cash outlook reads, for a forecast that starts today.
     /// The loads run one after another because they share one database context.
     /// </summary>
     private async Task<HouseholdCashOutlookInput> LoadCashFactsAsync(
@@ -70,12 +73,15 @@ public class PlanService : IPlanService
         var startingCash = await _accountsService.GetCashTotalAsync(cancellationToken);
         var incomes = await _incomeSourcesService.GetOutlookIncomesAsync(cancellationToken);
         var bills = await _obligationsService.GetOutlookBillsAsync(cancellationToken);
+        var savings = await _savingsGoalsService.GetOutlookAsync(today, cancellationToken);
         return new HouseholdCashOutlookInput(
             _householdScope.PlanningCurrency,
             today,
             startingCash,
             incomes,
-            bills);
+            bills,
+            savings.StartingReserve,
+            savings.Contributions);
     }
 
     /// <summary>

@@ -140,7 +140,7 @@ public static class CashForecast
         var flow = CashFlowSchedule.Project(incomes, bills, input.AsOf, through);
         var payments = paths.SelectMany(path => CashFlowSchedule.DebtPayments(path.Schedule));
         var savings = input.Savings.Where(item =>
-            item.Kind == CashFlowKind.Savings
+            item.Kind is CashFlowKind.Savings or CashFlowKind.EverydaySpending
             && item.Amount > 0
             && item.Date >= input.AsOf
             && item.Date <= through
@@ -206,6 +206,7 @@ public static class CashForecast
                 break;
             case CashFlowKind.Bill:
             case CashFlowKind.DebtPayment:
+            case CashFlowKind.EverydaySpending:
                 cash = AccountLedger.Round(cash - item.Amount);
                 break;
             case CashFlowKind.Savings:

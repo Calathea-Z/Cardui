@@ -22,9 +22,38 @@ async function loadModule(file) {
   });
   const tempDir = path.resolve(".tmp-tests");
   await mkdir(tempDir, { recursive: true });
+  await writeMoneyDigits(tempDir);
   const compiledPath = path.join(tempDir, `${file}.mjs`);
-  await writeFile(compiledPath, output.outputText);
+  await writeFile(compiledPath, linkMoneyDigits(output.outputText));
   return import(pathToFileURL(compiledPath).href);
+}
+
+/**
+ * Writes the shared money reader next to a transpiled test module.
+ * The test file cannot resolve the app's `@/` import on its own.
+ */
+async function writeMoneyDigits(tempDir) {
+  const source = await readFile(
+    path.resolve("features/accounts/formatCurrency.ts"),
+    "utf8",
+  );
+  const output = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ES2022,
+      target: ts.ScriptTarget.ES2022,
+    },
+  });
+  await writeFile(path.join(tempDir, "formatCurrency.mjs"), output.outputText);
+}
+
+/**
+ * Points a transpiled module at the local money reader.
+ */
+function linkMoneyDigits(source) {
+  return source.replaceAll(
+    'from "@/features/accounts/formatCurrency"',
+    'from "./formatCurrency.mjs"',
+  );
 }
 
 const series = await loadModule("planChartSeries");
@@ -538,6 +567,17 @@ test("the 30-day cash chart has one row per day at UTC midnight and marks the lo
 test("the cash summary names a shortfall, its recovery, and the lowest point over 18 months", () => {
   const recovered = copy.cashOutlookSummary(cashForecast(), money, date);
   assert.equal(recovered.warning, true);
+  assert.equal(recovered.reserveSentence, null);
+  const reserved = copy.cashOutlookSummary(
+    cashForecast({
+      reserveShortfallOn: "2027-02-01",
+      reserveRestoredOn: "2027-02-15",
+    }),
+    money,
+    date,
+  );
+  assert.match(reserved.reserveSentence, /below zero on 2027-02-01/);
+  assert.match(reserved.reserveSentence, /2027-02-15/);
   assert.equal(
     recovered.sentence,
     "Cash runs short on 2027-02-27 and is back above zero on 2027-03-05. Lowest point: $-45.50 on 2027-03-01.",
@@ -598,6 +638,10 @@ test("the cash outlook line says where cash starts and follows the switch", () =
   assert.match(
     copy.cashOutlookDescription("ReclaimAll", true, 1000, money),
     /comes back as cash\.$/,
+  );
+  assert.equal(
+    copy.cashOutlookDescription("Rollover", false, 1000, money, 0, 200, 800),
+    "Starts from $1000.00 in Cash on Accounts today. $200.00 is set aside. $800.00 is left to spend.",
   );
 });
 
@@ -681,6 +725,8 @@ test("a tried extra replaces the minimums-only wording and stays under one line"
   assert.equal(extra.parsePlanExtra("  200.005 "), 200.01);
   assert.equal(extra.parsePlanExtra("-1"), null);
   assert.equal(extra.parsePlanExtra("abc"), null);
+  assert.equal(extra.parsePlanExtra("1,200"), 1200);
+  assert.equal(extra.parsePlanExtra("$1,200.50"), 1200.5);
 
   assert.equal(
     copy.planDescription("Rollover", true, 200, money),

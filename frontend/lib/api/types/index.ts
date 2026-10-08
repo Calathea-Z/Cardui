@@ -60,6 +60,13 @@ export type {
   UpsertDebtDto,
 } from "./debts";
 export type {
+  SavingsAccountDto,
+  SavingsGoalDto,
+  SavingsGoalKind,
+  UpsertSavingsGoalDto,
+} from "./savings";
+export { savingsGoalKinds } from "./savings";
+export type {
   DebtScheduleStop,
   PayoffRolloverKind,
   PlanBalancePointDto,

@@ -26,6 +26,10 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
   would skip an earlier roadmap item that is still not started, ask Zach
   before writing it.
 
+## UX assessments
+
+- [2026-10-08 — Planning UX review](2026-10-08-003-planning-ux-review.md) — Awaiting review
+
 ## Rules and handoff
 
 - [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Awaiting review
@@ -46,6 +50,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 Newest first.
 
+- [2026-10-08 — Savings](2026-10-08-002-savings.md) — Approved 2026-10-08
 - [2026-10-07 — Reconnect](2026-10-07-007-reconnect.md) — Approved 2026-10-07
 - [2026-10-07 — Credit limit](2026-10-07-006-credit-limit.md) — Approved 2026-10-07
 - [2026-10-07 — Suggested matches](2026-10-07-005-suggested-matches.md) — Approved 2026-10-07

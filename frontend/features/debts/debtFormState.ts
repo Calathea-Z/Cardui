@@ -1,3 +1,7 @@
+import {
+  moneyCommaError,
+  moneyDigits,
+} from "@/features/accounts/formatCurrency";
 import type {
   DebtDto,
   DebtKind,
@@ -307,11 +311,16 @@ function readOptionalMoney(
     return { ok: true, amount: null };
   }
 
-  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
-    return { ok: false, error: "Enter the amount in dollars and cents." };
+  const digits = moneyDigits(trimmed);
+  if (digits === null || !/^\d+(\.\d{1,2})?$/.test(digits)) {
+    return {
+      ok: false,
+      error:
+        moneyCommaError(trimmed) ?? "Enter the amount in dollars and cents.",
+    };
   }
 
-  const amount = Number(trimmed);
+  const amount = Number(digits);
   if (!Number.isFinite(amount) || amount < 0 || (!allowZero && amount === 0)) {
     return { ok: false, error: invalidMessage };
   }

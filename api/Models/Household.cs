@@ -33,6 +33,9 @@ public class Household
     public ICollection<Debt> Debts { get; init; } =
         new List<Debt>();
 
+    public ICollection<SavingsGoal> SavingsGoals { get; init; } =
+        new List<SavingsGoal>();
+
     public ICollection<CategoryTargetMonth> CategoryTargetMonths { get; init; } =
         new List<CategoryTargetMonth>();
 }

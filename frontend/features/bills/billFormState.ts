@@ -1,3 +1,4 @@
+import { moneyCommaError } from "@/features/accounts/formatCurrency";
 import { parseMoney } from "@/features/accounts/manualAccount";
 import type {
   ObligationCadence,
@@ -98,7 +99,11 @@ export function toObligationUpsert(form: BillFormState): BillUpsertResult {
 
   const amount = parseMoney(form.amount);
   if (amount === null || amount <= 0) {
-    return { ok: false, error: "Enter the amount for one payment." };
+    return {
+      ok: false,
+      error:
+        moneyCommaError(form.amount) ?? "Enter the amount for one payment.",
+    };
   }
 
   if (amount > 100_000_000) {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { planExtraHelp, planExtraInvalid, planExtraStatus } from "./planCopy";
+import { moneyCommaError } from "@/features/accounts/formatCurrency";
 import { parsePlanExtra } from "./planExtra";
 import type { PlanExtraStatus } from "./usePlanExtra";
 
@@ -28,7 +29,7 @@ export function PlanExtraField({
   const statusId = "plan-extra-status";
   const describedBy = invalid ? `${helpId} ${statusId}` : helpId;
   const statusMessage = invalid
-    ? planExtraInvalid()
+    ? (moneyCommaError(draft) ?? planExtraInvalid())
     : status === "ready"
       ? null
       : planExtraStatus(status);

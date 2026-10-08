@@ -10,6 +10,7 @@ export * from "./households";
 export * from "./income";
 export * from "./obligations";
 export * from "./plan";
+export * from "./savings";
 export * from "./debts";
 export * from "./plaid";
 export * from "./transactions";

@@ -1,6 +1,6 @@
 # Plan page
 
-Status: Approved. Item 1 is next. Item 2 follows it.
+Status: Approved. Item 1 is built and awaiting review. Item 2 follows it.
 Date: October 7, 2026
 Updated: 2026-10-07
 
@@ -73,12 +73,38 @@ Top to bottom.
 6. **Payoff order.** One row per debt: a swatch in that debt's chart
    color, the name, the payoff date, and the minimum it frees. Hovering or
    focusing a row highlights that debt's band.
-7. **How this is calculated.** The report's assumptions, behind a
-   disclosure.
+7. **How this is calculated.** A disclosure with one row per rule: a
+   short term (Order, Payments, Interest, Payoff month, Rollover or Keep
+   freed payments, Left out, Currency, Limit, Saved) and one plain
+   sentence. Only the freed-payment row follows the switch. The page
+   writes these; the server's assumption paragraphs are not sent.
 
 Without a payoff, both charts are hidden and Finish your plan leads. A
 household with no debts sees the empty state that links to Debts. A
 failed load keeps the error banner.
+
+Revised October 7, 2026, after Zach saw the page with nothing paying off
+(two identical screens and no chart):
+
+- **What you owe today** is always shown after Finish your plan: a donut
+  with one slice per debt sized by balance, the total in the middle, and a
+  legend with each debt's balance and whole-number percent. Debts with no
+  balance are named under it.
+- Until a debt can be paid off, the switch is hidden, because both paths
+  are the same. The line under the title says payoff charts appear once a
+  debt can be paid off.
+- Without a payoff, the summary says how many debts need attention, the
+  big figure is the total owed today, and the known minimums sit beside it.
+- With a full payoff, the big figure is the debt-free date, labeled
+  "Debt-free at minimums only", and the sentence says anything extra
+  brings that day closer. Breathing room sits beside it as "Back to you
+  after payoff", so it is not read as money available today. Once extra
+  payments exist, the same figure shows the earlier date.
+- A debt whose payment does not cover interest names that interest and the
+  whole-dollar payment that starts paying it down. Each Finish your plan
+  row names its action, such as Add due date or Update payment. Each
+  `PayoffBalancePoint` also carries that month's interest and payment for
+  this.
 
 ### Type and controls
 
@@ -111,7 +137,9 @@ for one band per debt.
   `#1a7f8c`, magenta `#a83f74`, amber `#a8740c`, indigo `#4a4fb0`. Each
   must be at least 3:1 against the white card, checked when built. A
   color that reads too close to `--success`, `--destructive`, or
-  `--transfer` is adjusted.
+  `--transfer` is adjusted. When built, emerald became `#00806e` and teal
+  `#127c99`, because the starting emerald read close to `--success`. The
+  contrast table is in `docs/reviews/2026-10-07-014-plan-recovery.md`.
 - A debt's color comes from its position in the rollover order. It does
   not change when the switch changes. The chart, the tooltip, and the
   payoff order use the same color. A ninth debt reuses the first color,
@@ -142,9 +170,9 @@ for one band per debt.
   keep-all paths: steps, starting and remaining obligation, recurring
   room, debt-free date, total interest, each debt's outcome (stop reason,
   balance, minimum, payoff date), and balance points. It also carries
-  excluded currencies, the debts with no balance, and the assumptions.
-  The partial-reclaim path, `ReclaimAmount`, and `Explanation` leave the
-  DTO.
+  excluded currencies and the debts with no balance. The partial-reclaim
+  path, `ReclaimAmount`, `Explanation`, and the written assumptions leave
+  the DTO.
 - Pure frontend rules build the chart series and the copy:
   `planChartSeries.ts` and `planCopy.ts`, tested from a node script in
   `pnpm test`.

@@ -17,12 +17,12 @@ public class PlanController : ControllerBase
 
     /// <summary>
     /// GET /api/plan/recovery
-    /// Returns when each payoff removes a minimum, and the breathing room that follows.
+    /// Returns the payoff on rollover and on keeping every freed payment: balances over time, each minimum removed, and the breathing room that follows.
     /// The order is highest interest first and extra is zero, because those choices are not stored yet.
     /// </summary>
     [HttpGet("recovery")]
-    [ProducesResponseType<CashFlowRecoveryReportDto>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<CashFlowRecoveryReportDto>> GetRecovery(
+    [ProducesResponseType<PlanRecoveryDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PlanRecoveryDto>> GetRecovery(
         CancellationToken cancellationToken = default)
     {
         var report = await _planService.GetRecoveryAsync(cancellationToken);

@@ -281,6 +281,58 @@ public class PayoffRolloverTests
     }
 
     [Fact]
+    public void Compare_RecordsEachBalanceAfterEveryPaymentAndNoneForADebtItCannotCalculate()
+    {
+        var comparison = PayoffRollover.Compare(Input(
+            0m,
+            [
+                Debt(StoreId, "Store", 100m, 0m, 50m, extra: 10m),
+                Debt(CardId, "Card", 200m, 0m, 25m),
+                Debt(VisaId, "Visa", 50m, 12m, null)
+            ]));
+
+        var rollover = comparison.Rollover;
+        Assert.Equal(
+            [(new DateOnly(2026, 1, 15), 40m), (new DateOnly(2026, 2, 15), 0m)],
+            PointsFor(rollover, StoreId));
+        Assert.Equal(
+            [
+                (new DateOnly(2026, 1, 15), 175m),
+                (new DateOnly(2026, 2, 15), 150m),
+                (new DateOnly(2026, 3, 15), 65m),
+                (new DateOnly(2026, 4, 15), 0m)
+            ],
+            PointsFor(rollover, CardId));
+        Assert.Empty(PointsFor(rollover, VisaId));
+
+        var order = rollover.DebtIds.ToList();
+        var keys = rollover.BalancePoints
+            .Select(point => (point.DueDate, order.IndexOf(point.DebtId)))
+            .ToList();
+        Assert.Equal(keys.OrderBy(key => key.DueDate).ThenBy(key => key.Item2), keys);
+
+        var kept = PointsFor(comparison.ReclaimAll, CardId);
+        Assert.Equal(8, kept.Count);
+        Assert.Equal((new DateOnly(2026, 8, 15), 0m), kept[^1]);
+    }
+
+    [Fact]
+    public void Compare_RecordsTheInterestAndPaymentOfTheMonthThatDoesNotPayDown()
+    {
+        var comparison = PayoffRollover.Compare(Input(
+            0m,
+            [Debt(CardId, "Card", 1000m, 24m, 15m)]));
+
+        var card = Assert.Single(comparison.Rollover.Debts);
+        Assert.Equal(DebtScheduleStop.DoesNotPayDown, card.Stop);
+        var point = Assert.Single(comparison.Rollover.BalancePoints);
+        Assert.Equal(Due, point.DueDate);
+        Assert.Equal(1005m, point.Balance);
+        Assert.Equal(20m, point.Interest);
+        Assert.Equal(15m, point.Payment);
+    }
+
+    [Fact]
     public void Compare_RepeatsTheSamePaymentsAndCents()
     {
         var input = Input(
@@ -306,6 +358,14 @@ public class PayoffRolloverTests
         Assert.Equal(first.Reclaim.Explanation, again.Reclaim.Explanation);
         Assert.Equal(first.ReclaimAll.Explanation, again.ReclaimAll.Explanation);
         Assert.Equal(first.Assumptions, again.Assumptions);
+    }
+
+    private static List<(DateOnly DueDate, decimal Balance)> PointsFor(PayoffRolloverPath path, Guid debtId)
+    {
+        return path.BalancePoints
+            .Where(point => point.DebtId == debtId)
+            .Select(point => (point.DueDate, point.Balance))
+            .ToList();
     }
 
     private static PayoffRolloverInput Input(

@@ -6,18 +6,20 @@ public static class HouseholdRecovery
     /// Builds the rollover input for the household's debts.
     /// Shared extra, a custom order, and a reclaim amount are not stored, so this uses avalanche, no shared extra, and no reclaim.
     /// Each debt's own extra is zero because that amount is not stored either.
-    /// A missing balance is left out. Zero would be read as already paid off.
+    /// A missing balance is left out of the input, because zero would be read as already paid off. That debt is listed instead.
     /// </summary>
-    public static PayoffRolloverInput Prepare(
+    public static HouseholdRecoveryInput Prepare(
         string planningCurrency,
         IReadOnlyList<HouseholdRecoveryDebt> debts)
     {
-        return new PayoffRolloverInput(
-            planningCurrency,
-            0m,
-            Included(debts),
-            [],
-            0m);
+        return new HouseholdRecoveryInput(
+            new PayoffRolloverInput(
+                planningCurrency,
+                0m,
+                Included(debts),
+                [],
+                0m),
+            MissingBalance(debts));
     }
 
     #region Private Methods
@@ -54,6 +56,18 @@ public static class HouseholdRecovery
         }
 
         return included;
+    }
+
+    /// <summary>
+    /// The debts with no balance in use, in the order given.
+    /// A debt in another currency is listed too, because the currency rule never sees it.
+    /// </summary>
+    private static List<HouseholdRecoveryMissingBalance> MissingBalance(IReadOnlyList<HouseholdRecoveryDebt> debts)
+    {
+        return debts
+            .Where(debt => debt.BalanceInUse is null)
+            .Select(debt => new HouseholdRecoveryMissingBalance(debt.DebtId, debt.Name))
+            .ToList();
     }
 
     #endregion

@@ -1,11 +1,14 @@
 namespace Cardui.Api.Dtos.Plan;
 
-public class CashFlowRecoveryStepDto
+public class PlanRecoveryStepDto
 {
     public Guid DebtId { get; set; }
 
     public required string Name { get; set; }
 
+    /// <summary>
+    /// The due date that brought the balance to zero. The minimum is still paid that month.
+    /// </summary>
     public DateOnly EndedOn { get; set; }
 
     /// <summary>
@@ -15,12 +18,6 @@ public class CashFlowRecoveryStepDto
     public DateOnly? StartsOn { get; set; }
 
     public decimal Minimum { get; set; }
-
-    public decimal Extra { get; set; }
-
-    public decimal Amount { get; set; }
-
-    public decimal BreathingRoomAdded { get; set; }
 
     /// <summary>
     /// Recurring freed cash after this step. It does not include shared extra.

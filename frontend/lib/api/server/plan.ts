@@ -1,13 +1,13 @@
-import type { CashFlowRecoveryReportDto } from "../types";
+import type { PlanRecoveryDto } from "../types";
 import { serverClient } from "../server-client";
 
 /**
  * GET /api/plan/recovery
- * Loads when each payoff removes a minimum, and the breathing room that follows.
+ * Loads the payoff on rollover and on keeping every freed payment, with each debt's balance over time.
  * The order is highest interest first and extra is zero, because those choices are not stored yet.
  */
-export async function getPlanRecovery(): Promise<CashFlowRecoveryReportDto> {
+export async function getPlanRecovery(): Promise<PlanRecoveryDto> {
   const response =
-    await serverClient.get<CashFlowRecoveryReportDto>("/api/plan/recovery");
+    await serverClient.get<PlanRecoveryDto>("/api/plan/recovery");
   return response.data;
 }

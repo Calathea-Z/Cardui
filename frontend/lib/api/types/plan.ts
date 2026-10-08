@@ -1,65 +1,99 @@
 /**
  * Which way a path treats cash freed by a paid-off debt.
- * Rollover sends it to the next debt. Reclaim keeps a chosen amount. ReclaimAll keeps every freed dollar.
- * This page shows Rollover and ReclaimAll. Reclaim matches Rollover while the chosen amount is zero.
+ * Rollover sends it to the next debt. ReclaimAll keeps every freed dollar.
  */
-export const payoffRolloverKinds = [
-  "Rollover",
-  "Reclaim",
-  "ReclaimAll",
-] as const;
+export type PayoffRolloverKind = "Rollover" | "ReclaimAll";
 
-export type PayoffRolloverKind = (typeof payoffRolloverKinds)[number];
+/**
+ * Why the projection stopped for one debt.
+ * Anything but `PaidOff` blocks the plan and is listed under Finish your plan.
+ * `HorizonReached` means the payoff falls past the 50-year limit.
+ */
+export type DebtScheduleStop =
+  | "PaidOff"
+  | "DoesNotPayDown"
+  | "RateUnknown"
+  | "MinimumUnknown"
+  | "DueDateUnknown"
+  | "HorizonReached";
 
 /**
  * One payoff that removes a monthly obligation.
- * `startsOn` is the date the minimum is no longer paid. Null means that date falls outside the projection.
+ * `endedOn` is the payment that clears the balance. `startsOn` is the date the minimum is no longer paid, and null when that date falls outside the projection.
  * `breathingRoom` is the recurring freed cash after this step. It does not include shared extra.
  */
-export type CashFlowRecoveryStepDto = {
+export type PlanRecoveryStepDto = {
   debtId: string;
   name: string;
   endedOn: string;
   startsOn: string | null;
   minimum: number;
-  extra: number;
-  amount: number;
-  breathingRoomAdded: number;
   breathingRoom: number;
 };
 
 /**
- * One path from payoff to breathing room.
- * `startingObligation` is the known minimums before any payoff, and null when every minimum is unknown.
- * `remainingObligation` is the known minimums still due, and null when every remaining minimum is unknown.
- * `recurringRoom` is the monthly amount after the last change, including shared extra once every debt is paid off.
+ * How one debt fares on one path.
+ * `balance` is the opening balance. `minimum` is null when a rate, minimum, or due date is missing.
+ * `lastMonthInterest` and `lastMonthPayment` are the last modeled month; for a debt that does not pay down, the month the payment fell short. Both are null when no payment could be modeled.
  */
-export type CashFlowRecoveryPathDto = {
+export type PlanDebtOutcomeDto = {
+  debtId: string;
+  name: string;
+  stop: DebtScheduleStop;
+  balance: number;
+  minimum: number | null;
+  paidOffOn: string | null;
+  lastMonthInterest: number | null;
+  lastMonthPayment: number | null;
+};
+
+/**
+ * One debt's balance right after one payment. Zero once it is paid off.
+ */
+export type PlanBalancePointDto = {
+  debtId: string;
+  dueDate: string;
+  balance: number;
+};
+
+/**
+ * One path from today to the last payoff.
+ * `startingObligation` is the known minimums before any payoff, and null when every minimum is unknown.
+ * `remainingObligation` is the known minimums still due after the last payoff.
+ * `paidOffOn` is null while any debt in the plan is still open or cannot be calculated.
+ * `debts` is in the order rolled cash follows, which also fixes each debt's chart color.
+ * `balancePoints` is sorted by due date, then in the order of `debts`.
+ */
+export type PlanRecoveryPathDto = {
   kind: PayoffRolloverKind;
-  steps: CashFlowRecoveryStepDto[];
+  steps: PlanRecoveryStepDto[];
   startingObligation: number | null;
   remainingObligation: number | null;
-  unknownRemaining: number;
-  breathingRoom: number;
-  releasedExtra: number;
   recurringRoom: number;
-  explanation: string;
+  paidOffOn: string | null;
+  totalInterest: number;
+  debts: PlanDebtOutcomeDto[];
+  balancePoints: PlanBalancePointDto[];
 };
 
 /**
- * Cash-flow recovery for the signed-in household.
- * `monthlyExtra` and `reclaimAmount` are zero until a saved choice exists.
- * `excludedCurrencies` are codes left out of the planning currency.
- * `hasDebts` is false when no debt is recorded. A debt with no balance still counts, and it is left out of the payoff.
+ * A debt left out of the plan because its balance is unknown.
  */
-export type CashFlowRecoveryReportDto = {
+export type PlanMissingBalanceDto = {
+  debtId: string;
+  name: string;
+};
+
+/**
+ * The household's payoff on rollover and on keeping every freed payment.
+ * `excludedCurrencies` are codes left out of the planning currency.
+ * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
+ */
+export type PlanRecoveryDto = {
   planningCurrency: string;
-  monthlyExtra: number;
-  reclaimAmount: number;
-  rollover: CashFlowRecoveryPathDto;
-  reclaim: CashFlowRecoveryPathDto;
-  reclaimAll: CashFlowRecoveryPathDto;
+  rollover: PlanRecoveryPathDto;
+  reclaimAll: PlanRecoveryPathDto;
   excludedCurrencies: string[];
-  assumptions: string[];
+  missingBalance: PlanMissingBalanceDto[];
   hasDebts: boolean;
 };

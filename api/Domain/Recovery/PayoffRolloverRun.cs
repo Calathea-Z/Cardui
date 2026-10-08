@@ -41,5 +41,7 @@ internal sealed class PayoffRolloverRun
 
     public decimal? EndingUtilization { get; set; }
 
+    public List<PayoffBalancePoint> BalancePoints { get; } = [];
+
     public Guid DebtId => Debt.Terms.DebtId;
 }

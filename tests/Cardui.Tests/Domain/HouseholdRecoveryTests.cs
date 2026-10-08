@@ -9,11 +9,12 @@ public class HouseholdRecoveryTests
     private static readonly Guid CardId = Guid.Parse("60000000-0000-0000-0000-000000000001");
     private static readonly Guid StoreId = Guid.Parse("60000000-0000-0000-0000-000000000002");
     private static readonly Guid BlankId = Guid.Parse("60000000-0000-0000-0000-000000000003");
+    private static readonly Guid OtherBlankId = Guid.Parse("60000000-0000-0000-0000-000000000004");
 
     [Fact]
     public void Prepare_UsesTheBalanceInUseAndNoExtra()
     {
-        var input = HouseholdRecovery.Prepare(
+        var prepared = HouseholdRecovery.Prepare(
             "USD",
             [
                 Debt(
@@ -26,6 +27,7 @@ public class HouseholdRecoveryTests
                     limit: 1000m)
             ]);
 
+        var input = prepared.Rollover;
         var debt = Assert.Single(input.Debts);
         Assert.Equal(180m, debt.Terms.Balance);
         Assert.Equal(0m, debt.Terms.ExtraPayment);
@@ -33,6 +35,7 @@ public class HouseholdRecoveryTests
         Assert.Equal(0m, input.MonthlyExtra);
         Assert.Equal(0m, input.ReclaimAmount);
         Assert.Empty(input.Order);
+        Assert.Empty(prepared.MissingBalance);
     }
 
     [Fact]
@@ -50,7 +53,7 @@ public class HouseholdRecoveryTests
                     minimum: 10m,
                     due: new DateOnly(2026, 1, 15),
                     currency: "CAD")
-            ]);
+            ]).Rollover;
 
         Assert.Contains(input.Debts, debt => debt.Terms.DebtId == StoreId && debt.Terms.Currency == "CAD");
 
@@ -64,7 +67,7 @@ public class HouseholdRecoveryTests
     {
         var input = HouseholdRecovery.Prepare(
             "USD",
-            [Debt(CardId, "Card", balance: 100m, apr: null, minimum: null, due: null)]);
+            [Debt(CardId, "Card", balance: 100m, apr: null, minimum: null, due: null)]).Rollover;
 
         var debt = Assert.Single(input.Debts);
         Assert.Null(debt.Terms.Apr);
@@ -72,25 +75,33 @@ public class HouseholdRecoveryTests
         Assert.Null(debt.Terms.NextDueDate);
         Assert.Equal(100m, debt.Terms.Balance);
 
-        var recovery = CashFlowRecovery.Track(PayoffRollover.Compare(input));
-        Assert.Contains(
-            "missing a rate, minimum, or due date",
-            recovery.Rollover.Explanation,
-            StringComparison.Ordinal);
+        var outcome = Assert.Single(PayoffRollover.Compare(input).Rollover.Debts);
+        Assert.Equal(DebtScheduleStop.DueDateUnknown, outcome.Stop);
+        Assert.Null(outcome.Minimum);
     }
 
     [Fact]
-    public void Prepare_LeavesOutAMissingBalance()
+    public void Prepare_LeavesOutAMissingBalanceAndListsIt()
     {
-        var input = HouseholdRecovery.Prepare(
+        var prepared = HouseholdRecovery.Prepare(
             "USD",
             [
+                Debt(BlankId, "Blank", balance: null, apr: 12m, minimum: 25m, due: new DateOnly(2026, 1, 15)),
                 Debt(CardId, "Card", balance: 100m, apr: 12m, minimum: 25m, due: new DateOnly(2026, 1, 15)),
-                Debt(BlankId, "Blank", balance: null, apr: 12m, minimum: 25m, due: new DateOnly(2026, 1, 15))
+                Debt(
+                    OtherBlankId,
+                    "Other blank",
+                    balance: null,
+                    apr: null,
+                    minimum: null,
+                    due: null,
+                    currency: "CAD")
             ]);
 
-        Assert.DoesNotContain(input.Debts, debt => debt.Terms.DebtId == BlankId);
-        Assert.Equal(CardId, Assert.Single(input.Debts).Terms.DebtId);
+        Assert.Equal(CardId, Assert.Single(prepared.Rollover.Debts).Terms.DebtId);
+        Assert.Equal(
+            [new HouseholdRecoveryMissingBalance(BlankId, "Blank"), new HouseholdRecoveryMissingBalance(OtherBlankId, "Other blank")],
+            prepared.MissingBalance);
     }
 
     private static HouseholdRecoveryDebt Debt(

@@ -1,6 +1,7 @@
 "use client";
 
 import { AccountMenu } from "@/components/auth/account-menu";
+import { BrandMark } from "./brand-mark";
 import {
   MobileHeaderActionsSlot,
   MobileHeaderLeadingSlot,
@@ -13,6 +14,7 @@ type MobileShellProps = {
 
 /**
  * Page column with a thin account bar and tab bar on small screens.
+ * The bar shows the Tortoise wordmark unless a page puts its own leading control, such as back, in that slot.
  * That chrome hides from the md breakpoint up. The hamburger drawer is gone;
  * settings open from the account menu.
  */
@@ -23,7 +25,9 @@ export function MobileShell({ children }: MobileShellProps) {
         <header className="fixed top-0 inset-x-0 z-[80] border-b border-border bg-background px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:hidden">
           <div className="flex items-center justify-between gap-2">
             <div className="flex justify-start">
-              <MobileHeaderLeadingSlot fallback={null} />
+              <MobileHeaderLeadingSlot
+                fallback={<BrandMark variant="header" />}
+              />
             </div>
 
             <div className="flex items-center justify-end gap-1">

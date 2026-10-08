@@ -149,6 +149,12 @@ public static class PayoffRolloverProjection
         run.Interest += period.Interest;
         run.Balance = period.EndingBalance;
         run.EndingUtilization = CurrentUtilization(run);
+        run.BalancePoints.Add(new PayoffBalancePoint(
+            run.DebtId,
+            due,
+            period.EndingBalance <= 0 ? 0 : period.EndingBalance,
+            period.Interest,
+            period.Payment));
         if (period.EndingBalance <= 0)
         {
             run.PaidOffOn = due;
@@ -233,6 +239,7 @@ public static class PayoffRolloverProjection
             PlanPaidOff(runs),
             debts,
             FreedPayments(runs),
+            BalancePoints(runs),
             cashReclaimed,
             cashRolled,
             0,
@@ -279,6 +286,20 @@ public static class PayoffRolloverProjection
                 run.Opening.Minimum,
                 run.OwnExtra,
                 AccountLedger.Round(run.Opening.Minimum + run.OwnExtra)))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Every debt's balance after each payment, by due date and then in payoff order.
+    /// A chart can stack these without sorting them again.
+    /// </summary>
+    private static IReadOnlyList<PayoffBalancePoint> BalancePoints(List<PayoffRolloverRun> runs)
+    {
+        return runs
+            .SelectMany((run, index) => run.BalancePoints.Select(point => (point, index)))
+            .OrderBy(entry => entry.point.DueDate)
+            .ThenBy(entry => entry.index)
+            .Select(entry => entry.point)
             .ToList();
     }
 

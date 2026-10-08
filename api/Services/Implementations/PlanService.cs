@@ -19,26 +19,27 @@ public class PlanService : IPlanService
     }
 
     /// <inheritdoc />
-    public async Task<CashFlowRecoveryReportDto> GetRecoveryAsync(
+    public async Task<PlanRecoveryDto> GetRecoveryAsync(
         CancellationToken cancellationToken = default)
     {
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
-        var report = ProjectRecovery(debts);
-        return CashFlowRecoveryDtoMapper.Map(report, debts.Count > 0);
+        return ProjectRecovery(debts);
     }
 
     #region Private Methods
 
     /// <summary>
-    /// Runs the approved recovery rules for these debts.
+    /// Runs the approved rollover and recovery rules for these debts, then shapes the result for the page.
     /// The planning currency is the household's. Extra and reclaim stay at the baseline.
     /// </summary>
-    private CashFlowRecoveryReport ProjectRecovery(IReadOnlyList<DebtDto> debts)
+    private PlanRecoveryDto ProjectRecovery(IReadOnlyList<DebtDto> debts)
     {
-        var input = HouseholdRecovery.Prepare(
+        var prepared = HouseholdRecovery.Prepare(
             _householdScope.PlanningCurrency,
             debts.Select(ToDebt).ToList());
-        return CashFlowRecovery.Track(PayoffRollover.Compare(input));
+        var comparison = PayoffRollover.Compare(prepared.Rollover);
+        var report = CashFlowRecovery.Track(comparison);
+        return PlanRecoveryDtoMapper.Map(comparison, report, prepared.MissingBalance, debts.Count > 0);
     }
 
     /// <summary>

@@ -76,10 +76,11 @@ Light only. Stop forcing `class="dark"` on `<html>`.
 | `--primary` | `#1e4d3a` | Active nav, links, the main chart stroke. A mark, not the room. |
 | `--success` | `#1f7a4a` | Money in, positive difference. |
 | `--destructive` | `#9f3a32` | Money out when the sign is the point, and destructive actions. |
+| `--warning` | `#8f5a00` | Something to finish or fix that is not a failure, always with a warning icon. 5.78:1 on white, 5.16:1 on the canvas, 5.05:1 on its 10% tint. Added October 7, 2026; see `docs/reviews/2026-10-07-014-plan-recovery.md`. |
 | `--transfer` | `#3d5f8a` | Transfers only. |
 | `--chart-1` | `#1e4d3a` | Net worth and the primary series. |
 | `--chart-2` | `#c4b8a5` | The second series, when a chart compares two things. |
-| `--series-1` to `--series-8` | emerald `#0f7b5f`, sapphire `#2b5fb3`, copper `#b8642e`, amethyst `#7b4fb5`, teal `#1a7f8c`, magenta `#a83f74`, amber `#a8740c`, indigo `#4a4fb0` | A chart that compares several things, such as one band per debt on Plan. Each is at least 3:1 on white. Added October 7, 2026; see `docs/design/plan-page.md`. |
+| `--series-1` to `--series-8` | emerald `#00806e`, sapphire `#2b5fb3`, copper `#b8642e`, amethyst `#7b4fb5`, teal `#127c99`, magenta `#a83f74`, amber `#a8740c`, indigo `#4a4fb0` | A chart that compares several things, such as one band per debt on Plan. Each is at least 3:1 on white (lowest: amber, 4.06:1). Emerald and teal moved from the starting `#0f7b5f` and `#1a7f8c` so emerald does not read as `--success`. Added October 7, 2026; see `docs/design/plan-page.md` and `docs/reviews/2026-10-07-014-plan-recovery.md`. |
 | `--radius` | `0.5rem` | Cards and fields. From 768px up, a record opens as a right-hand panel, not a bottom sheet. |
 
 Green stays as the accent. It no longer fills the background. Category colors stay the household's colors, and they appear only on that category's bar.

@@ -104,7 +104,7 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 **Exit:** a user can create and maintain a realistic life-with-debt budget, see actual progress, include irregular bills and multiple income sources, set protected cash targets, and complete a debt inventory with understandable health indicators and visible gaps.
 
-**Status (October 8, 2026):** Items 1–7 are done. Item 6 is approved in `docs/reviews/2026-10-05-019-category-targets.md`. `20261006031630_AddCategoryTargets` is applied. Items 1–6 of "Sync correctness and linked debts" are approved. Item 7 is approved in `docs/reviews/2026-10-08-002-savings.md`. `20261008143017_AddEverydaySpendingAndCashToKeep` is applied. Item 8 has not started.
+**Status (October 8, 2026):** Items 1–8 are done, so Phase 2 is complete. Item 6 is approved in `docs/reviews/2026-10-05-019-category-targets.md`. `20261006031630_AddCategoryTargets` is applied. Items 1–6 of "Sync correctness and linked debts" are approved. Item 7 is approved in `docs/reviews/2026-10-08-002-savings.md`. `20261008143017_AddEverydaySpendingAndCashToKeep` is applied. Item 8 is approved in `docs/reviews/2026-10-08-005-simplified-living.md`. Living uses one monthly flexible-spending amount instead of a second list of allowances. Contribution benchmarks keep the same share through low pay and raises. `20261008152308_AddLivingContributionsAndAllowances` and `20261008154357_SimplifyLivingModel` are applied; together they keep `MonthlyContribution` and remove the empty allowance table. The all-or-nothing living-to-debt comparison was removed. A user-selected spending-change comparison remains in Phase 3 item 6.
 
 | Item | Status | Reviews |
 | --- | --- | --- |
@@ -115,7 +115,7 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 | 5. Debt inventory and health view | Done | `docs/reviews/2026-10-05-016-debt-summary.md` |
 | 6. Monthly category targets | Done | `docs/reviews/2026-10-05-019-category-targets.md` |
 | 7. Reserve, emergency goal, sinking funds | Done. `AddEverydaySpendingAndCashToKeep` is applied | [`docs/reviews/2026-10-08-002-savings.md`](reviews/2026-10-08-002-savings.md) |
-| 8. Household contributions and discretionary spending | Not started | — |
+| 8. Household contributions and discretionary spending | Done. The contribution and cleanup migrations are applied | [`docs/reviews/2026-10-08-005-simplified-living.md`](reviews/2026-10-08-005-simplified-living.md) |
 
 Rules that came out of items 1–5:
 

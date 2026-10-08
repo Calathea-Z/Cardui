@@ -86,8 +86,8 @@ export type PlanMissingBalanceDto = {
 
 /**
  * Cash at the end of one day. Negative `cash` is a shortfall.
- * `income`, `bills`, `debtPayments`, and `everydaySpending` are that day's totals, each zero or more.
- * Everyday spending leaves cash and is not a bill.
+ * `income`, `bills`, `debtPayments`, and `livingSpending` are that day's totals, each zero or more.
+ * Living spending leaves cash and is not a bill.
  */
 export type PlanCashDayDto = {
   date: string;
@@ -95,7 +95,7 @@ export type PlanCashDayDto = {
   income: number;
   bills: number;
   debtPayments: number;
-  everydaySpending: number;
+  livingSpending: number;
 };
 
 /**
@@ -171,6 +171,7 @@ export type PlanCashOutlookDto = {
  * `excludedCurrencies` are debt codes left out of the planning currency.
  * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
  * `monthlyExtra` is shared extra tried for this response. Zero is minimums only, and the amount is not saved.
+ * `livingSpendingMonthly` is the one monthly flexible-spending amount from Living.
  */
 export type PlanRecoveryDto = {
   planningCurrency: string;
@@ -181,4 +182,5 @@ export type PlanRecoveryDto = {
   hasDebts: boolean;
   cashOutlook: PlanCashOutlookDto;
   monthlyExtra: number;
+  livingSpendingMonthly: number;
 };

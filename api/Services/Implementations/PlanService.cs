@@ -1,4 +1,5 @@
 using Cardui.Api.Domain;
+using Cardui.Api.Domain.Accounts;
 using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Debts;
 using Cardui.Api.Dtos.Plan;
@@ -16,6 +17,7 @@ public class PlanService : IPlanService
     private readonly IObligationsService _obligationsService;
     private readonly IAccountsService _accountsService;
     private readonly ISavingsGoalsService _savingsGoalsService;
+    private readonly ILivingService _livingService;
     private readonly TimeProvider _timeProvider;
     private readonly HouseholdScope _householdScope;
 
@@ -25,6 +27,7 @@ public class PlanService : IPlanService
         IObligationsService obligationsService,
         IAccountsService accountsService,
         ISavingsGoalsService savingsGoalsService,
+        ILivingService livingService,
         TimeProvider timeProvider,
         HouseholdScope householdScope)
     {
@@ -33,6 +36,7 @@ public class PlanService : IPlanService
         _obligationsService = obligationsService;
         _accountsService = accountsService;
         _savingsGoalsService = savingsGoalsService;
+        _livingService = livingService;
         _timeProvider = timeProvider;
         _householdScope = householdScope;
     }
@@ -45,8 +49,8 @@ public class PlanService : IPlanService
         RequireNonNegativeExtra(monthlyExtra);
         var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
-        var cash = await LoadCashFactsAsync(today, cancellationToken);
-        return ProjectPlan(debts, cash, monthlyExtra);
+        var loaded = await LoadCashFactsAsync(today, cancellationToken);
+        return ProjectPlan(debts, loaded.Input, monthlyExtra, loaded.LivingSpendingMonthly);
     }
 
     #region Private Methods
@@ -66,7 +70,7 @@ public class PlanService : IPlanService
     /// Loads the starting cash, income, bills, and savings the cash outlook reads, for a forecast that starts today.
     /// The loads run one after another because they share one database context.
     /// </summary>
-    private async Task<HouseholdCashOutlookInput> LoadCashFactsAsync(
+    private async Task<(HouseholdCashOutlookInput Input, decimal LivingSpendingMonthly)> LoadCashFactsAsync(
         DateOnly today,
         CancellationToken cancellationToken)
     {
@@ -74,14 +78,16 @@ public class PlanService : IPlanService
         var incomes = await _incomeSourcesService.GetOutlookIncomesAsync(cancellationToken);
         var bills = await _obligationsService.GetOutlookBillsAsync(cancellationToken);
         var savings = await _savingsGoalsService.GetOutlookAsync(today, cancellationToken);
-        return new HouseholdCashOutlookInput(
+        var sharedIncomes = await _livingService.GetSharedIncomesAsync(incomes, cancellationToken);
+        var input = new HouseholdCashOutlookInput(
             _householdScope.PlanningCurrency,
             today,
             startingCash,
-            incomes,
+            sharedIncomes,
             bills,
             savings.StartingReserve,
             savings.Contributions);
+        return (input, AccountLedger.Round(savings.LivingSpendingMonthly));
     }
 
     /// <summary>
@@ -91,7 +97,8 @@ public class PlanService : IPlanService
     private static PlanRecoveryDto ProjectPlan(
         IReadOnlyList<DebtDto> debts,
         HouseholdCashOutlookInput cash,
-        decimal monthlyExtra)
+        decimal monthlyExtra,
+        decimal livingSpendingMonthly)
     {
         var prepared = HouseholdRecovery.Prepare(
             cash.PlanningCurrency,
@@ -101,7 +108,9 @@ public class PlanService : IPlanService
         var comparison = PayoffRollover.Compare(prepared.Rollover);
         var report = CashFlowRecovery.Track(comparison);
         var outlook = HouseholdCashOutlook.Project(cash, prepared.Rollover.Debts, comparison);
-        return PlanRecoveryDtoMapper.Map(comparison, report, prepared.MissingBalance, debts.Count > 0, outlook);
+        var plan = PlanRecoveryDtoMapper.Map(comparison, report, prepared.MissingBalance, debts.Count > 0, outlook);
+        plan.LivingSpendingMonthly = livingSpendingMonthly;
+        return plan;
     }
 
     /// <summary>

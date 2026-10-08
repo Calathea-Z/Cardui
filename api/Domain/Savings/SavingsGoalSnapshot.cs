@@ -5,7 +5,7 @@ namespace Cardui.Api.Domain.Savings;
 /// <summary>
 /// One savings row the outlook can read.
 /// AmountInUse is available now, or the amount set aside on a goal that finishes. Currency may differ from the plan.
-/// MonthlyAmount and ReadyDay are set for everyday spending. FloorAmount is the cash the plan always protects.
+/// MonthlyAmount and ReadyDay are set for monthly living spending. FloorAmount is the cash the plan always protects.
 /// TargetAmount is zero and TargetDate is empty when this row does not finish on a date.
 /// </summary>
 public sealed record SavingsGoalSnapshot(

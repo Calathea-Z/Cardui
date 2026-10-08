@@ -210,6 +210,7 @@ export function PlanPageClient({
             lowPay={view.cash.lowPay}
             notes={view.cash.notes}
             currency={currency}
+            livingSpendingMonthly={report.livingSpendingMonthly}
           />
           <details className="app-panel">
             <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-medium text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">

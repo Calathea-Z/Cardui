@@ -5,17 +5,19 @@ Updated: 2026-10-08
 
 ## Problem
 
-Phase 2 item 7. The household can set everyday spending, a cash floor, an emergency goal, and named goals for costs that have a date. Everyday spending and the floor are stored, so Plan's cash outlook no longer leaves that reserve at zero.
+Phase 2 item 7. The household can set monthly living spending, a cash floor, an emergency goal, and named goals for costs that have a date. Living spending and the floor are stored, so Plan's cash outlook no longer leaves those inputs at zero.
 
 Reserving money is not a second expense. Moving money between accounts the household owns is not income. The forecast already treats a savings amount that way: it raises the protected reserve and leaves cash unchanged. What is left to spend is cash minus that reserve.
 
 ## Screen
 
-Savings is a setting in the account menu, at `/savings`, after Debts and before Targets. It is not a tab. Targets stays the monthly spending page.
+Savings is a setting in the account menu, at `/savings`, after Living and before Targets. It is not a tab. Targets stays the monthly spending page.
 
-The page title is Savings. Three cards are always there: Everyday spending, Cash to keep, and Emergency. Named goals are a list under Saving for. Save for something is the one primary action. A goal opens in a panel from 768px up and a full-screen sheet under it.
+The page title is Savings. Cash to keep and Emergency are always there. Named goals are a list under Saving for. Save for something is the one primary action. A goal opens in a panel from 768px up and a full-screen sheet under it.
 
-Everyday spending is a monthly budget. It stores a monthly amount, the day of the month that spending counts (Ready by, default the 1st), and how much is available now. It leaves cash on that day. After the day has passed, only what is left this month leaves cash, on today. Later months count the full monthly amount. It does not finish, and it does not join the protected pile.
+Monthly living spending is edited on Living, at `/living`. The stored row is still an operating goal. Savings does not show that card.
+
+Monthly living spending is the one flexible-spending total used by Plan. It stores a monthly amount, the day of the month that spending counts (Ready by, default the 1st), and how much is available now. It leaves cash on that day. After the day has passed, only what is left this month leaves cash, on today. Later months count the full monthly amount. It does not finish, and it does not join the protected pile.
 
 Cash to keep is a floor. It stores the amount to always keep available, and how much is available now. The plan protects the full floor. It does not leave cash and it has no date. A household has one of each card. Emergency and each named goal still have a target and a date.
 
@@ -23,7 +25,7 @@ An empty card says what is missing and offers Set. Removing a row asks first and
 
 ## What a goal stores
 
-Everyday spending stores a monthly amount greater than zero, a ready-by day from 1 to 31, and available now. Cash to keep stores a floor greater than zero and available now. It has no date.
+Monthly living spending stores a monthly amount greater than zero, a ready-by day from 1 to 31, and available now. Cash to keep stores a floor greater than zero and available now. It has no date.
 
 Emergency and each named goal store:
 
@@ -50,7 +52,7 @@ An account that can no longer be followed stays named on the goal. The amount al
 
 The cash chart stays the cash in accounts. The line under Cash outlook names how much is set aside today and what is left after it, when any amount is set aside. What is left to spend going below zero is a warning, separate from cash itself going below zero.
 
-The protected amount starts as cash already set aside for emergency and named goals, plus the full cash-to-keep floor, in the planning currency. Each dated goal that is not funded yet adds its calculated amounts on their dates. Those amounts raise the reserve and leave the cash total unchanged. Everyday spending is not in that pile. It leaves cash on its ready day. A goal in another currency is left out and named.
+The protected amount starts as cash already set aside for emergency and named goals, plus the full cash-to-keep floor, in the planning currency. Each dated goal that is not funded yet adds its calculated amounts on their dates. Those amounts raise the reserve and leave the cash total unchanged. Monthly living spending is not in that pile. It leaves cash on its ready day. A goal in another currency is left out and named.
 
 ## Data
 

@@ -27,7 +27,7 @@ public class SavingsGoalsServiceTests
         var goal = await service.CreateAsync(Draft(SavingsGoalKind.Operating, accountId, 1000m, 0m, true));
 
         Assert.Equal(SavingsGoalKind.Operating, goal.Kind);
-        Assert.Equal("Everyday spending", goal.Name);
+        Assert.Equal("Monthly living spending", goal.Name);
         Assert.Equal("USD", goal.Currency);
         Assert.True(goal.Following);
         Assert.False(goal.ReservedOverridden);

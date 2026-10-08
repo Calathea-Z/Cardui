@@ -81,7 +81,7 @@ public static class SavingsGoalDtoMapper
 
     /// <summary>
     /// The name on the screen.
-    /// Everyday spending and Emergency use their fixed names, including a row saved under an older label.
+    /// Monthly living spending and Emergency use their fixed names, including a row saved under an older label.
     /// </summary>
     private static string FixedName(SavingsGoal goal)
     {

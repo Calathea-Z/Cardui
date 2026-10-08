@@ -50,6 +50,8 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 Newest first.
 
+- [2026-10-08 — Simplified Living](2026-10-08-005-simplified-living.md) — Approved 2026-10-08
+- [2026-10-08 — Living](2026-10-08-004-living.md) — Superseded by the simplified Living review
 - [2026-10-08 — Savings](2026-10-08-002-savings.md) — Approved 2026-10-08
 - [2026-10-07 — Reconnect](2026-10-07-007-reconnect.md) — Approved 2026-10-07
 - [2026-10-07 — Credit limit](2026-10-07-006-credit-limit.md) — Approved 2026-10-07

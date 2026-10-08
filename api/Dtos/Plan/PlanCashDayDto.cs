@@ -25,7 +25,7 @@ public class PlanCashDayDto
     public decimal DebtPayments { get; set; }
 
     /// <summary>
-    /// Everyday spending counted this day. Zero or more. It leaves cash and is not a bill.
+    /// Monthly living spending counted this day. Zero or more. It leaves cash and is not a bill.
     /// </summary>
-    public decimal EverydaySpending { get; set; }
+    public decimal LivingSpending { get; set; }
 }

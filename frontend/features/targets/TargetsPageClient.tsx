@@ -61,7 +61,7 @@ export function TargetsPageClient({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Targets"
-        description="Monthly targets for spending categories."
+        description="Monthly targets compare categorized Activity with your intentions. They do not add another spending amount to Plan."
         actions={
           month ? (
             <Select

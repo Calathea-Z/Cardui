@@ -10,6 +10,7 @@ export * from "./dashboard";
 export * from "./groups";
 export * from "./households";
 export * from "./income";
+export * from "./living";
 export * from "./obligations";
 export * from "./debts";
 export * from "./plan";

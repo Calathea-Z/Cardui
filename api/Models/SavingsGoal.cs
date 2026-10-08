@@ -4,7 +4,7 @@ public class SavingsGoal
 {
     public const int NameMaxLength = 80;
 
-    public const string OperatingName = "Everyday spending";
+    public const string OperatingName = "Monthly living spending";
 
     public const string FloorName = "Cash to keep";
 
@@ -22,23 +22,23 @@ public class SavingsGoal
 
     /// <summary>
     /// The amount to have set aside by the target date.
-    /// Null for everyday spending and cash to keep, which do not finish on a date.
+    /// Null for monthly living spending and cash to keep, which do not finish on a date.
     /// </summary>
     public decimal? TargetAmount { get; set; }
 
     /// <summary>
     /// The date a named goal or the emergency goal is funded.
-    /// Null for everyday spending and cash to keep.
+    /// Null for monthly living spending and cash to keep.
     /// </summary>
     public DateOnly? TargetDate { get; set; }
 
     /// <summary>
-    /// How much everyday spending leaves cash each month. Null for every other kind.
+    /// How much living spending leaves cash each month. Null for every other kind.
     /// </summary>
     public decimal? MonthlyAmount { get; set; }
 
     /// <summary>
-    /// The day of the month everyday spending counts. A short month uses its last day. Null for every other kind.
+    /// The day of the month living spending counts. A short month uses its last day. Null for every other kind.
     /// </summary>
     public int? ReadyDay { get; set; }
 

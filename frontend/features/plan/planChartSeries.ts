@@ -66,7 +66,7 @@ export type PlanOwedShare = {
 /**
  * One day on the 30-day cash chart.
  * `timestamp` is that day at midnight UTC. `cash` is the ending cash, negative when short.
- * `income`, `bills`, `debtPayments`, and `everydaySpending` are that day's totals.
+ * `income`, `bills`, `debtPayments`, and `livingSpending` are that day's totals.
  */
 export type PlanCashRow = {
   timestamp: number;
@@ -74,7 +74,7 @@ export type PlanCashRow = {
   income: number;
   bills: number;
   debtPayments: number;
-  everydaySpending: number;
+  livingSpending: number;
 };
 
 /**
@@ -286,7 +286,7 @@ export function cashChart(forecast: PlanCashForecastDto): {
     income: day.income,
     bills: day.bills,
     debtPayments: day.debtPayments,
-    everydaySpending: day.everydaySpending ?? 0,
+    livingSpending: day.livingSpending ?? 0,
   }));
   if (rows.length === 0) {
     return { rows, lowest: null };

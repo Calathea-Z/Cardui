@@ -3,13 +3,13 @@ using Cardui.Api.Domain.Recovery;
 
 namespace Cardui.Api.Domain.Savings;
 
-public static class EverydaySpending
+public static class LivingSpendingSchedule
 {
     public const int HorizonMonths = 18;
 
     /// <summary>
-    /// The days this month's spending and later months leave cash.
-    /// A ready day still ahead counts the full monthly amount. A ready day already past counts only what is left this month, on today.
+    /// The days this month's living spending and later monthly amounts leave cash.
+    /// A ready day still ahead counts the full amount. A ready day already past counts only what is left this month, on today.
     /// Later months count the full amount on that day. A day past the end of a short month uses the month's last day.
     /// </summary>
     public static IReadOnlyList<CashFlowEvent> Schedule(
@@ -72,8 +72,8 @@ public static class EverydaySpending
     #region Private Methods
 
     /// <summary>
-    /// One everyday-spending amount that leaves cash.
-    /// The amount is positive. The kind says it is spending, not a bill and not a reserve.
+    /// One monthly living-spending amount that leaves cash.
+    /// The amount is positive. The kind says it is flexible spending, not a bill or reserve.
     /// </summary>
     private static CashFlowEvent Event(
         DateOnly date,
@@ -84,7 +84,7 @@ public static class EverydaySpending
     {
         return new CashFlowEvent(
             date,
-            CashFlowKind.EverydaySpending,
+            CashFlowKind.LivingSpending,
             sourceId,
             name,
             amount,

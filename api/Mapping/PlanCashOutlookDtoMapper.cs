@@ -69,7 +69,7 @@ public static class PlanCashOutlookDtoMapper
             Income = Sum(day, CashFlowKind.Income),
             Bills = Sum(day, CashFlowKind.Bill),
             DebtPayments = Sum(day, CashFlowKind.DebtPayment),
-            EverydaySpending = Sum(day, CashFlowKind.EverydaySpending)
+            LivingSpending = Sum(day, CashFlowKind.LivingSpending)
         };
     }
 

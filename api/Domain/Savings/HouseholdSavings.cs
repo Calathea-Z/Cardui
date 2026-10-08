@@ -8,7 +8,7 @@ public static class HouseholdSavings
 {
     /// <summary>
     /// Turns stored rows into the reserve the forecast starts from and the later cash events.
-    /// Everyday spending leaves cash on its day. Cash to keep protects the floor and does not leave cash.
+    /// Monthly living spending leaves cash on its day. Cash to keep protects the floor and does not leave cash.
     /// A contribution toward a dated goal raises the reserve and does not reduce cash. Another currency is left out of the starting reserve and still listed.
     /// </summary>
     public static SavingsOutlook Project(
@@ -17,6 +17,7 @@ public static class HouseholdSavings
         IReadOnlyList<SavingsGoalSnapshot> goals)
     {
         var reserve = 0m;
+        var everyday = 0m;
         var events = new List<CashFlowEvent>();
         foreach (var goal in goals
             .OrderBy(goal => goal.Name, StringComparer.OrdinalIgnoreCase)
@@ -24,7 +25,12 @@ public static class HouseholdSavings
         {
             if (goal.Kind == SavingsGoalKind.Operating)
             {
-                events.AddRange(EverydaySpending.Schedule(
+                if (PlanningCurrencyRules.IsIncluded(goal.Currency, planningCurrency) && goal.MonthlyAmount > 0)
+                {
+                    everyday = AccountLedger.Round(goal.MonthlyAmount);
+                }
+
+                events.AddRange(LivingSpendingSchedule.Schedule(
                     today,
                     goal.ReadyDay,
                     goal.MonthlyAmount,
@@ -52,7 +58,7 @@ public static class HouseholdSavings
             }
         }
 
-        return new SavingsOutlook(reserve, events);
+        return new SavingsOutlook(reserve, events, everyday);
     }
 
     #region Private Methods

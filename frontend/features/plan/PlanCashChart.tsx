@@ -36,7 +36,7 @@ type CashTooltipProps = {
 };
 
 /**
- * Tooltip for one day: ending cash, then only the income, bills, everyday spending, and debt payments that landed that day.
+ * Tooltip for one day: ending cash, then only the income, bills, living spending, and debt payments that landed that day.
  * Money in carries a plus and money out a minus, so the sign is in the text and not only in color.
  */
 function CashTooltip({ active, payload, currency }: CashTooltipProps) {
@@ -48,7 +48,7 @@ function CashTooltip({ active, payload, currency }: CashTooltipProps) {
   const moves = [
     { label: "Income", amount: row.income, sign: "+" },
     { label: "Bills", amount: row.bills, sign: "−" },
-    { label: "Everyday spending", amount: row.everydaySpending, sign: "−" },
+    { label: "Living spending", amount: row.livingSpending, sign: "−" },
     { label: "Debt payments", amount: row.debtPayments, sign: "−" },
   ].filter((move) => move.amount > 0);
   return (

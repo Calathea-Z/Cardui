@@ -12,7 +12,7 @@ public static class SavingsGoalRules
 
     /// <summary>
     /// Checks a proposed row and returns the values to store.
-    /// Everyday spending needs a monthly amount and a day of the month. Cash to keep needs a floor. A goal that finishes needs a target and a date.
+    /// Monthly living spending needs a monthly amount and a day of the month. Cash to keep needs a floor. A goal that finishes needs a target and a date.
     /// A blank available-now or amount-set-aside arrives as zero. Fixed names stay fixed.
     /// </summary>
     public static bool TryNormalize(
@@ -32,7 +32,7 @@ public static class SavingsGoalRules
         draft = default;
         if (kind is not SavingsGoalKind goalKind)
         {
-            error = "Choose everyday spending, cash to keep, an emergency goal, or something to save for.";
+            error = "Choose monthly living spending, cash to keep, an emergency goal, or something to save for.";
             return false;
         }
 
@@ -156,7 +156,7 @@ public static class SavingsGoalRules
 
     /// <summary>
     /// The label in an amount error for this kind.
-    /// Everyday spending and cash to keep call it available now. A goal that finishes calls it an amount set aside.
+    /// Monthly living spending and cash to keep call it available now. A goal that finishes calls it an amount set aside.
     /// </summary>
     private static string AvailableLabel(SavingsGoalKind kind)
     {

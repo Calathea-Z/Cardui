@@ -205,7 +205,7 @@ public class SavingsGoalsService : ISavingsGoalsService
         {
             throw new BadRequestException(kind switch
             {
-                SavingsGoalKind.Operating => "This household already has everyday spending set.",
+                SavingsGoalKind.Operating => "This household already has monthly living spending set.",
                 SavingsGoalKind.Floor => "This household already has cash to keep set.",
                 _ => "This household already has an emergency goal."
             });
@@ -387,7 +387,7 @@ public class SavingsGoalsService : ISavingsGoalsService
         }
         catch (DbUpdateException exception) when (IsIndex(exception, "IX_SavingsGoals_HouseholdId_Operating"))
         {
-            throw new BadRequestException("This household already has everyday spending set.");
+            throw new BadRequestException("This household already has monthly living spending set.");
         }
         catch (DbUpdateException exception) when (IsIndex(exception, "IX_SavingsGoals_HouseholdId_Floor"))
         {

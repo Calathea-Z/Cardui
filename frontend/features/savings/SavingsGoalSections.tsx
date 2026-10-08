@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { formatCalendarDate } from "@/features/debts/debtDisplay";
 import type { SavingsGoalDto, SavingsGoalKind } from "@/lib/api/types";
-import { followNote, goalProgress, readyByShort } from "./savingsCopy";
+import { followNote, goalProgress } from "./savingsCopy";
 
 type SavingsGoalSectionsProps = {
   goals: SavingsGoalDto[];
@@ -15,8 +15,8 @@ type SavingsGoalSectionsProps = {
 };
 
 /**
- * Everyday spending, cash to keep, the emergency goal, and the named goals under Saving for.
- * The single cards stay on the page even when they have not been set.
+ * Cash to keep, the emergency goal, and the named goals under Saving for.
+ * Monthly living spending is on Living. The single cards stay on the page even when they have not been set.
  */
 export function SavingsGoalSections({
   goals,
@@ -25,7 +25,6 @@ export function SavingsGoalSections({
   onAdd,
   onRemove,
 }: SavingsGoalSectionsProps) {
-  const operating = goals.find((goal) => goal.kind === "Operating") ?? null;
   const floor = goals.find((goal) => goal.kind === "Floor") ?? null;
   const emergency = goals.find((goal) => goal.kind === "Emergency") ?? null;
   const funds = goals
@@ -34,15 +33,6 @@ export function SavingsGoalSections({
 
   return (
     <div className="flex flex-col gap-6">
-      <GoalSlot
-        title="Everyday spending"
-        empty="Nothing set yet. Choose how much you spend on everyday needs each month."
-        goal={operating}
-        busy={operating ? busyId === operating.id : false}
-        onAdd={(opener) => onAdd("Operating", opener)}
-        onEdit={onEdit}
-        onRemove={onRemove}
-      />
       <GoalSlot
         title="Cash to keep"
         empty="Nothing set yet. Choose how much to always keep available."
@@ -65,8 +55,8 @@ export function SavingsGoalSections({
         <h2 className="app-section-title">Saving for</h2>
         {funds.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nothing yet. Save for a cost that has a date, such as insurance or
-            a trip.
+            Nothing yet. Save for a cost that has a date, such as insurance or a
+            trip.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
@@ -165,9 +155,7 @@ function GoalRow({ goal, busy, onEdit, onRemove }: GoalRowProps) {
             {formatCurrency(goal.amountInUse, goal.currency)}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {goal.kind === "Operating" || goal.kind === "Floor"
-              ? "available now"
-              : "set aside"}
+            {goal.kind === "Floor" ? "available now" : "set aside"}
           </p>
         </div>
       </div>
@@ -198,13 +186,9 @@ function GoalRow({ goal, busy, onEdit, onRemove }: GoalRowProps) {
 
 /**
  * The line under a row's name.
- * Everyday spending names the monthly amount and the day it counts. Cash to keep names the floor. A finishing goal names its target and date.
+ * Cash to keep names the floor. A finishing goal names its target and date.
  */
 function rowDetail(goal: SavingsGoalDto): string {
-  if (goal.kind === "Operating" && goal.monthlyAmount !== null && goal.readyDay !== null) {
-    return `${formatCurrency(goal.monthlyAmount, goal.currency)} a month, ready by ${readyByShort(goal.readyDay)}.`;
-  }
-
   if (goal.kind === "Floor" && goal.floorAmount !== null) {
     return `Keep ${formatCurrency(goal.floorAmount, goal.currency)} available.`;
   }
@@ -218,13 +202,9 @@ function rowDetail(goal: SavingsGoalDto): string {
 
 /**
  * The sentence under a saved row.
- * Cash to keep names the gap. A finishing goal uses its calculated monthly amount. Everyday spending has already said its plan.
+ * Cash to keep names the gap. A finishing goal uses its calculated monthly amount.
  */
 function rowSentence(goal: SavingsGoalDto): string {
-  if (goal.kind === "Operating") {
-    return "This leaves cash on that day. It is not money set aside.";
-  }
-
   if (goal.kind === "Floor") {
     return goal.alreadyMet
       ? "This amount is available."

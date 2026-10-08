@@ -60,6 +60,14 @@ export type {
   UpsertDebtDto,
 } from "./debts";
 export type {
+  ContributionLimit,
+  LivingContributionDto,
+  LivingGapDto,
+  LivingPageDto,
+  UpsertLivingContributionDto,
+} from "./living";
+export { contributionLimits } from "./living";
+export type {
   SavingsAccountDto,
   SavingsGoalDto,
   SavingsGoalKind,

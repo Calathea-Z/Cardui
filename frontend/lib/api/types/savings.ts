@@ -1,8 +1,13 @@
 /**
  * Which savings row this is.
- * A household has one everyday-spending plan, one cash floor, and one emergency goal. Named goals, stored as Sinking, repeat.
+ * A household has one monthly living-spending plan, one cash floor, and one emergency goal. Named goals, stored as Sinking, repeat.
  */
-export const savingsGoalKinds = ["Operating", "Floor", "Emergency", "Sinking"] as const;
+export const savingsGoalKinds = [
+  "Operating",
+  "Floor",
+  "Emergency",
+  "Sinking",
+] as const;
 
 export type SavingsGoalKind = (typeof savingsGoalKinds)[number];
 
@@ -13,8 +18,8 @@ export type SavingsGoalKind = (typeof savingsGoalKinds)[number];
  * `accountBalance` is null when no account is followed.
  * `accountUnavailable` means the stored account can no longer be followed, so the typed amount is in use.
  * `negativeBalance` means the followed balance is below zero, so nothing is set aside from it.
- * `amountNeededPerMonth` is the calculated monthly amount for a goal that finishes. Null when that goal is funded, the date has passed, the date is too far out, or the row is everyday spending or cash to keep.
- * `monthlyAmount` and `readyDay` are set for everyday spending. `floorAmount` is the cash to always keep.
+ * `amountNeededPerMonth` is the calculated monthly amount for a goal that finishes. Null when that goal is funded, the date has passed, the date is too far out, or the row is monthly living spending or cash to keep.
+ * `monthlyAmount` and `readyDay` are set for monthly living spending. `floorAmount` is the cash to always keep.
  * `targetAmount` and `targetDate` are null when the row does not finish on a date.
  */
 export type SavingsGoalDto = {
@@ -63,7 +68,7 @@ export type SavingsAccountDto = {
  * The body for creating or updating a goal.
  * `reservedAmount` is available now, or the amount set aside on a goal that finishes. Zero means nothing was typed.
  * `useAccountBalance` replaces that amount with the account balance.
- * `monthlyAmount` and `readyDay` are sent for everyday spending. `floorAmount` is sent for cash to keep.
+ * `monthlyAmount` and `readyDay` are sent for monthly living spending. `floorAmount` is sent for cash to keep.
  */
 export type UpsertSavingsGoalDto = {
   kind: SavingsGoalKind;

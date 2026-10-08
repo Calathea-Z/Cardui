@@ -11,22 +11,22 @@ public sealed class SavingsGoalDto
     public required string Name { get; set; }
 
     /// <summary>
-    /// The amount to reach by the target date. Null for everyday spending and cash to keep.
+    /// The amount to reach by the target date. Null for monthly living spending and cash to keep.
     /// </summary>
     public decimal? TargetAmount { get; set; }
 
     /// <summary>
-    /// The date a finishing goal is funded. Null for everyday spending and cash to keep.
+    /// The date a finishing goal is funded. Null for monthly living spending and cash to keep.
     /// </summary>
     public DateOnly? TargetDate { get; set; }
 
     /// <summary>
-    /// How much everyday spending leaves cash each month. Null for every other kind.
+    /// How much living spending leaves cash each month. Null for every other kind.
     /// </summary>
     public decimal? MonthlyAmount { get; set; }
 
     /// <summary>
-    /// The day of the month everyday spending counts. Null for every other kind.
+    /// The day of the month living spending counts. Null for every other kind.
     /// </summary>
     public int? ReadyDay { get; set; }
 

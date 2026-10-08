@@ -24,7 +24,7 @@ type SavingsGoalFormProps = {
 
 /**
  * Form for one savings goal.
- * Everyday spending asks for a monthly amount and a day. Cash to keep asks for a floor. A finishing goal asks for a target and a date.
+ * Monthly living spending asks for a monthly amount and a day. Cash to keep asks for a floor. A finishing goal asks for a target and a date.
  * Choosing an account does not move money. Use account balance clears a typed amount.
  */
 export function SavingsGoalForm({
@@ -61,6 +61,71 @@ export function SavingsGoalForm({
     });
   }
 
+  const trackingFields = (
+    <>
+      <label className="flex flex-col gap-1.5 text-sm font-medium">
+        {form.kind === "Operating" || form.kind === "Floor"
+          ? "Available now"
+          : "Already set aside"}
+        <Input
+          inputMode="decimal"
+          value={form.reservedAmount}
+          onChange={(event) =>
+            onChange({
+              ...form,
+              reservedAmount: event.target.value,
+              useAccountBalance: false,
+            })
+          }
+          autoComplete="off"
+        />
+        <span className="font-normal text-muted-foreground">
+          {form.kind === "Operating"
+            ? "What is left of this month. Blank means zero."
+            : form.kind === "Floor"
+              ? "How much of that amount you already have. Blank means zero."
+              : "Blank means zero. This is not a second expense."}
+        </span>
+      </label>
+      <div className="flex flex-col gap-1.5 text-sm font-medium">
+        Account
+        <Select
+          title="Account"
+          value={form.accountId}
+          onChange={(accountId) =>
+            onChange({
+              ...form,
+              accountId,
+              useAccountBalance: false,
+            })
+          }
+          options={accountChoices(
+            accounts,
+            form.accountId,
+            savedAccountName,
+            planningCurrency,
+          )}
+          onOpenChange={onPickerOpenChange}
+        />
+        <span className="font-normal text-muted-foreground">
+          {form.kind === "Operating" || form.kind === "Floor"
+            ? "Optional. Available now follows this balance until you type your own."
+            : "Optional. The plan uses this cash account's balance until you type your own."}
+        </span>
+      </div>
+      {balanceLabel ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11"
+          onClick={useAccountBalance}
+        >
+          Use account balance ({balanceLabel})
+        </Button>
+      ) : null}
+    </>
+  );
+
   return (
     <Form className="flex flex-col gap-4" onSubmit={onSubmit}>
       <p className="text-sm text-muted-foreground">
@@ -92,7 +157,8 @@ export function SavingsGoalForm({
               autoComplete="off"
             />
             <span className="font-normal text-muted-foreground">
-              How much you plan to spend on everyday needs each month.
+              Groceries, gas, hobbies, and other flexible spending not already
+              on Bills.
             </span>
           </label>
           <div className="flex flex-col gap-1.5 text-sm font-medium">
@@ -155,66 +221,18 @@ export function SavingsGoalForm({
           </div>
         </>
       ) : null}
-      <label className="flex flex-col gap-1.5 text-sm font-medium">
-        {form.kind === "Operating" || form.kind === "Floor"
-          ? "Available now"
-          : "Already set aside"}
-        <Input
-          inputMode="decimal"
-          value={form.reservedAmount}
-          onChange={(event) =>
-            onChange({
-              ...form,
-              reservedAmount: event.target.value,
-              useAccountBalance: false,
-            })
-          }
-          autoComplete="off"
-        />
-        <span className="font-normal text-muted-foreground">
-          {form.kind === "Operating"
-            ? "What is left of this month. Blank means zero."
-            : form.kind === "Floor"
-              ? "How much of that amount you already have. Blank means zero."
-              : "Blank means zero. This is not a second expense."}
-        </span>
-      </label>
-      <div className="flex flex-col gap-1.5 text-sm font-medium">
-        Account
-        <Select
-          title="Account"
-          value={form.accountId}
-          onChange={(accountId) =>
-            onChange({
-              ...form,
-              accountId,
-              useAccountBalance: false,
-            })
-          }
-          options={accountChoices(
-            accounts,
-            form.accountId,
-            savedAccountName,
-            planningCurrency,
-          )}
-          onOpenChange={onPickerOpenChange}
-        />
-        <span className="font-normal text-muted-foreground">
-          {form.kind === "Operating" || form.kind === "Floor"
-            ? "Optional. Available now follows this balance until you type your own."
-            : "Optional. The plan uses this cash account's balance until you type your own."}
-        </span>
-      </div>
-      {balanceLabel ? (
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-11"
-          onClick={useAccountBalance}
-        >
-          Use account balance ({balanceLabel})
-        </Button>
-      ) : null}
+      {form.kind === "Operating" ? (
+        <details className="rounded-md border border-border">
+          <summary className="min-h-11 cursor-pointer rounded-md px-3 py-2.5 text-sm font-medium text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
+            Track this month&apos;s amount
+          </summary>
+          <div className="flex flex-col gap-4 border-t border-border p-3">
+            {trackingFields}
+          </div>
+        </details>
+      ) : (
+        trackingFields
+      )}
       <Button type="submit" className="min-h-11" disabled={isSaving}>
         {isSaving
           ? "Saving…"

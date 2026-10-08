@@ -7,7 +7,7 @@ import type { SavingsGoalKind, UpsertSavingsGoalDto } from "@/lib/api/types";
 /**
  * The fields the savings form edits.
  * `reservedAmount` blank means nothing is available or set aside yet. `useAccountBalance` follows the selected account.
- * `monthlyAmount` and `readyDay` are for everyday spending. `floorAmount` is the cash to always keep.
+ * `monthlyAmount` and `readyDay` are for monthly living spending. `floorAmount` is the cash to always keep.
  */
 export type SavingsFormState = {
   kind: SavingsGoalKind;
@@ -180,7 +180,7 @@ function daySuffix(day: number): string {
 
 /**
  * Turns the form into the API body.
- * Everyday spending needs a monthly amount and a day. Cash to keep needs an amount to keep. A named goal needs a name, a target, and a date.
+ * Monthly living spending needs a monthly amount and a day. Cash to keep needs an amount to keep. A named goal needs a name, a target, and a date.
  * An account that is not offered has to be cleared first.
  */
 export function toSavingsPayload(
@@ -289,7 +289,10 @@ export function toSavingsPayload(
   if (targetAmount === null) {
     return {
       ok: false,
-      error: amountError(form.targetAmount, "Enter a target greater than zero."),
+      error: amountError(
+        form.targetAmount,
+        "Enter a target greater than zero.",
+      ),
     };
   }
 

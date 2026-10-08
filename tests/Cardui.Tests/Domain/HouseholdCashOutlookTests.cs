@@ -86,7 +86,8 @@ public class HouseholdCashOutlookTests
             800m,
             IncomeCadence.Monthly,
             new DateOnly(2026, 1, 5),
-            [new DatedIncomeRaise(new DateOnly(2026, 3, 1), 1200m)]);
+            [new DatedIncomeRaise(new DateOnly(2026, 3, 1), 1200m)],
+            null);
         var comparison = PayoffRollover.Compare(Rollover(Start, []));
 
         var outlook = HouseholdCashOutlook.Project(
@@ -112,7 +113,8 @@ public class HouseholdCashOutlookTests
             null,
             IncomeCadence.Monthly,
             new DateOnly(2026, 1, 5),
-            []);
+            [],
+            null);
 
         var outlook = HouseholdCashOutlook.Project(
             Outlook(incomes: [income]),
@@ -149,7 +151,7 @@ public class HouseholdCashOutlookTests
     }
 
     [Fact]
-    public void Project_EverydaySpendingLeavesCashAndDoesNotRaiseTheReserve()
+    public void Project_LivingSpendingLeavesCashAndDoesNotRaiseTheReserve()
     {
         var goalId = Guid.Parse("70000000-0000-0000-0000-000000000006");
         var outlook = HouseholdCashOutlook.Project(
@@ -160,7 +162,7 @@ public class HouseholdCashOutlookTests
                 [],
                 [],
                 0m,
-                [new CashFlowEvent(Start, CashFlowKind.EverydaySpending, goalId, "Everyday spending", 300m, "USD")]),
+                [new CashFlowEvent(Start, CashFlowKind.LivingSpending, goalId, "Monthly living spending", 300m, "USD")]),
             [],
             PayoffRollover.Compare(Rollover(Start, [])));
 

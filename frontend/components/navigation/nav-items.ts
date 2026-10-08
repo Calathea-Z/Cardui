@@ -9,7 +9,7 @@ export type NavItem = {
 /**
  * Primary destinations in sidebar and tab-bar order.
  * Plan is first. Home, Accounts, and Activity are the daily jobs. Income,
- * Bills, Debts, Savings, and Targets stay routes under settings.
+ * Bills, Debts, Living, Savings, and Targets stay routes under settings.
  */
 export const navItems: NavItem[] = [
   {
@@ -32,7 +32,7 @@ export const navItems: NavItem[] = [
 
 /**
  * Destinations in the account block.
- * These stay off the primary nav, including Income, Bills, Debts, Savings, and Targets.
+ * These stay off the primary nav, including Income, Bills, Debts, Living, Savings, and Targets.
  * Each href matches the screen name.
  */
 export const settingsItems: NavItem[] = [
@@ -47,6 +47,10 @@ export const settingsItems: NavItem[] = [
   {
     label: "Debts",
     href: "/debts",
+  },
+  {
+    label: "Living",
+    href: "/living",
   },
   {
     label: "Savings",

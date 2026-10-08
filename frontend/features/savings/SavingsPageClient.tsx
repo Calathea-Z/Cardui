@@ -17,7 +17,8 @@ type SavingsPageClientProps = {
 
 /**
  * Savings page.
- * Everyday spending and cash to keep are single cards. Saving for is the named list.
+ * Cash to keep and the emergency goal are single cards. Saving for is the named list.
+ * Monthly living spending is on Living.
  * Saving a goal does not move money.
  */
 export function SavingsPageClient({
@@ -59,11 +60,9 @@ export function SavingsPageClient({
 
   const title = savings.editingId
     ? `Edit ${editing?.name ?? "goal"}`
-    : savings.form.kind === "Operating"
-      ? "Set everyday spending"
-      : savings.form.kind === "Floor"
-        ? "Set cash to keep"
-        : savings.form.kind === "Emergency"
+    : savings.form.kind === "Floor"
+      ? "Set cash to keep"
+      : savings.form.kind === "Emergency"
         ? "Set emergency goal"
         : "Save for something";
 
@@ -71,7 +70,7 @@ export function SavingsPageClient({
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Savings"
-        description="Everyday spending, cash to keep, and goals with a date. Saving does not move money."
+        description="Cash to keep, an emergency goal, and goals with a date. Saving does not move money. Monthly living spending is on Living."
         actions={
           <Button
             ref={addButtonRef}

@@ -22,7 +22,8 @@ sheet under it.
 A new screen is a primary destination or a setting, not a fourth tab.
 On October 7, 2026, Plan became the first primary destination. See
 [0007](0007-plan-first-in-main-nav.md). On October 8, 2026, Savings
-joined the account menu at `/savings`, after Debts.
+joined the account menu at `/savings`. Living joined the same day at
+`/living`, after Debts and before Savings.
 
 Source: `docs/design/ui-direction.md`, `.cursor/rules/ui-governance.mdc`,
 `docs/reviews/2026-10-05-018-ui-governance.md`.

@@ -4,23 +4,23 @@ using Xunit;
 
 namespace Cardui.Tests.Domain;
 
-public class EverydaySpendingTests
+public class LivingSpendingScheduleTests
 {
     private static readonly Guid GoalId = Guid.Parse("81000000-0000-0000-0000-000000000001");
 
     [Fact]
     public void Schedule_CountsWhatIsLeftAfterTheReadyDayAndTheFullAmountLater()
     {
-        var events = EverydaySpending.Schedule(
+        var events = LivingSpendingSchedule.Schedule(
             new DateOnly(2026, 10, 8),
             1,
             800m,
             300m,
             GoalId,
-            "Everyday spending",
+            "Monthly living spending",
             "USD");
 
-        Assert.Equal(CashFlowKind.EverydaySpending, events[0].Kind);
+        Assert.Equal(CashFlowKind.LivingSpending, events[0].Kind);
         Assert.Equal(new DateOnly(2026, 10, 8), events[0].Date);
         Assert.Equal(300m, events[0].Amount);
         Assert.Equal(new DateOnly(2026, 11, 1), events[1].Date);
@@ -32,13 +32,13 @@ public class EverydaySpendingTests
     [Fact]
     public void Schedule_CountsTheFullMonthWhenTheReadyDayIsStillAhead()
     {
-        var events = EverydaySpending.Schedule(
+        var events = LivingSpendingSchedule.Schedule(
             new DateOnly(2026, 10, 1),
             15,
             800m,
             100m,
             GoalId,
-            "Everyday spending",
+            "Monthly living spending",
             "USD");
 
         Assert.Equal(new DateOnly(2026, 10, 15), events[0].Date);
@@ -48,6 +48,6 @@ public class EverydaySpendingTests
     [Fact]
     public void OnDay_UsesTheLastDayOfAShortMonth()
     {
-        Assert.Equal(new DateOnly(2026, 2, 28), EverydaySpending.OnDay(2026, 2, 31));
+        Assert.Equal(new DateOnly(2026, 2, 28), LivingSpendingSchedule.OnDay(2026, 2, 31));
     }
 }

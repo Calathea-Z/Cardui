@@ -134,7 +134,7 @@ export function planAssumptions(
     {
       term: "Cash outlook",
       detail:
-        "Starts from Cash on Accounts, adds pay, and takes out bills, everyday spending, and debt payments. Money set aside does not reduce cash.",
+        "Starts with Cash on Accounts, adds shared pay, and takes out bills, living spending, and debt payments. Set-aside money stays in cash.",
     },
     {
       term: "Low pay",
@@ -463,7 +463,7 @@ export function cashOutlookNotes(
   if (!outlook.hasBills) {
     notes.push({
       key: "no-bills",
-      text: "No bills yet. Add them on Bills. Everyday spending and debt payments still come out of cash.",
+      text: "No bills yet. Add them on Bills. Monthly living spending and debt payments still come out of cash.",
       warning: false,
     });
   }

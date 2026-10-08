@@ -8,6 +8,7 @@ export * from "./categories";
 export * from "./category-targets";
 export * from "./households";
 export * from "./income";
+export * from "./living";
 export * from "./obligations";
 export * from "./plan";
 export * from "./savings";

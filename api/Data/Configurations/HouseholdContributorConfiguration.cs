@@ -21,6 +21,9 @@ public class HouseholdContributorConfiguration : IEntityTypeConfiguration<Househ
             .IsRequired()
             .HasDefaultValue(true);
 
+        entity.Property(x => x.MonthlyContribution)
+            .HasPrecision(18, 2);
+
         entity.Property(x => x.CreatedAt)
             .IsRequired();
 

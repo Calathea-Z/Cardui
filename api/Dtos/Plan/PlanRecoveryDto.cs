@@ -34,4 +34,10 @@ public class PlanRecoveryDto
     /// Zero is minimums only. The amount is not saved.
     /// </summary>
     public decimal MonthlyExtra { get; set; }
+
+    /// <summary>
+    /// Monthly living spending in the planning currency.
+    /// Zero means no flexible living-spending amount is recorded.
+    /// </summary>
+    public decimal LivingSpendingMonthly { get; set; }
 }

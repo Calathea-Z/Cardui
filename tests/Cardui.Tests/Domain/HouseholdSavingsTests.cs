@@ -49,7 +49,7 @@ public class HouseholdSavingsTests
     }
 
     [Fact]
-    public void Project_EverydaySpendingLeavesCashAndTheFloorStaysProtected()
+    public void Project_LivingSpendingLeavesCashAndTheFloorStaysProtected()
     {
         var spendingId = Guid.Parse("80000000-0000-0000-0000-000000000003");
         var floorId = Guid.Parse("80000000-0000-0000-0000-000000000004");
@@ -59,7 +59,7 @@ public class HouseholdSavingsTests
             [
                 new SavingsGoalSnapshot(
                     spendingId,
-                    "Everyday spending",
+                    "Monthly living spending",
                     "USD",
                     0m,
                     default,
@@ -82,8 +82,9 @@ public class HouseholdSavingsTests
             ]);
 
         Assert.Equal(800m, outlook.StartingReserve);
+        Assert.Equal(800m, outlook.LivingSpendingMonthly);
         Assert.Contains(outlook.Contributions, item =>
-            item.Kind == CashFlowKind.EverydaySpending && item.Date == new DateOnly(2026, 10, 8) && item.Amount == 300m);
+            item.Kind == CashFlowKind.LivingSpending && item.Date == new DateOnly(2026, 10, 8) && item.Amount == 300m);
         Assert.DoesNotContain(outlook.Contributions, item => item.Kind == CashFlowKind.Savings);
     }
 

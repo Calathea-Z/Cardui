@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CircleAlert, TriangleAlert } from "lucide-react";
+import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ type PlanCashOutlookProps = {
   lowPay: PlanCashForecastView | null;
   notes: PlanCashNote[];
   currency: string;
+  livingSpendingMonthly: number;
 };
 
 type CashForecastBodyProps = {
@@ -101,6 +103,7 @@ export function PlanCashOutlook({
   lowPay,
   notes,
   currency,
+  livingSpendingMonthly,
 }: PlanCashOutlookProps) {
   return (
     <section className="app-panel" aria-labelledby="plan-cash-title">
@@ -109,6 +112,15 @@ export function PlanCashOutlook({
           Cash outlook
         </h2>
         <p className="app-section-meta">{description}</p>
+        {livingSpendingMonthly > 0 ? (
+          <p className="mt-2 text-sm text-foreground">
+            Plan includes {formatCurrency(livingSpendingMonthly, currency)} a
+            month for flexible living spending.{" "}
+            <Link href="/living" className="text-primary underline">
+              Review living
+            </Link>
+          </p>
+        ) : null}
       </div>
       {!hasIncome ? (
         <EmptyState

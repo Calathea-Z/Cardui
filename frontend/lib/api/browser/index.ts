@@ -9,6 +9,7 @@ export * from "./category-targets";
 export * from "./households";
 export * from "./income";
 export * from "./obligations";
+export * from "./plan";
 export * from "./debts";
 export * from "./plaid";
 export * from "./transactions";

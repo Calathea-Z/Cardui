@@ -30,7 +30,8 @@ public static class PlanRecoveryDtoMapper
                 .Select(debt => new PlanMissingBalanceDto { DebtId = debt.DebtId, Name = debt.Name })
                 .ToList(),
             HasDebts = hasDebts,
-            CashOutlook = PlanCashOutlookDtoMapper.Map(cashOutlook)
+            CashOutlook = PlanCashOutlookDtoMapper.Map(cashOutlook),
+            MonthlyExtra = comparison.MonthlyExtra
         };
     }
 

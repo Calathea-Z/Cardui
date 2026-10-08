@@ -1,7 +1,7 @@
 # Cardui documentation
 
 Status: Current
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 ## Status
 
@@ -11,27 +11,31 @@ history. They do not say what is next.
 
 **Now**
 
-- The Plan screen in [`roadmap.md`](roadmap.md) is done. Item 2 is
-  approved in
-  [`reviews/2026-10-07-015-plan-cash-outlook.md`](reviews/2026-10-07-015-plan-cash-outlook.md):
-  the Cash outlook on Plan, with the next 30 days, 6, 12, and 18 month
-  cards, and low pay under a disclosure, following the switch. A stored
-  due date before today now starts at its next monthly date on or after
-  today, in both the payoff path and the outlook. Item 1 is approved in
-  [`reviews/2026-10-07-014-plan-recovery.md`](reviews/2026-10-07-014-plan-recovery.md).
+- The extra-payment scenario is approved in
+  [`reviews/2026-10-07-016-plan-extra-payment.md`](reviews/2026-10-07-016-plan-extra-payment.md).
+  Blank or zero stays the minimums-only plan. A positive amount replaces
+  the payoff path and the cash outlook, and leaving Plan clears it. Zach
+  found the field layout poor and asked to leave it. The Plan screen items
+  are approved in
+  [`reviews/2026-10-07-014-plan-recovery.md`](reviews/2026-10-07-014-plan-recovery.md)
+  and
+  [`reviews/2026-10-07-015-plan-cash-outlook.md`](reviews/2026-10-07-015-plan-cash-outlook.md).
   Design: [`design/plan-page.md`](design/plan-page.md).
 
 **Next**
 
-1. Phase 3 item 6: reproducible scenarios for changed extra payments,
-  income loss, bonuses and windfalls, spending changes, and protected-cash
-  targets. Zach said at approval that he is not yet sure he understands
-  the goal, so the next chat restates where Plan is heading and agrees on
-  the first scenario with him before building. Detail panel keyboard focus
-  stays tracked and is not scheduled.
+1. The rest of Phase 3 item 6, one scenario at a time. Still open: income
+  loss, bonuses and windfalls, spending changes, and protected-cash
+  targets. The next chat agrees on which one to build before writing it.
+  None of those are saved until a later choice. Item 10, saved plans, has
+  not started. The extra field layout and detail panel keyboard focus stay
+  tracked and are not scheduled.
 
 **Tracked, not scheduled**
 
+- The extra-each-month field layout on Plan. Zach approved the behavior
+  and asked to leave the layout for later. See "Tracked UI follow-ups" in
+  [`roadmap.md`](roadmap.md).
 - Detail panel keyboard focus. See "Tracked UI follow-ups" in
   [`roadmap.md`](roadmap.md).
 
@@ -48,7 +52,7 @@ history. They do not say what is next.
 | [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
 | [`decisions/`](decisions/) | Short decision records for product and architecture choices (listed below) |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
-| [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, and the cash outlook. Implemented; both items are approved |
+| [`design/plan-page.md`](design/plan-page.md) | Plan page design: the answer, Finish your plan, debt charts, the path switch, the cash outlook, and extra each month. Approved. The extra field layout is tracked and not scheduled |
 | [`design/ui-direction.md`](design/ui-direction.md) | UI direction, implemented; the enforceable rules are in `.cursor/rules/ui-governance.mdc` |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |

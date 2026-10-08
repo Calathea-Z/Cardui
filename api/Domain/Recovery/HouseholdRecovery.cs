@@ -4,7 +4,8 @@ public static class HouseholdRecovery
 {
     /// <summary>
     /// Builds the rollover input for the household's debts.
-    /// Shared extra, a custom order, and a reclaim amount are not stored, so this uses avalanche, no shared extra, and no reclaim.
+    /// Monthly extra is shared extra tried for this calculation. Zero is minimums only. It is not stored.
+    /// A custom order and a reclaim amount are not stored, so this uses avalanche and no reclaim.
     /// Each debt's own extra is zero because that amount is not stored either.
     /// A missing balance is left out of the input, because zero would be read as already paid off. That debt is listed instead.
     /// Payments start on or after asOf, so a stored due date that has already passed is not replayed against today's balance.
@@ -12,12 +13,13 @@ public static class HouseholdRecovery
     public static HouseholdRecoveryInput Prepare(
         string planningCurrency,
         DateOnly asOf,
-        IReadOnlyList<HouseholdRecoveryDebt> debts)
+        IReadOnlyList<HouseholdRecoveryDebt> debts,
+        decimal monthlyExtra)
     {
         return new HouseholdRecoveryInput(
             new PayoffRolloverInput(
                 planningCurrency,
-                0m,
+                monthlyExtra,
                 Included(debts),
                 [],
                 0m,

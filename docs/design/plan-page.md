@@ -1,8 +1,8 @@
 # Plan page
 
-Status: Implemented. Items 1 and 2 are approved.
+Status: Implemented. Items 1 and 2 and extra each month are approved. The extra field layout is tracked and not scheduled.
 Date: October 7, 2026
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 ## Problem
 
@@ -248,11 +248,25 @@ Zach chose on October 7, 2026:
 - Without income, the section asks for an income source and links to
   Income.
 
+### Extra each month
+
+Zach chose on October 7, 2026: the first scenario is one shared extra,
+tried on the page, and the page replaces its numbers with that amount.
+
+- A field above the summary, labeled Extra each month. Blank or zero is
+  the minimums-only plan. A positive amount is applied when the field is
+  left or Enter is pressed.
+- The summary, both payoff charts, the payoff order, and the cash outlook
+  all use that amount. The extra goes to the highest-interest debt that
+  can take it, then to the next debt after that one is gone. It is part
+  of the debt payments in the cash outlook.
+- Leaving Plan clears it. Nothing is saved. A negative amount is not sent.
+
 ## Out of scope
 
-- Entering shared extra, a custom payoff order, or a reclaim amount.
-  Those are scenario inputs for Phase 3 item 6 and saved-plan facts for
-  item 10.
+- A custom payoff order or a reclaim amount. Those remain for a later
+  scenario and for saved-plan facts in Phase 3 item 10.
+- Saving the extra amount. The field above is tried on the page only.
 - Opening one debt directly from a Finish your plan row. Rows link to
   Debts.
 - Moving the two Accounts selectors onto the new primitive.

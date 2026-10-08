@@ -162,6 +162,7 @@ export type PlanCashOutlookDto = {
  * The household's payoff on rollover and on keeping every freed payment, and the cash outlook on each.
  * `excludedCurrencies` are debt codes left out of the planning currency.
  * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
+ * `monthlyExtra` is shared extra tried for this response. Zero is minimums only, and the amount is not saved.
  */
 export type PlanRecoveryDto = {
   planningCurrency: string;
@@ -171,4 +172,5 @@ export type PlanRecoveryDto = {
   missingBalance: PlanMissingBalanceDto[];
   hasDebts: boolean;
   cashOutlook: PlanCashOutlookDto;
+  monthlyExtra: number;
 };

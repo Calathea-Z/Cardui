@@ -2,6 +2,7 @@ using Cardui.Api.Domain;
 using Cardui.Api.Domain.Recovery;
 using Cardui.Api.Dtos.Debts;
 using Cardui.Api.Dtos.Plan;
+using Cardui.Api.Exceptions;
 using Cardui.Api.Mapping;
 using Cardui.Api.Security;
 using Cardui.Api.Services.Interfaces;
@@ -35,15 +36,28 @@ public class PlanService : IPlanService
 
     /// <inheritdoc />
     public async Task<PlanRecoveryDto> GetRecoveryAsync(
+        decimal monthlyExtra,
         CancellationToken cancellationToken = default)
     {
+        RequireNonNegativeExtra(monthlyExtra);
         var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
         var cash = await LoadCashFactsAsync(today, cancellationToken);
-        return ProjectPlan(debts, cash);
+        return ProjectPlan(debts, cash, monthlyExtra);
     }
 
     #region Private Methods
+
+    /// <summary>
+    /// Rejects a negative extra. Zero is the minimums-only plan.
+    /// </summary>
+    private static void RequireNonNegativeExtra(decimal monthlyExtra)
+    {
+        if (monthlyExtra < 0)
+        {
+            throw new BadRequestException("Extra each month cannot be negative.");
+        }
+    }
 
     /// <summary>
     /// Loads the starting cash, income, and bills the cash outlook reads, for a forecast that starts today.
@@ -66,14 +80,18 @@ public class PlanService : IPlanService
 
     /// <summary>
     /// Runs the approved rollover and recovery rules from the outlook's start date, then the cash outlook on both paths,
-    /// and shapes the result for the page. Extra and reclaim stay at the baseline.
+    /// and shapes the result for the page. The extra is tried for this response. Reclaim stays at the baseline.
     /// </summary>
-    private static PlanRecoveryDto ProjectPlan(IReadOnlyList<DebtDto> debts, HouseholdCashOutlookInput cash)
+    private static PlanRecoveryDto ProjectPlan(
+        IReadOnlyList<DebtDto> debts,
+        HouseholdCashOutlookInput cash,
+        decimal monthlyExtra)
     {
         var prepared = HouseholdRecovery.Prepare(
             cash.PlanningCurrency,
             cash.AsOf,
-            debts.Select(ToDebt).ToList());
+            debts.Select(ToDebt).ToList(),
+            monthlyExtra);
         var comparison = PayoffRollover.Compare(prepared.Rollover);
         var report = CashFlowRecovery.Track(comparison);
         var outlook = HouseholdCashOutlook.Project(cash, prepared.Rollover.Debts, comparison);

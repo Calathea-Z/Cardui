@@ -1,7 +1,7 @@
 # Cardui roadmap
 
 Status: Approved. Direction approved October 2, 2026.
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 Prepared September 25, 2026. Zach approved the direction on October 2, 2026 (`docs/reviews/archive/phase-0/2026-10-02-001-recovery-roadmap-direction.md`). It was based on the repository at that time, Zach's private planning notes in an untracked `Plan.md` (gitignored, not in the repository), the planning conversation, and the supplied capability inventory. Release boundaries below are recommendations, not approved scope cuts.
 
@@ -150,6 +150,7 @@ A model change in items 2 and 5 updates the model and `DbContext` configuration,
 These are not scheduled into a phase yet. Each is one review when it is picked up.
 
 1. Detail panel keyboard focus. While a record panel or full-screen sheet is open, and while a nested picker is open inside it, Tab and Shift+Tab stay inside the top surface. Escape closes only that surface. When it closes, focus returns to the control that opened it. Today the panel moves focus into itself when it opens, but Tab can leave it and focus does not return to the opener. Found in `docs/reviews/2026-10-05-017-ui-review-notes.md`. Required by `.cursor/rules/ui-governance.mdc` section 3. No schema change.
+2. Extra-each-month field layout on Plan. The behavior is approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. Zach found the layout poor on October 8, 2026, and asked to leave it and keep going. No schema change.
 
 ### Phase 3 — Recovery calculations, scenarios and saved plan
 
@@ -167,7 +168,7 @@ These are not scheduled into a phase yet. Each is one review when it is picked u
 
 **Exit:** identical inputs reproduce identical numbers; shortfalls remain visible; smart priority and rollover results reconcile to documented fixtures; refinance/restructuring comparisons include fees and break-even behavior; a saved plan survives edits with version history and can be used without chat.
 
-**Status (October 7, 2026):** Items 1–5 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, `docs/reviews/2026-10-07-010-payoff-priority.md`, `docs/reviews/2026-10-07-011-payoff-rollover.md`, and `docs/reviews/2026-10-07-012-cash-flow-recovery.md`. Plan is the first primary destination, approved in `docs/reviews/2026-10-07-013-plan-nav.md`. The calculators, the forecast, the payoff comparison, the rollover comparison, and the cash-flow recovery report are pure domain rules in `api/Domain/Recovery`. The Plan screen work below puts them on a page. No schema change. Items 6–11 have not started.
+**Status (October 7, 2026):** Items 1–5 are approved in `docs/reviews/2026-10-07-008-recovery-calculations.md`, `docs/reviews/2026-10-07-009-cash-forecast.md`, `docs/reviews/2026-10-07-010-payoff-priority.md`, `docs/reviews/2026-10-07-011-payoff-rollover.md`, and `docs/reviews/2026-10-07-012-cash-flow-recovery.md`. Plan is the first primary destination, approved in `docs/reviews/2026-10-07-013-plan-nav.md`. The calculators, the forecast, the payoff comparison, the rollover comparison, and the cash-flow recovery report are pure domain rules in `api/Domain/Recovery`. The Plan screen work below puts them on a page. No schema change. Item 6 has started: a shared extra payment tried on Plan and not saved, approved in `docs/reviews/2026-10-07-016-plan-extra-payment.md`. The field layout is tracked and not scheduled. Income loss, windfalls, spending changes, and protected cash have not started. Items 7–11 have not started.
 
 ### Plan screen — after Phase 3 item 5, before Phase 3 item 6
 

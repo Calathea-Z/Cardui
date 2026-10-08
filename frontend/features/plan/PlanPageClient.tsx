@@ -16,11 +16,13 @@ import type {
 import { cn } from "@/lib/utils";
 import { PlanBalanceChart } from "./PlanBalanceChart";
 import { PlanCashOutlook, type PlanCashForecastView } from "./PlanCashOutlook";
+import { PlanExtraField } from "./PlanExtraField";
 import { PlanFinishList } from "./PlanFinishList";
 import { PlanObligationChart } from "./PlanObligationChart";
 import { PlanOwedChart } from "./PlanOwedChart";
 import { PlanPayoffOrder } from "./PlanPayoffOrder";
 import { PlanSummary } from "./PlanSummary";
+import { usePlanExtra } from "./usePlanExtra";
 import {
   balanceChart,
   cashChart,
@@ -53,8 +55,13 @@ type PlanPageClientProps = {
  * both payoff charts, and the payoff order follow it. Until a debt can be paid off, the switch and the payoff charts are hidden,
  * because both paths would be the same. A failed load keeps the error above the page. No debts asks for one on Debts.
  * The cash outlook follows the same path, so Rollover keeps a freed payment in debt payments and Keep freed payments returns it to cash.
+ * Extra each month replaces those numbers for this visit. Blank or zero is minimums only, and leaving the page clears it.
  */
-export function PlanPageClient({ report, failed }: PlanPageClientProps) {
+export function PlanPageClient({
+  report: baseline,
+  failed,
+}: PlanPageClientProps) {
+  const { report, status, applyExtra } = usePlanExtra(baseline);
   const [kind, setKind] = useState<PayoffRolloverKind>("Rollover");
   const [hoveredDebtId, setHoveredDebtId] = useState<string | null>(null);
   const [pinnedDebtId, setPinnedDebtId] = useState<string | null>(null);
@@ -78,6 +85,7 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
           hasPayoff,
           report.cashOutlook.startingCash,
           money,
+          report.monthlyExtra,
         ),
         typical: forecastView(outlook.typical, money),
         lowPay: outlook.lowPay ? forecastView(outlook.lowPay, money) : null,
@@ -88,13 +96,19 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
         finish.filter((item) => item.isDebt).length,
         money,
         formatCalendarDate,
+        report.monthlyExtra,
       ),
       finish,
       owed: owedShares(report.rollover.debts, colors),
       balance: balanceChart(path, colors),
       obligations: obligationChart(path),
       order: payoffOrder(path, colors),
-      assumptions: planAssumptions(path.kind, currency),
+      assumptions: planAssumptions(
+        path.kind,
+        currency,
+        report.monthlyExtra,
+        money,
+      ),
     };
   }, [report, path, outlook, kind, hasPayoff, currency]);
 
@@ -109,7 +123,13 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Plan"
-        description={showPlan ? planDescription(kind, hasPayoff) : undefined}
+        description={
+          showPlan
+            ? planDescription(kind, hasPayoff, report.monthlyExtra, (amount) =>
+                formatCurrency(amount, currency),
+              )
+            : undefined
+        }
         actions={
           showPlan && hasPayoff ? (
             <SegmentedControl
@@ -142,6 +162,11 @@ export function PlanPageClient({ report, failed }: PlanPageClientProps) {
         </div>
       ) : (
         <>
+          <PlanExtraField
+            appliedAmount={report.monthlyExtra}
+            status={status}
+            onApply={applyExtra}
+          />
           <PlanSummary summary={view.summary} />
           {view.finish.length > 0 ? (
             <PlanFinishList items={view.finish} />

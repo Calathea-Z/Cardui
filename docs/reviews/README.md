@@ -25,6 +25,7 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-07 — Plan extra payment](2026-10-07-016-plan-extra-payment.md) — Approved 2026-10-08
 - [2026-10-07 — Plan cash outlook](2026-10-07-015-plan-cash-outlook.md) — Approved 2026-10-07
 - [2026-10-07 — Plan recovery screen](2026-10-07-014-plan-recovery.md) — Approved; reworked as Plan screen item 1 on October 7, with correction notes
 - [2026-10-07 — Plan in the main nav](2026-10-07-013-plan-nav.md) — Approved 2026-10-07

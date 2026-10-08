@@ -29,6 +29,7 @@ async function loadModule(file) {
 
 const series = await loadModule("planChartSeries");
 const copy = await loadModule("planCopy");
+const extra = await loadModule("planExtra");
 const money = (amount) => `$${amount.toFixed(2)}`;
 const date = (value) => value;
 const utc = (year, month) => Date.UTC(year, month - 1, 1);
@@ -673,4 +674,52 @@ test("the switch offers Rollover and Keep freed payments with a line for each", 
     copy.planDescription("ReclaimAll", false),
     /Payoff charts appear once a debt can be paid off/,
   );
+});
+
+test("a tried extra replaces the minimums-only wording and stays under one line", () => {
+  assert.equal(extra.parsePlanExtra(""), 0);
+  assert.equal(extra.parsePlanExtra("  200.005 "), 200.01);
+  assert.equal(extra.parsePlanExtra("-1"), null);
+  assert.equal(extra.parsePlanExtra("abc"), null);
+
+  assert.equal(
+    copy.planDescription("Rollover", true, 200, money),
+    "When a debt is paid off, its payment moves to the next debt. Highest interest first, with $200.00 extra each month.",
+  );
+  assert.match(
+    copy.planDescription("ReclaimAll", false, 50, money),
+    /\$50\.00 extra each month/,
+  );
+
+  const summary = copy.planSummary(rolloverPath(), 0, money, date, 200);
+  assert.equal(
+    summary.sentence,
+    "You're on track to be debt-free with $200.00 extra each month.",
+  );
+  assert.equal(summary.figureLabel, "Debt-free");
+
+  const rules = copy.planAssumptions("Rollover", "USD", 200, money);
+  assert.equal(
+    rules.find((rule) => rule.term === "Order").detail,
+    "Highest interest rate first. $200.00 extra each month goes to the first debt that can take it.",
+  );
+  assert.match(
+    rules.find((rule) => rule.term === "Saved").detail,
+    /stays on the page until you leave/,
+  );
+  for (const rule of rules) {
+    assert.ok(rule.detail.length <= 140, `${rule.term} stays short`);
+  }
+
+  assert.match(
+    copy.cashOutlookDescription("Rollover", true, 1000, money, 200),
+    /\$200\.00 extra each month is included in the debt payments\.$/,
+  );
+  assert.equal(
+    copy.planExtraHelp(),
+    "Blank is minimums only. Tried on this page. Leaving clears it.",
+  );
+  assert.equal(copy.planExtraStatus("updating"), "Updating the plan.");
+  assert.match(copy.planExtraStatus("error"), /could not be applied/);
+  assert.equal(copy.planExtraInvalid(), "Enter a zero or positive amount.");
 });

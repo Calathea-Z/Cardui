@@ -83,16 +83,22 @@ export type PlanAssumption = {
 
 /**
  * The rules behind the projection, one short line each, for the selected path.
+ * The order and saved rules name a tried extra when one is set. Zero extra is minimums only.
  * Only the freed-payment rule changes with the switch. The currency rule names the planning currency.
  */
 export function planAssumptions(
   kind: PayoffRolloverKind,
   planningCurrency: string,
+  monthlyExtra = 0,
+  money: FormatMoney = String,
 ): PlanAssumption[] {
   return [
     {
       term: "Order",
-      detail: "Highest interest rate first. No extra payment yet.",
+      detail:
+        monthlyExtra > 0
+          ? `Highest interest rate first. ${money(monthlyExtra)} extra each month goes to the first debt that can take it.`
+          : "Highest interest rate first. No extra payment yet.",
     },
     {
       term: "Payments",
@@ -149,7 +155,9 @@ export function planAssumptions(
     {
       term: "Saved",
       detail:
-        "Nothing is saved. The same debts always give the same dates and cents.",
+        monthlyExtra > 0
+          ? "Nothing is saved. This extra amount stays on the page until you leave."
+          : "Nothing is saved. The same debts always give the same dates and cents.",
     },
   ];
 }
@@ -165,24 +173,34 @@ export const planPathOptions: { value: PayoffRolloverKind; label: string }[] = [
 /**
  * One line under the title.
  * With a payoff it says what the selected path does. Without one the switch is hidden, so it says when the payoff charts appear.
- * The order and the missing extra are stated because neither is stored yet.
+ * A tried extra is named in the same line. Zero extra says there is none, because the amount is not stored.
  */
-export function planDescription(kind: PayoffRolloverKind, hasPayoff: boolean) {
+export function planDescription(
+  kind: PayoffRolloverKind,
+  hasPayoff: boolean,
+  monthlyExtra = 0,
+  money: FormatMoney = String,
+) {
+  const extra =
+    monthlyExtra > 0
+      ? `with ${money(monthlyExtra)} extra each month`
+      : "with no extra payment";
   if (!hasPayoff) {
-    return "Debts are paid highest interest first, with no extra payment. Payoff charts appear once a debt can be paid off.";
+    return `Debts are paid highest interest first, ${extra}. Payoff charts appear once a debt can be paid off.`;
   }
 
   const lead =
     kind === "Rollover"
       ? "When a debt is paid off, its payment moves to the next debt."
       : "When a debt is paid off, its payment comes back to you.";
-  return `${lead} Highest interest first, with no extra payment.`;
+  return `${lead} Highest interest first, ${extra}.`;
 }
 
 /**
  * The one-sentence answer and the big figure for a path.
- * With every debt paid off, the big figure is the debt-free date at minimums only, because no extra payment is stored yet,
- * and the breathing room is labeled as what comes back after payoff, not money available today.
+ * With every debt paid off and no extra, the big figure is the debt-free date at minimums only.
+ * With an extra, that same figure is the earlier date and the sentence names the amount.
+ * Breathing room is labeled as what comes back after payoff, not money available today.
  * With some paid off, it counts them and dates the breathing room from the last payoff.
  * With none, it says how many debts need attention, and the figure is the total owed today with the known minimums beside it.
  */
@@ -191,6 +209,7 @@ export function planSummary(
   attentionCount: number,
   money: FormatMoney,
   date: FormatDate,
+  monthlyExtra = 0,
 ): PlanSummaryCopy {
   if (path.steps.length === 0) {
     return waitingSummary(path, attentionCount, money);
@@ -200,8 +219,11 @@ export function planSummary(
     return {
       warning: false,
       sentence:
-        "You're on track to be debt-free paying only your minimums. Anything extra brings that day closer.",
-      figureLabel: "Debt-free at minimums only",
+        monthlyExtra > 0
+          ? `You're on track to be debt-free with ${money(monthlyExtra)} extra each month.`
+          : "You're on track to be debt-free paying only your minimums. Anything extra brings that day closer.",
+      figureLabel:
+        monthlyExtra > 0 ? "Debt-free" : "Debt-free at minimums only",
       figure: date(path.paidOffOn),
       details: [
         {
@@ -215,10 +237,13 @@ export function planSummary(
 
   const lastPayoff = path.steps[path.steps.length - 1].endedOn;
   const debtWord = path.debts.length === 1 ? "debt" : "debts";
+  const paidOff = `${path.steps.length} of ${path.debts.length} ${debtWord} paid off by ${date(lastPayoff)}`;
   return {
     warning: true,
     sentence: joinSentences(
-      `${path.steps.length} of ${path.debts.length} ${debtWord} paid off by ${date(lastPayoff)}.`,
+      monthlyExtra > 0
+        ? `${paidOff}, with ${money(monthlyExtra)} extra each month.`
+        : `${paidOff}.`,
       minimumsSentence(
         path.startingObligation,
         path.remainingObligation,
@@ -267,21 +292,49 @@ export function finishPlanItems(
 
 /**
  * The line under the Cash outlook title: where cash starts and, when the switch is shown, what happens to a freed payment.
+ * A tried extra is included in the debt payments, so the line names that amount.
  */
 export function cashOutlookDescription(
   kind: PayoffRolloverKind,
   hasPayoff: boolean,
   startingCash: number,
   money: FormatMoney,
+  monthlyExtra = 0,
 ) {
   const start = `Starts from ${money(startingCash)} in Cash on Accounts today.`;
-  if (!hasPayoff) {
-    return start;
-  }
+  const path = !hasPayoff
+    ? start
+    : kind === "Rollover"
+      ? `${start} A paid-off debt's payment moves to the next debt.`
+      : `${start} A paid-off debt's payment comes back as cash.`;
+  return monthlyExtra > 0
+    ? `${path} ${money(monthlyExtra)} extra each month is included in the debt payments.`
+    : path;
+}
 
-  return kind === "Rollover"
-    ? `${start} A paid-off debt's payment moves to the next debt.`
-    : `${start} A paid-off debt's payment comes back as cash.`;
+/**
+ * The line under the extra field.
+ * Blank is the minimums-only plan. The amount is kept in the page until the user leaves.
+ */
+export function planExtraHelp() {
+  return "Blank is minimums only. Tried on this page. Leaving clears it.";
+}
+
+/**
+ * The status under the extra field while a tried amount is loading or has failed.
+ * Ready has no status line. The previous plan stays on screen either way.
+ */
+export function planExtraStatus(status: "updating" | "error") {
+  return status === "updating"
+    ? "Updating the plan."
+    : "This extra amount could not be applied. Leave the field to try it again.";
+}
+
+/**
+ * The message when the extra field is not a zero or positive amount.
+ */
+export function planExtraInvalid() {
+  return "Enter a zero or positive amount.";
 }
 
 /**

@@ -28,4 +28,10 @@ public class PlanRecoveryDto
     /// Cash over 30 days and 6, 12, and 18 months, with debt payments from each path.
     /// </summary>
     public required PlanCashOutlookDto CashOutlook { get; set; }
+
+    /// <summary>
+    /// Shared extra tried for this response, in the planning currency.
+    /// Zero is minimums only. The amount is not saved.
+    /// </summary>
+    public decimal MonthlyExtra { get; set; }
 }

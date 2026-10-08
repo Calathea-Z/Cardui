@@ -27,6 +27,7 @@ function emptyPlanRecovery(): PlanRecoveryDto {
     excludedCurrencies: [],
     missingBalance: [],
     hasDebts: false,
+    monthlyExtra: 0,
     cashOutlook: {
       asOf: "",
       startingCash: 0,

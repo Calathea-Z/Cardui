@@ -27,7 +27,8 @@ public class HouseholdRecoveryTests
                     minimum: 40m,
                     due: new DateOnly(2026, 1, 15),
                     limit: 1000m)
-            ]);
+            ],
+            0m);
 
         var input = prepared.Rollover;
         var debt = Assert.Single(input.Debts);
@@ -56,7 +57,8 @@ public class HouseholdRecoveryTests
                     minimum: 10m,
                     due: new DateOnly(2026, 1, 15),
                     currency: "CAD")
-            ]).Rollover;
+            ],
+            0m).Rollover;
 
         Assert.Contains(input.Debts, debt => debt.Terms.DebtId == StoreId && debt.Terms.Currency == "CAD");
 
@@ -71,7 +73,8 @@ public class HouseholdRecoveryTests
         var input = HouseholdRecovery.Prepare(
             "USD",
             Today,
-            [Debt(CardId, "Card", balance: 100m, apr: null, minimum: null, due: null)]).Rollover;
+            [Debt(CardId, "Card", balance: 100m, apr: null, minimum: null, due: null)],
+            0m).Rollover;
 
         var debt = Assert.Single(input.Debts);
         Assert.Null(debt.Terms.Apr);
@@ -101,12 +104,61 @@ public class HouseholdRecoveryTests
                     minimum: null,
                     due: null,
                     currency: "CAD")
-            ]);
+            ],
+            0m);
 
         Assert.Equal(CardId, Assert.Single(prepared.Rollover.Debts).Terms.DebtId);
         Assert.Equal(
             [new HouseholdRecoveryMissingBalance(BlankId, "Blank"), new HouseholdRecoveryMissingBalance(OtherBlankId, "Other blank")],
             prepared.MissingBalance);
+    }
+
+    [Fact]
+    public void Prepare_SharedExtraShortensThePayoffAndLowersThatDaysCash()
+    {
+        var debts = new[]
+        {
+            Debt(CardId, "Card", balance: 300m, apr: 0m, minimum: 50m, due: new DateOnly(2026, 1, 15))
+        };
+        var baseline = Project(debts, 0m);
+        var extra = Project(debts, 50m);
+        var due = new DateOnly(2026, 1, 15);
+
+        Assert.Equal(0m, baseline.Extra);
+        Assert.Equal(50m, extra.Extra);
+        Assert.Equal(new DateOnly(2026, 6, 15), baseline.PaidOffOn);
+        Assert.Equal(new DateOnly(2026, 3, 15), extra.PaidOffOn);
+        Assert.Equal(50m, DebtPaid(baseline.Outlook, due));
+        Assert.Equal(100m, DebtPaid(extra.Outlook, due));
+        Assert.Equal(950m, CashOn(baseline.Outlook, due));
+        Assert.Equal(900m, CashOn(extra.Outlook, due));
+    }
+
+    private static (decimal Extra, DateOnly? PaidOffOn, HouseholdCashOutlookReport Outlook) Project(
+        IReadOnlyList<HouseholdRecoveryDebt> debts,
+        decimal monthlyExtra)
+    {
+        var prepared = HouseholdRecovery.Prepare("USD", Today, debts, monthlyExtra);
+        var comparison = PayoffRollover.Compare(prepared.Rollover);
+        var outlook = HouseholdCashOutlook.Project(
+            new HouseholdCashOutlookInput("USD", Today, 1000m, [], []),
+            prepared.Rollover.Debts,
+            comparison);
+        return (comparison.MonthlyExtra, comparison.Rollover.PaidOffOn, outlook);
+    }
+
+    private static decimal DebtPaid(HouseholdCashOutlookReport outlook, DateOnly date)
+    {
+        return outlook.Rollover.Typical.Days
+            .Where(day => day.Date == date)
+            .SelectMany(day => day.Events)
+            .Where(item => item.Kind == CashFlowKind.DebtPayment)
+            .Sum(item => item.Amount);
+    }
+
+    private static decimal CashOn(HouseholdCashOutlookReport outlook, DateOnly date)
+    {
+        return outlook.Rollover.Typical.Days.Single(day => day.Date == date).Cash;
     }
 
     private static HouseholdRecoveryDebt Debt(

@@ -2,7 +2,7 @@
 
 Status: Approved. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved.
 Date: October 6, 2026
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 Every design question is decided (see Decisions).
 
@@ -16,73 +16,20 @@ something the person typed.
 This note designs an optional way for a debt to follow a connected
 account's balance and credit limit. A sync still never overwrites what the person typed.
 
-## What exists today
+## Where this started
 
-All of this is on `main` as of October 6, 2026.
+On October 6, 2026, this note was written before a debt could follow an
+account. Follow a balance, overrides, suggested matches, credit limit, and
+reconnect are approved. The reviews are
+[`2026-10-06-002-sync-correctness.md`](../reviews/2026-10-06-002-sync-correctness.md),
+[`2026-10-07-002-follow-a-balance.md`](../reviews/2026-10-07-002-follow-a-balance.md),
+[`2026-10-07-003-balance-overrides.md`](../reviews/2026-10-07-003-balance-overrides.md),
+[`2026-10-07-005-suggested-matches.md`](../reviews/2026-10-07-005-suggested-matches.md),
+[`2026-10-07-006-credit-limit.md`](../reviews/2026-10-07-006-credit-limit.md),
+and
+[`2026-10-07-007-reconnect.md`](../reviews/2026-10-07-007-reconnect.md).
 
-### Debt record
-
-- `api/Models/Debt.cs` holds the debt: name, `Kind` (`DebtKind`: revolving
-  or installment), an optional `AccountId`, `Balance` with `BalanceAsOf`,
-  `Currency`, `Apr`, `MinimumPayment`, `NextDueDate`, `CreditLimit`,
-  `RemainingTermMonths`, `PromotionalApr`, and `PromotionalEndsOn`. A null
-  term is unknown. Zero is a known zero.
-- `api/Data/Configurations/DebtConfiguration.cs` maps `AccountId` with
-  `OnDelete(DeleteBehavior.SetNull)` and indexes it. The debt is deleted
-  with its household.
-- `api/Domain/Debts/DebtRules.cs` normalizes a request into `DebtDraft`.
-  The API shapes are `api/Dtos/Debts/DebtDto.cs` and `UpsertDebtDto.cs`.
-- There is no payoff priority, notes, or target payment field yet. The
-  promotional rate and end date exist.
-
-### The account link today
-
-- `DebtsService.RequireAccountAsync` accepts any account in the household,
-  including a manual or cash account. An archived account can stay linked.
-- The form says the link is optional and that "the account balance is not
-  copied or changed" (`frontend/features/debts/DebtForm.tsx`).
-- The debt summary (`docs/reviews/2026-10-05-016-debt-summary.md`) loads the
-  linked account's latest dated balance in
-  `DebtsService.LoadLinkedBalancesAsync`. The latest
-  `AccountBalanceSnapshot` is the dated figure. Without one, the current
-  balance is shown with an unknown date.
-- When that balance differs, `api/Domain/Debts/DebtSummary.cs` builds a
-  `DebtBalanceComparison`. The card says "Two balances". The recorded
-  balance stays in use. `api/Domain/Debts/DebtAccountBalanceBlock.cs`
-  explains why an account balance cannot be copied: `DateUnknown`,
-  `NegativeBalance`, `CurrencyDiffers`, or `AmountTooLarge`. A cash account
-  is not offered.
-- `POST /api/debts/{id}/use-account-balance` copies that one snapshot onto
-  the debt after confirmation. It does not change the account, APR,
-  minimum, or due date. It does not repeat after the next sync.
-
-### Connected accounts and sync
-
-- `api/Models/Account.cs` carries `PlaidItemId`, `PlaidAccountId`,
-  `Source`, `Provenance`, `Type`, `Subtype`, `Mask`, `CurrentBalance`,
-  `AvailableBalance`, `IsoCurrencyCode`, `IsActive`, and `ArchivedAt`.
-- `api/Services/Plaid/PlaidAccountSyncService.cs` calls `/accounts/get`,
-  copies the name, type, mask, current and available balance, and currency,
-  replaces today's `AccountBalanceSnapshot` in the household time zone, and
-  marks an account inactive when the bank stops returning it. It does not
-  store the credit limit that `/accounts/get` returns.
-- `PlaidService.CreateLinkTokenAsync` requests only `Products.Transactions`.
-  There is no update-mode link token, so there is no reconnect flow today.
-- `api/Models/PlaidItem.cs` records `LastSyncStartedAt`,
-  `LastSyncCompletedAt`, `LastSyncFailedAt`, and `LastSyncError`. The
-  Connections page (`frontend/features/institutions/InstitutionCard.tsx`)
-  shows the last success or the failure text.
-- `api/Services/Plaid/PlaidItemRemoval.cs` removes a bank link and detaches
-  its accounts (`PlaidItemId = null`). Accounts, transactions, and snapshots
-  stay. Accounts are archived, not deleted, through the API.
-- `worker/Program.cs` runs one daily sync per item. A manual sync can run
-  through `POST /api/plaid/{id}/sync`. Overlapping worker and manual sync is
-  still open in `docs/roadmap.md` and in every
-  review since `docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`.
-- Tests cover `PlaidTransactionReconciler`, `PlaidTransactionSyncService`,
-  and `PlaidItemRemoval` (`tests/Cardui.Tests/Services`). There is no test
-  file for `PlaidAccountSyncService`, which is the code that would feed a
-  followed balance.
+The sections below are the rules that shipped. They are not a second backlog.
 
 ## Approved direction
 
@@ -273,12 +220,10 @@ not destructive, so it does not ask first, but the toast says what happened:
   debt, and the person can clear it in the form.
 - The account, its snapshots, and its transactions are not changed.
 
-### Data model sketch
+### Data model
 
-Description only. Each slice that changes the model updates the model and
-`DbContext` configuration, then stops. Zach generates and applies the EF
-Core migration himself (`.cursor/rules/migrations.mdc`). Names are
-proposals.
+These are the fields that shipped. `20261007162523_AddDebtAccountFollow` and
+`20261007193207_AddAccountCreditLimit` are applied.
 
 On `Debt`:
 
@@ -312,26 +257,27 @@ and `.cursor/rules/backend-enums.mdc`:
 - A resolver that returns each synced field's value, source, and as-of
   date, and a matcher that ranks eligible accounts with reasons.
 
-`DebtDto` gains the follow state, freshness, and, per synced field, its
-source, synced value, and as-of date. The frontend types follow in
+`DebtDto` includes the follow state, freshness, and, per synced field, its
+source, synced value, and as-of date. The frontend types are in
 `frontend/lib/api/types/debts.ts`.
 
 ## Dependency: sync correctness first
 
-A followed balance is only as right as the sync behind it. Slice 0 does not
-wait for the linked-debt work. It is the next engineering increment. The
-Plaid transaction reconciliation tests are already done
-(`docs/reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md`). Slice 0
-covers:
+Approved in
+[`2026-10-06-002-sync-correctness.md`](../reviews/2026-10-06-002-sync-correctness.md).
+This section records why follow waited for account sync. It is not open work.
+The Plaid transaction reconciliation tests were already done
+([`2026-10-05-008-plaid-sync-reconciliation-tests.md`](../reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md)).
+Slice 0 covered:
 
-- Add `PlaidAccountSyncService` tests: balances copied, today's snapshot
+- `PlaidAccountSyncService` tests: balances copied, today's snapshot
   replaced in the household time zone, an account Plaid stops returning
   marked inactive, an archived account left archived.
-- Settle overlapping worker and manual sync for one item. Two syncs at once
-  can both replace today's snapshot. That decides whether a debt reads a
+- Overlapping worker and manual sync for one item is guarded. Two syncs at
+  once could both replace today's snapshot, so a debt could read a
   half-finished state.
 - Freshness depends on `LastSyncCompletedAt` and `LastSyncFailedAt` being
-  right when a sync is interrupted. Add a test for that.
+  right when a sync is interrupted. That case is tested.
 
 `/accounts/get` returns the balance Plaid last refreshed, which can be up
 to about a day old. A real-time balance call is a separate, billed request.
@@ -339,9 +285,9 @@ The daily worker does not need it, and this design does not use it.
 
 ## Slices
 
-Each slice is one review. Each one leaves the app working. The roadmap
-lists slices 0 to 5 as items 1 to 6 of "Sync correctness and linked debts",
-between Phase 2 items 5 and 6.
+Slices 0–5 are approved. The roadmap lists them as items 1–6 of "Sync
+correctness and linked debts", between Phase 2 items 5 and 6. Each slice
+below is what that review contained.
 
 0. **Sync correctness.** `PlaidAccountSyncService` tests, a decision and
    guard for overlapping worker and manual sync, and interrupted-sync
@@ -350,13 +296,13 @@ between Phase 2 items 5 and 6.
    the follow and stop-following actions, the resolver for the balance
    only, the freshness line, the $0 rule for a negative balance, and the
    confirm step when balances differ. Pick the account from a list. No
-   suggestions yet. Model change; Zach generates the migration.
+   suggestions yet. `AddDebtAccountFollow` is applied.
 2. **Overrides.** The override and "Use synced value" actions for the
    balance, the read-only synced field in the form, and "Update balance"
    from a stale card. No schema change beyond slice 1.
 3. **Suggestions.** The matcher and the suggestion step. No schema change.
 4. **Credit limit.** Store `balances.limit` on the account, follow it, and
-   allow its override. Model change; Zach generates the migration.
+   allow its override. `AddAccountCreditLimit` is applied.
 5. **Reconnect.** An update-mode link token and a reconnect action from the
    card and the Connections page. No schema change expected.
 

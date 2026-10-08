@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-10-07
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 ## Context
 
@@ -14,13 +14,11 @@ monthly activity, and spending by category.
 
 Charts that look forward live on Plan: balances falling, minimums
 removed, breathing room, and the cash outlook. Home keeps the history.
-Plan opens with a one-sentence answer, then what blocks the plan, then the
-charts. A switch chooses rollover or keeping freed payments.
 
 ## Consequences
 
 A forecast on Home or Accounts points to Plan instead of drawing a second
-copy. Plan screen work sits after Phase 3 item 5 and before item 6.
+copy. The page shape is in [`docs/design/plan-page.md`](../design/plan-page.md).
 
 Source: `docs/design/plan-page.md`,
 `docs/reviews/2026-10-07-014-plan-recovery.md`.

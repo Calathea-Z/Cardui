@@ -1,5 +1,5 @@
 Date: October 8, 2026
-Status: Awaiting review
+Status: Approved 2026-10-08
 PR:
 
 # Responsive UI/UX governance
@@ -68,9 +68,19 @@ was required.
 
 ## Approval
 
-Awaiting Zach's review.
+Approved by Zach on October 8, 2026, with the other reviews that were
+waiting. The governance text stays the rule for new screens and substantial
+changes. No new product behavior was approved with it.
 
 ## Pending decision
 
 Approve the updated UI/UX governance and synchronized documentation. No new
 product behavior or dependency decision is required in this increment.
+
+## Correction
+
+October 8, 2026. The documentation audit in
+`2026-10-08-010-documentation-audit.md` replaced the rule summaries in
+`AGENTS.md` and `frontend/AGENTS.md` with pointers to `.cursor/rules/`. It
+also pointed the review index's UI-review section at ui-governance section 9.
+The descriptions above match the text before that audit.

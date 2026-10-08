@@ -66,7 +66,9 @@ money.
 ## Plan
 
 The cash chart stays cash in accounts. Flexible monthly spending leaves cash on
-its ready day. Cash outlook names the monthly amount and links to Plan budget.
+its ready day. After that day has passed, only what is left this month leaves
+cash, on today. Later months count the full monthly amount. It does not finish.
+Cash outlook names the monthly amount and links to Plan budget.
 Savings contributions raise the protected reserve instead; Spending targets do not feed
 the forecast.
 

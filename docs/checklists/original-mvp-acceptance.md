@@ -1,12 +1,13 @@
 # Original MVP acceptance checklist
 
 Status: Template. Phase 0 was closed with it on October 3, 2026; that record is at the end.
-Updated: 2026-10-07
+Updated: 2026-10-08
 
 The empty boxes are the reusable walkthrough, not open work.
 
-Use this walkthrough to record the current account, transaction, balance, and
-synchronization baseline before recovery-planning features change those areas.
+Use this walkthrough to check accounts, transactions, balances, and
+synchronization on a controlled local database. Recovery planning is outside
+this checklist.
 
 This is a controlled local-development check, not evidence of production readiness.
 Use Plaid sandbox data or another explicitly approved test environment. Do not include
@@ -37,7 +38,7 @@ each non-pass result, record a concise observation and a follow-up issue or revi
 Data change: creates a Plaid item, accounts, balance snapshots, and transactions in the
 local database.
 
-- [ ] Open **Connections** from the account menu (`/institutions`) and start the Plaid
+- [ ] Open **Connections** from the account menu (`/connections`) and start the Plaid
       Link flow.
 - [ ] Connect a sandbox institution and return successfully to Cardui.
 - [ ] Confirm the institution appears once and reports a successful synchronization.
@@ -59,8 +60,8 @@ accounts. No credentials or access tokens are displayed.
       not rendered as zero-value drops without evidence.
 
 Expected result: account values match the controlled source and missing values are not
-presented as real zero balances. The current code has differing net-worth definitions;
-recording any resulting disagreement is part of this baseline check.
+presented as real zero balances. Home and Accounts use the same net-worth total.
+Record any disagreement between them.
 
 ## 3. Review and find transactions
 

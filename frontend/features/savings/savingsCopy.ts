@@ -318,10 +318,6 @@ export function toSavingsPayload(
 }
 
 /**
- * Rounds a numeric field to cents.
- * Anything that is not a finite number is rejected.
- */
-/**
  * The comma message when the amount uses a comma that is not thousands.
  * Otherwise the caller's own message, such as a missing target.
  */
@@ -329,6 +325,10 @@ function amountError(value: string, fallback: string): string {
   return moneyCommaError(value) ?? fallback;
 }
 
+/**
+ * Rounds a numeric field to cents.
+ * Anything that is not a finite number is rejected.
+ */
 function roundMoney(value: string): number | null {
   const digits = moneyDigits(value);
   if (digits === null) {

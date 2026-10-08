@@ -1,7 +1,7 @@
 # Handoff roadmap order
 
 Date: October 8, 2026
-Status: Awaiting review
+Status: Approved 2026-10-08
 PR:
 
 ## Increment
@@ -41,7 +41,9 @@ No data changes. Read the wording.
 
 ## Approval
 
-Awaiting Zach's review.
+Approved by Zach on October 8, 2026, with the other reviews that were
+waiting. The roadmap-order check in `.cursor/rules/handoff.mdc` stays in
+force.
 
 ## Pending decision
 

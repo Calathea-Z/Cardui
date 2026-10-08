@@ -8,60 +8,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-Repository-wide rules, the docs map, review reports, and the review
-handoff are in the root `AGENTS.md`. Current work is in `docs/README.md`.
+Repository-wide notes are in the root `AGENTS.md`. Current work is in
+`docs/README.md`. The full text of each rule is in `.cursor/rules/`.
 
-Never put a Clerk secret, a Plaid token, or a session token in a
-`NEXT_PUBLIC_` value, a log, or source control. See
-`.cursor/rules/security.mdc`.
-
-For a new screen or substantial UI change, state the primary user question,
-next action when applicable, and supporting detail before implementation.
-Reassess the whole page instead of appending cards, and define intentional
-desktop and mobile arrangements that share behavior and state. Follow the
-light shell, local-navigation, warning, chart, action, state, accessibility,
-and UX-review conventions in `.cursor/rules/ui-governance.mdc`. Make routine
-reversible layout choices; ask Zach only when an unresolved choice materially
-changes workflow, product behavior, scope, or adds a dependency.
-
-Until Zach says Cardui has reached MVP and has shipped, delete a route or
-file that nothing uses. A renamed screen does not keep the old address.
-See `.cursor/rules/dead-code.mdc`.
-
-When a control is reused, decide whether it should be a shared primitive in
-`components/ui`. For a large or specialized control, decide whether a small
-primitive is enough or a library is the better fit, and ask before adding
-that dependency. Choice lists use `Select` from `components/ui/select.tsx`.
-Do not use a native `<select>`. Date entry uses `DateField` from
-`components/ui/date-field.tsx`. Do not use a native date input. A two-state
-setting uses `Switch` from `components/ui/switch.tsx`. See
-`.cursor/rules/ui-primitives.mdc`.
-
-A route loads the page. A server load assembles its data. `lib/api` is the
-only HTTP. A hook owns client state and those calls. A camelCase module
-holds a pure rule. A component renders. A sheet with one form and one
-submit may call the API from that submit. See
-`.cursor/rules/frontend-layers.mdc`.
-
-Shared component files use kebab-case. A feature barrel exports only the
-route component. An API client function exists because a screen calls it.
-Prettier stays in CI. See `.cursor/rules/frontend-conventions.mdc`.
-
-Money text uses `formatCurrency` from `features/accounts/formatCurrency.ts`.
-Chart labels use the chart formatters. That rule is for this repo only. See
-`.cursor/rules/frontend-currency.mdc`.
-
-Use `type` for object shapes, unions, and aliases. A fixed set of values
-is a union, derived from the const array when that array is the list. A
-value the screen sends or branches on uses that union. One shape has one
-name. Component props stay next to the component. Form state stays with
-its rule, separate from the API payload. API payloads for one feature
-live in `lib/api/types/<feature>.ts` and are re-exported from the types
-index. See `.cursor/rules/frontend-types.mdc`.
-
-Document functions with a JSDoc block that says what the function does
-and the rule its name leaves out. Include components, hooks, and helpers.
-An API client function names the HTTP method and route. Comment a type
-when a field carries a rule, such as amount sign. Skip one-line setters,
-JSX, obvious props, and generated files such as `next-env.d.ts`. See
-`.cursor/rules/frontend-method-comments.mdc`.
+- Security: `.cursor/rules/security.mdc`. Never put a Clerk secret, a
+  Plaid token, or a session token in a `NEXT_PUBLIC_` value, a log, or
+  source control.
+- UI governance: `.cursor/rules/ui-governance.mdc`
+- Dead code: `.cursor/rules/dead-code.mdc`
+- UI primitives: `.cursor/rules/ui-primitives.mdc`
+- Frontend layers: `.cursor/rules/frontend-layers.mdc`
+- Frontend conventions: `.cursor/rules/frontend-conventions.mdc`
+- Frontend currency: `.cursor/rules/frontend-currency.mdc`
+- Frontend types: `.cursor/rules/frontend-types.mdc`
+- Frontend method comments: `.cursor/rules/frontend-method-comments.mdc`

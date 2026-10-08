@@ -1,7 +1,7 @@
 # Plan page refinement
 
 Date: October 8, 2026
-Status: Awaiting review
+Status: Approved 2026-10-08
 PR:
 
 ## Increment
@@ -97,7 +97,8 @@ through linked source screens would persist as usual.
 
 ## Approval
 
-Awaiting Zach's review.
+Approved by Zach on October 8, 2026, with the other reviews that were
+waiting. Overview, Cash outlook, and Debt payoff stay the Plan layout.
 
 ## Pending decision
 

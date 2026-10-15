@@ -1,8 +1,8 @@
 # Plan page
 
 Status: Current design record. The original recovery and cash views are
-approved. The implemented three-view refinement is approved. Broader
-redesign proposals are not approved.
+approved. The implemented three-view refinement is approved. The offer
+comparison is approved. Broader redesign proposals are not approved.
 Date: October 7, 2026
 Updated: 2026-10-15
 
@@ -38,11 +38,12 @@ Forward-looking charts still live on Plan. Home keeps historical results. See
 
 ## Current implemented layout
 
-Plan has three tabs in one component tree: **Overview**, **Cash outlook**,
-and **Debt payoff**. Overview is the default. The selected payoff behavior,
-extra payment, cash timeframe, and highlighted debt stay in the page-level
-state, so changing tabs or widths does not reset them. Only the selected
-tab's analysis renders. This arrangement is the approved Plan layout.
+Plan has four tabs in one component tree: **Overview**, **Cash outlook**,
+**Debt payoff**, and **Compare an offer**. Overview is the default. The
+selected payoff behavior, extra payment, cash timeframe, highlighted debt,
+and offer form stay in the page-level state, so changing tabs or widths
+does not reset them. Only the selected tab's analysis renders. Overview,
+Cash outlook, Debt payoff, and Compare an offer are the approved layout.
 
 ### Overview
 
@@ -100,13 +101,47 @@ Without a payoff, Debt payoff explains what must be completed and Overview
 keeps the debt details under Attention. A household with no debts gets a
 Debts action. A failed load keeps the existing visible error.
 
+### Compare an offer
+
+The question is what one offer changes compared with keeping the selected
+debts. The action is **Compare offer**. Before a result, that form is the
+page. After a result, the cost, the payment change, and the break-even date
+lead, and the form stays underneath so the terms can be changed.
+
+The offer is a consolidation loan, a balance transfer, or a replacement
+loan. A consolidation loan replaces two or more debts. A replacement loan
+replaces one. A balance transfer replaces revolving debts only. Each
+selected debt is included in full. The rate entered is used for the whole
+term. One offer is compared at a time.
+
+The result puts APR, fee, term, monthly payment, total interest, interest
+and fees, and payoff beside the current debts. Break-even, the monthly cash
+change, and upfront cash sit with that result. A lower payment is stated
+and is not treated as the better offer. The page says the terms were
+entered, that they are not approved, and that Cardui does not apply or move
+money.
+
+Upfront cash is a fee paid in cash plus cash applied to the new balance. A
+fee added to the balance is borrowed. The comparison says when that cash is
+more than the cash accounts, or would leave less than cash to keep. It does
+not turn the cash into an investment return. Other income and bills stay as
+they are. The current side uses today's minimums, not extra tried under Try
+a scenario. That scenario stays off this tab.
+
+On a phone the title and fields stack, and each compared fact names both
+sides. From 640px up the amount fields sit in two columns and the facts
+line up in three. The form stays within `max-w-xl`. The page stays
+`max-w-6xl`. The tab bar is two columns below `md` and one row from there
+up.
+
 ### Desktop and mobile behavior
 
 - The page uses a bounded `max-w-6xl` container. Related chart and attention
   content becomes two columns only when space permits.
 - Under `md`, the page is one column with 16px horizontal padding. The
-  three-tab bar stays visible below the fixed app header and does not add a
-  second sticky panel.
+  tab bar stays visible below the fixed app header and does not add a
+  second sticky panel. Below `md` it is two columns. From `md` up it is one
+  row.
 - All tab and scenario controls retain 44px targets. Time ranges use two
   rows when needed. Charts use fewer axis labels, and the 30-day chart has
   a keyboard-readable values disclosure.
@@ -284,5 +319,7 @@ sections.
   setting. Saved plans remain Phase 3 item 10.
 - Opening one debt directly from an Attention item. Current source links open
   Debts.
-- Implementing the broader Planning UX proposals. Phase 3 items 7–11 have
-  not started.
+- Implementing the broader Planning UX proposals. Those stay unscheduled.
+  Phase 3 items 8–11 have not started. Partial balances, more than one
+  offer at a time, a rate that changes, and a promotional expiration stay
+  in Phase 7.

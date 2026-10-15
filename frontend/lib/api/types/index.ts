@@ -99,6 +99,20 @@ export type {
   PlanRecoveryStepDto,
 } from "./plan";
 export type {
+  CompareRestructuringDto,
+  RestructuringBreakEven,
+  RestructuringCashEffectDto,
+  RestructuringComparisonDto,
+  RestructuringDebtOutcomeDto,
+  RestructuringFeeFunding,
+  RestructuringOfferKind,
+} from "./restructuring";
+export {
+  restructuringBreakEvens,
+  restructuringFeeFundings,
+  restructuringOfferKinds,
+} from "./restructuring";
+export type {
   FinancialProfileDto,
   HouseholdContributorDto,
   HouseholdDto,

@@ -198,7 +198,10 @@ public class PlanService : IPlanService
             BalanceSource = debt.BalanceSource,
             Freshness = debt.Freshness,
             MinimumPayment = debt.MinimumPayment,
-            NeedsPaymentReview = debt.BalanceInUse == 0 && debt.MinimumPayment > 0
+            NeedsPaymentReview = debt.BalanceInUse == 0 && debt.MinimumPayment > 0,
+            Kind = debt.Kind,
+            Apr = debt.Apr,
+            Currency = debt.Currency
         };
     }
 

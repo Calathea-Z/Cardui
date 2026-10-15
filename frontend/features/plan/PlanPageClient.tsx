@@ -13,9 +13,11 @@ import { PlanAttentionSummary } from "./PlanAttentionSummary";
 import { PlanCashOutlook } from "./PlanCashOutlook";
 import { PlanCashPreview } from "./PlanCashPreview";
 import { PlanDebtPayoff } from "./PlanDebtPayoff";
+import { PlanOfferComparison } from "./PlanOfferComparison";
 import { PlanScenarioControls } from "./PlanScenarioControls";
 import { PlanSummary } from "./PlanSummary";
 import { PlanTabs } from "./PlanTabs";
+import { useRestructuringComparison } from "./useRestructuringComparison";
 import { scenarioFromReport, usePlanScenario } from "./usePlanScenario";
 import {
   balanceChart,
@@ -44,14 +46,15 @@ type PlanPageClientProps = {
 };
 
 /**
- * Plan page with Overview, Cash outlook, and Debt payoff views.
- * Scenario, timeframe, and chart-selection state live above the selected panel so switching views never resets the temporary preview.
+ * Plan page with Overview, Cash outlook, Debt payoff, and Compare an offer.
+ * Scenario, timeframe, chart selection, and the offer form live above the selected panel so switching views never resets them.
  */
 export function PlanPageClient({
   report: baseline,
   failed,
 }: PlanPageClientProps) {
   const { report, status, applyScenario } = usePlanScenario(baseline);
+  const offer = useRestructuringComparison();
   const scenario = scenarioFromReport(report);
   const [activeTab, setActiveTab] = useState<PlanTab>("overview");
   const [kind, setKind] = useState<PayoffRolloverKind>("Rollover");
@@ -196,7 +199,7 @@ export function PlanPageClient({
               />
             ) : null}
 
-            {!failed ? (
+            {activeTab !== "offer" ? (
               <PlanScenarioControls
                 key="plan-scenario"
                 kind={selectedKind}
@@ -264,6 +267,40 @@ export function PlanPageClient({
                 selectedRange={cashRange}
                 onRangeChange={setCashRange}
               />
+            ) : null}
+
+            {activeTab === "offer" ? (
+              report.hasDebts ? (
+                <PlanOfferComparison
+                  debts={report.debtFacts}
+                  currency={currency}
+                  form={offer.form}
+                  comparison={offer.comparison}
+                  error={offer.error}
+                  isComparing={offer.isComparing}
+                  stale={offer.stale}
+                  onField={offer.setField}
+                  onToggleDebt={offer.toggleDebt}
+                  onCompare={() =>
+                    void offer.compare(report.debtFacts, currency)
+                  }
+                />
+              ) : (
+                <div className="rounded-lg border border-border bg-card">
+                  <EmptyState
+                    title="A debt is required"
+                    description="Add a card or loan before comparing an offer."
+                    action={
+                      <Link
+                        href="/debts"
+                        className={cn(buttonVariants(), "min-h-11 px-4")}
+                      >
+                        Go to Debts
+                      </Link>
+                    }
+                  />
+                </div>
+              )
             ) : null}
 
             {activeTab === "debt" ? (

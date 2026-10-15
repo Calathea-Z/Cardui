@@ -12,6 +12,7 @@ export * from "./income";
 export * from "./living";
 export * from "./obligations";
 export * from "./plan";
+export * from "./restructuring";
 export * from "./savings";
 export * from "./debts";
 export * from "./plaid";

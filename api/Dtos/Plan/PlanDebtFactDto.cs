@@ -24,4 +24,13 @@ public sealed class PlanDebtFactDto
     public decimal? MinimumPayment { get; set; }
 
     public bool NeedsPaymentReview { get; set; }
+
+    public DebtKind Kind { get; set; }
+
+    /// <summary>
+    /// The stored APR. Null when the debt has no rate. A promotional rate is not folded into this value.
+    /// </summary>
+    public decimal? Apr { get; set; }
+
+    public required string Currency { get; set; }
 }

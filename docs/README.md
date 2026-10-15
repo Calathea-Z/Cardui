@@ -16,10 +16,13 @@ and [`reviews/README.md`](reviews/README.md).
 
 **Next**
 
-1. Start Phase 3 item 7: restructuring and refinance comparisons for
-   consolidation loans, balance transfers, and replacement loans. Do not
-   start Phase 3 items 8–11. Detail panel keyboard focus stays tracked and
-   is not scheduled. Unimplemented Planning UX proposals stay unscheduled.
+1. Start Phase 3 item 8: spendable estimates from dated obligations,
+   reserved funds, and reliable income. Display horizon, data freshness, and
+   uncertainties. Monthly surplus alone is insufficient. Guardrails must
+   warn when an aggressive payment would leave ordinary expenses or
+   near-term obligations underfunded. Do not start Phase 3 items 9–11.
+   Detail panel keyboard focus stays tracked and is not scheduled.
+   Unimplemented Planning UX proposals stay unscheduled.
 
 **Tracked, not scheduled**
 

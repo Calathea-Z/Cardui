@@ -13,10 +13,11 @@ const labels: Record<PlanTab, string> = {
   overview: "Overview",
   cash: "Cash outlook",
   debt: "Debt payoff",
+  offer: "Compare an offer",
 };
 
 /**
- * Switches among the three Plan views without changing the shared scenario.
+ * Switches among the Plan views without changing the shared scenario or the offer comparison.
  * Arrow keys wrap, while Home and End move to the first and last tab.
  */
 export function PlanTabs({ value, onChange }: PlanTabsProps) {
@@ -51,7 +52,7 @@ export function PlanTabs({ value, onChange }: PlanTabsProps) {
       <div
         role="tablist"
         aria-label="Plan views"
-        className="grid w-full grid-cols-3 rounded-lg border border-border bg-muted p-0.5 md:w-fit md:min-w-[28rem]"
+        className="grid w-full grid-cols-2 rounded-lg border border-border bg-muted p-0.5 md:w-fit md:grid-cols-4"
       >
         {planTabs.map((tab) => {
           const selected = tab === value;

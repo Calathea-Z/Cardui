@@ -9,10 +9,12 @@ namespace Cardui.Api.Controllers;
 public class PlanController : ControllerBase
 {
     private readonly IPlanService _planService;
+    private readonly IRestructuringService _restructuringService;
 
-    public PlanController(IPlanService planService)
+    public PlanController(IPlanService planService, IRestructuringService restructuringService)
     {
         _planService = planService;
+        _restructuringService = restructuringService;
     }
 
     /// <summary>
@@ -33,5 +35,20 @@ public class PlanController : ControllerBase
     {
         var report = await _planService.GetRecoveryAsync(scenario, cancellationToken);
         return Ok(report);
+    }
+
+    /// <summary>
+    /// POST /api/plan/restructuring
+    /// Compares one consolidation loan, balance transfer, or replacement loan with selected debts.
+    /// The result is not saved, and the offer is not treated as approved.
+    /// </summary>
+    [HttpPost("restructuring")]
+    [ProducesResponseType<RestructuringComparisonDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<RestructuringComparisonDto>> CompareRestructuring(
+        [FromBody] CompareRestructuringDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        return Ok(await _restructuringService.CompareAsync(dto, cancellationToken));
     }
 }

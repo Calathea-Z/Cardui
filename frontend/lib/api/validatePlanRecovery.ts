@@ -7,7 +7,7 @@ import type { PlanRecoveryDto } from "./types";
 export function isCurrentPlanRecovery(
   value: unknown,
 ): value is PlanRecoveryDto {
-  if (!isRecord(value) || !Array.isArray(value.debtFacts)) {
+  if (!isRecord(value) || !hasOfferDebtFacts(value.debtFacts)) {
     return false;
   }
 
@@ -35,6 +35,26 @@ export function isCurrentPlanRecovery(
     isNullableString(cash.startingCashOldestAsOf) &&
     typeof cash.startingCashUnknownDateCount === "number" &&
     typeof cash.startingCashStaleConnectedCount === "number"
+  );
+}
+
+/**
+ * Confirms each debt fact can be named on the offer comparison.
+ * Kind, a stored APR or an explicit null, and currency are required. An empty list still passes.
+ */
+function hasOfferDebtFacts(value: unknown): value is unknown[] {
+  return Array.isArray(value) && value.every(isOfferDebtFact);
+}
+
+/**
+ * Reports whether one debt fact includes the offer-comparison fields.
+ */
+function isOfferDebtFact(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    (value.kind === "Revolving" || value.kind === "Installment") &&
+    (typeof value.apr === "number" || value.apr === null) &&
+    typeof value.currency === "string"
   );
 }
 

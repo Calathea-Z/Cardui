@@ -1,4 +1,4 @@
-import type { DebtFieldSource, DebtLinkFreshness } from "./debts";
+import type { DebtFieldSource, DebtKind, DebtLinkFreshness } from "./debts";
 
 /**
  * Which way a path treats cash freed by a paid-off debt.
@@ -177,6 +177,7 @@ export type PlanCashOutlookDto = {
 /**
  * The source and freshness of one debt balance used by Plan.
  * A zero balance with a saved positive minimum remains stored but needs review.
+ * `apr` is the stored rate. Null means no rate is stored. A promotional rate is not included.
  */
 export type PlanDebtFactDto = {
   debtId: string;
@@ -187,6 +188,9 @@ export type PlanDebtFactDto = {
   freshness: DebtLinkFreshness | null;
   minimumPayment: number | null;
   needsPaymentReview: boolean;
+  kind: DebtKind;
+  apr: number | null;
+  currency: string;
 };
 
 /**

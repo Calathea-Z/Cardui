@@ -59,6 +59,34 @@ test("accepts the current Plan trust-fact contract", () => {
   assert.equal(isCurrentPlanRecovery(currentResponse()), true);
 });
 
+test("rejects a debt fact from before the offer comparison fields", () => {
+  const oldResponse = currentResponse();
+  oldResponse.debtFacts = [
+    {
+      debtId: "card",
+      name: "Card",
+      balance: 100,
+    },
+  ];
+
+  assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("accepts a debt fact that can be named on the offer comparison", () => {
+  const response = currentResponse();
+  response.debtFacts = [
+    {
+      debtId: "card",
+      name: "Card",
+      kind: "Revolving",
+      apr: null,
+      currency: "USD",
+    },
+  ];
+
+  assert.equal(isCurrentPlanRecovery(response), true);
+});
+
 test("rejects a response from before debt facts were added", () => {
   const oldResponse = currentResponse();
   delete oldResponse.debtFacts;

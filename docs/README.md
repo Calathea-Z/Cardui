@@ -1,7 +1,7 @@
 # Cardui documentation
 
 Status: Current
-Updated: 2026-10-08
+Updated: 2026-10-15
 
 ## Status
 
@@ -16,11 +16,10 @@ and [`reviews/README.md`](reviews/README.md).
 
 **Next**
 
-1. Finish Phase 3 item 6: store variable-income and windfall allocation
-   rules as reviewable preferences. Temporary Plan cash scenarios are
-   already approved. Do not start Phase 3 items 7–11. Detail panel
-   keyboard focus stays tracked and is not scheduled. Unimplemented
-   Planning UX proposals stay unscheduled.
+1. Start Phase 3 item 7: restructuring and refinance comparisons for
+   consolidation loans, balance transfers, and replacement loans. Do not
+   start Phase 3 items 8–11. Detail panel keyboard focus stays tracked and
+   is not scheduled. Unimplemented Planning UX proposals stay unscheduled.
 
 **Tracked, not scheduled**
 
@@ -43,6 +42,7 @@ and [`reviews/README.md`](reviews/README.md).
 | [`design/plan-page.md`](design/plan-page.md)                                                     | Plan page design: Overview, focused Cash outlook, chart-led Debt payoff, and the temporary scenario controls. The three-view refinement is approved        |
 | [`design/savings.md`](design/savings.md)                                                         | Savings design: cash to keep, an emergency goal, and named goals under Saving for. Monthly living spending is edited on Living                             |
 | [`design/living.md`](design/living.md)                                                           | Plan budget design at `/living`: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check                      |
+| [`design/allocation.md`](design/allocation.md)                                                   | Allocation setting: saved variable-income and windfall splits that can be reviewed and do not move money                                                    |
 | [`design/ui-direction.md`](design/ui-direction.md)                                               | Shared UI rationale and examples; the light shell is implemented and the enforceable rules are in `.cursor/rules/ui-governance.mdc`                        |
 | [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules                                                                                                      |
 | [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md)                 | Manual walkthrough template and the Phase 0 record                                                                                                         |

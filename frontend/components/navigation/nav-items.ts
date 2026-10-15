@@ -9,7 +9,7 @@ export type NavItem = {
 /**
  * Primary destinations in sidebar and tab-bar order.
  * Home, Accounts, and Activity come first; Plan is fourth. Income,
- * Bills, Debts, Plan budget, Savings, and Spending targets stay routes under settings.
+ * Bills, Debts, Plan budget, Savings, Allocation, and Spending targets stay routes under settings.
  */
 export const navItems: NavItem[] = [
   {
@@ -57,6 +57,10 @@ export const settingsItems: NavItem[] = [
     href: "/savings",
   },
   {
+    label: "Allocation",
+    href: "/allocation",
+  },
+  {
     label: "Spending targets",
     href: "/targets",
   },
@@ -81,11 +85,11 @@ export const settingsItems: NavItem[] = [
 export const settingsGroups = [
   {
     label: "Plan inputs",
-    items: settingsItems.slice(0, 5),
+    items: settingsItems.slice(0, 6),
   },
   {
     label: "Tracking and data",
-    items: settingsItems.slice(5),
+    items: settingsItems.slice(6),
   },
 ];
 

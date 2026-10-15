@@ -4,6 +4,7 @@
 import "server-only";
 
 export * from "./accounts";
+export * from "./allocation";
 export * from "./categories";
 export * from "./category-targets";
 export * from "./dashboard";

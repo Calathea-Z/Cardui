@@ -38,4 +38,6 @@ public class Household
 
     public ICollection<CategoryTargetMonth> CategoryTargetMonths { get; init; } =
         new List<CategoryTargetMonth>();
+
+    public AllocationPreference? AllocationPreference { get; set; }
 }

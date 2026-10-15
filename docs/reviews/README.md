@@ -43,6 +43,7 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-15 — Allocation preferences](2026-10-15-001-allocation-preferences.md) — Approved 2026-10-15
 - [2026-10-08 — Plan cash scenarios](2026-10-08-012-plan-cash-scenarios.md) — Approved 2026-10-08
 - [2026-10-08 — Plan page refinement](2026-10-08-008-plan-page-refinement.md) — Approved 2026-10-08
 - [2026-10-07 — Plan extra payment](2026-10-07-016-plan-extra-payment.md) — Approved 2026-10-08

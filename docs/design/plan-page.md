@@ -4,7 +4,7 @@ Status: Current design record. The original recovery and cash views are
 approved. The implemented three-view refinement is approved. Broader
 redesign proposals are not approved.
 Date: October 7, 2026
-Updated: 2026-10-08
+Updated: 2026-10-15
 
 This document records page-specific Plan choices. It is not a universal page
 template. Shared hierarchy, responsive, warning, chart, action, and
@@ -279,9 +279,9 @@ sections.
 
 - A custom payoff order or a reclaim amount. Those remain for a later
   scenario and for saved-plan facts in Phase 3 item 10.
-- Saving any temporary scenario, including variable-income and windfall
-  allocation preferences. Those remain for later Phase 3 item 6 work and
-  for saved plans in item 10.
+- Saving any temporary scenario. Those stay on Plan until you leave.
+  Variable-income and windfall allocation preferences are the Allocation
+  setting. Saved plans remain Phase 3 item 10.
 - Opening one debt directly from an Attention item. Current source links open
   Debts.
 - Implementing the broader Planning UX proposals. Phase 3 items 7–11 have

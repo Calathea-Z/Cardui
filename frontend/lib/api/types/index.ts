@@ -1,3 +1,9 @@
+export type {
+  AllocationPageDto,
+  AllocationRuleDto,
+  UpsertAllocationPreferenceDto,
+  VariableIncomeReviewDto,
+} from "./allocation";
 export { MANUAL_ACCOUNT_TYPES } from "./accounts";
 export type {
   AccountBalanceHistoryPointDto,

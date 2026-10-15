@@ -19,16 +19,19 @@ public class PlanController : ControllerBase
     /// GET /api/plan/recovery
     /// Returns the payoff on rollover and on keeping every freed payment: balances over time, each minimum removed, the breathing room that follows,
     /// and the cash outlook for 30 days and 6, 12, and 18 months on each path.
-    /// monthlyExtra is shared extra tried for this response. Omit it, or pass zero, for minimums only. A negative amount is rejected. Nothing is saved.
+    /// monthlyExtra is shared extra tried for this response. Omit it, or pass zero, for minimums only.
+    /// incomeLossMonths leaves out included pay for that many months from today. Zero keeps every paycheck.
+    /// windfallAmount and windfallOn add one cash inflow. livingSpendingMonthly and cashFloor replace those saved amounts when sent.
+    /// A negative amount is rejected. Nothing is saved.
     /// </summary>
     [HttpGet("recovery")]
     [ProducesResponseType<PlanRecoveryDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PlanRecoveryDto>> GetRecovery(
-        [FromQuery] decimal monthlyExtra = 0,
+        [FromQuery] PlanScenarioQuery scenario,
         CancellationToken cancellationToken = default)
     {
-        var report = await _planService.GetRecoveryAsync(monthlyExtra, cancellationToken);
+        var report = await _planService.GetRecoveryAsync(scenario, cancellationToken);
         return Ok(report);
     }
 }

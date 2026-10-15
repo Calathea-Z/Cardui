@@ -7,6 +7,7 @@ namespace Cardui.Api.Domain.Savings;
 /// StartingReserve counts only goals in the planning currency. Contributions include every goal so another currency can be named and left out.
 /// LivingSpendingMonthly is the flexible-spending amount in the planning currency. Zero means it is unset or in another currency.
 /// The setup fields distinguish an unset cash foundation from a saved goal whose current amount is zero.
+/// CashFloor is the cash-to-keep amount inside StartingReserve. Zero means no floor is saved in the planning currency.
 /// </summary>
 public sealed record SavingsOutlook(
     decimal StartingReserve,
@@ -14,4 +15,5 @@ public sealed record SavingsOutlook(
     decimal LivingSpendingMonthly,
     bool HasCashFloor,
     bool HasEmergencyGoal,
-    int NamedGoalCount);
+    int NamedGoalCount,
+    decimal CashFloor);

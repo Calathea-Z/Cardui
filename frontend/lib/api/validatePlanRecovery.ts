@@ -13,6 +13,12 @@ export function isCurrentPlanRecovery(
 
   if (
     typeof value.livingSpendingMonthly !== "number" ||
+    typeof value.incomeLossMonths !== "number" ||
+    typeof value.windfallAmount !== "number" ||
+    !isNullableString(value.windfallOn) ||
+    !isNullableNumber(value.scenarioLivingSpendingMonthly) ||
+    typeof value.cashFloor !== "number" ||
+    !isNullableNumber(value.scenarioCashFloor) ||
     typeof value.hasCashFloor !== "boolean" ||
     typeof value.hasEmergencyGoal !== "boolean" ||
     typeof value.namedSavingsGoalCount !== "number"
@@ -44,4 +50,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 function isNullableString(value: unknown): value is string | null {
   return typeof value === "string" || value === null;
+}
+
+/**
+ * Reports whether a runtime value is a number or an intentional null.
+ * Null means the preview kept the saved amount.
+ */
+function isNullableNumber(value: unknown): value is number | null {
+  return typeof value === "number" || value === null;
 }

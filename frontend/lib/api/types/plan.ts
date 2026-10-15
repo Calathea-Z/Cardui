@@ -194,7 +194,11 @@ export type PlanDebtFactDto = {
  * `excludedCurrencies` are debt codes left out of the planning currency.
  * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
  * `monthlyExtra` is shared extra tried for this response. Zero is minimums only, and the amount is not saved.
- * `livingSpendingMonthly` is the one monthly flexible-spending amount from Living.
+ * `livingSpendingMonthly` is the saved monthly flexible-spending amount. Zero means none is saved.
+ * `incomeLossMonths` is how many months of included pay this preview leaves out. Zero keeps every paycheck.
+ * `windfallOn` is null when `windfallAmount` is zero.
+ * `scenarioLivingSpendingMonthly` and `scenarioCashFloor` are null when the preview keeps the saved amount.
+ * `cashFloor` is the saved cash-to-keep amount. Zero means no floor is saved.
  */
 export type PlanRecoveryDto = {
   planningCurrency: string;
@@ -206,8 +210,28 @@ export type PlanRecoveryDto = {
   cashOutlook: PlanCashOutlookDto;
   monthlyExtra: number;
   livingSpendingMonthly: number;
+  incomeLossMonths: number;
+  windfallAmount: number;
+  windfallOn: string | null;
+  scenarioLivingSpendingMonthly: number | null;
+  cashFloor: number;
+  scenarioCashFloor: number | null;
   debtFacts: PlanDebtFactDto[];
   hasCashFloor: boolean;
   hasEmergencyGoal: boolean;
   namedSavingsGoalCount: number;
+};
+
+/**
+ * Temporary amounts sent to GET /api/plan/recovery. Nothing is saved.
+ * `windfallOn` is null when there is no windfall.
+ * `livingSpendingMonthly` and `cashFloor` are null when the saved amount should be kept.
+ */
+export type PlanScenarioQuery = {
+  monthlyExtra: number;
+  incomeLossMonths: number;
+  windfallAmount: number;
+  windfallOn: string | null;
+  livingSpendingMonthly: number | null;
+  cashFloor: number | null;
 };

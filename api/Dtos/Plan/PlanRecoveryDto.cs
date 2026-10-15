@@ -42,6 +42,36 @@ public class PlanRecoveryDto
     public decimal LivingSpendingMonthly { get; set; }
 
     /// <summary>
+    /// Whole months of included pay left out of this preview, starting today. Zero keeps every paycheck.
+    /// </summary>
+    public int IncomeLossMonths { get; set; }
+
+    /// <summary>
+    /// One-time cash added on <see cref="WindfallOn"/>. Zero means this preview has no windfall.
+    /// </summary>
+    public decimal WindfallAmount { get; set; }
+
+    /// <summary>
+    /// The windfall date. Null when this preview has no windfall.
+    /// </summary>
+    public DateOnly? WindfallOn { get; set; }
+
+    /// <summary>
+    /// Flexible spending used instead of <see cref="LivingSpendingMonthly"/>. Null keeps the saved amount.
+    /// </summary>
+    public decimal? ScenarioLivingSpendingMonthly { get; set; }
+
+    /// <summary>
+    /// The saved cash-to-keep amount in the planning currency. Zero means no floor is saved.
+    /// </summary>
+    public decimal CashFloor { get; set; }
+
+    /// <summary>
+    /// Cash to keep used instead of <see cref="CashFloor"/>. Null keeps the saved floor.
+    /// </summary>
+    public decimal? ScenarioCashFloor { get; set; }
+
+    /// <summary>
     /// Balance sources and dates for every saved debt, including zero-balance debts excluded from payoff calculations.
     /// </summary>
     public IReadOnlyList<PlanDebtFactDto> DebtFacts { get; set; } = [];

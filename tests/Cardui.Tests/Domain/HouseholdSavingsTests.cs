@@ -20,6 +20,7 @@ public class HouseholdSavingsTests
             [Goal(EmergencyId, "Emergency", "USD", 100m, new DateOnly(2026, 4, 1), 40m)]);
 
         Assert.Equal(40m, outlook.StartingReserve);
+        Assert.Equal(0m, outlook.CashFloor);
         Assert.True(outlook.HasEmergencyGoal);
         Assert.False(outlook.HasCashFloor);
         Assert.Equal(0, outlook.NamedGoalCount);
@@ -85,6 +86,7 @@ public class HouseholdSavingsTests
             ]);
 
         Assert.Equal(800m, outlook.StartingReserve);
+        Assert.Equal(800m, outlook.CashFloor);
         Assert.Equal(800m, outlook.LivingSpendingMonthly);
         Assert.True(outlook.HasCashFloor);
         Assert.False(outlook.HasEmergencyGoal);

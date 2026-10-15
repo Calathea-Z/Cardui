@@ -30,8 +30,9 @@ Forward-looking charts still live on Plan. Home keeps historical results. See
 - The report includes debt outcomes and monthly balance points, plus 30-day
   cash points and 6, 12, and 18 month cash summaries. It does not invent
   intermediate points for the longer horizons.
-- The extra monthly amount and payoff behavior are temporary scenarios.
-  Nothing on Plan is saved, and the page does not schedule a payment.
+- The extra monthly amount, payoff behavior, income loss, windfall, flexible
+  spending, and cash floor are temporary scenarios. Nothing on Plan is saved,
+  and the page does not schedule a payment or move money.
 - `recharts` and the implemented chart and series tokens are reused. No second
   chart library or palette is part of this design.
 
@@ -51,9 +52,10 @@ tab's analysis renders. This arrangement is the approved Plan layout.
    after protected savings runs short. When the plan is affordable, payoff
    remains the secondary result and the action opens Debt payoff.
 2. **Try a scenario.** One disclosure groups **Roll payments forward**,
-   **Free up cash**, and the extra monthly payment. Its closed summary names
-   the applied strategy and amount. Updating or failed requests state which
-   older amount the visible forecast still represents.
+   **Free up cash**, the extra monthly payment, months without pay, a
+   one-time windfall, flexible spending, and cash to keep. Its closed summary
+   names the applied strategy and preview. Updating or failed requests say the
+   visible forecast is still the previous one.
 3. **Next 30 days.** A compact cash summary and the supported daily chart
    show ending cash and the lowest day. Cash balance is named separately
    from available cash after protected savings.
@@ -177,8 +179,7 @@ for one band per debt.
 
 ## Items
 
-The first two items are approved. The third is implemented and awaiting
-review.
+The first four items are approved.
 
 1. **Page and debt charts.** The original summary, blocker list, balance
    chart, minimums and breathing room chart, payoff order, and assumptions
@@ -196,6 +197,11 @@ review.
    is included. It is approved in
    [`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
    No schema, route, dependency, or new financial calculation.
+4. **Temporary cash scenarios.** Income loss, a one-time windfall, flexible
+   spending, and cash to keep, tried with the extra payment under Try a
+   scenario. Approved in
+   [`2026-10-08-012-plan-cash-scenarios.md`](../reviews/2026-10-08-012-plan-cash-scenarios.md).
+   No schema change.
 
 ## Decisions
 
@@ -233,21 +239,26 @@ inspection only for 30 days; 6/12/18 months remain honest horizon summaries.
 Low pay follows the same selection under a disclosure. Without income, the
 section still asks for an income source and links to Income.
 
-### Extra each month
+### Temporary scenarios
 
 Zach chose on October 7, 2026: the first scenario is one shared extra,
-tried on the page, and the page replaces its numbers with that amount.
+tried on the page, and the page replaces its numbers with that amount. The
+rest of Phase 3 item 6 follows the same pattern for cash changes.
 
-- The field is under **Try a scenario**, labeled Extra monthly payment.
-  Zero is shown explicitly and is the minimums-only plan. A positive amount
-  is applied when the field is left or Enter is pressed.
-- The summary, both payoff charts, the payoff order, and the cash outlook
-  all use that amount. The extra goes to the highest-interest debt that
-  can take it, then to the next debt after that one is gone. It is part
-  of the debt payments in the cash outlook.
-- Leaving Plan clears it. Nothing is saved. A negative amount is not sent.
-  While a request runs or fails, the page names the applied amount still
-  represented by the visible results.
+- Fields sit under **Try a scenario**. Extra monthly payment is shown with
+  an explicit zero for the minimums-only plan. Months without pay, a
+  one-time windfall with a date, flexible spending, and cash to keep are
+  optional. A blank spending or floor field keeps the saved amount.
+- Extra changes the payoff path and the cash outlook. Income loss, a
+  windfall, spending, and the cash floor change cash only. Payoff order
+  stays the same. A windfall stays in cash and does not pay a debt.
+- Months without pay leave out included pay from today for that many months,
+  then pay resumes. Flexible spending replaces later full months; a smaller
+  remainder this month stays. Cash to keep replaces only the floor inside
+  protected savings.
+- Leaving Plan clears every field. Nothing is saved. A negative amount is
+  not sent. While a request runs or fails, the page says the visible
+  forecast is still the previous one.
 
 ## Proposed future redesign
 
@@ -268,8 +279,10 @@ sections.
 
 - A custom payoff order or a reclaim amount. Those remain for a later
   scenario and for saved-plan facts in Phase 3 item 10.
-- Saving the extra amount. The field above is tried on the page only.
+- Saving any temporary scenario, including variable-income and windfall
+  allocation preferences. Those remain for later Phase 3 item 6 work and
+  for saved plans in item 10.
 - Opening one debt directly from an Attention item. Current source links open
   Debts.
-- Implementing the broader Planning UX proposals or the remaining Phase 3
-  scenarios.
+- Implementing the broader Planning UX proposals. Phase 3 items 7–11 have
+  not started.

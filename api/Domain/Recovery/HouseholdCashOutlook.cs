@@ -70,7 +70,9 @@ public static class HouseholdCashOutlook
             input.Incomes.Select(income => Dated(income, basis)).ToList(),
             input.Bills,
             debts,
-            input.Savings);
+            input.Savings,
+            input.OmitIncomeBefore,
+            input.Windfall);
     }
 
     /// <summary>

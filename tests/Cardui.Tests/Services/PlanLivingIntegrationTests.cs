@@ -1,5 +1,6 @@
 using Cardui.Api.Data;
 using Cardui.Api.Dtos.Household;
+using Cardui.Api.Dtos.Plan;
 using Cardui.Api.Dtos.Income;
 using Cardui.Api.Dtos.Living;
 using Cardui.Api.Dtos.Savings;
@@ -60,7 +61,7 @@ public class PlanLivingIntegrationTests
             time,
             scope);
 
-        var report = await plan.GetRecoveryAsync(0m);
+        var report = await plan.GetRecoveryAsync(new PlanScenarioQuery());
         var days = report.CashOutlook.Rollover.Typical.Days;
 
         Assert.Equal(300m, report.LivingSpendingMonthly);

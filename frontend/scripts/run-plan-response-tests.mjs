@@ -35,6 +35,12 @@ function currentResponse() {
   return {
     debtFacts: [],
     livingSpendingMonthly: 0,
+    incomeLossMonths: 0,
+    windfallAmount: 0,
+    windfallOn: null,
+    scenarioLivingSpendingMonthly: null,
+    cashFloor: 0,
+    scenarioCashFloor: null,
     hasCashFloor: false,
     hasEmergencyGoal: false,
     namedSavingsGoalCount: 0,

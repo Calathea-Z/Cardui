@@ -16,6 +16,7 @@ public static class CashForecast
     /// Debt payments before the start are not replayed. Another currency is left out.
     /// A schedule given for a debt replaces that debt's own amortization, so a payoff path can roll a freed payment
     /// into another debt. Those schedules must start on or after AsOf. A debt with no schedule pays its own minimum and extra.
+    /// Included pay before OmitIncomeBefore is left out. A windfall adds cash on its date and does not change the reserve.
     /// </summary>
     public static CashForecastReport Project(
         CashForecastInput input,
@@ -125,6 +126,7 @@ public static class CashForecast
     /// <summary>
     /// The dated amounts to apply, in income, bill, debt, then savings order.
     /// Rows in another currency are omitted. A savings row that is not a savings event is omitted.
+    /// Included pay before OmitIncomeBefore is left out. A windfall in range is added as income.
     /// </summary>
     private static IReadOnlyList<CashFlowEvent> Events(
         CashForecastInput input,
@@ -137,7 +139,9 @@ public static class CashForecast
         var bills = input.Bills
             .Where(bill => Included(bill.Currency, input.PlanningCurrency))
             .ToList();
-        var flow = CashFlowSchedule.Project(incomes, bills, input.AsOf, through);
+        var flow = KeepPay(
+            CashFlowSchedule.Project(incomes, bills, input.AsOf, through),
+            input.OmitIncomeBefore);
         var payments = paths.SelectMany(path => CashFlowSchedule.DebtPayments(path.Schedule));
         var savings = input.Savings.Where(item =>
             item.Kind is CashFlowKind.Savings or CashFlowKind.LivingSpending
@@ -145,7 +149,42 @@ public static class CashForecast
             && item.Date >= input.AsOf
             && item.Date <= through
             && Included(item.Currency, input.PlanningCurrency));
-        return CashFlowSchedule.Combine(flow.Concat(payments).Concat(savings));
+        return CashFlowSchedule.Combine(flow.Concat(payments).Concat(savings).Concat(OneTimeIncome(input, through)));
+    }
+
+    /// <summary>
+    /// Drops included pay from the start until the resume date.
+    /// A null resume date keeps every paycheck. Pay on the resume date stays.
+    /// </summary>
+    private static IEnumerable<CashFlowEvent> KeepPay(
+        IEnumerable<CashFlowEvent> flow,
+        DateOnly? omitIncomeBefore)
+    {
+        if (omitIncomeBefore is not DateOnly resume)
+        {
+            return flow;
+        }
+
+        return flow.Where(item => item.Kind != CashFlowKind.Income || item.Date >= resume);
+    }
+
+    /// <summary>
+    /// The windfall when it falls inside the walk and counts in the planning currency.
+    /// A missing windfall adds nothing.
+    /// </summary>
+    private static IEnumerable<CashFlowEvent> OneTimeIncome(CashForecastInput input, DateOnly through)
+    {
+        if (input.Windfall is not CashFlowEvent windfall
+            || windfall.Kind != CashFlowKind.Income
+            || windfall.Amount <= 0
+            || windfall.Date < input.AsOf
+            || windfall.Date > through
+            || !Included(windfall.Currency, input.PlanningCurrency))
+        {
+            yield break;
+        }
+
+        yield return windfall;
     }
 
     /// <summary>

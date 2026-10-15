@@ -43,27 +43,50 @@ public class PlanService : IPlanService
 
     /// <inheritdoc />
     public async Task<PlanRecoveryDto> GetRecoveryAsync(
-        decimal monthlyExtra,
+        PlanScenarioQuery scenario,
         CancellationToken cancellationToken = default)
     {
-        RequireNonNegativeExtra(monthlyExtra);
         var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
         var loaded = await LoadCashFactsAsync(today, cancellationToken);
-        return ProjectPlan(debts, loaded, monthlyExtra);
+        var preview = RequireScenario(scenario, loaded.LivingSpendingMonthly, today);
+        return ProjectPlan(debts, loaded, preview);
     }
 
     #region Private Methods
 
     /// <summary>
-    /// Rejects a negative extra. Zero is the minimums-only plan.
+    /// Rejects a preview the forecast cannot run, then rounds the amounts it will use.
+    /// A nullable spending or floor amount stays null so the saved figure is kept.
     /// </summary>
-    private static void RequireNonNegativeExtra(decimal monthlyExtra)
+    private static PlanCashScenario RequireScenario(
+        PlanScenarioQuery scenario,
+        decimal storedLivingSpending,
+        DateOnly today)
     {
-        if (monthlyExtra < 0)
+        var message = PlanCashScenarioRules.Reject(
+            scenario.MonthlyExtra,
+            scenario.IncomeLossMonths,
+            scenario.WindfallAmount,
+            scenario.WindfallOn,
+            scenario.LivingSpendingMonthly,
+            scenario.CashFloor,
+            storedLivingSpending,
+            today);
+        if (message is not null)
         {
-            throw new BadRequestException("Extra each month cannot be negative.");
+            throw new BadRequestException(message);
         }
+
+        return new PlanCashScenario(
+            AccountLedger.Round(scenario.MonthlyExtra),
+            scenario.IncomeLossMonths,
+            AccountLedger.Round(scenario.WindfallAmount),
+            scenario.WindfallAmount > 0 ? scenario.WindfallOn : null,
+            scenario.LivingSpendingMonthly is decimal spending
+                ? AccountLedger.Round(spending)
+                : null,
+            scenario.CashFloor is decimal floor ? AccountLedger.Round(floor) : null);
     }
 
     /// <summary>
@@ -93,26 +116,32 @@ public class PlanService : IPlanService
             AccountLedger.Round(savings.LivingSpendingMonthly),
             savings.HasCashFloor,
             savings.HasEmergencyGoal,
-            savings.NamedGoalCount);
+            savings.NamedGoalCount,
+            savings.CashFloor);
     }
 
     /// <summary>
     /// Runs the approved rollover and recovery rules from the outlook's start date, then the cash outlook on both paths,
-    /// and shapes the result for the page. The extra is tried for this response. Reclaim stays at the baseline.
+    /// and shapes the result for the page. The preview is tried for this response. Reclaim stays at the baseline.
     /// </summary>
     private static PlanRecoveryDto ProjectPlan(
         IReadOnlyList<DebtDto> debts,
         PlanCashFacts facts,
-        decimal monthlyExtra)
+        PlanCashScenario scenario)
     {
         var prepared = HouseholdRecovery.Prepare(
             facts.Input.PlanningCurrency,
             facts.Input.AsOf,
             debts.Select(ToDebt).ToList(),
-            monthlyExtra);
+            scenario.MonthlyExtra);
         var comparison = PayoffRollover.Compare(prepared.Rollover);
         var report = CashFlowRecovery.Track(comparison);
-        var outlook = HouseholdCashOutlook.Project(facts.Input, prepared.Rollover.Debts, comparison);
+        var cash = PlanCashScenarioAdjustment.Apply(
+            facts.Input,
+            facts.LivingSpendingMonthly,
+            facts.CashFloor,
+            scenario);
+        var outlook = HouseholdCashOutlook.Project(cash, prepared.Rollover.Debts, comparison);
         var plan = PlanRecoveryDtoMapper.Map(
             comparison,
             report,
@@ -125,6 +154,12 @@ public class PlanService : IPlanService
         plan.HasEmergencyGoal = facts.HasEmergencyGoal;
         plan.NamedSavingsGoalCount = facts.NamedSavingsGoalCount;
         plan.DebtFacts = debts.Select(ToDebtFact).ToList();
+        plan.IncomeLossMonths = scenario.IncomeLossMonths;
+        plan.WindfallAmount = scenario.WindfallAmount;
+        plan.WindfallOn = scenario.WindfallOn;
+        plan.ScenarioLivingSpendingMonthly = scenario.LivingSpendingMonthly;
+        plan.CashFloor = facts.CashFloor;
+        plan.ScenarioCashFloor = scenario.CashFloor;
         return plan;
     }
 

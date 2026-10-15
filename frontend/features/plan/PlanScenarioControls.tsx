@@ -1,47 +1,49 @@
 import { ChevronRight, CircleAlert, LoaderCircle } from "lucide-react";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
-import type { PayoffRolloverKind } from "@/lib/api/types";
+import { formatCalendarDate } from "@/features/debts/debtDisplay";
+import type { PayoffRolloverKind, PlanScenarioQuery } from "@/lib/api/types";
+import { PlanCashScenarioFields } from "./PlanCashScenarioFields";
 import { PlanExtraField } from "./PlanExtraField";
 import {
-  planExtraStatus,
   planPathDescription,
   planPathOptions,
+  planScenarioStatus,
+  planScenarioSummary,
 } from "./planCopy";
-import type { PlanExtraStatus } from "./usePlanExtra";
+import type { PlanScenarioStatus } from "./usePlanScenario";
 
 type PlanScenarioControlsProps = {
   kind: PayoffRolloverKind;
   hasPayoff: boolean;
-  appliedAmount: number;
-  requestedAmount: number | null;
-  status: PlanExtraStatus;
+  applied: PlanScenarioQuery;
+  storedSpending: number;
+  storedFloor: number;
+  asOf: string;
+  status: PlanScenarioStatus;
   currency: string;
   onKindChange: (kind: PayoffRolloverKind) => void;
-  onApplyExtra: (amount: number) => void;
+  onApply: (scenario: PlanScenarioQuery) => void;
 };
 
 /**
- * Groups the temporary payoff behavior and extra payment in one disclosure.
- * Its summary always describes the applied forecast, while pending and failed requests name the older amount still on screen.
+ * Groups the temporary payoff behavior and cash preview in one disclosure.
+ * Its summary always describes the applied forecast. A pending or failed request says the visible results are still the previous forecast.
  */
 export function PlanScenarioControls({
   kind,
   hasPayoff,
-  appliedAmount,
-  requestedAmount,
+  applied,
+  storedSpending,
+  storedFloor,
+  asOf,
   status,
   currency,
   onKindChange,
-  onApplyExtra,
+  onApply,
 }: PlanScenarioControlsProps) {
   const money = (amount: number) => formatCurrency(amount, currency);
-  const strategy =
-    kind === "Rollover" ? "Roll payments forward" : "Free up cash";
-  const statusMessage =
-    status !== "ready" && requestedAmount !== null
-      ? planExtraStatus(status, requestedAmount, appliedAmount, money)
-      : null;
+  const statusMessage = status === "ready" ? null : planScenarioStatus(status);
 
   return (
     <section className="app-panel">
@@ -52,7 +54,13 @@ export function PlanScenarioControls({
               Try a scenario
             </span>
             <span className="block text-xs text-muted-foreground">
-              {strategy} · {money(appliedAmount)} extra
+              {planScenarioSummary(
+                kind,
+                hasPayoff,
+                applied,
+                money,
+                formatCalendarDate,
+              )}
             </span>
           </span>
           <ChevronRight
@@ -86,13 +94,24 @@ export function PlanScenarioControls({
             )}
           </div>
           <PlanExtraField
-            appliedAmount={appliedAmount}
+            appliedAmount={applied.monthlyExtra}
             retryCurrentAmount={status !== "ready"}
-            onApply={onApplyExtra}
+            onApply={(monthlyExtra) => onApply({ ...applied, monthlyExtra })}
           />
+          <div className="md:col-span-2">
+            <PlanCashScenarioFields
+              applied={applied}
+              storedSpending={storedSpending}
+              storedFloor={storedFloor}
+              asOf={asOf}
+              currency={currency}
+              retry={status !== "ready"}
+              onApply={onApply}
+            />
+          </div>
           <p className="text-xs text-muted-foreground md:col-span-2">
-            Temporary preview. Nothing is saved, and the scenario resets when
-            you leave Plan.
+            Temporary preview. Nothing is saved, and it resets when you leave
+            Plan. A windfall stays in cash.
           </p>
         </div>
       </details>

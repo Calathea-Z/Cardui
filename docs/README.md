@@ -16,11 +16,11 @@ and [`reviews/README.md`](reviews/README.md).
 
 **Next**
 
-1. Resume the rest of Phase 3 item 6: income loss, windfalls, spending
-   changes, and protected-cash targets. The shared extra payment is already
-   approved. Detail panel keyboard focus stays tracked and is not
-   scheduled. The Planning UX review is an approved assessment.
-   Proposals it made that are not already built stay unscheduled.
+1. Finish Phase 3 item 6: store variable-income and windfall allocation
+   rules as reviewable preferences. Temporary Plan cash scenarios are
+   already approved. Do not start Phase 3 items 7–11. Detail panel
+   keyboard focus stays tracked and is not scheduled. Unimplemented
+   Planning UX proposals stay unscheduled.
 
 **Tracked, not scheduled**
 

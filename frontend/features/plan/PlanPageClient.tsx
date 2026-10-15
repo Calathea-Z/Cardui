@@ -16,7 +16,7 @@ import { PlanDebtPayoff } from "./PlanDebtPayoff";
 import { PlanScenarioControls } from "./PlanScenarioControls";
 import { PlanSummary } from "./PlanSummary";
 import { PlanTabs } from "./PlanTabs";
-import { usePlanExtra } from "./usePlanExtra";
+import { scenarioFromReport, usePlanScenario } from "./usePlanScenario";
 import {
   balanceChart,
   cashChart,
@@ -30,6 +30,7 @@ import {
   cashOutlookNotes,
   finishPlanItems,
   planAssumptions,
+  planSpendingLine,
   planSummary,
 } from "./planCopy";
 import { cashRangeView, type PlanCashRange } from "./planCashRange";
@@ -50,14 +51,13 @@ export function PlanPageClient({
   report: baseline,
   failed,
 }: PlanPageClientProps) {
-  const { report, status, requestedAmount, applyExtra } =
-    usePlanExtra(baseline);
+  const { report, status, applyScenario } = usePlanScenario(baseline);
+  const scenario = scenarioFromReport(report);
   const [activeTab, setActiveTab] = useState<PlanTab>("overview");
   const [kind, setKind] = useState<PayoffRolloverKind>("Rollover");
   const [cashRange, setCashRange] = useState<PlanCashRange>("30-days");
   const [hoveredDebtId, setHoveredDebtId] = useState<string | null>(null);
   const [pinnedDebtId, setPinnedDebtId] = useState<string | null>(null);
-  const showPlan = !failed && report.hasDebts;
   const hasPayoff = report.rollover.steps.length > 0;
   const onRollover = kind === "Rollover" || !hasPayoff;
   const selectedKind: PayoffRolloverKind = onRollover
@@ -85,6 +85,13 @@ export function PlanPageClient({
           report.monthlyExtra,
           report.cashOutlook.startingReserve,
           report.cashOutlook.startingAvailable,
+          scenario,
+          formatCalendarDate,
+        ),
+        spendingLine: planSpendingLine(
+          report.livingSpendingMonthly,
+          report.scenarioLivingSpendingMonthly,
+          money,
         ),
         overview: cashRangeView(
           outlook.typical,
@@ -139,10 +146,21 @@ export function PlanPageClient({
         currency,
         report.monthlyExtra,
         money,
+        scenario,
+        formatCalendarDate,
       ),
       milestones: debtMilestones(path, selectedKind, money, formatCalendarDate),
     };
-  }, [report, path, outlook, selectedKind, hasPayoff, currency, cashRange]);
+  }, [
+    report,
+    path,
+    outlook,
+    selectedKind,
+    hasPayoff,
+    currency,
+    cashRange,
+    scenario,
+  ]);
 
   /**
    * Pins one debt's band, or clears the pin when that debt is pressed again.
@@ -178,17 +196,19 @@ export function PlanPageClient({
               />
             ) : null}
 
-            {showPlan ? (
+            {!failed ? (
               <PlanScenarioControls
                 key="plan-scenario"
                 kind={selectedKind}
                 hasPayoff={hasPayoff}
-                appliedAmount={report.monthlyExtra}
-                requestedAmount={requestedAmount}
+                applied={scenario}
+                storedSpending={report.livingSpendingMonthly}
+                storedFloor={report.cashFloor}
+                asOf={report.cashOutlook.asOf}
                 status={status}
                 currency={currency}
                 onKindChange={setKind}
-                onApplyExtra={applyExtra}
+                onApply={applyScenario}
               />
             ) : null}
 
@@ -237,7 +257,7 @@ export function PlanPageClient({
                 lowPay={view.cash.lowPay}
                 notes={view.cash.notes}
                 currency={currency}
-                livingSpendingMonthly={report.livingSpendingMonthly}
+                spendingLine={view.cash.spendingLine}
                 startingCash={report.cashOutlook.startingCash}
                 startingReserve={report.cashOutlook.startingReserve}
                 startingAvailable={report.cashOutlook.startingAvailable}

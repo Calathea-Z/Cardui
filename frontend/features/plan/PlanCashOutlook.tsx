@@ -21,7 +21,7 @@ type PlanCashOutlookProps = {
   lowPay: PlanCashRangeView | null;
   notes: PlanCashNote[];
   currency: string;
-  livingSpendingMonthly: number;
+  spendingLine: string | null;
   startingCash: number;
   startingReserve: number;
   startingAvailable: number;
@@ -147,7 +147,7 @@ export function PlanCashOutlook({
   lowPay,
   notes,
   currency,
-  livingSpendingMonthly,
+  spendingLine,
   startingCash,
   startingReserve,
   startingAvailable,
@@ -249,10 +249,9 @@ export function PlanCashOutlook({
                   </dd>
                 </div>
               </dl>
-              {livingSpendingMonthly > 0 ? (
+              {spendingLine ? (
                 <p className="text-muted-foreground">
-                  Includes {formatCurrency(livingSpendingMonthly, currency)} a
-                  month for flexible spending.{" "}
+                  {spendingLine}{" "}
                   <Link href="/living" className="text-primary underline">
                     Review Plan budget
                   </Link>

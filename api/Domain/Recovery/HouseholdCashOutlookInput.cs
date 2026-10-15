@@ -4,6 +4,8 @@ namespace Cardui.Api.Domain.Recovery;
 /// The household cash facts behind the Plan cash outlook.
 /// StartingCash is the Cash total on Accounts at the start of AsOf, before that day's payments.
 /// StartingReserve is the part already set aside. Savings raise that reserve later and do not reduce cash.
+/// OmitIncomeBefore drops included pay from AsOf until that date. Null keeps every paycheck. The date itself is paid.
+/// Windfall is one cash inflow. Null adds nothing. It does not change the reserve.
 /// </summary>
 public sealed record HouseholdCashOutlookInput(
     string PlanningCurrency,
@@ -12,4 +14,6 @@ public sealed record HouseholdCashOutlookInput(
     IReadOnlyList<HouseholdIncome> Incomes,
     IReadOnlyList<DatedBill> Bills,
     decimal StartingReserve,
-    IReadOnlyList<CashFlowEvent> Savings);
+    IReadOnlyList<CashFlowEvent> Savings,
+    DateOnly? OmitIncomeBefore = null,
+    CashFlowEvent? Windfall = null);

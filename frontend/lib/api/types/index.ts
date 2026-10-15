@@ -89,6 +89,7 @@ export type {
   PlanMissingBalanceDto,
   PlanRecoveryDto,
   PlanRecoveryPathDto,
+  PlanScenarioQuery,
   PlanRecoveryStepDto,
 } from "./plan";
 export type {

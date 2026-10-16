@@ -24,6 +24,7 @@ import { TransactionDateField } from "./TransactionDateField";
 import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
 import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
+import { cardPaymentExplanation } from "./cardActivity";
 import { canEditTransactionEntry } from "./transactionEntry";
 import { useTransactionDetails } from "./useTransactionDetails";
 
@@ -145,6 +146,11 @@ function TransactionDetailDrawerContent({
               </span>
             ) : null}
           </div>
+        ) : null}
+        {cardPayment ? (
+          <p className="max-w-sm text-sm text-muted-foreground">
+            {cardPaymentExplanation}
+          </p>
         ) : null}
       </div>
 

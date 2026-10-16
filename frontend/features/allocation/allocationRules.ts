@@ -95,6 +95,52 @@ export function splitAllocation(
 }
 
 /**
+ * Why one debt-and-savings pair cannot be stored.
+ * Null means the pair is a valid split and the rest stays available.
+ */
+export function allocationSplitError(
+  debtField: string,
+  savingsField: string,
+  label: string,
+): string | null {
+  const debt = parsePercent(debtField);
+  if (!debt.ok) {
+    return `${label}: ${debt.error}`;
+  }
+
+  const savings = parsePercent(savingsField);
+  if (!savings.ok) {
+    return `${label}: ${savings.error}`;
+  }
+
+  if (debt.percent + savings.percent > 100) {
+    return `${label}: debt and savings together can't be more than 100 percent. The rest stays available.`;
+  }
+
+  return null;
+}
+
+/**
+ * True when the fields differ from the stored preference.
+ * The comparison is the text in the fields, so an unsaved edit stays unsaved until save.
+ */
+export function allocationDraftDiffers(
+  form: AllocationFormState,
+  page: {
+    variableIncome: { debtPercent: number; savingsPercent: number };
+    windfall: { debtPercent: number; savingsPercent: number };
+  },
+) {
+  const saved = allocationFormFromPage(page);
+  return (
+    form.variableIncomeDebtPercent !== saved.variableIncomeDebtPercent ||
+    form.variableIncomeSavingsPercent !== saved.variableIncomeSavingsPercent ||
+    form.windfallDebtPercent !== saved.windfallDebtPercent ||
+    form.windfallSavingsPercent !== saved.windfallSavingsPercent
+  );
+}
+
+/**
  * Reads both rules from the fields.
  * The first invalid field stops the save. Debt and savings that add past 100 are rejected.
  */
@@ -103,46 +149,35 @@ export function readAllocationForm(
 ):
   | { ok: true; dto: UpsertAllocationPreferenceDto }
   | { ok: false; error: string } {
+  const variable = allocationSplitError(
+    form.variableIncomeDebtPercent,
+    form.variableIncomeSavingsPercent,
+    "Variable income",
+  );
+  if (variable) {
+    return { ok: false, error: variable };
+  }
+
+  const windfall = allocationSplitError(
+    form.windfallDebtPercent,
+    form.windfallSavingsPercent,
+    "Windfall",
+  );
+  if (windfall) {
+    return { ok: false, error: windfall };
+  }
+
   const variableDebt = parsePercent(form.variableIncomeDebtPercent);
-  if (!variableDebt.ok) {
-    return {
-      ok: false,
-      error: `Variable income extra debt: ${variableDebt.error}`,
-    };
-  }
-
   const variableSavings = parsePercent(form.variableIncomeSavingsPercent);
-  if (!variableSavings.ok) {
-    return {
-      ok: false,
-      error: `Variable income savings: ${variableSavings.error}`,
-    };
-  }
-
-  if (variableDebt.percent + variableSavings.percent > 100) {
-    return {
-      ok: false,
-      error:
-        "Variable income: debt and savings together can't be more than 100 percent. The rest stays available.",
-    };
-  }
-
   const windfallDebt = parsePercent(form.windfallDebtPercent);
-  if (!windfallDebt.ok) {
-    return { ok: false, error: `Windfall extra debt: ${windfallDebt.error}` };
-  }
-
   const windfallSavings = parsePercent(form.windfallSavingsPercent);
-  if (!windfallSavings.ok) {
-    return { ok: false, error: `Windfall savings: ${windfallSavings.error}` };
-  }
-
-  if (windfallDebt.percent + windfallSavings.percent > 100) {
-    return {
-      ok: false,
-      error:
-        "Windfall: debt and savings together can't be more than 100 percent. The rest stays available.",
-    };
+  if (
+    !variableDebt.ok ||
+    !variableSavings.ok ||
+    !windfallDebt.ok ||
+    !windfallSavings.ok
+  ) {
+    return { ok: false, error: "Enter a whole percent from 0 to 100." };
   }
 
   return {

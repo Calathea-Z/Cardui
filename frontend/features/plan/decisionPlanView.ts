@@ -1,10 +1,15 @@
-import type { DecisionPlanDto, PlanVersionDto } from "@/lib/api/types";
+import type {
+  DecisionPlanActionKind,
+  DecisionPlanDto,
+  PlanVersionDto,
+} from "@/lib/api/types";
 
 export const decisionPlanLabels = [
-  "Draft",
-  "Accepted",
-  "Superseded",
-  "Not saved",
+  "Current facts",
+  "Trying changes — not saved",
+  "Saved draft",
+  "Accepted plan",
+  "History",
 ] as const;
 
 export type DecisionPlanLabel = (typeof decisionPlanLabels)[number];
@@ -46,13 +51,36 @@ export function sameDecisionPlan(
 }
 
 /**
+ * The print heading for the version on screen.
+ * Status, version, and date name that copy. A stored version also names the day it was recorded.
+ */
+export type PlanVersionPrintLines = {
+  status: string;
+  version: string;
+  date: string;
+  recorded: string | null;
+};
+
+/**
+ * A next step that opens an editor or a Plan detail.
+ * The href returns to Plan. A view stays on this page.
+ */
+export type DecisionActionTarget = {
+  label: string;
+  href?: string;
+  view?: "cash" | "debt";
+};
+
+/**
  * Chooses the plan on screen and the leading action.
  * A viewed version is that stored copy. Otherwise the live preview is shown, and it is a draft or accepted only when it matches one.
+ * `matchesCurrentFacts` is true when that preview has no scenario change.
  */
 export function decisionPlanChrome(
   preview: DecisionPlanDto | null,
   versions: PlanVersionDto[],
   viewedId: string | null,
+  matchesCurrentFacts = false,
 ): DecisionPlanChrome {
   const draft = versions.find((version) => version.status === "Draft") ?? null;
   const accepted =
@@ -69,7 +97,7 @@ export function decisionPlanChrome(
     return {
       plan: null,
       version: null,
-      label: "Not saved",
+      label: workingLabel(matchesCurrentFacts),
       action: "save",
       note: "Nothing is saved yet.",
       replacesDraftId: null,
@@ -81,9 +109,9 @@ export function decisionPlanChrome(
     return {
       plan: preview,
       version: draft,
-      label: "Draft",
+      label: "Saved draft",
       action: "accept",
-      note: "This draft matches the preview. Accept it to make it the plan you are keeping.",
+      note: acceptNote(),
       replacesDraftId: draft.id,
       acceptId: draft.id,
     };
@@ -93,7 +121,7 @@ export function decisionPlanChrome(
     return {
       plan: preview,
       version: accepted,
-      label: "Accepted",
+      label: "Accepted plan",
       action: "print",
       note: "This is the accepted plan. Later edits do not change this version.",
       replacesDraftId: null,
@@ -104,12 +132,27 @@ export function decisionPlanChrome(
   return {
     plan: preview,
     version: null,
-    label: "Not saved",
+    label: workingLabel(matchesCurrentFacts),
     action: "save",
     note: unsavedNote(draft !== null, accepted !== null),
     replacesDraftId: draft?.id ?? null,
     acceptId: null,
   };
+}
+
+/**
+ * Names the working preview when it is not a stored version.
+ */
+function workingLabel(matchesCurrentFacts: boolean): DecisionPlanLabel {
+  return matchesCurrentFacts ? "Current facts" : "Trying changes — not saved";
+}
+
+/**
+ * What accept does before the person confirms it.
+ * The older accepted plan stays in history. Neither save nor accept moves money.
+ */
+function acceptNote() {
+  return "Accepting replaces the accepted plan and keeps the older copy in history. Saving and accepting only record this decision. Cardui does not schedule a payment or change an account.";
 }
 
 /**
@@ -126,11 +169,11 @@ function viewedChrome(
     return {
       plan: viewed.plan,
       version: viewed,
-      label: "Draft",
+      label: "Saved draft",
       action: "accept",
       note: differs
-        ? "You are reading the open draft. Show the current preview to save a different one."
-        : "This draft matches the preview. Accept it to make it the plan you are keeping.",
+        ? "You are reading the saved draft. Return to the working preview to save a different one."
+        : acceptNote(),
       replacesDraftId: draft?.id ?? null,
       acceptId: viewed.id,
     };
@@ -144,7 +187,7 @@ function viewedChrome(
     return {
       plan: viewed.plan,
       version: viewed,
-      label: "Accepted",
+      label: "Accepted plan",
       action: current ? "print" : "back",
       note: "You are reading the accepted plan. Later edits do not change it.",
       replacesDraftId: null,
@@ -155,12 +198,78 @@ function viewedChrome(
   return {
     plan: viewed.plan,
     version: viewed,
-    label: "Superseded",
+    label: "History",
     action: "back",
     note: "You are reading an earlier version. A later version replaced it.",
     replacesDraftId: null,
     acceptId: null,
   };
+}
+
+/**
+ * The status, version, and date printed for the plan on screen.
+ * A working preview has no recorded day. A stored version uses the day it was accepted, or the day it was saved.
+ */
+export function planVersionPrintLines(
+  chrome: DecisionPlanChrome,
+  formatDate: (value: string) => string,
+): PlanVersionPrintLines {
+  const recordedSource = chrome.version
+    ? (chrome.version.acceptedAt ?? chrome.version.createdAt)
+    : null;
+  const asOf = chrome.plan?.asOf ?? null;
+
+  return {
+    status: chrome.label,
+    version: chrome.version
+      ? `Version ${chrome.version.number}`
+      : "Working preview",
+    date: asOf ? `As of ${formatDate(asOf.slice(0, 10))}` : "Date unavailable",
+    recorded: recordedSource
+      ? `Recorded ${formatDate(recordedSource.slice(0, 10))}`
+      : null,
+  };
+}
+
+/**
+ * Where one ranked action can be reviewed or edited.
+ * The scenario bar already edits extra payments and windfalls, so those actions have no second control.
+ */
+export function decisionActionTarget(
+  kind: DecisionPlanActionKind,
+): DecisionActionTarget | null {
+  switch (kind) {
+    case "CoverCashShortfall":
+      return { label: "Review cash shortfall", view: "cash" };
+    case "AddStartingCash":
+    case "RefreshBalances":
+      return { label: "Review accounts", href: editorHref("/accounts") };
+    case "AddDebt":
+    case "FinishDebtTerms":
+      return { label: "Edit debts", href: editorHref("/debts") };
+    case "AddIncome":
+    case "HoldIncomeLoss":
+      return { label: "Edit income", href: editorHref("/income") };
+    case "PayFirstDebt":
+    case "UseFreedPayment":
+      return { label: "Review debt payoff", view: "debt" };
+    case "ConfirmBills":
+      return { label: "Edit bills", href: editorHref("/bills") };
+    case "SetFlexibleSpending":
+      return { label: "Edit living costs", href: editorHref("/living") };
+    case "ChooseCashToKeep":
+      return { label: "Edit savings", href: editorHref("/savings") };
+    default:
+      return null;
+  }
+}
+
+/**
+ * An editor route that returns to Plan.
+ * This matches the plan return query without importing the helper into this module.
+ */
+function editorHref(path: string) {
+  return `${path}?from=plan`;
 }
 
 /**

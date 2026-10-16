@@ -32,7 +32,7 @@ export function MobileShell({ children }: MobileShellProps) {
 
             <div className="flex items-center justify-end gap-1">
               <MobileHeaderActionsSlot />
-              <AccountMenu variant="header" />
+              <AccountMenu />
             </div>
           </div>
         </header>

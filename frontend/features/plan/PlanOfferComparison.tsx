@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, type RefObject } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,6 +17,7 @@ import type {
 } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import {
+  balanceTransferRateLimit,
   breakEvenSentence,
   comparisonAssumptions,
   costSentence,
@@ -24,6 +26,7 @@ import {
   offerKindHelp,
   offerNotApproved,
   offerNotRanked,
+  offerScope,
   opportunitySentence,
   opportunityWarns,
   paymentSentence,
@@ -33,6 +36,7 @@ import {
 } from "./restructuringCopy";
 import {
   debtSelectionBlock,
+  type RestructuringFieldErrors,
   type RestructuringFormState,
 } from "./restructuringRules";
 
@@ -53,6 +57,7 @@ type PlanOfferComparisonProps = {
   form: RestructuringFormState;
   comparison: RestructuringComparisonDto | null;
   error: string | null;
+  fieldErrors: RestructuringFieldErrors;
   isComparing: boolean;
   stale: boolean;
   onField: <Key extends keyof RestructuringFormState>(
@@ -73,6 +78,7 @@ export function PlanOfferComparison({
   form,
   comparison,
   error,
+  fieldErrors,
   isComparing,
   stale,
   onField,
@@ -80,6 +86,18 @@ export function PlanOfferComparison({
   onCompare,
 }: PlanOfferComparisonProps) {
   const money = (amount: number) => formatCurrency(amount, currency);
+  const resultRef = useRef<HTMLDivElement>(null);
+  const announced = useRef<RestructuringComparisonDto | null>(null);
+
+  useEffect(() => {
+    if (!comparison || isComparing || announced.current === comparison) {
+      return;
+    }
+
+    announced.current = comparison;
+    resultRef.current?.scrollIntoView({ block: "nearest" });
+    resultRef.current?.focus();
+  }, [comparison, isComparing]);
   const selectable = debts.some(
     (debt) => debtSelectionBlock(debt, currency) === null,
   );
@@ -88,7 +106,10 @@ export function PlanOfferComparison({
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <h2 className="app-section-title">Compare an offer</h2>
-        <p className="max-w-xl text-sm text-foreground">{offerNotApproved}</p>
+        <p className="max-w-xl text-sm text-foreground">{offerScope}</p>
+        <p className="max-w-xl text-sm text-muted-foreground">
+          {offerNotApproved}
+        </p>
       </div>
 
       {!selectable ? (
@@ -110,6 +131,7 @@ export function PlanOfferComparison({
 
       {comparison ? (
         <OfferResult
+          resultRef={resultRef}
           comparison={comparison}
           money={money}
           stale={stale}
@@ -123,6 +145,7 @@ export function PlanOfferComparison({
           currency={currency}
           form={form}
           error={error}
+          fieldErrors={fieldErrors}
           isComparing={isComparing}
           onField={onField}
           onToggleDebt={onToggleDebt}
@@ -148,11 +171,13 @@ export function PlanOfferComparison({
  * The comparison result. It states cost, payment, break-even, and cash without ranking the offer.
  */
 function OfferResult({
+  resultRef,
   comparison,
   money,
   stale,
   isComparing,
 }: {
+  resultRef: RefObject<HTMLDivElement | null>;
   comparison: RestructuringComparisonDto;
   money: (amount: number) => string;
   stale: boolean;
@@ -166,7 +191,12 @@ function OfferResult({
   const rows = comparisonRows(comparison, money);
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4">
+    <div
+      ref={resultRef}
+      tabIndex={-1}
+      aria-live="polite"
+      className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 focus:outline-none"
+    >
       {isComparing ? (
         <p className="text-sm text-foreground">
           Comparing these terms. The numbers are still the previous comparison.
@@ -178,6 +208,9 @@ function OfferResult({
           Compare offer again to update them.
         </p>
       ) : null}
+      <p className="text-sm text-foreground">
+        {paymentSentence(comparison, money)}
+      </p>
       {cost ? <p className="text-sm text-foreground">{cost}</p> : null}
       {unknown ? (
         <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
@@ -188,9 +221,17 @@ function OfferResult({
           <span>{unknown}</span>
         </p>
       ) : null}
-      <p className="text-sm text-foreground">
-        {paymentSentence(comparison, money)}
-      </p>
+      {warn ? (
+        <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
+          <TriangleAlert
+            className="mt-0.5 size-4 shrink-0"
+            aria-hidden="true"
+          />
+          <span>{opportunity}</span>
+        </p>
+      ) : (
+        <p className="text-sm text-foreground">{opportunity}</p>
+      )}
       <p className="text-sm font-medium text-foreground">{offerNotRanked}</p>
       <div className="flex flex-col gap-3">
         <div className="hidden gap-3 text-xs text-muted-foreground sm:grid sm:grid-cols-[9rem_1fr_1fr]">
@@ -227,17 +268,6 @@ function OfferResult({
         New balance {money(comparison.newPrincipal)}. Covered balance{" "}
         {money(comparison.coveredBalance)}.
       </p>
-      {warn ? (
-        <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
-          <TriangleAlert
-            className="mt-0.5 size-4 shrink-0"
-            aria-hidden="true"
-          />
-          <span>{opportunity}</span>
-        </p>
-      ) : (
-        <p className="text-sm text-foreground">{opportunity}</p>
-      )}
     </div>
   );
 }
@@ -250,6 +280,7 @@ function OfferForm({
   currency,
   form,
   error,
+  fieldErrors,
   isComparing,
   onField,
   onToggleDebt,
@@ -259,6 +290,7 @@ function OfferForm({
   currency: string;
   form: RestructuringFormState;
   error: string | null;
+  fieldErrors: RestructuringFieldErrors;
   isComparing: boolean;
   onField: PlanOfferComparisonProps["onField"];
   onToggleDebt: (debtId: string) => void;
@@ -314,6 +346,11 @@ function OfferForm({
             </label>
           );
         })}
+        {fieldErrors.debts ? (
+          <p role="alert" className="text-sm text-destructive">
+            {fieldErrors.debts}
+          </p>
+        ) : null}
       </fieldset>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -322,18 +359,26 @@ function OfferForm({
           label="APR"
           value={form.apr}
           suffix="%"
+          error={fieldErrors.apr}
+          help={
+            form.kind === "BalanceTransfer"
+              ? balanceTransferRateLimit
+              : undefined
+          }
           onChange={(value) => onField("apr", value)}
         />
         <TextField
           id="offer-term"
           label="Term in months"
           value={form.termMonths}
+          error={fieldErrors.termMonths}
           onChange={(value) => onField("termMonths", value)}
         />
         <TextField
           id="offer-fee"
           label="Fee"
           value={form.fee}
+          error={fieldErrors.fee}
           onChange={(value) => onField("fee", value)}
         />
         <div className="flex flex-col gap-1.5">
@@ -353,12 +398,18 @@ function OfferForm({
           label="Upfront cash"
           help="Paid from cash and applied to the new balance."
           value={form.upfrontCash}
+          error={fieldErrors.upfrontCash}
           onChange={(value) => onField("upfrontCash", value)}
         />
       </div>
 
-      {error ? (
-        <p role="alert" className="text-sm text-foreground">
+      {error &&
+      !fieldErrors.debts &&
+      !fieldErrors.apr &&
+      !fieldErrors.termMonths &&
+      !fieldErrors.fee &&
+      !fieldErrors.upfrontCash ? (
+        <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
       ) : null}
@@ -384,6 +435,7 @@ function TextField({
   help,
   value,
   suffix,
+  error,
   onChange,
 }: {
   id: string;
@@ -391,6 +443,7 @@ function TextField({
   help?: string;
   value: string;
   suffix?: string;
+  error?: string;
   onChange: (value: string) => void;
 }) {
   return (
@@ -402,6 +455,7 @@ function TextField({
           inputMode="decimal"
           className="min-h-11"
           value={value}
+          aria-invalid={error ? true : undefined}
           onChange={(event) => onChange(event.target.value)}
         />
         {suffix ? (
@@ -411,6 +465,11 @@ function TextField({
       {help ? (
         <span className="text-sm font-normal text-muted-foreground">
           {help}
+        </span>
+      ) : null}
+      {error ? (
+        <span role="alert" className="text-sm font-normal text-destructive">
+          {error}
         </span>
       ) : null}
     </label>

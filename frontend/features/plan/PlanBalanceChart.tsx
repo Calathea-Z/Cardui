@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Area,
   AreaChart,
@@ -25,6 +26,9 @@ type PlanBalanceChartProps = {
   bands: PlanBand[];
   rows: PlanBalanceRow[];
   currency: string;
+  scopeNote: string;
+  excludedCount: number;
+  repairHref: string;
   highlightedDebtId: string | null;
   onHighlight: (debtId: string | null) => void;
 };
@@ -37,7 +41,7 @@ type BalanceTooltipProps = {
 };
 
 /**
- * Tooltip for one month: the total owed, then each debt still open with its swatch, in payoff order.
+ * Tooltip for one month: the plotted total, then each debt still open with its swatch, in payoff order.
  * A paid-off debt is left out of that month's list.
  */
 function BalanceTooltip({
@@ -58,7 +62,7 @@ function BalanceTooltip({
         {formatMonthLabel(row.timestamp)}
       </p>
       <p className="ledger-amount mt-0.5 text-sm text-foreground">
-        {formatChartCurrency(row.total, currency)} owed
+        {formatChartCurrency(row.total, currency)} plotted
       </p>
       {open.length > 0 ? (
         <ul className="mt-2 flex flex-col gap-1 border-t border-border pt-2">
@@ -87,28 +91,40 @@ function BalanceTooltip({
 }
 
 /**
- * Stacked balance chart: one band per debt that pays off, so the top edge is the total owed.
- * Bands stack in payoff order with the first payoff on top, and each thins to nothing at its payoff.
+ * Stacked balance chart: one band per debt that pays off.
+ * The caption names the plotted subset. Bands stack in chronological payoff order, and each thins to nothing at its payoff.
  * Hovering a band, or the matching payoff row, dims the other bands. There is no entrance animation.
  */
 export function PlanBalanceChart({
   bands,
   rows,
   currency,
+  scopeNote,
+  excludedCount,
+  repairHref,
   highlightedDebtId,
   onHighlight,
 }: PlanBalanceChartProps) {
   const last = rows[rows.length - 1];
-  const label = `Projected balance of each debt that pays off, stacked in payoff order, from ${formatMonthLabel(rows[0].timestamp)} to ${formatMonthLabel(last.timestamp)}.`;
+  const label = `${scopeNote} From ${formatMonthLabel(rows[0].timestamp)} to ${formatMonthLabel(last.timestamp)}.`;
 
   return (
     <section className="app-panel p-4" aria-labelledby="plan-balance-title">
       <h2 id="plan-balance-title" className="app-section-title">
         Balances
       </h2>
-      <p className="app-section-meta">
-        The top edge is the total owed. Each band is one debt.
-      </p>
+      <p className="app-section-meta">{scopeNote}</p>
+      {excludedCount > 0 ? (
+        <p className="mt-2 text-sm text-foreground">
+          <Link
+            href={repairHref}
+            className="font-medium text-primary underline"
+          >
+            Fix debt terms
+          </Link>{" "}
+          to include a debt this chart leaves out.
+        </p>
+      ) : null}
       <div className="mt-3 h-55 md:h-72" role="img" aria-label={label}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart

@@ -29,25 +29,27 @@ export function usePlanScenario(baseline: PlanRecoveryDto) {
         setReport(baseline);
         setStatus("ready");
         setRequested(null);
-        return;
+        return true;
       }
 
       setStatus("updating");
       try {
         const next = await getPlanRecovery(scenario);
         if (request.current !== id) {
-          return;
+          return false;
         }
 
         setReport(next);
         setStatus("ready");
         setRequested(null);
+        return true;
       } catch {
         if (request.current !== id) {
-          return;
+          return false;
         }
 
         setStatus("error");
+        return false;
       }
     },
     [baseline],

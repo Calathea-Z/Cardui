@@ -1,7 +1,7 @@
 # Cardui documentation
 
 Status: Current
-Updated: 2026-10-15
+Updated: 2026-10-16
 
 ## Status
 
@@ -11,14 +11,18 @@ history. They do not say what is next.
 
 **Now**
 
-No review is waiting. Approved history stays in [`roadmap.md`](roadmap.md)
-and [`reviews/README.md`](reviews/README.md).
+[Working scenario and saved versions](reviews/2026-10-16-001-working-scenario-and-versions.md)
+was approved on October 16, 2026. [Plan navigation and cash-first Overview](reviews/2026-10-15-007-plan-navigation-and-safety.md)
+was approved on October 16, 2026. The [Phase 3 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+stays as written.
 
 **Next**
 
-1. Run the heavy QA and UX pass for Phase 3. Detail panel keyboard focus
-   stays tracked and is not scheduled. Unimplemented Planning UX proposals
-   stay unscheduled. Do not start Phase 4.
+1. Phase 3 UX increment 3: payoff-priority alternatives and partial reclaim,
+   from the [Phase 3 UX handoff](design/phase-3-ux-handoff.md). Review schema
+   needs before implementation and ask before any migration. Behavior QA
+   remains pending. This does not close Phase 3. Detail panel keyboard focus
+   remains tracked. Do not start Phase 4.
 
 **Tracked, not scheduled**
 
@@ -33,12 +37,15 @@ and [`reviews/README.md`](reviews/README.md).
 
 ## Map
 
+- [Phase 3 UX handoff](design/phase-3-ux-handoff.md): proposed workflow,
+  three reviewable increments, and the paste-ready Cursor prompt.
+
 | Path                                                                                             | What it is                                                                                                                                                 |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`roadmap.md`](roadmap.md)                                                                       | Product direction, the phase backlog, and what each phase built                                                                                            |
 | [`decisions/`](decisions/)                                                                       | Short decision records for product and architecture choices (listed below)                                                                                 |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md)                                 | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved                               |
-| [`design/plan-page.md`](design/plan-page.md)                                                     | Plan page design: Overview, Cash outlook, Debt payoff, Compare an offer, and Your plan. Your plan is approved                                               |
+| [`design/plan-page.md`](design/plan-page.md)                                                     | Plan page design: Overview, Try changes, and Your plan, with cash, debt, and offer as supporting views. The October 15 grouping is approved                    |
 | [`design/savings.md`](design/savings.md)                                                         | Savings design: cash to keep, an emergency goal, and named goals under Saving for. Monthly living spending is edited on Living                             |
 | [`design/living.md`](design/living.md)                                                           | Plan budget design at `/living`: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check                      |
 | [`design/allocation.md`](design/allocation.md)                                                   | Allocation setting: saved variable-income and windfall splits that can be reviewed and do not move money                                                    |
@@ -59,6 +66,7 @@ Decision records:
 - [0007. Historical Plan-first navigation](decisions/0007-plan-first-in-main-nav.md) — superseded by 0009
 - [0008. Forward-looking charts live on Plan](decisions/0008-forward-charts-on-plan.md)
 - [0009. Home, Accounts, Activity, then Plan](decisions/0009-home-accounts-activity-plan-order.md)
+- [0010. Plan setup and Settings](decisions/0010-plan-setup-and-settings.md)
 
 Setup is in the root [`README.md`](../README.md). Agent rules are in the
 root [`AGENTS.md`](../AGENTS.md) and `.cursor/rules/`.

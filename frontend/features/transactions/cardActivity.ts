@@ -1,3 +1,10 @@
+/**
+ * Shown on a card payment. Purchases are spending. The payment itself is not spending again.
+ * A debt balance kept by hand is not changed by this label.
+ */
+export const cardPaymentExplanation =
+  "Purchases count as spending. Paying the card is not spending again.";
+
 const cardPaymentPhrases = [
   "credit card payment",
   "credit card pymt",

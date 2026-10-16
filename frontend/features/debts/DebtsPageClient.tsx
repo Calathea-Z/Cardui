@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/navigation/page-header";
+import { PlanReturn } from "@/components/navigation/plan-return";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { usePlaidLinkFlow } from "@/features/plaid/usePlaidLinkFlow";
@@ -137,6 +138,7 @@ export function DebtsPageClient({
 
   return (
     <div className="flex flex-col gap-6">
+      <PlanReturn />
       <PageHeader
         title="Debts"
         actions={

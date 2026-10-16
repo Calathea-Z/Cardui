@@ -223,4 +223,7 @@ test("break-even, an unknown path, and upfront cash each stay explicit", () => {
   );
   assert.match(copy.opportunitySentence(cash, money), /investment return/);
   assert.match(copy.offerNotApproved, /does not treat them as approved/);
+  assert.match(copy.offerScope, /current minimum payments/);
+  assert.match(copy.offerScope, /not saved with Your plan/);
+  assert.match(copy.balanceTransferRateLimit, /whole term/);
 });

@@ -229,15 +229,21 @@ test("an unsaved preview offers save, and a matching draft offers accept", () =>
     plan: preview,
   };
 
-  const unsaved = view.decisionPlanChrome(preview, [], null);
-  assert.equal(unsaved.label, "Not saved");
+  const unsaved = view.decisionPlanChrome(preview, [], null, true);
+  assert.equal(unsaved.label, "Current facts");
   assert.equal(unsaved.action, "save");
   assert.equal(unsaved.replacesDraftId, null);
 
-  const open = view.decisionPlanChrome(preview, [draft], null);
-  assert.equal(open.label, "Draft");
+  const trying = view.decisionPlanChrome(preview, [], null, false);
+  assert.equal(trying.label, "Trying changes — not saved");
+  assert.equal(trying.action, "save");
+
+  const open = view.decisionPlanChrome(preview, [draft], null, true);
+  assert.equal(open.label, "Saved draft");
   assert.equal(open.action, "accept");
   assert.equal(open.acceptId, "draft");
+  assert.match(open.note, /replaces the accepted plan/);
+  assert.match(open.note, /history/);
 
   const changed = view.decisionPlanChrome(
     { ...preview, asOf: "2026-10-16" },
@@ -272,12 +278,26 @@ test("an accepted match prints, and a superseded version goes back to the previe
   };
   const old = { ...accepted, id: "old", number: 0, status: "Superseded" };
 
-  const current = view.decisionPlanChrome(preview, [accepted], null);
-  assert.equal(current.label, "Accepted");
+  const current = view.decisionPlanChrome(preview, [accepted], null, true);
+  assert.equal(current.label, "Accepted plan");
   assert.equal(current.action, "print");
 
   const history = view.decisionPlanChrome(preview, [accepted, old], "old");
-  assert.equal(history.label, "Superseded");
+  assert.equal(history.label, "History");
   assert.equal(history.action, "back");
   assert.match(history.note, /earlier version/);
+
+  const printed = view.planVersionPrintLines(history, date);
+  assert.equal(printed.status, "History");
+  assert.equal(printed.version, "Version 0");
+  assert.equal(printed.date, "As of 2026-10-15");
+  assert.equal(printed.recorded, "Recorded 2026-10-15");
+
+  const working = view.planVersionPrintLines(
+    view.decisionPlanChrome(null, [], null, false),
+    date,
+  );
+  assert.equal(working.status, "Trying changes — not saved");
+  assert.equal(working.version, "Working preview");
+  assert.equal(working.recorded, null);
 });

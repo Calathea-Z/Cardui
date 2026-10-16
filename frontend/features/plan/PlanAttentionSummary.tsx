@@ -1,27 +1,30 @@
 import Link from "next/link";
-import { CheckCircle2, ChevronRight, CircleAlert } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronRight, CircleAlert } from "lucide-react";
 import type { PlanFinishItem } from "./planCopy";
+import { planReturnHref } from "./planReturn";
 import type { PlanReadinessCopy } from "./planReadiness";
 
 type PlanAttentionSummaryProps = {
   readiness: PlanReadinessCopy;
   debtItems: PlanFinishItem[];
+  primaryKey: string;
 };
 
 /**
- * Summarizes Plan input quality without repeating the primary status warning.
- * Remaining issues, healthy inputs, and named debt blockers stay available in one closed disclosure.
+ * Lists the setup issues that are not already the safety action.
+ * Healthy checks stay out of this list. A view with no remaining issues renders nothing.
  */
 export function PlanAttentionSummary({
   readiness,
   debtItems,
+  primaryKey,
 }: PlanAttentionSummaryProps) {
-  const warningCount = readiness.rows.filter((row) => row.warning).length;
-  const healthyCount = readiness.rows.length - warningCount;
-  const remainingRows = readiness.rows.filter(
-    (row) => row.key !== readiness.next?.key,
+  const issues = readiness.rows.filter(
+    (row) => row.warning && row.key !== primaryKey,
   );
+  if (issues.length === 0 && debtItems.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -31,33 +34,21 @@ export function PlanAttentionSummary({
       <div className="app-panel-header px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <h2 id="plan-attention-title" className="app-section-title">
-            Attention
+            Other issues
           </h2>
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 text-xs font-medium",
-              warningCount > 0
-                ? "bg-warning/10 text-warning"
-                : "bg-muted text-foreground",
-            )}
-          >
-            {warningCount > 0
-              ? `${warningCount} ${warningCount === 1 ? "area" : "areas"}`
-              : "Ready"}
+          <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+            {issues.length + debtItems.length}
           </span>
         </div>
         <p className="app-section-meta">
-          {readiness.next
-            ? "The most important action is shown with your plan status."
-            : "The current inputs are ready for review."}
+          The next action above is the one to take first.
         </p>
       </div>
       <details className="group">
         <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
           <span>
-            Review {Math.max(warningCount - (readiness.next ? 1 : 0), 0)} other{" "}
-            {warningCount - (readiness.next ? 1 : 0) === 1 ? "issue" : "issues"}{" "}
-            and {healthyCount} healthy {healthyCount === 1 ? "input" : "inputs"}
+            Review {issues.length + debtItems.length}{" "}
+            {issues.length + debtItems.length === 1 ? "issue" : "issues"}
           </span>
           <ChevronRight
             aria-hidden
@@ -74,7 +65,7 @@ export function PlanAttentionSummary({
                 {debtItems.map((item) => (
                   <li key={item.key}>
                     <Link
-                      href="/debts"
+                      href={planReturnHref("/debts")}
                       className="flex min-h-11 items-start gap-2 rounded-md py-2 text-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                     >
                       <CircleAlert
@@ -96,23 +87,16 @@ export function PlanAttentionSummary({
             </div>
           ) : null}
           <ul className="divide-y divide-border/70">
-            {remainingRows.map((row) => (
+            {issues.map((row) => (
               <li
                 key={row.key}
                 className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-start sm:justify-between"
               >
                 <div className="flex min-w-0 items-start gap-2">
-                  {row.warning ? (
-                    <CircleAlert
-                      aria-hidden
-                      className="mt-0.5 size-4 shrink-0 text-warning"
-                    />
-                  ) : (
-                    <CheckCircle2
-                      aria-hidden
-                      className="mt-0.5 size-4 shrink-0 text-success"
-                    />
-                  )}
+                  <CircleAlert
+                    aria-hidden
+                    className="mt-0.5 size-4 shrink-0 text-warning"
+                  />
                   <div>
                     <p className="text-sm font-medium text-foreground">
                       {row.title}

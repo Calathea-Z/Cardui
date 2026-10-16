@@ -24,14 +24,28 @@ export type SpendablePiece = {
 };
 
 /**
+ * Whether the 30-day figure can be treated as a supported safety answer.
+ * `short` means cash after money set aside is below zero. `incomplete` means a required fact is missing.
+ * `limited` means something is left out or stale. `covered` means this window has none of those limits.
+ */
+export type SpendableStatus = "short" | "incomplete" | "limited" | "covered";
+
+/**
  * The copy for the spendable estimate.
- * `figure` is the amount that can be used. It is zero when the horizon is already short.
- * `leadsStatus` is true when the extra-payment warning should replace the payoff status.
+ * `figure` is the shortfall amount when the horizon is already short, and otherwise the amount that can be used.
+ * `lowestBalance` is the lowest point and its date. That date is not a first-gap date.
+ * `leadsStatus` is true when a new extra-payment warning should stay beside the result.
  * `guardrail` is null when the extra does not leave ordinary spending or near-term bills short.
  */
 export type SpendableCopy = {
+  status: SpendableStatus;
   sentence: string;
+  figureLabel: string;
   figure: string;
+  lowestBalance: string;
+  basis: string;
+  protectedMoney: string;
+  beforeExtra: string;
   shortfall: string | null;
   guardrail: string | null;
   guardrailOn: string | null;
@@ -44,8 +58,9 @@ export type SpendableCopy = {
 
 /**
  * Builds the spendable sentence, the extra-payment warning, and the freshness line.
- * The figure is the lowest cash left after reserved funds. It is not monthly income minus monthly bills.
- * A household with debts lets a new shortfall caused by the extra lead the page status.
+ * The figure is the shortfall when the lowest day is below zero, and otherwise the lowest cash left after reserved funds.
+ * It is not monthly income minus monthly bills, and it is calculated before any extra debt payment.
+ * The lowest-balance date is labeled as that low point. This estimate has no separate first-gap date to show.
  */
 export function spendableCopy(
   estimate: SpendableEstimateDto,
@@ -58,14 +73,29 @@ export function spendableCopy(
   const guardrail = guardrailSentence(estimate, money, date);
   const from = date(estimate.from);
   const through = date(estimate.through);
+  const shortAmount =
+    estimate.alreadyShort && estimate.lowestAvailable < 0
+      ? Math.abs(estimate.lowestAvailable)
+      : null;
   return {
+    status: spendableStatus(estimate, cash, debts),
     sentence: estimate.alreadyShort
-      ? `Nothing is left to spend from ${from} through ${through}. Cash after money set aside runs short on ${date(estimate.lowestOn)}. Only steady pay is counted, on its dates.`
+      ? `Cash after money set aside is short from ${from} through ${through}. The lowest balance is ${money(estimate.lowestAvailable)} on ${date(estimate.lowestOn)}. That date is the lowest balance in this window.`
       : `Lowest cash left after money set aside, from ${from} through ${through}. Dated bills, debt payments, and ordinary spending are already taken out. Only steady pay is counted. This is not a monthly surplus.`,
-    figure: money(estimate.spendable),
-    shortfall: estimate.alreadyShort
-      ? `${money(estimate.lowestAvailable)} on ${date(estimate.lowestOn)}`
-      : null,
+    figureLabel:
+      shortAmount === null
+        ? "Spendable before extra debt payments"
+        : "Shortfall",
+    figure: money(shortAmount ?? estimate.spendable),
+    lowestBalance: `${money(estimate.lowestAvailable)} on ${date(estimate.lowestOn)}`,
+    basis: `Steady pay only, before extra debt payments, from ${from} through ${through}.`,
+    protectedMoney: `Set aside ${money(estimate.reserved)}.`,
+    beforeExtra:
+      "This amount is calculated before any extra debt payment. It is not an after-extra result.",
+    shortfall:
+      shortAmount === null
+        ? null
+        : `${money(estimate.lowestAvailable)} on ${date(estimate.lowestOn)}`,
     guardrail,
     guardrailOn: estimate.guardrail.on ? date(estimate.guardrail.on) : null,
     leadsStatus:
@@ -84,8 +114,44 @@ export function spendableCopy(
     freshness: freshnessLine(cash, debts, date),
     uncertainties: estimate.uncertainties.map(uncertaintyLine),
     chartNote:
-      "Ending cash and the chart follow the cash outlook. That outlook counts every included paycheck. This estimate counts steady pay only.",
+      "The cash outlook counts every included paycheck and uses typical pay. This figure counts steady pay only.",
   };
+}
+
+/**
+ * Classifies the estimate so a missing fact is not shown as covered.
+ * A shortfall wins. Missing cash, steady pay, or ordinary spending is incomplete. Other exclusions or stale balances are limited.
+ */
+function spendableStatus(
+  estimate: SpendableEstimateDto,
+  cash: PlanCashOutlookDto,
+  debts: PlanDebtFactDto[],
+): SpendableStatus {
+  if (estimate.alreadyShort) {
+    return "short";
+  }
+
+  const missingFact = estimate.uncertainties.some(
+    (item) =>
+      item.kind === "NoReliableIncome" || item.kind === "OrdinarySpendingUnset",
+  );
+  if (missingFact || cash.startingCashAccountCount === 0) {
+    return "incomplete";
+  }
+
+  const staleDebt = debts.some(
+    (debt) => debt.freshness !== null && debt.freshness !== "Current",
+  );
+  if (
+    estimate.uncertainties.length > 0 ||
+    cash.startingCashStaleConnectedCount > 0 ||
+    cash.startingCashUnknownDateCount > 0 ||
+    staleDebt
+  ) {
+    return "limited";
+  }
+
+  return "covered";
 }
 
 /**

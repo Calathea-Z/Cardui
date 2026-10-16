@@ -32,6 +32,7 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## UX assessments
 
+- [2026-10-15 — Phase 3 UX review](2026-10-15-006-phase-3-ux-review.md) — Awaiting review
 - [2026-10-08 — Phase 2 product and UX audit](2026-10-08-006-phase-2-ux-audit.md) — Approved 2026-10-08
 - [2026-10-08 — Planning UX review](2026-10-08-003-planning-ux-review.md) — Approved 2026-10-08. The assessment is approved. Unimplemented proposals stay unscheduled
 
@@ -43,6 +44,8 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-16 — Working scenario and saved versions](2026-10-16-001-working-scenario-and-versions.md) — Approved 2026-10-16
+- [2026-10-15 — Plan navigation and cash-first Overview](2026-10-15-007-plan-navigation-and-safety.md) — Approved 2026-10-16
 - [2026-10-15 — Saved plan](2026-10-15-005-saved-plan.md) — Approved 2026-10-15
 - [2026-10-15 — Card purchases and payments](2026-10-15-004-card-activity.md) — Approved 2026-10-15
 - [2026-10-15 — Spendable estimates](2026-10-15-003-spendable-estimates.md) — Approved 2026-10-15

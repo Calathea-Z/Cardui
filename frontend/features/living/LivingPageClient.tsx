@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/navigation/page-header";
+import { PlanReturn } from "@/components/navigation/plan-return";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,7 @@ export function LivingPageClient({ page: initial }: LivingPageClientProps) {
 
   return (
     <div className="flex flex-col gap-6">
+      <PlanReturn />
       <PageHeader
         title="Plan budget"
         description="Choose how much pay enters the shared plan and one monthly amount for flexible living spending."

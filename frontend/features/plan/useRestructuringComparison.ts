@@ -8,6 +8,7 @@ import {
   initialRestructuringForm,
   readRestructuringForm,
   sameRestructuringForm,
+  type RestructuringFieldErrors,
   type RestructuringFormDebt,
   type RestructuringFormState,
 } from "./restructuringRules";
@@ -25,6 +26,7 @@ export function useRestructuringComparison() {
   const [comparedForm, setComparedForm] =
     useState<RestructuringFormState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<RestructuringFieldErrors>({});
   const [isComparing, setIsComparing] = useState(false);
 
   /**
@@ -36,6 +38,7 @@ export function useRestructuringComparison() {
     value: RestructuringFormState[Key],
   ) {
     setForm((current) => ({ ...current, [field]: value }));
+    setFieldErrors((current) => clearOfferField(current, field));
   }
 
   /**
@@ -48,6 +51,11 @@ export function useRestructuringComparison() {
         ? current.debtIds.filter((id) => id !== debtId)
         : [...current.debtIds, debtId],
     }));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next.debts;
+      return next;
+    });
   }
 
   /**
@@ -61,11 +69,13 @@ export function useRestructuringComparison() {
     const parsed = readRestructuringForm(form, debts, planningCurrency);
     if (!parsed.ok) {
       setError(parsed.error);
+      setFieldErrors(parsed.fields);
       return;
     }
 
     setIsComparing(true);
     setError(null);
+    setFieldErrors({});
     try {
       const next = await compareRestructuring(parsed.dto);
       setComparison(next);
@@ -86,10 +96,33 @@ export function useRestructuringComparison() {
     form,
     comparison,
     error,
+    fieldErrors,
     isComparing,
     stale,
     setField,
     toggleDebt,
     compare,
   };
+}
+
+/**
+ * Drops the message for the field that just changed.
+ * Other field messages stay until the next comparison.
+ */
+function clearOfferField(
+  errors: RestructuringFieldErrors,
+  field: keyof RestructuringFormState,
+): RestructuringFieldErrors {
+  if (
+    field !== "apr" &&
+    field !== "termMonths" &&
+    field !== "fee" &&
+    field !== "upfrontCash"
+  ) {
+    return errors;
+  }
+
+  const next = { ...errors };
+  delete next[field];
+  return next;
 }

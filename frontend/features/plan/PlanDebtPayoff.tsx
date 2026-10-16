@@ -12,6 +12,7 @@ import type {
 } from "./planChartSeries";
 import type { PlanAssumption } from "./planCopy";
 import type { PlanDebtMilestones } from "./planDebtSummary";
+import { planReturnHref } from "./planReturn";
 
 type PlanDebtPayoffProps = {
   kind: PayoffRolloverKind;
@@ -23,6 +24,9 @@ type PlanDebtPayoffProps = {
   owedShares: PlanOwedShare[];
   milestones: PlanDebtMilestones;
   assumptions: PlanAssumption[];
+  chartScopeNote: string;
+  excludedDebtCount: number;
+  cashShort: boolean;
   highlightedDebtId: string | null;
   pinnedDebtId: string | null;
   onHighlight: (debtId: string | null) => void;
@@ -31,6 +35,7 @@ type PlanDebtPayoffProps = {
 
 /**
  * Makes declining balances the primary debt view and keeps supporting composition, obligation, and assumption details optional.
+ * Payoff dates stay conditional while cash is short. The balance chart names debts it does not plot.
  */
 export function PlanDebtPayoff({
   kind,
@@ -42,6 +47,9 @@ export function PlanDebtPayoff({
   owedShares,
   milestones,
   assumptions,
+  chartScopeNote,
+  excludedDebtCount,
+  cashShort,
   highlightedDebtId,
   pinnedDebtId,
   onHighlight,
@@ -56,6 +64,12 @@ export function PlanDebtPayoff({
         <h2 id="debt-milestones-title" className="app-section-title">
           Payoff milestones
         </h2>
+        {cashShort ? (
+          <p className="mt-2 text-sm text-warning">
+            These payoff dates assume the cash shortfall is resolved. They are
+            not payment due dates.
+          </p>
+        ) : null}
         <dl className="mt-3 grid gap-3 sm:grid-cols-3">
           <div>
             <dt className="text-xs text-muted-foreground">Current minimums</dt>
@@ -90,6 +104,9 @@ export function PlanDebtPayoff({
             bands={bands}
             rows={balanceRows}
             currency={report.planningCurrency}
+            scopeNote={chartScopeNote}
+            excludedCount={excludedDebtCount}
+            repairHref={planReturnHref("/debts")}
             highlightedDebtId={highlightedDebtId}
             onHighlight={onHighlight}
           />

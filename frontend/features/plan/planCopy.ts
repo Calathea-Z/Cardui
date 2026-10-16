@@ -78,8 +78,8 @@ export function planAssumptions(
       term: "Order",
       detail:
         monthlyExtra > 0
-          ? `Highest interest rate first. ${money(monthlyExtra)} extra each month goes to the first debt that can take it.`
-          : "Highest interest rate first. No extra payment yet.",
+          ? `Highest interest rate first. ${money(monthlyExtra)} extra each month goes to the first debt that can take it. Who is paid first, not when each debt ends.`
+          : "Highest interest rate first. No extra payment yet. Who is paid first, not when each debt ends.",
     },
     {
       term: "Payments",
@@ -118,7 +118,7 @@ export function planAssumptions(
     {
       term: "Spendable",
       detail:
-        "The lowest cash left after set-aside money, dated bills, debt payments, and ordinary spending. Only steady pay counts.",
+        "The lowest cash left after set-aside money, before extra debt payments. Only steady pay counts.",
     },
     {
       term: "Low pay",
@@ -141,7 +141,7 @@ export function planAssumptions(
     {
       term: "Saved",
       detail: previewIsActive(monthlyExtra, scenario)
-        ? "A preview stays on the page until you leave. Save a version on Your plan to keep it."
+        ? "A preview stays in this browser until current facts are restored. Save a version on Your plan to keep it."
         : "Nothing on this page is a saved version. Your plan keeps one when you save it.",
     },
   ];
@@ -518,7 +518,7 @@ export function planSpendingLine(
  * Blank is the minimums-only plan. The amount is kept in the page until the user leaves.
  */
 export function planExtraHelp() {
-  return "Enter 0 for minimums only. The preview updates when you leave the field or press Enter.";
+  return "Enter 0 for minimums only. Update preview applies this with the other fields.";
 }
 
 /**
@@ -528,7 +528,7 @@ export function planExtraHelp() {
 export function planScenarioStatus(status: "updating" | "error") {
   return status === "updating"
     ? "Updating this preview. Results still show the previous forecast until it finishes."
-    : "This preview could not be applied. Results still show the previous forecast. Leave a field or press Enter to try again.";
+    : "This preview could not be applied. Results still show the previous forecast. Your edits are still here.";
 }
 
 /**

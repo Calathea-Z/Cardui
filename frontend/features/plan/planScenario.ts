@@ -1,5 +1,6 @@
 import { moneyDigits } from "@/features/accounts/formatCurrency";
-import type { PlanScenarioQuery } from "@/lib/api/types";
+import type { PayoffRolloverKind, PlanScenarioQuery } from "@/lib/api/types";
+import { parsePlanExtra } from "./planExtra";
 
 /**
  * A parsed optional money field.
@@ -173,6 +174,251 @@ function addMonths(date: Date, months: number) {
   ).getUTCDate();
   const day = Math.min(date.getUTCDate(), lastDay);
   return new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), day));
+}
+
+/**
+ * Whether living costs or the cash floor use the saved amount or an entered amount.
+ * Saved is explicit. An entered amount includes zero, so blank is not a hidden zero.
+ */
+export type ScenarioAmountChoice = "saved" | "amount";
+
+/**
+ * The working scenario before Update preview sends it.
+ * Text stays as entered so a failed update can keep it.
+ */
+export type ScenarioDraft = {
+  monthlyExtra: string;
+  incomeLossMonths: string;
+  windfallAmount: string;
+  windfallOn: string;
+  livingChoice: ScenarioAmountChoice;
+  livingAmount: string;
+  floorChoice: ScenarioAmountChoice;
+  floorAmount: string;
+  kind: PayoffRolloverKind;
+};
+
+/**
+ * Which fields cannot be sent yet.
+ * Null means that field is valid. Update preview sends nothing until every field is null.
+ */
+export type ScenarioDraftErrors = {
+  monthlyExtra: "extra" | null;
+  incomeLossMonths: "months" | null;
+  windfall: "windfall" | null;
+  living: "living-empty" | "living-invalid" | "living-unset" | null;
+  floor: "floor-empty" | "floor-invalid" | null;
+};
+
+/**
+ * No field errors. A successful read clears the previous ones.
+ */
+export const emptyScenarioDraftErrors: ScenarioDraftErrors = {
+  monthlyExtra: null,
+  incomeLossMonths: null,
+  windfall: null,
+  living: null,
+  floor: null,
+};
+
+/**
+ * The preview that keeps saved spending, the saved floor, and minimum payments.
+ * Rollover is the current-facts payoff behavior.
+ */
+export function currentFactsScenario(): PlanScenarioQuery {
+  return {
+    monthlyExtra: 0,
+    incomeLossMonths: 0,
+    windfallAmount: 0,
+    windfallOn: null,
+    livingSpendingMonthly: null,
+    cashFloor: null,
+  };
+}
+
+/**
+ * True when the applied preview is still current facts.
+ * A different payoff behavior is a change even when the amounts match the saved plan.
+ */
+export function isCurrentFacts(
+  scenario: PlanScenarioQuery,
+  kind: PayoffRolloverKind,
+) {
+  return isSavedPlanScenario(scenario) && kind === "Rollover";
+}
+
+/**
+ * Builds the draft shown for an applied preview.
+ * Saved spending and floor stay on "Use saved amount". Zero extra and zero months are shown as digits.
+ */
+export function draftFromApplied(
+  scenario: PlanScenarioQuery,
+  kind: PayoffRolloverKind,
+): ScenarioDraft {
+  return {
+    monthlyExtra: String(scenario.monthlyExtra),
+    incomeLossMonths: String(scenario.incomeLossMonths),
+    windfallAmount:
+      scenario.windfallAmount > 0 ? String(scenario.windfallAmount) : "0",
+    windfallOn: scenario.windfallOn ?? "",
+    livingChoice: scenario.livingSpendingMonthly === null ? "saved" : "amount",
+    livingAmount:
+      scenario.livingSpendingMonthly === null
+        ? ""
+        : String(scenario.livingSpendingMonthly),
+    floorChoice: scenario.cashFloor === null ? "saved" : "amount",
+    floorAmount: scenario.cashFloor === null ? "" : String(scenario.cashFloor),
+    kind,
+  };
+}
+
+/**
+ * The draft for current facts.
+ */
+export function currentFactsDraft(): ScenarioDraft {
+  return draftFromApplied(currentFactsScenario(), "Rollover");
+}
+
+/**
+ * Reads every working-scenario field together.
+ * One invalid field rejects the whole update. `savedLiving` blocks an amount when no flexible spending is saved.
+ */
+export function readScenarioDraft(
+  draft: ScenarioDraft,
+  asOf: string,
+  savedLiving: number,
+):
+  | { ok: true; scenario: PlanScenarioQuery; kind: PayoffRolloverKind }
+  | { ok: false; errors: ScenarioDraftErrors } {
+  const errors = { ...emptyScenarioDraftErrors };
+  const monthlyExtra = parsePlanExtra(draft.monthlyExtra);
+  if (monthlyExtra === null) {
+    errors.monthlyExtra = "extra";
+  }
+
+  const incomeLossMonths = parseIncomeLossMonths(draft.incomeLossMonths);
+  if (incomeLossMonths === null) {
+    errors.incomeLossMonths = "months";
+  }
+
+  const forecastEnd = planForecastEnd(asOf);
+  const windfall = forecastEnd
+    ? parseWindfall(draft.windfallAmount, draft.windfallOn, asOf, forecastEnd)
+    : null;
+  if (!windfall) {
+    errors.windfall = "windfall";
+  }
+
+  let livingSpendingMonthly: number | null = null;
+  if (draft.livingChoice === "amount") {
+    if (savedLiving <= 0) {
+      errors.living = "living-unset";
+    } else {
+      const living = parseScenarioAmount(draft.livingAmount);
+      if (living.state === "empty") {
+        errors.living = "living-empty";
+      } else if (living.state === "invalid") {
+        errors.living = "living-invalid";
+      } else {
+        livingSpendingMonthly = living.amount;
+      }
+    }
+  }
+
+  let cashFloor: number | null = null;
+  if (draft.floorChoice === "amount") {
+    const floor = parseScenarioAmount(draft.floorAmount);
+    if (floor.state === "empty") {
+      errors.floor = "floor-empty";
+    } else if (floor.state === "invalid") {
+      errors.floor = "floor-invalid";
+    } else {
+      cashFloor = floor.amount;
+    }
+  }
+
+  if (
+    errors.monthlyExtra ||
+    errors.incomeLossMonths ||
+    errors.windfall ||
+    errors.living ||
+    errors.floor ||
+    monthlyExtra === null ||
+    incomeLossMonths === null ||
+    !windfall
+  ) {
+    return { ok: false, errors };
+  }
+
+  return {
+    ok: true,
+    kind: draft.kind,
+    scenario: {
+      monthlyExtra,
+      incomeLossMonths,
+      windfallAmount: windfall.amount,
+      windfallOn: windfall.on,
+      livingSpendingMonthly,
+      cashFloor,
+    },
+  };
+}
+
+/**
+ * True when the draft would send the preview already on screen.
+ * An invalid draft does not match, so it cannot be saved as that preview.
+ */
+export function draftMatchesApplied(
+  draft: ScenarioDraft,
+  applied: PlanScenarioQuery,
+  kind: PayoffRolloverKind,
+  asOf: string,
+  savedLiving: number,
+) {
+  const read = readScenarioDraft(draft, asOf, savedLiving);
+  if (!read.ok || read.kind !== kind) {
+    return false;
+  }
+
+  return sameScenarioQuery(read.scenario, applied);
+}
+
+/**
+ * True when Your plan may save the working scenario.
+ * Updating, a failed update, and edits that are not in the preview cannot be saved.
+ */
+export function canSaveWorkingScenario(input: {
+  status: "ready" | "updating" | "error";
+  draft: ScenarioDraft;
+  applied: PlanScenarioQuery;
+  kind: PayoffRolloverKind;
+  asOf: string;
+  savedLiving: number;
+}) {
+  return (
+    input.status === "ready" &&
+    draftMatchesApplied(
+      input.draft,
+      input.applied,
+      input.kind,
+      input.asOf,
+      input.savedLiving,
+    )
+  );
+}
+
+/**
+ * True when two previews would request the same recovery.
+ */
+function sameScenarioQuery(left: PlanScenarioQuery, right: PlanScenarioQuery) {
+  return (
+    left.monthlyExtra === right.monthlyExtra &&
+    left.incomeLossMonths === right.incomeLossMonths &&
+    left.windfallAmount === right.windfallAmount &&
+    left.windfallOn === right.windfallOn &&
+    left.livingSpendingMonthly === right.livingSpendingMonthly &&
+    left.cashFloor === right.cashFloor
+  );
 }
 
 /**

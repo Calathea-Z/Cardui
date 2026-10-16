@@ -77,7 +77,11 @@ test("names the horizon and refuses to call the lowest day a monthly surplus", (
   assert.match(copy.sentence, /2026-10-15/);
   assert.match(copy.sentence, /2026-11-13/);
   assert.match(copy.sentence, /not a monthly surplus/);
+  assert.equal(copy.figureLabel, "Spendable before extra debt payments");
   assert.equal(copy.figure, "$50.00");
+  assert.equal(copy.status, "covered");
+  assert.match(copy.basis, /Steady pay only/);
+  assert.match(copy.basis, /before extra debt payments/);
   assert.equal(copy.guardrail, null);
   assert.equal(copy.leadsStatus, false);
   assert.equal(copy.pieces[0].value, "$1000.00");
@@ -99,8 +103,12 @@ test("says nothing is spendable when the lowest day is already short", () => {
     date,
   );
 
-  assert.match(copy.sentence, /Nothing is left to spend/);
-  assert.equal(copy.figure, "$0.00");
+  assert.match(copy.sentence, /lowest balance/i);
+  assert.doesNotMatch(copy.sentence, /runs short on/);
+  assert.equal(copy.status, "short");
+  assert.equal(copy.figureLabel, "Shortfall");
+  assert.equal(copy.figure, "$300.00");
+  assert.equal(copy.lowestBalance, "$-300.00 on 2026-10-20");
   assert.equal(copy.shortfall, "$-300.00 on 2026-10-20");
 });
 
@@ -175,6 +183,7 @@ test("names variable pay and unset ordinary spending as uncertainties", () => {
     "Ordinary spending is not set, so this estimate may be high.",
   ]);
   assert.equal(copy.leadsStatus, false);
+  assert.equal(copy.status, "incomplete");
   assert.match(copy.freshness, /No active cash account/);
   assert.match(copy.chartNote, /steady pay only/);
 });

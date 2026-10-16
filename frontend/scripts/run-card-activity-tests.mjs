@@ -26,7 +26,7 @@ async function loadRules() {
   return import(pathToFileURL(compiledPath).href);
 }
 
-const { isCardPaymentActivity } = await loadRules();
+const { isCardPaymentActivity, cardPaymentExplanation } = await loadRules();
 
 test("a card purchase is not a payment", () => {
   assert.equal(
@@ -108,4 +108,9 @@ test("a mortgage and an electric autopay stay spending", () => {
     }),
     false,
   );
+});
+
+test("a card payment explains that the purchase was already spending", () => {
+  assert.match(cardPaymentExplanation, /Purchases count as spending/);
+  assert.match(cardPaymentExplanation, /not spending again/);
 });

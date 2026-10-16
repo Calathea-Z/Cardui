@@ -92,4 +92,24 @@ test("the review says the rule does not move money", () => {
   );
   assert.match(copy.allocationStatusSentence(false), /No rule is saved yet/);
   assert.match(copy.allocationStatusSentence(true), /does not move money/);
+  assert.match(
+    copy.allocationExampleSentence("$100.00", "$40.00", "$30.00", "$30.00"),
+    /Example, not your money/,
+  );
+  assert.match(copy.allocationEditSentence(true, true), /Unsaved changes/);
+  assert.equal(
+    rules.allocationDraftDiffers(
+      {
+        variableIncomeDebtPercent: "40",
+        variableIncomeSavingsPercent: "30",
+        windfallDebtPercent: "0",
+        windfallSavingsPercent: "0",
+      },
+      {
+        variableIncome: { debtPercent: 0, savingsPercent: 0 },
+        windfall: { debtPercent: 0, savingsPercent: 0 },
+      },
+    ),
+    true,
+  );
 });

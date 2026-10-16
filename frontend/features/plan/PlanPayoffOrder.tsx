@@ -33,7 +33,9 @@ export function PlanPayoffOrder({
           Payoff order
         </h2>
         <p className="app-section-meta">
-          Select a debt to highlight its band in the balance chart.
+          Chronological payoff order: when each debt is paid off. Payment
+          priority, who receives extra and rolled payments first, is separate
+          and is shown on Overview.
         </p>
       </div>
       <ol className="divide-y divide-border/70">

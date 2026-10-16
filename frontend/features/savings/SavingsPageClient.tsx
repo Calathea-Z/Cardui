@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/navigation/page-header";
+import { PlanReturn } from "@/components/navigation/plan-return";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/features/accounts/formatCurrency";
@@ -79,6 +80,7 @@ export function SavingsPageClient({
 
   return (
     <div className="flex flex-col gap-6">
+      <PlanReturn />
       <PageHeader
         title="Savings"
         description="Protect a cash floor, then add emergency or named goals. These amounts stay in cash; saving a goal does not move money."

@@ -13,6 +13,18 @@ export const offerNotApproved =
   "These are terms you enter. Cardui does not treat them as approved, and it does not apply or move money.";
 
 /**
+ * What the comparison includes. It is not part of the working scenario or a saved plan.
+ */
+export const offerScope =
+  "This compares current minimum payments. It leaves out any extra payment in the working scenario, and it is not saved with Your plan.";
+
+/**
+ * Shown beside a balance-transfer rate. The entered rate does not change later in the comparison.
+ */
+export const balanceTransferRateLimit =
+  "The rate you enter is used for the whole term. A promotional rate that changes later is not modeled.";
+
+/**
  * Shown with every comparison. A lower payment is not a rank.
  */
 export const offerNotRanked =

@@ -8,8 +8,7 @@ export type NavItem = {
 
 /**
  * Primary destinations in sidebar and tab-bar order.
- * Home, Accounts, and Activity come first; Plan is fourth. Income,
- * Bills, Debts, Plan budget, Savings, Allocation, and Spending targets stay routes under settings.
+ * Home, Accounts, and Activity come first; Plan is fourth.
  */
 export const navItems: NavItem[] = [
   {
@@ -31,11 +30,44 @@ export const navItems: NavItem[] = [
 ];
 
 /**
- * Destinations in the account block.
- * These stay off the primary nav. Plan budget keeps the approved `/living`
- * route, and Spending targets keeps `/targets`.
+ * Compact secondary destinations.
+ * Plan setup groups the existing editors. Settings keeps the remaining household tools.
  */
-export const settingsItems: NavItem[] = [
+export const secondaryNavItems: NavItem[] = [
+  {
+    label: "Plan setup",
+    href: "/plan/setup",
+  },
+  {
+    label: "Settings",
+    href: "/settings",
+  },
+];
+
+/**
+ * Tools that stay in Settings.
+ * Spending targets is reached from Activity. Connections is also reached from Accounts.
+ */
+export const settingsDestinations: NavItem[] = [
+  {
+    label: "Categories",
+    href: "/categories",
+  },
+  {
+    label: "Connections",
+    href: "/connections",
+  },
+  {
+    label: "Household",
+    href: "/household",
+  },
+];
+
+/**
+ * Existing editor routes grouped by Plan setup.
+ * The routes stay. This list does not merge their data.
+ */
+export const setupEditorItems: NavItem[] = [
   {
     label: "Income",
     href: "/income",
@@ -60,37 +92,6 @@ export const settingsItems: NavItem[] = [
     label: "Allocation",
     href: "/allocation",
   },
-  {
-    label: "Spending targets",
-    href: "/targets",
-  },
-  {
-    label: "Categories",
-    href: "/categories",
-  },
-  {
-    label: "Connections",
-    href: "/connections",
-  },
-  {
-    label: "Household",
-    href: "/household",
-  },
-];
-
-/**
- * Visual groups for the existing account-menu destinations.
- * They do not add routes or change the approved primary navigation.
- */
-export const settingsGroups = [
-  {
-    label: "Plan inputs",
-    items: settingsItems.slice(0, 6),
-  },
-  {
-    label: "Tracking and data",
-    items: settingsItems.slice(6),
-  },
 ];
 
 /**
@@ -101,17 +102,26 @@ export const bottomNavItems = navItems;
 
 /**
  * Nav item for the current path.
- * The path `/` matches the `/` item. Any other path matches the first primary
- * or settings item with a non-root href that pathname starts with.
+ * `/plan` matches only that page. `/plan/setup` matches Plan setup.
+ * Editor routes match their setup item. Settings tools match Settings destinations.
  */
 export function getActiveNavItem(pathname: string): NavItem | undefined {
-  const items = [...navItems, ...settingsItems];
-
   if (pathname === "/") {
-    return items.find((item) => item.href === "/");
+    return navItems.find((item) => item.href === "/");
   }
 
-  return items.find(
-    (item) => item.href !== "/" && pathname.startsWith(item.href),
+  if (pathname === "/plan" || pathname.startsWith("/plan?")) {
+    return navItems.find((item) => item.href === "/plan");
+  }
+
+  const specific = [
+    ...secondaryNavItems,
+    ...settingsDestinations,
+    ...setupEditorItems,
+    ...navItems.filter((item) => item.href !== "/"),
+  ];
+
+  return specific.find(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   );
 }

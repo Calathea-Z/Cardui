@@ -11,15 +11,13 @@ type PlanTabsProps = {
 
 const labels: Record<PlanTab, string> = {
   overview: "Overview",
-  cash: "Cash outlook",
-  debt: "Debt payoff",
-  offer: "Compare an offer",
+  changes: "Try changes",
   decision: "Your plan",
 };
 
 /**
- * Switches among the Plan views without changing the shared scenario or the offer comparison.
- * Arrow keys wrap, while Home and End move to the first and last tab.
+ * Switches among Overview, Try changes, and Your plan.
+ * Cash, debt, and offer stay off this bar so the phone keeps one row. Arrow keys wrap, and Home and End move to the ends.
  */
 export function PlanTabs({ value, onChange }: PlanTabsProps) {
   const buttons = useRef<Partial<Record<PlanTab, HTMLButtonElement | null>>>(
@@ -53,7 +51,7 @@ export function PlanTabs({ value, onChange }: PlanTabsProps) {
       <div
         role="tablist"
         aria-label="Plan views"
-        className="grid w-full grid-cols-2 rounded-lg border border-border bg-muted p-0.5 md:flex md:w-fit md:flex-wrap"
+        className="grid w-full grid-cols-3 rounded-lg border border-border bg-muted p-0.5 md:flex md:w-fit"
       >
         {planTabs.map((tab) => {
           const selected = tab === value;
@@ -72,7 +70,7 @@ export function PlanTabs({ value, onChange }: PlanTabsProps) {
               onClick={() => onChange(tab)}
               onKeyDown={handleKeyDown}
               className={cn(
-                "min-h-11 rounded-md px-2 text-sm font-medium transition-colors motion-reduce:transition-none md:min-h-9 md:px-4",
+                "min-h-11 rounded-md px-1.5 text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none md:min-h-9 md:px-4",
                 "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
                 selected
                   ? "border border-border bg-card text-foreground shadow-xs"

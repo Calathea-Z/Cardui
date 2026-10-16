@@ -217,6 +217,35 @@ export function balanceChart(
 }
 
 /**
+ * How many debts the balance chart draws, and how many it leaves out.
+ * Plotted debts are the ones with a payoff step. Excluded debts are blocked on the path or missing a balance.
+ * The note does not call the top edge the total owed.
+ */
+export function balanceChartScope(
+  path: PlanRecoveryPathDto,
+  missingBalanceCount: number,
+) {
+  const plotted = path.steps.length;
+  const blocked = path.debts.filter((debt) => debt.stop !== "PaidOff").length;
+  const excluded = blocked + missingBalanceCount;
+  const plottedText =
+    plotted === 1
+      ? "1 debt with a projected payoff"
+      : `${plotted} debts with a projected payoff`;
+  const excludedText =
+    excluded === 0
+      ? "No saved debt is left out of this chart."
+      : excluded === 1
+        ? "1 debt is not plotted."
+        : `${excluded} debts are not plotted.`;
+  return {
+    plotted,
+    excluded,
+    note: `Includes ${plottedText}. ${excludedText} The top edge is those plotted balances.`,
+  };
+}
+
+/**
  * Builds the minimums and breathing room step chart.
  * It starts the month before the first payment at today's known minimums and no room. Each removal date lowers the minimums
  * by that debt's minimum and sets the room to the breathing room after that step. A last row a month later keeps the final level visible.

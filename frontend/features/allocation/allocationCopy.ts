@@ -45,6 +45,36 @@ export function windfallSentence(
 }
 
 /**
+ * A labeled example of one split.
+ * The amount is synthetic. It is not the household's pay or windfall.
+ */
+export function allocationExampleSentence(
+  amount: string,
+  debt: string,
+  savings: string,
+  cash: string,
+): string {
+  return `Example, not your money: ${amount} would be ${debt} debt, ${savings} savings, and ${cash} stays available.`;
+}
+
+/**
+ * Says whether the fields match the stored preference.
+ * Unsaved edits stay distinct from a saved rule.
+ */
+export function allocationEditSentence(
+  isSaved: boolean,
+  dirty: boolean,
+): string {
+  if (dirty) {
+    return isSaved
+      ? "Unsaved changes. The saved preference stays until you save."
+      : "Unsaved changes. No preference is saved yet.";
+  }
+
+  return allocationStatusSentence(isSaved);
+}
+
+/**
  * Says whether a rule is stored.
  * An unsaved page still shows zeros, and those zeros are not a saved choice.
  */

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { PageHeader } from "@/components/navigation/page-header";
+import { PlanReturn } from "@/components/navigation/plan-return";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { BillForm } from "./BillForm";
@@ -70,6 +71,7 @@ export function BillsPageClient({
 
   return (
     <div className="flex flex-col gap-6">
+      <PlanReturn />
       <PageHeader
         title="Bills"
         actions={

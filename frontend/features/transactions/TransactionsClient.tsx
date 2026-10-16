@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/components/navigation/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,19 @@ export function TransactionsClient({
             </div>
           }
         />
+
+        <p className="text-sm text-muted-foreground">
+          <Link href="/targets" className="font-medium text-primary underline">
+            Spending targets
+          </Link>
+          <span aria-hidden> · </span>
+          <Link
+            href="/categories"
+            className="font-medium text-primary underline"
+          >
+            Categories
+          </Link>
+        </p>
 
         <TransactionsFilters
           query={query}

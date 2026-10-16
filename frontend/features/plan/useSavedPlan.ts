@@ -24,6 +24,8 @@ export function useSavedPlan(
   scenario: PlanScenarioQuery,
   kind: PayoffRolloverKind,
   enabled: boolean,
+  matchesCurrentFacts: boolean,
+  allowSave: boolean,
 ) {
   const [preview, setPreview] = useState<DecisionPlanDto | null>(null);
   const [versions, setVersions] = useState<PlanVersionDto[]>([]);
@@ -88,8 +90,8 @@ export function useSavedPlan(
   }, [enabled, load]);
 
   const chrome = useMemo(
-    () => decisionPlanChrome(preview, versions, viewedId),
-    [preview, versions, viewedId],
+    () => decisionPlanChrome(preview, versions, viewedId, matchesCurrentFacts),
+    [matchesCurrentFacts, preview, versions, viewedId],
   );
 
   /**
@@ -97,6 +99,10 @@ export function useSavedPlan(
    * A stale draft asks the person to review the plan again.
    */
   async function save() {
+    if (!allowSave) {
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
     try {

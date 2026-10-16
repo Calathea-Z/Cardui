@@ -3,10 +3,14 @@
 Status: Current design record. The original recovery and cash views are
 approved. The implemented three-view refinement is approved. The offer
 comparison is approved. Spendable estimates are approved. Saved versions
-and the plain-language plan are approved. Broader redesign proposals are
-not approved.
+and the plain-language plan are approved. The October 15 navigation and
+cash-first Overview change is approved in
+[`2026-10-15-007-plan-navigation-and-safety.md`](../reviews/2026-10-15-007-plan-navigation-and-safety.md).
+Increment 2, the working scenario and saved-version clarity, is approved in
+[`2026-10-16-001-working-scenario-and-versions.md`](../reviews/2026-10-16-001-working-scenario-and-versions.md).
+Increment 3 of the Phase 3 UX handoff is not implemented.
 Date: October 7, 2026
-Updated: 2026-10-15
+Updated: 2026-10-16
 
 This document records page-specific Plan choices. It is not a universal page
 template. Shared hierarchy, responsive, warning, chart, action, and
@@ -33,8 +37,14 @@ Forward-looking charts still live on Plan. Home keeps historical results. See
   cash points and 6, 12, and 18 month cash summaries. It does not invent
   intermediate points for the longer horizons.
 - The extra monthly amount, payoff behavior, income loss, windfall, flexible
-  spending, and cash floor are temporary scenarios until they are saved on
-  Your plan. The page does not schedule a payment or move money.
+  spending, and cash floor are one working scenario above the Plan views.
+  Update preview applies the valid fields together. Reset restores current
+  facts. A failed update keeps the entered fields and the previous result,
+  and that uncalculated draft cannot be saved. The last applied preview
+  stays in this browser session, so opening a setup editor and returning
+  restores it. An offer comparison stays on the Plan page and is not part
+  of that preview or of a saved version. The page does not schedule a
+  payment or move money.
 - Your plan keeps one draft and one accepted version for the household.
   Older copies stay as superseded versions. A saved version is the facts,
   assumptions, priorities, scenario, actions, milestones, and review
@@ -45,69 +55,113 @@ Forward-looking charts still live on Plan. Home keeps historical results. See
 
 ## Current implemented layout
 
-Plan has five tabs in one component tree: **Overview**, **Cash outlook**,
-**Debt payoff**, **Compare an offer**, and **Your plan**. Overview is the
-default. The selected payoff behavior, extra payment, cash timeframe,
-highlighted debt, and offer form stay in the page-level state, so changing
-tabs or widths does not reset them. Only the selected tab's analysis
-renders. Overview, Cash outlook, Debt payoff, and Compare an offer are the
-approved layout. Your plan is approved in
+Plan has three primary views in one component tree: **Overview**, **Try
+changes**, and **Your plan**. Overview is the default. Cash outlook and
+Debt payoff are supporting details opened from Overview or from a scenario
+result. Compare an offer is an optional tool opened from Try changes. The
+origin view stays selected, and Back returns to it. The working scenario sits above those views. The selected payoff
+behavior, extra payment, cash timeframe, highlighted debt, and offer form
+stay in the page-level state, so changing views or widths does not reset
+them. Only the open view renders. Your plan is approved in
 [`2026-10-15-005-saved-plan.md`](../reviews/2026-10-15-005-saved-plan.md).
+This grouping is approved in
+[`2026-10-15-007-plan-navigation-and-safety.md`](../reviews/2026-10-15-007-plan-navigation-and-safety.md).
 
 ### Overview
 
-1. **Combined status and next action.** The dated cash result controls the
-   primary answer. A first cash shortfall leads with **Review shortfall**.
-   An extra payment that newly leaves ordinary spending or a near-term bill
-   or debt payment short leads with that warning instead. Any payoff date is
-   explicitly conditional while cash or available cash after protected
-   savings runs short. When the plan is affordable, payoff remains the
-   secondary result and the action opens Debt payoff.
-2. **Try a scenario.** One disclosure groups **Roll payments forward**,
-   **Free up cash**, the extra monthly payment, months without pay, a
-   one-time windfall, flexible spending, and cash to keep. Its closed summary
-   names the applied strategy and preview. Updating or failed requests say the
-   visible forecast is still the previous one.
-3. **Spendable.** The question is how much can be used through the next 30
-   days without spending money set aside. The figure is the lowest cash left
-   after dated bills, debt payments, and ordinary spending, counting only
-   steady pay. It is not a monthly surplus. The horizon dates, the balance
-   freshness, and anything left out stay visible. Steady pay, bills and debt
-   payments, ordinary spending, and the amount set aside sit under the figure
-   so the dated pieces can be read beside the lowest day. Ending cash, the
-   lowest cash balance, and the daily chart stay underneath and are named as
-   the cash outlook, which still counts every included paycheck.
-4. **Attention.** The primary issue is already in the status. A compact
-   count opens to the other warning areas, healthy inputs, named debt
-   blockers, freshness, exclusions, and links to the existing editors.
+The question is whether the next 30 days are covered. The answer is the
+steady-pay safety figure, then one next action, then a short debt outlook.
 
-On a wide screen, spendable and its chart sit beside the narrower Attention
-panel. On a phone, status and its action come first, then the scenario
-disclosure, spendable, and collapsed attention details. A household with no
-debts still sees spendable, then the prompt to add a debt.
+1. **Safety.** The figure is labeled **Spendable before extra debt
+   payments** when the window is not already short. When the lowest balance
+   after money set aside is below zero, the figure is that shortfall amount,
+   labeled **Shortfall**. The basis line says steady pay only, before extra
+   debt payments, and names the horizon. Protected money, balance freshness,
+   and material missing or stale facts stay beside the answer. A missing
+   required fact is an incomplete estimate, not a covered window. The
+   lowest-balance date is named as the lowest point in the window. This
+   estimate has no separate first-gap date, and the page does not invent
+   one. The typical-pay cash chart is not on this view.
+2. **Next action.** One action sits under the safety answer. A shortfall
+   opens the cash outlook. Missing cash, steady pay, debt terms, or living
+   costs open that existing editor and return to Plan. A covered window
+   with debts offers **Try a change**. Other issues stay as a count that
+   opens the remaining warnings and debt blockers. Healthy checks stay quiet.
+3. **Debt outlook.** A short row names the next payment priority, the first
+   expected payoff, and whether that payment becomes available or is
+   redirected. Payment priority is who an extra or rolled payment follows.
+   Payoff order is when each minimum is expected to end. A payoff date is
+   explicitly conditional while this cash window is short, the extra-payment
+   guardrail is active, or the typical-pay or protected-cash outlook is
+   short. It is not presented as a due date.
+
+An extra payment that newly leaves ordinary spending or a near-term bill or
+debt payment short stays beside this result and says the figure is
+calculated before that extra. The page does not subtract the extra to invent
+an after-extra amount.
+
+### Working scenario
+
+The question is what change is being tried, and how it compares with current
+facts. The scenario sits above Overview, Try changes, and Your plan.
+
+One task is open at a time: Pay extra, Change income, Add a windfall, Change
+living costs, Protect more cash, or Change what happens after payoff. The
+applied changes stay summarized. Flexible spending and cash to keep use
+**Use saved amount** or an entered amount, including zero. **Update preview**
+sends every valid field together. **Reset changes** restores current facts.
+While a request runs or fails, the figures on screen stay the previous
+result and the fields stay as entered. **Retry** sends them again.
+
+The status is **Current facts**, **Trying changes — not saved**, **Saved
+draft**, or **Accepted plan**. A compact comparison shows near-term cash
+safety, payoff, and total interest for the same starting cash, date, and
+steady-pay basis. A different income basis is not presented as the same
+comparison. Unknown payoff or interest stays unknown. A windfall stays in
+cash and is named as excluded from steady-pay Spendable. After a successful
+update, **Review this plan** opens Your plan. If the window is still short,
+that action says so.
+
+### Try changes
+
+Buttons open the cash outlook, debt payoff, and the offer comparison. The
+offer says it compares current minimum payments, leaves out the working
+scenario's extra payment, and is not saved with Your plan. Plan setup edits
+saved facts and returns here.
 
 ### Cash outlook
 
+Reached from Overview or Try changes. It is not a primary tab.
+
 - A 30 days / 6 months / 12 months / 18 months control selects one view.
+- Each chart is labeled typical pay or low pay, with its timeframe. A line
+  says this outlook counts every included paycheck and is not the steady-pay
+  Spendable figure.
 - Each view names its timeframe and shows ending cash, the lowest cash and
-  date, and the relevant known minimum obligation.
+  date, and the relevant known minimum obligation. When that lowest day is
+  below zero, the caption says it is the lowest point, not necessarily the
+  first day below zero.
 - Only 30 days has daily points, so only that range draws a line. Longer
   ranges render the API's ending and low summaries and explicitly say that
   no intermediate line is available. The page does not invent values.
 - The low-pay comparison follows the selected range under a disclosure.
   Source accounts, protected savings, Plan budget, omitted payments, bills,
   and currencies sit under a separate disclosure.
-- Selected-period cash and protected-savings warnings name the period. The
-  Overview status can still name a later first shortfall without implying
-  that it occurs inside the 30-day chart.
 
 ### Debt payoff
 
+Reached from Overview or Try changes. It is not a primary tab.
+
 - A compact milestone row names current minimums, the first payoff and
-  removed payment, and modeled breathing room.
-- The declining stacked balance chart is primary. Payoff order sits beside
-  it on a wide screen and below it on a phone. Selecting a payoff row
-  highlights its chart band.
+  removed payment, and modeled breathing room. While cash is short, a
+  warning says the dates are conditional.
+- The declining stacked balance chart plots debts with a projected payoff.
+  The caption names how many debts are included and how many are left out.
+  The top edge is those plotted balances. It is not labeled total owed.
+  When a debt is left out, **Fix debt terms** opens Debts and returns to
+  Plan. Payoff order is chronological and is labeled separately from the
+  payment priority on Overview.
+- Selecting a payoff row highlights its chart band.
 - Every payoff row puts the debt name first, then labeled date and payment
   details. It says whether the removed payment rolls into another debt or
   is actually available for other uses.
@@ -116,15 +170,17 @@ debts still sees spendable, then the prompt to add a debt.
   chart summaries keep essential information available without hover.
 
 Without a payoff, Debt payoff explains what must be completed and Overview
-keeps the debt details under Attention. A household with no debts gets a
-Debts action. A failed load keeps the existing visible error.
+keeps the debt details under the other-issues disclosure. A household with
+no debts gets a Debts action. A failed load keeps the existing visible error.
 
 ### Compare an offer
 
-The question is what one offer changes compared with keeping the selected
-debts. The action is **Compare offer**. Before a result, that form is the
-page. After a result, the cost, the payment change, and the break-even date
-lead, and the form stays underneath so the terms can be changed.
+Opened from Try changes. It is not a primary tab. The question is what one
+offer changes compared with keeping the selected debts. The action is
+**Compare offer**. Before a result, that form is the page. After a result,
+the cost, the payment change, and the break-even date lead, and the form
+stays underneath so the terms can be changed. The page says this comparison
+is temporary and is not saved with Your plan.
 
 The offer is a consolidation loan, a balance transfer, or a replacement
 loan. A consolidation loan replaces two or more debts. A replacement loan
@@ -149,28 +205,34 @@ a scenario. That scenario stays off this tab.
 On a phone the title and fields stack, and each compared fact names both
 sides. From 640px up the amount fields sit in two columns and the facts
 line up in three. The form stays within `max-w-xl`. The page stays
-`max-w-6xl`. The tab bar is two columns below `md` and a wrapping row
-from there up.
+`max-w-6xl`. The three primary views stay one row at both widths.
 
 ### Your plan
 
-The question is what to do, in order, and whether this version is the one
-to keep. The leading action is **Save draft**, **Accept plan** when the
-open draft matches the preview, or **Print** when the accepted plan matches
-the preview. At most three actions lead. Each names why it matters and the
-expected cash-flow effect. Assumptions, priorities, the selected scenario,
-milestones, risks, missing information, and review conditions stay in
-disclosures. Older versions stay in a history disclosure.
+The question is what to do, in order, and which version is on screen. The
+heading names the status, the version, and the date. The leading action is
+**Save draft**, **Accept plan** when the open draft matches the preview, or
+**Print** when the accepted plan matches the preview. A stored version that
+is not the working preview offers **Return to working preview**. Save stays
+unavailable until the working scenario has been calculated. Accepting says
+it replaces the accepted plan and keeps the older copy in history. At most
+three actions lead. Each names why it matters, the expected cash-flow
+effect, and a review link where one exists. Invalidating risks stay visible.
+Assumptions and the captured scenario sit in one disclosure. Milestones,
+other gaps, and review conditions sit in another. Older versions stay in
+History.
 
-Try a scenario sits under the actions on this tab, so changing the preview
-updates the actions above it. The preview is not a saved version until
+The actions follow the preview from Try changes. Scenario controls stay on
+Try changes. The preview is not a saved version until
 **Save draft**. Saving the same plan again returns the open draft. Accepting
 a draft marks the previous accepted plan superseded. Cardui does not pay a
 bill, pay a debt, or move money.
 
 On a phone the actions stack and the buttons wrap. Print uses the browser.
-The shell, tabs, and scenario controls stay off the printed page, and the
-supporting sections print open. There is no PDF file and no public link.
+The printed page names the status, version, and date of the version on
+screen, and includes its assumptions and risks. The shell, tabs, and
+scenario controls stay off the printed page, and the supporting sections
+print open. There is no PDF file and no public link.
 
 ### Desktop and mobile behavior
 
@@ -178,8 +240,7 @@ supporting sections print open. There is no PDF file and no public link.
   content becomes two columns only when space permits.
 - Under `md`, the page is one column with 16px horizontal padding. The
   tab bar stays visible below the fixed app header and does not add a
-  second sticky panel. Below `md` it is two columns. From `md` up it wraps
-  on one row when the labels fit.
+  second sticky panel. The three labels stay on one row at both widths.
 - All tab and scenario controls retain 44px targets. Time ranges use two
   rows when needed. Charts use fewer axis labels, and the 30-day chart has
   a keyboard-readable values disclosure.
@@ -291,15 +352,19 @@ The first four items are approved.
   jewel series colors. Zach chose jewel over earth and tonal sets, and
   stacked bands over one line per debt.
 - The cash outlook uses typical pay, with low pay under a disclosure.
-- Spendable uses the next 30 days, the same daily window as the cash
-  outlook. Only steady pay counts. Variable pay, uncertain pay, and a
-  one-time windfall are left out and named. The figure is the lowest cash
-  left after money set aside, not monthly income minus monthly bills.
+- Spendable uses the next 30 days. Only steady pay counts. Variable pay,
+  uncertain pay, and a one-time windfall are left out and named. When the
+  lowest day after money set aside is below zero, the figure is that
+  shortfall. Otherwise it is the lowest cash left after money set aside.
+  It is not monthly income minus monthly bills. The lowest-balance date is
+  not treated as the first day below zero. The typical-pay cash outlook is
+  a separate supporting view.
 - An extra payment is compared with the same path at minimums. It warns
   when ordinary spending, or a bill or debt payment inside those 30 days,
-  would be short. A new shortfall leads the Overview status. A gap that is
-  already there without the extra stays in that status, and spendable says
-  the extra keeps it.
+  would be short. That warning stays beside the safety result and says the
+  figure is calculated before the extra. A gap that is already there
+  without the extra stays in that result. The page does not invent an
+  after-extra amount.
 
 ## Settled when item 2 started
 
@@ -338,9 +403,11 @@ rest of Phase 3 item 6 follows the same pattern for cash changes.
   then pay resumes. Flexible spending replaces later full months; a smaller
   remainder this month stays. Cash to keep replaces only the floor inside
   protected savings.
-- Leaving Plan clears every temporary field. A version saved on Your plan
-  stays. A negative amount is not sent. While a request runs or fails, the
-  page says the visible forecast is still the previous one.
+- The last applied preview stays in this browser session. Uncommitted
+  keystrokes stay through a failed update and are not written to the
+  session. A version saved on Your plan stays. A negative amount is not
+  sent. While a request runs or fails, the page says the visible forecast
+  is still the previous one.
 
 ## Proposed future redesign
 

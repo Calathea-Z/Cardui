@@ -30,8 +30,21 @@ export type RestructuringFormDebt = {
   currency: string;
 };
 
+/**
+ * Validation messages placed beside the offer fields.
+ * A missing key means that field can be sent.
+ */
+export type RestructuringFieldErrors = {
+  debts?: string;
+  apr?: string;
+  termMonths?: string;
+  fee?: string;
+  upfrontCash?: string;
+};
+
 export type RestructuringFormResult =
-  { ok: true; dto: CompareRestructuringDto } | { ok: false; error: string };
+  | { ok: true; dto: CompareRestructuringDto }
+  | { ok: false; error: string; fields: RestructuringFieldErrors };
 
 const maxAmount = 100_000_000;
 
@@ -60,33 +73,35 @@ export function readRestructuringForm(
   debts: RestructuringFormDebt[],
   planningCurrency: string,
 ): RestructuringFormResult {
+  const fields: RestructuringFieldErrors = {};
   const selected = form.debtIds.map((debtId) =>
     debts.find((debt) => debt.debtId === debtId),
   );
   const kindError = kindErrorFor(form.kind, selected);
   if (kindError) {
-    return { ok: false, error: kindError };
+    fields.debts = kindError;
   }
 
   for (const debt of selected) {
     if (!debt) {
-      return { ok: false, error: "Choose debts from this household." };
+      fields.debts = fields.debts ?? "Choose debts from this household.";
+      continue;
     }
 
     const debtError = debtErrorFor(debt, planningCurrency);
     if (debtError) {
-      return { ok: false, error: debtError };
+      fields.debts = fields.debts ?? debtError;
     }
   }
 
   const apr = parseApr(form.apr);
   if (!apr.ok) {
-    return apr;
+    fields.apr = apr.error;
   }
 
   const termMonths = parseTerm(form.termMonths);
   if (!termMonths.ok) {
-    return termMonths;
+    fields.termMonths = termMonths.error;
   }
 
   const fee = parseMoney(
@@ -94,7 +109,7 @@ export function readRestructuringForm(
     "Enter the fee in dollars and cents, or zero.",
   );
   if (!fee.ok) {
-    return fee;
+    fields.fee = fee.error;
   }
 
   const upfrontCash = parseMoney(
@@ -102,7 +117,21 @@ export function readRestructuringForm(
     "Enter upfront cash in dollars and cents, or zero.",
   );
   if (!upfrontCash.ok) {
-    return upfrontCash;
+    fields.upfrontCash = upfrontCash.error;
+  }
+
+  const error =
+    fields.debts ??
+    fields.apr ??
+    fields.termMonths ??
+    fields.fee ??
+    fields.upfrontCash;
+  if (error || !apr.ok || !termMonths.ok || !fee.ok || !upfrontCash.ok) {
+    return {
+      ok: false,
+      error: error ?? "Check the offer fields.",
+      fields,
+    };
   }
 
   return {

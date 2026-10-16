@@ -34,6 +34,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IAllocationService, AllocationService>();
         services.AddScoped<IPlanService, PlanService>();
         services.AddScoped<ISavedPlanService, SavedPlanService>();
+        services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IRestructuringService, RestructuringService>();
         services.AddScoped<ICategoryTargetsService, CategoryTargetsService>();
         services.AddScoped<IAccountsService, AccountsService>();

@@ -11,18 +11,21 @@ history. They do not say what is next.
 
 **Now**
 
-[Planning model](reviews/2026-10-16-009-planning-model.md) was approved on
-October 16, 2026. It is Phase 4 item 1. The API can call OpenAI through an
-application interface when both settings are present. No model or price is
-chosen. Items 2–9 have not started. Detail panel keyboard focus stays
-tracked. The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+[Persisted conversations](reviews/2026-10-16-010-persisted-conversations.md)
+was approved on October 16, 2026. It is Phase 4 item 2. A household can
+keep one open conversation, with its turns, a compact summary, unanswered
+questions, notes, and links to saved plan versions, and resume it on a
+later day. `20261016190413_AddConversations` is applied. No model or price
+is chosen. Items 3–9 have not started. Detail panel keyboard focus stays
+tracked. The
+[October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 4 item 2, persisted conversations. Do not start it in the review
-   that approved item 1. Leave the planning-model settings blank until a
-   review asks for a live call.
+1. Phase 4 item 3, narrow tools. Do not start it in the review that
+   approved item 2. Leave the planning-model settings blank until a review
+   asks for a live call.
 
 **Tracked, not scheduled**
 
@@ -39,8 +42,11 @@ stays as written.
 
 ## Map
 
+- [Persisted conversations](reviews/2026-10-16-010-persisted-conversations.md):
+  Phase 4 item 2, approved October 16, 2026. `20261016190413_AddConversations`
+  is applied.
 - [Planning model](reviews/2026-10-16-009-planning-model.md): Phase 4 item 1,
-  approved October 16, 2026. Item 2 has not started.
+  approved October 16, 2026.
 - [Phase 3 close](reviews/2026-10-16-008-phase-3-close.md): closed October 16,
   2026. The [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md)
   sequence is approved. Increment 1 is approved in

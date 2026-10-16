@@ -45,6 +45,7 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 4 — Guided conversation
 
+- [2026-10-16 — Persisted conversations](2026-10-16-010-persisted-conversations.md) — Approved 2026-10-16
 - [2026-10-16 — Planning model](2026-10-16-009-planning-model.md) — Approved 2026-10-16
 
 ## Phase 3 — Recovery calculations and forecasts

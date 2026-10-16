@@ -195,7 +195,7 @@ Design the conversation and test scripted prototypes during Phases 1–3. Produc
 
 **Exit:** a person can start with “I don't know where to begin,” return on another day, correct a fact, review a calculated plan and accept it into their budget. Tests establish that tools cannot cross households or silently apply consequential changes.
 
-**Status (October 16, 2026):** Item 1 is approved in `docs/reviews/2026-10-16-009-planning-model.md`. The API can call OpenAI through `IPlanningModel` when `PlanningModel:ApiKey` and `PlanningModel:Model` are both set. No model or price is chosen. The call sets `store` to false, sends no tools, and does not log the API key. Guided conversation stays off until both settings are present. There is no chat screen and no saved conversation. Items 2–9 have not started. Detail panel keyboard focus stays tracked.
+**Status (October 16, 2026):** Item 1 is approved in `docs/reviews/2026-10-16-009-planning-model.md`. The API can call OpenAI through `IPlanningModel` when `PlanningModel:ApiKey` and `PlanningModel:Model` are both set. No model or price is chosen. The call sets `store` to false, sends no tools, and does not log the API key. Guided conversation stays off until both settings are present. Item 2 is approved in `docs/reviews/2026-10-16-010-persisted-conversations.md`. A household can keep one open conversation, with its turns, a compact summary, unanswered questions, notes, and links to saved plan versions. `20261016190413_AddConversations` is applied. There is no chat screen and no live OpenAI call. Items 3–9 have not started. Detail panel keyboard focus stays tracked.
 
 ### Phase 5 — Follow-through and private-alpha validation
 

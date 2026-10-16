@@ -43,4 +43,7 @@ public class Household
 
     public ICollection<PlanVersion> PlanVersions { get; init; } =
         new List<PlanVersion>();
+
+    public ICollection<Conversation> Conversations { get; init; } =
+        new List<Conversation>();
 }

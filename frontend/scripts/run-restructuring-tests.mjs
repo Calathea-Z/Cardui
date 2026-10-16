@@ -226,4 +226,14 @@ test("break-even, an unknown path, and upfront cash each stay explicit", () => {
   assert.match(copy.offerScope, /current minimum payments/);
   assert.match(copy.offerScope, /not saved with Your plan/);
   assert.match(copy.balanceTransferRateLimit, /whole term/);
+  assert.match(copy.offerRateHelp("ReplacementLoan"), /whole term/);
+  assert.match(
+    copy.offerRateHelp("ReplacementLoan"),
+    /later rate is not modeled/,
+  );
+  assert.match(copy.offerRateHelp("ConsolidationLoan"), /whole term/);
+  assert.match(
+    copy.offerRateHelp("BalanceTransfer"),
+    /promotional rate that changes later/,
+  );
 });

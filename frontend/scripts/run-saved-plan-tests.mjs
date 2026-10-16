@@ -126,6 +126,60 @@ test("a cash shortfall is the action and names its date", () => {
   assert.equal(text.title, "Cover the cash shortfall");
   assert.match(text.effect, /2026-11-03/);
   assert.match(text.why, /conditional/);
+
+  const target = view.decisionActionTarget("CoverCashShortfall");
+  assert.equal(target.label, "Review shortfall");
+  assert.equal(target.view, "shortfall");
+});
+
+test("a stored shortfall uses the captured amount, and an older version does not invent one", () => {
+  const stored = plan({
+    order: 1,
+    kind: "CoverCashShortfall",
+    name: null,
+    nextName: null,
+    amount: null,
+    extra: null,
+    on: "2026-11-03",
+    count: null,
+    alreadyShortWithoutExtra: false,
+  });
+  stored.facts.alreadyShort = true;
+  stored.facts.spendable = 0;
+  stored.facts.lowestAvailable = -80;
+  stored.facts.lowestAvailableOn = "2026-10-20";
+  const captured = copy
+    .decisionFactLines(stored, money, date)
+    .find((line) => line.term === "Shortfall");
+  assert.match(captured.detail, /\$80\.00 on 2026-10-20/);
+  assert.equal(
+    copy
+      .decisionFactLines(stored, money, date)
+      .some((line) => line.term === "Spendable"),
+    false,
+  );
+
+  const older = plan({
+    order: 1,
+    kind: "CoverCashShortfall",
+    name: null,
+    nextName: null,
+    amount: null,
+    extra: null,
+    on: "2026-11-03",
+    count: null,
+    alreadyShortWithoutExtra: false,
+  });
+  older.facts.alreadyShort = true;
+  older.facts.spendable = 0;
+  older.facts.lowestAvailable = null;
+  older.facts.lowestAvailableOn = null;
+  const missing = copy
+    .decisionFactLines(older, money, date)
+    .find((line) => line.term === "Shortfall");
+  assert.match(missing.detail, /not stored/);
+  assert.doesNotMatch(missing.detail, /\$0\.00/);
+  assert.doesNotMatch(missing.detail, /2026-11-03/);
 });
 
 test("the first debt names its payment and a rolled payment names the next debt", () => {

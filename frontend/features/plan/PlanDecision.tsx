@@ -27,7 +27,7 @@ import { useSavedPlan } from "./useSavedPlan";
 type PlanDecisionProps = {
   saved: ReturnType<typeof useSavedPlan>;
   calculationReady: boolean;
-  onOpenCash: () => void;
+  onOpenShortfall: () => void;
   onOpenDebt: () => void;
 };
 
@@ -38,7 +38,7 @@ type PlanDecisionProps = {
 export function PlanDecision({
   saved,
   calculationReady,
-  onOpenCash,
+  onOpenShortfall,
   onOpenDebt,
 }: PlanDecisionProps) {
   const plan = saved.chrome.plan;
@@ -79,8 +79,8 @@ export function PlanDecision({
           <VersionLines printed={printed} />
           {readingStored ? (
             <p className="mt-2 max-w-xl text-sm text-foreground">
-              You are reading a saved version. The scenario above edits the
-              working preview and does not change this version.
+              You are reading a saved version. Try changes edits the working
+              preview and does not change this version.
             </p>
           ) : null}
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
@@ -150,7 +150,7 @@ export function PlanDecision({
                   </p>
                   <ActionLink
                     kind={action.kind}
-                    onOpenCash={onOpenCash}
+                    onOpenShortfall={onOpenShortfall}
                     onOpenDebt={onOpenDebt}
                   />
                 </li>
@@ -305,11 +305,11 @@ function VersionLines({
  */
 function ActionLink({
   kind,
-  onOpenCash,
+  onOpenShortfall,
   onOpenDebt,
 }: {
   kind: DecisionPlanDto["actions"][number]["kind"];
-  onOpenCash: () => void;
+  onOpenShortfall: () => void;
   onOpenDebt: () => void;
 }) {
   const target = decisionActionTarget(kind);
@@ -332,7 +332,7 @@ function ActionLink({
     <button
       type="button"
       className="mt-3 min-h-11 text-sm font-medium text-primary underline print:hidden"
-      onClick={target.view === "cash" ? onOpenCash : onOpenDebt}
+      onClick={target.view === "shortfall" ? onOpenShortfall : onOpenDebt}
     >
       {target.label}
     </button>

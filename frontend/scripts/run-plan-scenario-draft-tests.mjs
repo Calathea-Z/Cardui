@@ -213,9 +213,12 @@ test("comparison uses the same steady-pay safety and leaves unknown payoff unkno
   );
   assert.equal(compared.rows[0].current.text, "$400.00");
   assert.equal(compared.rows[0].trying.text, "Shortfall $40.00");
+  assert.equal(compared.rows[0].change.text, "Becomes a shortfall of $40.00");
   assert.equal(compared.rows[0].comparable, true);
   assert.equal(compared.rows[1].trying.text, "Unknown");
+  assert.equal(compared.rows[1].change.text, "Unknown");
   assert.equal(compared.rows[2].trying.text, "Unknown");
+  assert.equal(compared.rows[2].change.text, "Unknown");
   assert.equal(compared.rows[1].comparable, false);
   assert.match(
     comparison.scenarioComparisonNote(compared),
@@ -262,6 +265,142 @@ test("missing steady pay and a household with no debts stay honest", () => {
   assert.equal(compared.rows[0].current.text, "Unknown");
   assert.equal(compared.rows[1].current.text, "No debts");
   assert.equal(compared.rows[2].current.text, "No debts");
+  assert.match(comparison.scenarioBaselineSentence(), /current facts/);
+});
+
+test("an unknown payoff names the first dated debt and the blocker", () => {
+  const trying = report({
+    rollover: {
+      paidOffOn: null,
+      totalInterest: 12,
+      debts: [
+        { name: "Store", stop: "PaidOff", paidOffOn: "2026-06-01" },
+        { name: "Card", stop: "RateUnknown", paidOffOn: null },
+      ],
+    },
+    missingBalance: [{ name: "Loan" }],
+  });
+  const compared = comparison.planScenarioComparison(
+    report(),
+    trying,
+    "Rollover",
+    money,
+    date,
+  );
+
+  assert.match(
+    compared.rows[1].trying.text,
+    /Store is the first dated payoff, on 2026-06-01/,
+  );
+  assert.match(
+    compared.rows[1].trying.text,
+    /Card, Loan block a date for every debt/,
+  );
+  assert.equal(compared.rows[1].change.text, "Unknown");
+});
+
+test("payoff and shortfall changes use the stored dates and amounts", () => {
+  const trying = report({
+    spendable: {
+      spendable: 0,
+      lowestAvailable: -90,
+      alreadyShort: true,
+    },
+    rollover: {
+      paidOffOn: "2027-01-01",
+      totalInterest: 30,
+      debts: [{ name: "Card", stop: "PaidOff", paidOffOn: "2027-01-01" }],
+    },
+  });
+  const baseline = report({
+    spendable: {
+      spendable: 0,
+      lowestAvailable: -40,
+      alreadyShort: true,
+    },
+  });
+  const compared = comparison.planScenarioComparison(
+    baseline,
+    trying,
+    "Rollover",
+    money,
+    date,
+  );
+
+  assert.equal(compared.rows[0].change.text, "Shortfall up $50.00");
+  assert.equal(compared.rows[1].change.text, "Earlier");
+  assert.equal(compared.rows[2].change.text, "Down $50.00");
+});
+
+test("a returned path applies with the scenario, and two edits stay one request", () => {
+  const applied = scenario.currentFactsScenario();
+  const kindOnly = scenario.previewUpdate(
+    { ...scenario.currentFactsDraft(), kind: "ReclaimAll" },
+    applied,
+    "2026-01-01",
+    800,
+  );
+  assert.equal(kindOnly.action, "returned");
+  assert.equal(kindOnly.kind, "ReclaimAll");
+  assert.equal(kindOnly.scenario.monthlyExtra, 0);
+  assert.equal(kindOnly.scenario.priority, "Avalanche");
+
+  const both = scenario.previewUpdate(
+    {
+      ...scenario.currentFactsDraft(),
+      kind: "ReclaimAll",
+      monthlyExtra: "25",
+      priority: "MinimumRelease",
+    },
+    applied,
+    "2026-01-01",
+    800,
+  );
+  assert.equal(both.action, "request");
+  assert.equal(both.kind, "ReclaimAll");
+  assert.equal(both.scenario.monthlyExtra, 25);
+  assert.equal(both.scenario.priority, "MinimumRelease");
+
+  const amount = scenario.previewUpdate(
+    {
+      ...scenario.currentFactsDraft(),
+      kind: "Reclaim",
+      reclaimAmount: "40",
+    },
+    applied,
+    "2026-01-01",
+    800,
+  );
+  assert.equal(amount.action, "request");
+  assert.equal(amount.kind, "Reclaim");
+  assert.equal(amount.scenario.reclaimAmount, 40);
+
+  const pending = {
+    ...scenario.currentFactsDraft(),
+    kind: "ReclaimAll",
+    priority: "Utilization",
+  };
+  assert.equal(
+    scenario.canSaveWorkingScenario({
+      status: "ready",
+      draft: pending,
+      applied,
+      kind: "Rollover",
+      asOf: "2026-01-01",
+      savedLiving: 800,
+    }),
+    false,
+  );
+
+  const invalid = scenario.previewUpdate(
+    { ...pending, monthlyExtra: "nope" },
+    applied,
+    "2026-01-01",
+    800,
+  );
+  assert.equal(invalid.action, "invalid");
+  assert.equal(invalid.scenario, undefined);
+  assert.equal(invalid.kind, undefined);
 });
 
 test("keeping some requires an amount, and a constraint requires a debt", () => {
@@ -308,7 +447,7 @@ test("keeping some requires an amount, and a constraint requires a debt", () => 
   assert.equal(chosen.scenario.constraintKind, "PayFirst");
 });
 
-test("priority tradeoff stays before rollover, and unknown payoff stays unknown", () => {
+test("priority tradeoff names who is paid first and the interest difference", () => {
   const money = (amount) => `$${amount.toFixed(2)}`;
   const date = (value) => value;
   const minimum = payoff.priorityTradeoff(
@@ -321,11 +460,69 @@ test("priority tradeoff stays before rollover, and unknown payoff stays unknown"
       debtIds: ["store", "card"],
     },
     money,
+    "Store",
   );
-  assert.match(minimum, /Costs \$3\.89 more interest than avalanche/);
+  assert.match(minimum, /Store is paid first/);
+  assert.match(
+    minimum,
+    /costs \$3\.89 more interest than paying the highest rate first/,
+  );
   assert.match(minimum, /before a freed payment rolls/);
   assert.match(minimum, /Net minimum cash is \$100\.00/);
   assert.match(minimum, /recommended order/);
+  assert.doesNotMatch(minimum, /Avalanche stays the recommended order/);
+  assert.doesNotMatch(minimum, /Utilization cash/);
+
+  const utilization = payoff.priorityTradeoff(
+    {
+      choice: "Utilization",
+      applied: false,
+      changesOrder: true,
+      interestDifference: -2,
+      tradeoffCash: 80,
+      debtIds: ["card"],
+    },
+    money,
+    "Card",
+  );
+  assert.match(utilization, /Card is paid first/);
+  assert.match(
+    utilization,
+    /costs \$2\.00 less interest than paying the highest rate first/,
+  );
+  assert.doesNotMatch(utilization, /Utilization cash/);
+
+  const avalanche = payoff.priorityTradeoff(
+    {
+      choice: "Avalanche",
+      applied: true,
+      changesOrder: false,
+      interestDifference: 0,
+      tradeoffCash: 0,
+      debtIds: ["card"],
+    },
+    money,
+    "Card",
+  );
+  assert.match(avalanche, /Card is paid first, at the highest rate/);
+  assert.match(avalanche, /This interest is the comparison/);
+  assert.doesNotMatch(avalanche, /Avalanche stays the recommended order/);
+
+  const unnamed = payoff.priorityTradeoff(
+    {
+      choice: "Utilization",
+      applied: false,
+      changesOrder: true,
+      interestDifference: 0,
+      tradeoffCash: 10,
+      debtIds: [],
+    },
+    money,
+    null,
+  );
+  assert.match(unnamed, /balance closest to its limit is paid first/);
+  assert.match(unnamed, /Interest matches paying the highest rate first/);
+  assert.doesNotMatch(unnamed, /Utilization cash/);
 
   const same = payoff.priorityTradeoff(
     {
@@ -337,6 +534,7 @@ test("priority tradeoff stays before rollover, and unknown payoff stays unknown"
       debtIds: ["card"],
     },
     money,
+    "Card",
   );
   assert.match(same, /does not change who is paid first/);
 

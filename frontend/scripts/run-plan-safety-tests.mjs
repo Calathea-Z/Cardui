@@ -46,7 +46,7 @@ function memoryStore() {
   };
 }
 
-test("a shortfall opens the cash explanation instead of the budget editor", () => {
+test("a shortfall opens the steady-pay review instead of typical pay", () => {
   const action = safety.planSafetyAction({
     status: "short",
     hasDebts: true,
@@ -56,8 +56,8 @@ test("a shortfall opens the cash explanation instead of the budget editor", () =
     spendingUnset: false,
   });
 
-  assert.equal(action.label, "Review cash shortfall");
-  assert.equal(action.view, "cash");
+  assert.equal(action.label, "Review shortfall");
+  assert.equal(action.view, "shortfall");
   assert.equal(action.href, undefined);
 });
 
@@ -119,6 +119,8 @@ test("setup groups keep bills and debts separate and do not invent a saved split
       allocationSaved: false,
       variableIncome: { debtPercent: 0, savingsPercent: 0, cashPercent: 100 },
       windfall: { debtPercent: 0, savingsPercent: 0, cashPercent: 100 },
+      debtTermsIssue:
+        "1 debt needs a term before the payoff estimate is complete.",
     },
     money,
   );
@@ -129,6 +131,23 @@ test("setup groups keep bills and debts separate and do not invent a saved split
     bills.actions.map((action) => action.href),
     ["/bills?from=setup", "/debts?from=setup"],
   );
+  assert.equal(
+    bills.issue,
+    "1 debt needs a term before the payoff estimate is complete.",
+  );
+  assert.equal(
+    groups.find((group) => group.key === "living").actions[0].label,
+    "Edit living costs",
+  );
+  assert.equal(
+    groups.find((group) => group.key === "protect").actions[0].label,
+    "Edit money to protect",
+  );
+  assert.equal(
+    groups.find((group) => group.key === "allocation").actions[0].label,
+    "Edit extra-money preferences",
+  );
+  assert.equal(groups.find((group) => group.key === "income").issue, null);
   assert.equal(
     groups.find((group) => group.key === "living").lines[0],
     "Flexible monthly spending is $800.00 a month.",
@@ -161,6 +180,7 @@ test("a failed setup load is not described as zero saved facts", () => {
       allocationSaved: false,
       variableIncome: null,
       windfall: null,
+      debtTermsIssue: null,
     },
     money,
   );
@@ -168,6 +188,14 @@ test("a failed setup load is not described as zero saved facts", () => {
   assert.match(groups[0].lines[0], /Could not be read/);
   assert.match(groups[1].lines[0], /Could not be read/);
   assert.equal(groups[1].lines[1], "0 debts");
+  assert.equal(groups[1].issue, null);
+});
+
+test("the setup debt warning uses Plan's debt count and stays quiet at zero", () => {
+  assert.equal(setup.planSetupDebtTermsIssue(null), null);
+  assert.equal(setup.planSetupDebtTermsIssue(0), null);
+  assert.match(setup.planSetupDebtTermsIssue(1), /1 debt needs/);
+  assert.match(setup.planSetupDebtTermsIssue(2), /2 debts need/);
 });
 
 test("the working preview round-trips and ignores a broken store value", () => {

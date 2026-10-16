@@ -443,6 +443,40 @@ export function draftMatchesApplied(
 }
 
 /**
+ * How Update preview applies one draft.
+ * `returned` uses the paths already on the report. `request` sends one recovery for every changed field, and the path travels with it.
+ */
+export type PreviewUpdate =
+  | { action: "invalid"; errors: ScenarioDraftErrors }
+  | {
+      action: "returned" | "request";
+      scenario: PlanScenarioQuery;
+      kind: PayoffRolloverKind;
+    };
+
+/**
+ * Decides whether Update preview can use the report already on screen.
+ * A matching scenario switches the freed-cash path locally. Any other edit, including a second change beside that path, is one request. An invalid field sends nothing.
+ */
+export function previewUpdate(
+  draft: ScenarioDraft,
+  applied: PlanScenarioQuery,
+  asOf: string,
+  savedLiving: number,
+): PreviewUpdate {
+  const read = readScenarioDraft(draft, asOf, savedLiving);
+  if (!read.ok) {
+    return { action: "invalid", errors: read.errors };
+  }
+
+  return {
+    action: sameScenarioQuery(read.scenario, applied) ? "returned" : "request",
+    scenario: read.scenario,
+    kind: read.kind,
+  };
+}
+
+/**
  * True when Your plan may save the working scenario.
  * Updating, a failed update, and edits that are not in the preview cannot be saved.
  */

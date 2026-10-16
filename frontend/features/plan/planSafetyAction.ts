@@ -10,7 +10,7 @@ export type PlanSafetyAction = {
   title: string;
   detail: string;
   label: string;
-  view?: "cash" | "changes";
+  view?: "shortfall" | "changes";
   href?: string;
 };
 
@@ -25,18 +25,18 @@ type PlanSafetyInput = {
 
 /**
  * Chooses the next action from the steady-pay safety result.
- * A shortfall opens the dated cash explanation. Missing facts open the editor that supplies them.
+ * A shortfall opens the steady-pay explanation for the figure just shown. Missing facts open the editor that supplies them.
  * A covered window offers a change to try. It does not send a shortfall to the budget editor.
  */
 export function planSafetyAction(input: PlanSafetyInput): PlanSafetyAction {
   if (input.status === "short") {
     return {
       key: "shortfall",
-      title: "Review the cash shortfall",
+      title: "Review the shortfall",
       detail:
-        "The shortfall amount is the lowest balance in this 30-day window. The cash outlook shows its dates separately from that lowest day.",
-      label: "Review cash shortfall",
-      view: "cash",
+        "The shortfall is the lowest balance after money set aside in this 30-day window.",
+      label: "Review shortfall",
+      view: "shortfall",
     };
   }
 

@@ -114,40 +114,50 @@ export function priorityOrderLine(report: PlanRecoveryDto, debtIds: string[]) {
 }
 
 /**
- * The tradeoff for one alternative against avalanche.
- * Interest here is before a freed payment rolls. A missing change says the order matches avalanche.
+ * The first debt in a payment order, when this report names it.
+ * A missing id stays unnamed. This does not invent a debt.
+ */
+export function firstPaidName(report: PlanRecoveryDto, debtIds: string[]) {
+  const id = debtIds[0];
+  if (!id) {
+    return null;
+  }
+
+  return (
+    report.debtFacts.find((debt) => debt.debtId === id)?.name ??
+    report.rollover.debts.find((debt) => debt.debtId === id)?.name ??
+    null
+  );
+}
+
+/**
+ * The tradeoff for one alternative against paying the highest rate first.
+ * It names who is paid first and what the interest difference means. That interest is before a freed payment rolls.
  */
 export function priorityTradeoff(
   alternative: PayoffAlternativeDto,
   money: FormatMoney,
+  firstPaid: string | null,
 ) {
   if (alternative.choice === "Avalanche") {
-    return alternative.applied
-      ? "Avalanche stays the recommended order. Interest here is before a freed payment rolls."
-      : "The comparison baseline. Interest here is before a freed payment rolls.";
+    return avalancheTradeoff(alternative.applied, firstPaid);
   }
 
   if (!alternative.changesOrder) {
     return alternative.choice === "Constraint"
-      ? "Choose a debt to pay first or last. Until that changes the order, this matches avalanche."
+      ? "Choose a debt to pay first or last. Until that changes the order, this matches paying the highest rate first."
       : "This does not change who is paid first.";
   }
 
-  const interest =
-    alternative.interestDifference > 0
-      ? `Costs ${money(alternative.interestDifference)} more interest than avalanche`
-      : alternative.interestDifference < 0
-        ? `Costs ${money(Math.abs(alternative.interestDifference))} less interest than avalanche`
-        : "Interest matches avalanche";
-  const cashName =
+  const interest = interestDifference(alternative.interestDifference, money);
+  const cash =
     alternative.choice === "Utilization"
-      ? "Utilization cash"
-      : "Net minimum cash";
-  const cash = `${cashName} is ${money(alternative.tradeoffCash)}.`;
+      ? ""
+      : ` Net minimum cash is ${money(alternative.tradeoffCash)}.`;
   const recommended = alternative.applied
     ? " This is the recommended order."
     : "";
-  return `${interest} before a freed payment rolls. ${cash}${recommended}`;
+  return `${whoIsPaidFirst(alternative.choice, firstPaid)} ${interest}, before a freed payment rolls.${cash}${recommended}`;
 }
 
 /**
@@ -181,6 +191,60 @@ export function freedCashLabel(kind: PayoffRolloverKind) {
     freedCashOptions.find((option) => option.value === kind)?.label ??
     "Keep none"
   );
+}
+
+/**
+ * Who an avalanche order pays first.
+ * The interest on that order is the comparison. A missing name does not invent a debt.
+ */
+function avalancheTradeoff(applied: boolean, firstPaid: string | null) {
+  if (!applied) {
+    return "The highest rate is the comparison. Interest here is before a freed payment rolls.";
+  }
+
+  const who = firstPaid
+    ? `${firstPaid} is paid first, at the highest rate.`
+    : "The highest rate is paid first.";
+  return `${who} This interest is the comparison, before a freed payment rolls.`;
+}
+
+/**
+ * Who this order pays first.
+ * A named debt is the first id in the order. Without a name, the sentence uses the choice and does not invent a debt.
+ */
+function whoIsPaidFirst(
+  choice: PayoffAlternativeDto["choice"],
+  firstPaid: string | null,
+) {
+  if (firstPaid) {
+    return `${firstPaid} is paid first.`;
+  }
+
+  if (choice === "Utilization") {
+    return "The balance closest to its limit is paid first.";
+  }
+
+  if (choice === "MinimumRelease") {
+    return "The debt that removes a minimum is paid first.";
+  }
+
+  return "The debt you chose is paid first or last.";
+}
+
+/**
+ * What the interest gap against paying the highest rate first means.
+ * A positive gap costs more. A negative gap costs less. Zero matches.
+ */
+function interestDifference(difference: number, money: FormatMoney) {
+  if (difference > 0) {
+    return `That costs ${money(difference)} more interest than paying the highest rate first`;
+  }
+
+  if (difference < 0) {
+    return `That costs ${money(Math.abs(difference))} less interest than paying the highest rate first`;
+  }
+
+  return "Interest matches paying the highest rate first";
 }
 
 /**

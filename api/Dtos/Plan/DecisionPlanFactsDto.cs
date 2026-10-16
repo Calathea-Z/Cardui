@@ -3,7 +3,9 @@ namespace Cardui.Api.Dtos.Plan;
 /// <summary>
 /// Cash, budget, and payoff figures captured for one decision plan.
 /// Living spending and the cash floor are the amounts that plan used. Zero means it had none.
-/// A null date means that event does not happen in the calculation.
+/// LowestAvailable is the unfloored lowest balance. It is null when that version did not store it.
+/// LowestAvailableOn is the date of that low, and null for the same older versions.
+/// A null date means that event does not happen in the calculation, or was not stored.
 /// </summary>
 public class DecisionPlanFactsDto
 {
@@ -54,4 +56,8 @@ public class DecisionPlanFactsDto
     public DateOnly? PaidOffOn { get; set; }
 
     public decimal TotalInterest { get; set; }
+
+    public decimal? LowestAvailable { get; set; }
+
+    public DateOnly? LowestAvailableOn { get; set; }
 }

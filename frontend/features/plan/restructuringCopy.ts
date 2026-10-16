@@ -25,6 +25,20 @@ export const balanceTransferRateLimit =
   "The rate you enter is used for the whole term. A promotional rate that changes later is not modeled.";
 
 /**
+ * Shown beside every offer rate. The entered rate stays constant for the whole term.
+ */
+export const offerRateLimit =
+  "The rate you enter is used for the whole term. A later rate is not modeled.";
+
+/**
+ * The constant-rate limit beside the rate field.
+ * A balance transfer also says a promotional rate that changes later is not modeled.
+ */
+export function offerRateHelp(kind: RestructuringOfferKind): string {
+  return kind === "BalanceTransfer" ? balanceTransferRateLimit : offerRateLimit;
+}
+
+/**
  * Shown with every comparison. A lower payment is not a rank.
  */
 export const offerNotRanked =

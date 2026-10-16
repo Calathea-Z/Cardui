@@ -14,9 +14,11 @@ import { PlanCashOutlook } from "./PlanCashOutlook";
 import { PlanDebtOutlookPanel } from "./PlanDebtOutlookPanel";
 import { PlanDebtPayoff } from "./PlanDebtPayoff";
 import { PlanDecision } from "./PlanDecision";
+import { PlanNextAction } from "./PlanNextAction";
 import { PlanOfferComparison } from "./PlanOfferComparison";
 import { PlanSafety } from "./PlanSafety";
 import { planSafetyAction } from "./planSafetyAction";
+import { PlanShortfallReview } from "./PlanShortfallReview";
 import { PlanTabs } from "./PlanTabs";
 import { PlanWorkingScenario } from "./PlanWorkingScenario";
 import { useRestructuringComparison } from "./useRestructuringComparison";
@@ -30,7 +32,7 @@ import {
   draftFromApplied,
   emptyScenarioDraftErrors,
   isCurrentFacts,
-  readScenarioDraft,
+  previewUpdate,
   type ScenarioDraft,
   type ScenarioDraftErrors,
 } from "./planScenario";
@@ -99,6 +101,7 @@ export function PlanPageClient({
     emptyScenarioDraftErrors,
   );
   const [showReview, setShowReview] = useState(false);
+  const [cashReturn, setCashReturn] = useState<PlanView | null>(null);
   const seeded = useRef(false);
   const [hoveredDebtId, setHoveredDebtId] = useState<string | null>(null);
   const [pinnedDebtId, setPinnedDebtId] = useState<string | null>(null);
@@ -126,10 +129,6 @@ export function PlanPageClient({
     matchesFacts,
     calculationReady,
   );
-  const workingLabel = matchesFacts
-    ? "Current facts"
-    : "Trying changes — not saved";
-
   useEffect(() => {
     if (!settled || seeded.current) {
       return;
@@ -140,47 +139,54 @@ export function PlanPageClient({
   }, [scenario, selectedKind, settled]);
 
   /**
-   * Sends every valid field in one preview.
-   * An invalid field keeps the draft and does not replace the result on screen.
+   * Applies every valid field together.
+   * A matching scenario uses the paths already on screen. Any other change waits for one request, then the path and the figures change together. An invalid field keeps the draft.
    */
   async function updatePreview() {
     if (!draft) {
       return;
     }
 
-    const read = readScenarioDraft(
+    const update = previewUpdate(
       draft,
+      scenario,
       baseline.cashOutlook.asOf,
       baseline.livingSpendingMonthly,
     );
-    if (!read.ok) {
-      setDraftErrors(read.errors);
+    if (update.action === "invalid") {
+      setDraftErrors(update.errors);
       return;
     }
 
     setDraftErrors(emptyScenarioDraftErrors);
-    const ok = await applyScenario(read.scenario);
+    if (update.action === "returned") {
+      setKind(update.kind);
+      setShowReview(true);
+      return;
+    }
+
+    const ok = await applyScenario(update.scenario, () => setKind(update.kind));
     if (!ok) {
       return;
     }
 
-    setKind(read.kind);
     setShowReview(true);
   }
 
   /**
    * Restores current facts in the draft and on screen.
-   * The entered scenario is dropped.
+   * The entered scenario is dropped. The path returns with that restore.
    */
   async function resetChanges() {
     setDraft(currentFactsDraft());
     setDraftErrors(emptyScenarioDraftErrors);
-    const ok = await applyScenario(currentFactsScenario());
+    const ok = await applyScenario(currentFactsScenario(), () =>
+      setKind("Rollover"),
+    );
     if (!ok) {
       return;
     }
 
-    setKind("Rollover");
     setShowReview(true);
   }
 
@@ -304,8 +310,33 @@ export function PlanPageClient({
    * Opens a supporting view and remembers which primary view to restore.
    */
   function openDetail(detail: PlanDetail, from: PlanTab) {
+    setCashReturn(null);
     setDetailFrom(from);
     setView(detail);
+  }
+
+  /**
+   * Opens typical pay after the steady-pay shortfall review.
+   * Back returns to that review rather than skipping it.
+   */
+  function openTypicalPay() {
+    setCashReturn("shortfall");
+    setView("cash");
+  }
+
+  /**
+   * Returns from a supporting view.
+   * Typical pay opened from the shortfall review goes back to that review first.
+   */
+  function closeDetail() {
+    if (view === "cash" && cashReturn) {
+      setView(cashReturn);
+      setCashReturn(null);
+      return;
+    }
+
+    setCashReturn(null);
+    setView(detailFrom);
   }
 
   /**
@@ -320,6 +351,7 @@ export function PlanPageClient({
       <PageHeader
         className="print:hidden"
         title="Plan"
+        status={failed ? undefined : saved.chrome.label}
         description="Check the next 30 days, try a change, and keep a plan."
         actions={
           <Link
@@ -339,34 +371,10 @@ export function PlanPageClient({
         </p>
       ) : (
         <>
-          {draft ? (
-            <PlanWorkingScenario
-              draft={draft}
-              errors={draftErrors}
-              appliedKind={selectedKind}
-              hasPayoff={hasPayoff}
-              baseline={baseline}
-              report={report}
-              status={status}
-              label={saved.viewedId ? workingLabel : saved.chrome.label}
-              uncommitted={!calculationReady && status === "ready"}
-              unsafe={model.cashShort}
-              showReview={showReview}
-              onDraft={(next) => {
-                setDraft(next);
-                setDraftErrors(emptyScenarioDraftErrors);
-              }}
-              onUpdate={() => void updatePreview()}
-              onReset={() => void resetChanges()}
-              onReview={() => {
-                setDetailFrom("decision");
-                setView("decision");
-              }}
-            />
-          ) : null}
           <PlanTabs
             value={selectedTab}
             onChange={(tab) => {
+              setCashReturn(null);
               setDetailFrom(tab);
               setView(tab);
             }}
@@ -380,44 +388,82 @@ export function PlanPageClient({
             {isPlanDetail(view) ? (
               <button
                 type="button"
-                onClick={() => setView(detailFrom)}
+                onClick={closeDetail}
                 className="min-h-11 w-fit text-sm font-medium text-primary underline print:hidden"
               >
-                {backLabels[detailFrom]}
+                {view === "cash" && cashReturn === "shortfall"
+                  ? "Back to shortfall"
+                  : backLabels[detailFrom]}
               </button>
             ) : null}
 
             {view === "overview" ? (
-              <>
-                <PlanSafety
-                  spendable={model.spendable}
-                  action={model.action}
-                  onOpenCash={() => openDetail("cash", "overview")}
-                  onTryChange={() => setView("changes")}
-                />
-                <PlanDebtOutlookPanel
-                  outlook={model.debtOutlook}
-                  onReviewDebt={() => openDetail("debt", "overview")}
-                />
-                {model.action.view === "cash" ? null : (
-                  <button
-                    type="button"
-                    onClick={() => openDetail("cash", "overview")}
-                    className="min-h-11 w-fit text-sm font-medium text-primary underline"
-                  >
-                    Review cash outlook
-                  </button>
-                )}
-                <PlanAttentionSummary
-                  readiness={model.readiness}
-                  debtItems={model.finish}
-                  primaryKey={model.action.key}
-                />
-              </>
+              <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1.7fr)_minmax(18rem,0.9fr)] xl:items-start">
+                <PlanSafety spendable={model.spendable} />
+                <div className="flex min-w-0 flex-col gap-4">
+                  <PlanNextAction
+                    action={model.action}
+                    onOpenShortfall={() => openDetail("shortfall", "overview")}
+                    onTryChange={() => {
+                      setCashReturn(null);
+                      setDetailFrom("changes");
+                      setView("changes");
+                    }}
+                  />
+                  <PlanDebtOutlookPanel
+                    outlook={model.debtOutlook}
+                    onReviewDebt={() => openDetail("debt", "overview")}
+                  />
+                  <PlanAttentionSummary
+                    readiness={model.readiness}
+                    debtItems={model.finish}
+                    primaryKey={model.action.key}
+                  />
+                  {model.action.view === "shortfall" ? null : (
+                    <button
+                      type="button"
+                      onClick={() => openDetail("cash", "overview")}
+                      className="min-h-11 w-fit text-sm font-medium text-primary underline"
+                    >
+                      Typical pay
+                    </button>
+                  )}
+                </div>
+              </div>
             ) : null}
 
             {view === "changes" ? (
               <>
+                {draft ? (
+                  <PlanWorkingScenario
+                    draft={draft}
+                    errors={draftErrors}
+                    appliedKind={selectedKind}
+                    hasPayoff={hasPayoff}
+                    baseline={baseline}
+                    report={report}
+                    status={status}
+                    currentFacts={matchesFacts}
+                    uncommitted={!calculationReady && status === "ready"}
+                    unsafe={model.cashShort}
+                    showReview={showReview}
+                    onDraft={(next) => {
+                      setDraft(next);
+                      setDraftErrors(emptyScenarioDraftErrors);
+                    }}
+                    onUpdate={() => void updatePreview()}
+                    onReset={() => void resetChanges()}
+                    onReview={() => {
+                      setCashReturn(null);
+                      setDetailFrom("decision");
+                      setView("decision");
+                    }}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Preparing this scenario.
+                  </p>
+                )}
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <button
                     type="button"
@@ -468,8 +514,15 @@ export function PlanPageClient({
               <PlanDecision
                 saved={saved}
                 calculationReady={calculationReady}
-                onOpenCash={() => openDetail("cash", "decision")}
+                onOpenShortfall={() => openDetail("shortfall", "decision")}
                 onOpenDebt={() => openDetail("debt", "decision")}
+              />
+            ) : null}
+
+            {view === "shortfall" ? (
+              <PlanShortfallReview
+                spendable={model.spendable}
+                onTypicalPay={openTypicalPay}
               />
             ) : null}
 

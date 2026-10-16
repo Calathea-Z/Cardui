@@ -2,7 +2,7 @@ export const planTabs = ["overview", "changes", "decision"] as const;
 
 export type PlanTab = (typeof planTabs)[number];
 
-export const planDetails = ["cash", "debt", "offer"] as const;
+export const planDetails = ["shortfall", "cash", "debt", "offer"] as const;
 
 export type PlanDetail = (typeof planDetails)[number];
 
@@ -15,7 +15,7 @@ export type PlanView = PlanTab | PlanDetail;
 export type PlanTabKey = "ArrowLeft" | "ArrowRight" | "Home" | "End";
 
 /**
- * True when the view is cash, debt, or the offer tool rather than a primary tab.
+ * True when the view is the shortfall review, cash, debt, or the offer tool rather than a primary tab.
  */
 export function isPlanDetail(view: PlanView): view is PlanDetail {
   return (planDetails as readonly string[]).includes(view);

@@ -556,15 +556,52 @@ export function decisionFactLines(
       term: "Cash to keep",
       detail: facts.cashFloor > 0 ? money(facts.cashFloor) : "Not set",
     },
-    {
-      term: "Spendable",
-      detail: `${money(facts.spendable)} over the next 30 days`,
-    },
+    shortfallOrSpendable(facts, money, date),
     {
       term: "Debt-free",
       detail: facts.paidOffOn ? date(facts.paidOffOn) : "Not dated",
     },
   ];
+}
+
+/**
+ * The captured shortfall when this version is already short, or the floored spendable amount when it is not.
+ * An older short version says the amount was not stored. It is not filled from a later calculation or from the floored figure.
+ */
+function shortfallOrSpendable(
+  facts: DecisionPlanDto["facts"],
+  money: FormatMoney,
+  date: FormatDate,
+): DecisionLine {
+  if (!facts.alreadyShort) {
+    return {
+      term: "Spendable",
+      detail: `${money(facts.spendable)} over the next 30 days`,
+    };
+  }
+
+  if (facts.lowestAvailable == null) {
+    return {
+      term: "Shortfall",
+      detail: "The shortfall amount was not stored with this version.",
+    };
+  }
+
+  const amount =
+    facts.lowestAvailable < 0
+      ? Math.abs(facts.lowestAvailable)
+      : facts.lowestAvailable;
+  if (!facts.lowestAvailableOn) {
+    return {
+      term: "Shortfall",
+      detail: `${money(amount)}. The lowest-balance date was not stored with this version.`,
+    };
+  }
+
+  return {
+    term: "Shortfall",
+    detail: `${money(amount)} on ${date(facts.lowestAvailableOn)}. That is the lowest balance after money set aside.`,
+  };
 }
 
 /**

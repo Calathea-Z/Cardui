@@ -27,10 +27,7 @@ export function PlanAttentionSummary({
   }
 
   return (
-    <section
-      className="app-panel self-start"
-      aria-labelledby="plan-attention-title"
-    >
+    <section className="app-panel" aria-labelledby="plan-attention-title">
       <div className="app-panel-header px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <h2 id="plan-attention-title" className="app-section-title">

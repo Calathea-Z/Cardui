@@ -14,6 +14,7 @@ export type PlanScenarioStatus = "ready" | "updating" | "error";
 /**
  * Holds the plan on screen and reloads it for a temporary preview.
  * The saved plan is the page load. A newer request replaces an older one still in flight. Nothing is saved.
+ * `onApplied` runs in the same update as the report, so the path and the figures change together. A failed or replaced request does not call it.
  */
 export function usePlanScenario(baseline: PlanRecoveryDto) {
   const [report, setReport] = useState(baseline);
@@ -22,13 +23,14 @@ export function usePlanScenario(baseline: PlanRecoveryDto) {
   const request = useRef(0);
 
   const applyScenario = useCallback(
-    async (scenario: PlanScenarioQuery) => {
+    async (scenario: PlanScenarioQuery, onApplied?: () => void) => {
       const id = ++request.current;
       setRequested(scenario);
       if (isSavedPlanScenario(scenario)) {
         setReport(baseline);
         setStatus("ready");
         setRequested(null);
+        onApplied?.();
         return true;
       }
 
@@ -42,6 +44,7 @@ export function usePlanScenario(baseline: PlanRecoveryDto) {
         setReport(next);
         setStatus("ready");
         setRequested(null);
+        onApplied?.();
         return true;
       } catch {
         if (request.current !== id) {

@@ -10,6 +10,11 @@ Increment 2, the working scenario and saved-version clarity, is approved in
 [`2026-10-16-001-working-scenario-and-versions.md`](../reviews/2026-10-16-001-working-scenario-and-versions.md).
 Increment 3, payoff priority and partial reclaim, is approved in
 [`2026-10-16-002-payoff-priority-and-reclaim.md`](../reviews/2026-10-16-002-payoff-priority-and-reclaim.md).
+Increment 1 of the October 16 reassessment, the next-month answer first, is
+approved in
+[`2026-10-16-004-plan-next-month-first.md`](../reviews/2026-10-16-004-plan-next-month-first.md).
+Increment 2, one way to apply a change, is approved in
+[`2026-10-16-005-one-way-to-apply.md`](../reviews/2026-10-16-005-one-way-to-apply.md).
 Date: October 7, 2026
 Updated: 2026-10-16
 
@@ -38,9 +43,15 @@ Forward-looking charts still live on Plan. Home keeps historical results. See
   cash points and 6, 12, and 18 month cash summaries. It does not invent
   intermediate points for the longer horizons.
 - The extra monthly amount, payoff behavior, income loss, windfall, flexible
-  spending, and cash floor are one working scenario above the Plan views.
-  Update preview applies the valid fields together. Reset restores current
-  facts. A failed update keeps the entered fields and the previous result,
+  spending, and cash floor are one working scenario on Try changes.
+  Update preview applies the valid fields together. Every choice, including
+  freed cash and payment priority, stays pending until that update. The
+  result says when a selection is not applied yet. Paths already on the
+  report can answer a matching scenario without another request. Any other
+  edit, including a second change beside that path, is one request, and the
+  path changes with that result. The figures on screen and the save payload
+  change together. Save stays unavailable while they differ. Reset restores
+  current facts. A failed update keeps the entered fields and the previous result,
   and that uncalculated draft cannot be saved. The last applied preview
   stays in this browser session, so opening a setup editor and returning
   restores it. An offer comparison stays on the Plan page and is not part
@@ -60,7 +71,10 @@ Plan has three primary views in one component tree: **Overview**, **Try
 changes**, and **Your plan**. Overview is the default. Cash outlook and
 Debt payoff are supporting details opened from Overview or from a scenario
 result. Compare an offer is an optional tool opened from Try changes. The
-origin view stays selected, and Back returns to it. The working scenario sits above those views. The selected payoff
+origin view stays selected, and Back returns to it. Overview, Try changes,
+and Your plan sit directly under the Plan heading. One status sits with
+that heading: Current facts, Trying changes — not saved, Saved draft, or
+Accepted plan. The working scenario is the Try changes view. The selected payoff
 behavior, extra payment, cash timeframe, highlighted debt, and offer form
 stay in the page-level state, so changing views or widths does not reset
 them. Only the open view renders. Your plan is approved in
@@ -83,11 +97,16 @@ steady-pay safety figure, then one next action, then a short debt outlook.
    lowest-balance date is named as the lowest point in the window. This
    estimate has no separate first-gap date, and the page does not invent
    one. The typical-pay cash chart is not on this view.
-2. **Next action.** One action sits under the safety answer. A shortfall
-   opens the cash outlook. Missing cash, steady pay, debt terms, or living
-   costs open that existing editor and return to Plan. A covered window
-   with debts offers **Try a change**. Other issues stay as a count that
-   opens the remaining warnings and debt blockers. Healthy checks stay quiet.
+2. **Next action.** One action sits in the supporting column beside the
+   safety answer, and under it on a phone. A shortfall opens **Review
+   shortfall**, which repeats this figure, the lowest-balance date, and
+   money set aside. Typical pay is a later section on that review, under
+   its own name. When the window is not short, **Typical pay** is a text
+   link in the supporting column. Missing cash, steady pay, debt terms, or
+   living costs open that existing editor and return to Plan. A covered
+   window with debts offers **Try a change**. Other issues stay as a count
+   that opens the remaining warnings and debt blockers. Healthy checks stay
+   quiet.
 3. **Debt outlook.** A short row names the next payment priority, the first
    expected payoff, and whether that payment becomes available or is
    redirected. Payment priority is who an extra or rolled payment follows.
@@ -104,7 +123,7 @@ an after-extra amount.
 ### Working scenario
 
 The question is what change is being tried, and how it compares with current
-facts. The scenario sits above Overview, Try changes, and Your plan.
+facts. The scenario is the Try changes view. It is not above Overview.
 
 One task is open at a time: Pay extra, Change income, Add a windfall, Change
 living costs, Protect more cash, or Change what happens after payoff. The
@@ -117,31 +136,65 @@ result and the fields stay as entered. **Retry** sends them again.
 **Change what happens after payoff** compares four payment priorities:
 highest rate first, remove a minimum, lower utilization, and pay one debt
 first or last. The last choice names one debt. It is not a ranking of every
-debt. Freed cash is keep none, keep some, or keep all. Keep some asks for a
-monthly amount. The lines beside those choices are the last calculated
-preview. **Update preview** applies them. Priority interest is before a
-freed payment rolls. A freed payment starts the month after the modeled
-payment ends. **Reset changes** returns to highest rate first and keep none.
+debt. Each priority names who is paid first and what the interest
+difference means. That interest is before a freed payment rolls. Freed cash
+is keep none, keep some, or keep all. Keep some asks for a monthly amount.
+The lines beside those choices are the last calculated preview. **Update
+preview** applies the selection. Until then, the result says the selection
+is not applied. A scenario that already matches the report uses the paths
+on that report. A second edit applies with that selection in the same
+update, after the request. A freed payment starts the month after the
+modeled payment ends. **Reset changes** returns to highest rate first and
+keep none.
 
 The status is **Current facts**, **Trying changes — not saved**, **Saved
-draft**, or **Accepted plan**. A compact comparison shows near-term cash
-safety, payoff, and total interest for the same starting cash, date, and
-steady-pay basis. A different income basis is not presented as the same
-comparison. Unknown payoff or interest stays unknown. A windfall stays in
-cash and is named as excluded from steady-pay Spendable. After a successful
+draft**, or **Accepted plan**. That status sits with the Plan heading, not
+again above the editor. Before any preview differs from current facts, the
+page says these are the current facts and does not show two copies of the
+same figures. After a preview differs, the comparison labels are **Current
+facts**, **Trying**, and **Change**, including on a phone. It shows
+near-term cash safety, payoff, and total interest for the same starting
+cash, date, and steady-pay basis. A different income basis is not presented
+as the same comparison. Unknown payoff or interest stays unknown. An unknown
+date for every debt names the first dated payoff and the debt that blocks a
+full date. The page does not invent a date or amount. A windfall stays in
+cash and is named as excluded from steady-pay Spendable. Every choice,
+including freed cash, waits for **Update preview**. After a successful
 update, **Review this plan** opens Your plan. If the window is still short,
 that action says so.
 
 ### Try changes
 
-Buttons open the cash outlook, debt payoff, and the offer comparison. The
-offer says it compares current minimum payments, leaves out the working
-scenario's extra payment, and is not saved with Your plan. Plan setup edits
-saved facts and returns here.
+The working scenario, **Update preview**, and **Reset changes** are this
+view. Buttons under the editor open the cash outlook, debt payoff, and the
+offer comparison. The offer says it compares current minimum payments,
+leaves out the working scenario's extra payment, and is not saved with Your
+plan. Plan setup edits saved facts and returns here.
+
+### Review shortfall
+
+Reached from the shortfall action on Overview or from Your plan. It is not
+a primary tab. It repeats the Overview figure, the lowest-balance date, and
+money set aside, and says that is the next-30-day steady-pay figure. Typical
+pay follows in its own section. **Look at typical pay** opens the cash
+outlook. **Back to shortfall** returns from that outlook.
+
+### Plan setup
+
+`/plan/setup` lists Income, Bills and debt payments, Living costs, Money to
+protect, and Extra money preferences as compact full-width rows inside
+`max-w-6xl`. Each
+row names a specific edit, such as **Edit living costs**. Bills and debts
+stay separate editors on the bills row. That row shows the same debt-terms
+count Plan already lists when the recovery report loads. A failed plan load
+does not invent the warning. **Back to Plan** returns to `/plan`. The page
+does not split the list into two columns.
 
 ### Cash outlook
 
-Reached from Overview or Try changes. It is not a primary tab.
+Reached from Review shortfall, from Try changes, or from the Typical pay
+link on Overview when the window is not already short. It is not a primary
+tab. Its chart is typical pay, not the steady-pay shortfall.
 
 - A 30 days / 6 months / 12 months / 18 months control selects one view.
 - Each chart is labeled typical pay or low pay, with its timeframe. A line
@@ -196,7 +249,8 @@ The offer is a consolidation loan, a balance transfer, or a replacement
 loan. A consolidation loan replaces two or more debts. A replacement loan
 replaces one. A balance transfer replaces revolving debts only. Each
 selected debt is included in full. The rate entered is used for the whole
-term. One offer is compared at a time.
+term. That constant-rate limit sits beside the rate field. One offer is
+compared at a time. The offer stays temporary and is not saved.
 
 The result puts APR, fee, term, monthly payment, total interest, interest
 and fees, and payoff beside the current debts. Break-even, the monthly cash
@@ -232,6 +286,13 @@ Assumptions and the captured scenario sit in one disclosure. Milestones,
 other gaps, and review conditions sit in another. Older versions stay in
 History.
 
+A new version stores the unfloored lowest balance and its date beside the
+floored Spendable figure. Your plan shows that captured amount when the
+window was already short. A version saved before those fields existed says
+the amount was not stored. The page does not fill it from today's
+calculation. The stored action sentence can still name the typical-pay cash
+date. That date is not the lowest-balance date.
+
 The actions follow the preview from Try changes. Scenario controls stay on
 Try changes. The preview is not a saved version until
 **Save draft**. Saving the same plan again returns the open draft. Accepting
@@ -246,11 +307,14 @@ print open. There is no PDF file and no public link.
 
 ### Desktop and mobile behavior
 
-- The page uses a bounded `max-w-6xl` container. Related chart and attention
-  content becomes two columns only when space permits.
+- The page uses a bounded `max-w-6xl` container. From `xl` up, Overview puts
+  the safety figure in the wide column and the next action, debt outlook,
+  and issues in the smaller column. Below that width the same order is one
+  column. Plan setup uses the same page bound and one list of rows.
 - Under `md`, the page is one column with 16px horizontal padding. The
-  tab bar stays visible below the fixed app header and does not add a
-  second sticky panel. The three labels stay on one row at both widths.
+  view bar sits under the heading in the page flow. It does not stick, so
+  it does not cover the safety heading. The three labels stay on one row
+  at both widths.
 - All tab and scenario controls retain 44px targets. Time ranges use two
   rows when needed. Charts use fewer axis labels, and the 30-day chart has
   a keyboard-readable values disclosure.
@@ -260,7 +324,8 @@ print open. There is no PDF file and no public link.
 
 - One `h1`. Section titles are 0.875rem, 600 weight, sentence case. Rows
   are 0.875rem. Meta is 0.75rem. The big figure is 2rem, 600 weight,
-  `tabular-nums`, one per page. See `docs/design/ui-direction.md`.
+  `tabular-nums`. Overview has that one figure. Review shortfall repeats
+  the same figure. See `docs/design/ui-direction.md`.
 - Money uses `formatCurrency`. Chart labels use the chart formatters. The
   server-written explanation sentences, which write "45.00 USD", are not
   sent to the page. The page builds its copy from structured fields.

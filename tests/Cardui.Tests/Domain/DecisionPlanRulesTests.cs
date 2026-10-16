@@ -197,6 +197,39 @@ public class DecisionPlanRulesTests
     }
 
     [Fact]
+    public void Deserialize_KeepsAnOlderPlanThatHasNoShortfallAmount()
+    {
+        var plan = DecisionPlanRules.Compose(Sample() with
+        {
+            Facts = Facts() with
+            {
+                Spendable = 0m,
+                AlreadyShort = true,
+                LowestAvailable = -125.50m,
+                LowestAvailableOn = new DateOnly(2026, 10, 20)
+            }
+        });
+        var stored = DecisionPlanJson.Serialize(plan);
+        var withAmount = DecisionPlanJson.Deserialize(stored);
+
+        Assert.Equal(-125.50m, withAmount.Facts.LowestAvailable);
+        Assert.Equal(new DateOnly(2026, 10, 20), withAmount.Facts.LowestAvailableOn);
+        Assert.Equal(0m, withAmount.Facts.Spendable);
+
+        var node = JsonNode.Parse(stored)!.AsObject();
+        var facts = node["facts"]!.AsObject();
+        facts.Remove("lowestAvailable");
+        facts.Remove("lowestAvailableOn");
+        var read = DecisionPlanJson.Deserialize(node.ToJsonString());
+
+        Assert.Null(read.Facts.LowestAvailable);
+        Assert.Null(read.Facts.LowestAvailableOn);
+        Assert.True(read.Facts.AlreadyShort);
+        Assert.Equal(0m, read.Facts.Spendable);
+        Assert.Equal(plan.Facts.StartingCash, read.Facts.StartingCash);
+    }
+
+    [Fact]
     public void Save_RejectsAStaleDraftAndKeepsARepeatedDocument()
     {
         var draftId = Guid.NewGuid();

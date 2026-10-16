@@ -377,7 +377,9 @@ public class SavedPlanService : ISavedPlanService
             StartingObligation = facts.StartingObligation,
             RecurringRoom = facts.RecurringRoom,
             PaidOffOn = facts.PaidOffOn,
-            TotalInterest = facts.TotalInterest
+            TotalInterest = facts.TotalInterest,
+            LowestAvailable = facts.LowestAvailable,
+            LowestAvailableOn = facts.LowestAvailableOn
         };
     }
 

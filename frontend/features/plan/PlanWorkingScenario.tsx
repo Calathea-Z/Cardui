@@ -21,6 +21,7 @@ import {
 import { PlanPayoffChoices } from "./PlanPayoffChoices";
 import {
   planScenarioComparison,
+  scenarioBaselineSentence,
   scenarioComparisonNote,
   scenarioSafetyWindow,
 } from "./planScenarioComparison";
@@ -67,7 +68,7 @@ type PlanWorkingScenarioProps = {
   baseline: PlanRecoveryDto;
   report: PlanRecoveryDto;
   status: PlanScenarioStatus;
-  label: string;
+  currentFacts: boolean;
   uncommitted: boolean;
   unsafe: boolean;
   showReview: boolean;
@@ -78,7 +79,7 @@ type PlanWorkingScenarioProps = {
 };
 
 /**
- * The one working scenario above Plan's views.
+ * The working scenario on Try changes.
  * Fields stay in the draft until Update preview. Reset returns to current facts. A failed update leaves the draft as entered.
  */
 export function PlanWorkingScenario({
@@ -89,7 +90,7 @@ export function PlanWorkingScenario({
   baseline,
   report,
   status,
-  label,
+  currentFacts,
   uncommitted,
   unsafe,
   showReview,
@@ -136,7 +137,6 @@ export function PlanWorkingScenario({
         <h2 id="plan-scenario-title" className="app-section-title">
           Working scenario
         </h2>
-        <p className="mt-1 text-sm font-medium text-foreground">{label}</p>
         <p className="mt-1 text-sm text-muted-foreground">
           {planScenarioSummary(
             appliedKind,
@@ -277,11 +277,6 @@ export function PlanWorkingScenario({
           </Button>
         </div>
 
-        {uncommitted && status === "ready" ? (
-          <p className="text-sm text-foreground">
-            These edits are not in the preview yet.
-          </p>
-        ) : null}
         {statusMessage ? (
           <p
             aria-live="polite"
@@ -307,47 +302,79 @@ export function PlanWorkingScenario({
       </div>
 
       <div className="border-t border-border px-4 py-3">
-        <h3 className="text-sm font-semibold text-foreground">
-          Compared with current facts
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {scenarioComparisonNote(comparison)}
-          {comparison.sameSafetyWindow
-            ? ` Steady pay from ${windowLabel}.`
-            : ""}
-        </p>
-        {status !== "ready" ? (
-          <p className="mt-1 text-sm text-foreground">
-            These figures are the previous result.
+        {uncommitted && status === "ready" ? (
+          <p className="mb-3 text-sm text-foreground" aria-live="polite">
+            This selection is not applied yet.
           </p>
         ) : null}
-        {comparison.windfallNote ? (
-          <p className="mt-1 text-sm text-foreground">
-            {comparison.windfallNote}
-          </p>
-        ) : null}
-        <div className="mt-3 flex flex-col gap-3">
-          {comparison.rows.map((row) => (
-            <div
-              key={row.label}
-              className="grid gap-1 border-b border-border pb-3 sm:grid-cols-3 sm:gap-3"
-            >
-              <p className="text-sm font-medium text-foreground">{row.label}</p>
-              <p className="text-sm text-foreground">
-                <span className="text-muted-foreground sm:hidden">
-                  Current facts:{" "}
-                </span>
-                <span className="tabular-nums">{row.current.text}</span>
+        {currentFacts ? (
+          <>
+            <h3 className="text-sm font-semibold text-foreground">
+              Current facts
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {scenarioBaselineSentence()}
+            </p>
+          </>
+        ) : (
+          <>
+            <h3 className="text-sm font-semibold text-foreground">
+              Compared with current facts
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {scenarioComparisonNote(comparison)}
+              {comparison.sameSafetyWindow
+                ? ` Steady pay from ${windowLabel}.`
+                : ""}
+            </p>
+            {status !== "ready" ? (
+              <p className="mt-1 text-sm text-foreground">
+                These figures are the previous result.
               </p>
-              <p className="text-sm text-foreground">
-                <span className="text-muted-foreground sm:hidden">
-                  Trying changes:{" "}
-                </span>
-                <span className="tabular-nums">{row.trying.text}</span>
+            ) : null}
+            {comparison.windfallNote ? (
+              <p className="mt-1 text-sm text-foreground">
+                {comparison.windfallNote}
               </p>
+            ) : null}
+            <div className="mt-3 hidden grid-cols-4 gap-3 text-xs font-medium text-muted-foreground sm:grid">
+              <span className="sr-only">Figure</span>
+              <span>Current facts</span>
+              <span>Trying</span>
+              <span>Change</span>
             </div>
-          ))}
-        </div>
+            <div className="mt-3 flex flex-col gap-3 sm:mt-2">
+              {comparison.rows.map((row) => (
+                <div
+                  key={row.label}
+                  className="grid gap-1 border-b border-border pb-3 sm:grid-cols-4 sm:gap-3"
+                >
+                  <p className="text-sm font-medium text-foreground">
+                    {row.label}
+                  </p>
+                  <p className="text-sm text-foreground">
+                    <span className="text-muted-foreground sm:sr-only">
+                      Current facts:{" "}
+                    </span>
+                    <span className="tabular-nums">{row.current.text}</span>
+                  </p>
+                  <p className="text-sm text-foreground">
+                    <span className="text-muted-foreground sm:sr-only">
+                      Trying:{" "}
+                    </span>
+                    <span className="tabular-nums">{row.trying.text}</span>
+                  </p>
+                  <p className="text-sm text-foreground">
+                    <span className="text-muted-foreground sm:sr-only">
+                      Change:{" "}
+                    </span>
+                    <span className="tabular-nums">{row.change.text}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
         {showReview && status === "ready" ? (
           <div className="mt-3 flex flex-col items-start gap-2">
             {unsafe ? (

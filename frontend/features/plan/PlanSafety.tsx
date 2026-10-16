@@ -1,15 +1,9 @@
-import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { PlanSafetyAction } from "./planSafetyAction";
 import type { SpendableCopy } from "./spendableCopy";
 
 type PlanSafetyProps = {
   spendable: SpendableCopy;
-  action: PlanSafetyAction;
-  onOpenCash: () => void;
-  onTryChange: () => void;
 };
 
 /**
@@ -17,19 +11,18 @@ type PlanSafetyProps = {
  * A shortfall leads with its amount. The lowest-balance date stays labeled as that low point.
  * Missing facts stay a warning. A covered window does not use a success mark.
  */
-export function PlanSafety({
-  spendable,
-  action,
-  onOpenCash,
-  onTryChange,
-}: PlanSafetyProps) {
+export function PlanSafety({ spendable }: PlanSafetyProps) {
   const warning =
     spendable.status === "short" || spendable.status === "incomplete";
   const otherLimits = spendable.uncertainties.slice(1);
 
   return (
     <section
-      className={cn("app-panel p-4", warning && "border-warning/40")}
+      id="plan-safety"
+      className={cn(
+        "app-panel scroll-mt-[calc(3.75rem+env(safe-area-inset-top))] p-4",
+        warning && "border-warning/40",
+      )}
       aria-labelledby="plan-safety-title"
     >
       <h2 id="plan-safety-title" className="app-section-title">
@@ -109,48 +102,6 @@ export function PlanSafety({
           </ul>
         </details>
       ) : null}
-      <div className="mt-4 flex flex-col gap-2 border-t border-border/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">Next</p>
-          <p className="text-sm font-medium text-foreground">{action.title}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {action.detail}
-          </p>
-        </div>
-        {action.view === "cash" ? (
-          <button
-            type="button"
-            onClick={onOpenCash}
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "min-h-11 shrink-0 bg-card",
-            )}
-          >
-            {action.label}
-          </button>
-        ) : action.view === "changes" ? (
-          <button
-            type="button"
-            onClick={onTryChange}
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "min-h-11 shrink-0 bg-card",
-            )}
-          >
-            {action.label}
-          </button>
-        ) : (
-          <Link
-            href={action.href ?? "/plan/setup"}
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "min-h-11 shrink-0 bg-card",
-            )}
-          >
-            {action.label}
-          </Link>
-        )}
-      </div>
     </section>
   );
 }

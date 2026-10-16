@@ -109,7 +109,9 @@ export type DecisionPlanGuardrailDto = {
 /**
  * Cash, budget, and payoff figures captured for one decision plan.
  * Living spending and the cash floor are the amounts that plan used. Zero means it had none.
- * A null date means that event does not happen in the calculation.
+ * `spendable` is floored at zero. `lowestAvailable` is that lowest balance before flooring, and it stays negative when the window is short.
+ * `lowestAvailable` and `lowestAvailableOn` are null when this version was saved before they were stored. Do not fill them from a later calculation.
+ * `shortfallOn` is the typical-pay cash date, not the lowest-balance date. A null date means that event does not happen, or was not stored.
  */
 export type DecisionPlanFactsDto = {
   startingCash: number;
@@ -136,6 +138,8 @@ export type DecisionPlanFactsDto = {
   recurringRoom: number;
   paidOffOn: string | null;
   totalInterest: number;
+  lowestAvailable: number | null;
+  lowestAvailableOn: string | null;
 };
 
 /**

@@ -46,7 +46,7 @@ export function PlanTabs({ value, onChange }: PlanTabsProps) {
   return (
     <nav
       aria-label="Plan views"
-      className="sticky top-[calc(3.75rem+env(safe-area-inset-top))] z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2 backdrop-blur-sm print:hidden! md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none"
+      className="-mx-4 border-b border-border px-4 pb-3 print:hidden! md:mx-0 md:border-0 md:px-0 md:pb-0"
     >
       <div
         role="tablist"

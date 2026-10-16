@@ -4,6 +4,7 @@ import { BackButton } from "./back-button";
 
 type PageHeaderProps = {
   title: string;
+  status?: string;
   description?: string;
   backFallbackHref?: string;
   showBack?: boolean;
@@ -12,11 +13,12 @@ type PageHeaderProps = {
 };
 
 /**
- * Title row for a page, with optional description and actions.
- * Primary pages omit the back control. Actions wrap under the title on a narrow row.
+ * Title row for a page, with optional status, description, and actions.
+ * Status sits with the title. Primary pages omit the back control. Actions wrap under the title on a narrow row.
  */
 export function PageHeader({
   title,
+  status,
   description,
   backFallbackHref = "/",
   showBack = false,
@@ -42,6 +44,9 @@ export function PageHeader({
           <h1 className="text-[1.75rem] font-semibold leading-none tracking-[-0.02em] text-foreground">
             {title}
           </h1>
+          {status ? (
+            <p className="mt-2 text-sm font-medium text-foreground">{status}</p>
+          ) : null}
           {description ? (
             <p className="mt-2 max-w-xl text-sm text-muted-foreground">
               {description}

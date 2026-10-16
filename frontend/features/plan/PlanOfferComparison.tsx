@@ -17,7 +17,6 @@ import type {
 } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import {
-  balanceTransferRateLimit,
   breakEvenSentence,
   comparisonAssumptions,
   costSentence,
@@ -26,6 +25,7 @@ import {
   offerKindHelp,
   offerNotApproved,
   offerNotRanked,
+  offerRateHelp,
   offerScope,
   opportunitySentence,
   opportunityWarns,
@@ -360,11 +360,7 @@ function OfferForm({
           value={form.apr}
           suffix="%"
           error={fieldErrors.apr}
-          help={
-            form.kind === "BalanceTransfer"
-              ? balanceTransferRateLimit
-              : undefined
-          }
+          help={offerRateHelp(form.kind)}
           onChange={(value) => onField("apr", value)}
         />
         <TextField
@@ -446,6 +442,10 @@ function TextField({
   error?: string;
   onChange: (value: string) => void;
 }) {
+  const helpId = help ? `${id}-help` : undefined;
+  const errorId = error ? `${id}-error` : undefined;
+  const describedBy = [helpId, errorId].filter(Boolean).join(" ") || undefined;
+
   return (
     <label className="flex flex-col gap-1.5 text-sm font-medium" htmlFor={id}>
       {label}
@@ -456,6 +456,7 @@ function TextField({
           className="min-h-11"
           value={value}
           aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
           onChange={(event) => onChange(event.target.value)}
         />
         {suffix ? (
@@ -463,12 +464,16 @@ function TextField({
         ) : null}
       </span>
       {help ? (
-        <span className="text-sm font-normal text-muted-foreground">
+        <span id={helpId} className="text-sm font-normal text-muted-foreground">
           {help}
         </span>
       ) : null}
       {error ? (
-        <span role="alert" className="text-sm font-normal text-destructive">
+        <span
+          id={errorId}
+          role="alert"
+          className="text-sm font-normal text-destructive"
+        >
           {error}
         </span>
       ) : null}

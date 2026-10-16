@@ -68,7 +68,7 @@ export type PlanVersionPrintLines = {
 export type DecisionActionTarget = {
   label: string;
   href?: string;
-  view?: "cash" | "debt";
+  view?: "shortfall" | "debt";
 };
 
 /**
@@ -240,7 +240,7 @@ export function decisionActionTarget(
 ): DecisionActionTarget | null {
   switch (kind) {
     case "CoverCashShortfall":
-      return { label: "Review cash shortfall", view: "cash" };
+      return { label: "Review shortfall", view: "shortfall" };
     case "AddStartingCash":
     case "RefreshBalances":
       return { label: "Review accounts", href: editorHref("/accounts") };

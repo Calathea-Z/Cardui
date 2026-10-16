@@ -39,6 +39,7 @@ export type PlanSetupInput = {
   allocationSaved: boolean;
   variableIncome: AllocationRuleDto | null;
   windfall: AllocationRuleDto | null;
+  debtTermsIssue: string | null;
 };
 
 /**
@@ -51,11 +52,13 @@ export type PlanSetupAction = {
 
 /**
  * One setup group: a saved summary and the existing editors that change it.
+ * `issue` is a warning Plan already has for this group. Null means none was found.
  */
 export type PlanSetupGroup = {
   key: string;
   title: string;
   lines: string[];
+  issue: string | null;
   actions: PlanSetupAction[];
 };
 
@@ -87,6 +90,7 @@ function incomeGroup(input: PlanSetupInput): PlanSetupGroup {
       input.incomeAvailable ? sourceLine(input.sourceCount) : unread,
       input.sharesAvailable ? shareLine(input.contributions) : unread,
     ],
+    issue: null,
     actions: [
       { label: "Edit pay", href: planReturnHref("/income", "setup") },
       { label: "Edit shares", href: planReturnHref("/living", "setup") },
@@ -109,6 +113,7 @@ function billsGroup(input: PlanSetupInput): PlanSetupGroup {
         ? countLine(input.debtCount, "debt", "debts")
         : unread,
     ],
+    issue: input.debtTermsIssue,
     actions: [
       { label: "Edit bills", href: planReturnHref("/bills", "setup") },
       { label: "Edit debts", href: planReturnHref("/debts", "setup") },
@@ -132,7 +137,10 @@ function livingGroup(
     key: "living",
     title: "Living costs",
     lines: [line],
-    actions: [{ label: "Edit", href: planReturnHref("/living", "setup") }],
+    issue: null,
+    actions: [
+      { label: "Edit living costs", href: planReturnHref("/living", "setup") },
+    ],
   };
 }
 
@@ -160,7 +168,13 @@ function protectGroup(
     key: "protect",
     title: "Money to protect",
     lines,
-    actions: [{ label: "Edit", href: planReturnHref("/savings", "setup") }],
+    issue: null,
+    actions: [
+      {
+        label: "Edit money to protect",
+        href: planReturnHref("/savings", "setup"),
+      },
+    ],
   };
 }
 
@@ -181,11 +195,31 @@ function allocationGroup(input: PlanSetupInput): PlanSetupGroup {
     key: "allocation",
     title: "Extra money preferences",
     lines,
-    actions: [{ label: "Edit", href: planReturnHref("/allocation", "setup") }],
+    issue: null,
+    actions: [
+      {
+        label: "Edit extra-money preferences",
+        href: planReturnHref("/allocation", "setup"),
+      },
+    ],
   };
 }
 
 const unread = "Could not be read. Open the editor to see what is saved.";
+
+/**
+ * The debt-terms warning Plan already shows, written for the debts row.
+ * `count` is the number of debts in that list. Null means the plan could not be read, so no warning is invented.
+ * Zero stays quiet.
+ */
+export function planSetupDebtTermsIssue(count: number | null): string | null {
+  if (count == null || count === 0) {
+    return null;
+  }
+
+  const noun = count === 1 ? "debt needs" : "debts need";
+  return `${count} ${noun} a term before the payoff estimate is complete.`;
+}
 
 /**
  * Names how many pay sources are saved.

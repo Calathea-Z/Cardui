@@ -117,6 +117,7 @@ internal static class SavedPlanComposer
 
     /// <summary>
     /// The cash and payoff figures for the selected path, including the extra-payment guardrail.
+    /// LowestAvailable stays negative when the window is short. Spendable remains floored at zero.
     /// </summary>
     private static DecisionPlanFacts Facts(
         PlanRecoveryDto report,
@@ -157,7 +158,9 @@ internal static class SavedPlanComposer
             path.StartingObligation,
             path.RecurringRoom,
             path.PaidOffOn,
-            path.TotalInterest);
+            path.TotalInterest,
+            spendable.LowestAvailable,
+            spendable.LowestOn);
     }
 
     /// <summary>

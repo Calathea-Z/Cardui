@@ -4,6 +4,7 @@ import { formatCurrency } from "@/features/accounts/formatCurrency";
 import { formatCalendarDate } from "@/features/debts/debtDisplay";
 import type { PayoffConstraintKind, PlanRecoveryDto } from "@/lib/api/types";
 import {
+  firstPaidName,
   freedCashLine,
   freedCashOptions,
   payoffPriorityOptions,
@@ -90,7 +91,11 @@ export function PlanPayoffChoices({
                       {priorityOrderLine(report, alternative.debtIds)}
                     </span>
                     <span className="mt-1 block text-xs text-muted-foreground">
-                      {priorityTradeoff(alternative, money)}
+                      {priorityTradeoff(
+                        alternative,
+                        money,
+                        firstPaidName(report, alternative.debtIds),
+                      )}
                     </span>
                   </>
                 ) : null}

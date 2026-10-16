@@ -499,6 +499,7 @@ public class CategoryTargetsService : ICategoryTargetsService
     /// <summary>
     /// Loads household transactions from the earliest started month through the spending end.
     /// A future month loads nothing when that end is still before the month begins.
+    /// Account type and the description are included so a card payment is not spent again.
     /// </summary>
     private async Task<IReadOnlyList<DatedActivityRow>> LoadActivityAsync(
         IReadOnlyList<SavedTargetMonth> saved,
@@ -530,7 +531,10 @@ public class CategoryTargetsService : ICategoryTargetsService
                 item.Category == null ? null : item.Category.Key,
                 item.Category == null ? null : item.Category.SubGroup.Group.Key,
                 item.Provenance,
-                item.IsoCurrencyCode))
+                item.IsoCurrencyCode,
+                item.Account.Type,
+                item.MerchantName,
+                item.Name))
             .ToListAsync(cancellationToken);
     }
 

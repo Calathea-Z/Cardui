@@ -2,8 +2,9 @@
 
 Status: Current design record. The original recovery and cash views are
 approved. The implemented three-view refinement is approved. The offer
-comparison is approved. Spendable estimates are approved. Broader
-redesign proposals are not approved.
+comparison is approved. Spendable estimates are approved. Saved versions
+and the plain-language plan are approved. Broader redesign proposals are
+not approved.
 Date: October 7, 2026
 Updated: 2026-10-15
 
@@ -32,19 +33,26 @@ Forward-looking charts still live on Plan. Home keeps historical results. See
   cash points and 6, 12, and 18 month cash summaries. It does not invent
   intermediate points for the longer horizons.
 - The extra monthly amount, payoff behavior, income loss, windfall, flexible
-  spending, and cash floor are temporary scenarios. Nothing on Plan is saved,
-  and the page does not schedule a payment or move money.
+  spending, and cash floor are temporary scenarios until they are saved on
+  Your plan. The page does not schedule a payment or move money.
+- Your plan keeps one draft and one accepted version for the household.
+  Older copies stay as superseded versions. A saved version is the facts,
+  assumptions, priorities, scenario, actions, milestones, and review
+  conditions at that moment. Later edits to debts, pay, or bills do not
+  change it.
 - `recharts` and the implemented chart and series tokens are reused. No second
   chart library or palette is part of this design.
 
 ## Current implemented layout
 
-Plan has four tabs in one component tree: **Overview**, **Cash outlook**,
-**Debt payoff**, and **Compare an offer**. Overview is the default. The
-selected payoff behavior, extra payment, cash timeframe, highlighted debt,
-and offer form stay in the page-level state, so changing tabs or widths
-does not reset them. Only the selected tab's analysis renders. Overview,
-Cash outlook, Debt payoff, and Compare an offer are the approved layout.
+Plan has five tabs in one component tree: **Overview**, **Cash outlook**,
+**Debt payoff**, **Compare an offer**, and **Your plan**. Overview is the
+default. The selected payoff behavior, extra payment, cash timeframe,
+highlighted debt, and offer form stay in the page-level state, so changing
+tabs or widths does not reset them. Only the selected tab's analysis
+renders. Overview, Cash outlook, Debt payoff, and Compare an offer are the
+approved layout. Your plan is approved in
+[`2026-10-15-005-saved-plan.md`](../reviews/2026-10-15-005-saved-plan.md).
 
 ### Overview
 
@@ -141,8 +149,28 @@ a scenario. That scenario stays off this tab.
 On a phone the title and fields stack, and each compared fact names both
 sides. From 640px up the amount fields sit in two columns and the facts
 line up in three. The form stays within `max-w-xl`. The page stays
-`max-w-6xl`. The tab bar is two columns below `md` and one row from there
-up.
+`max-w-6xl`. The tab bar is two columns below `md` and a wrapping row
+from there up.
+
+### Your plan
+
+The question is what to do, in order, and whether this version is the one
+to keep. The leading action is **Save draft**, **Accept plan** when the
+open draft matches the preview, or **Print** when the accepted plan matches
+the preview. At most three actions lead. Each names why it matters and the
+expected cash-flow effect. Assumptions, priorities, the selected scenario,
+milestones, risks, missing information, and review conditions stay in
+disclosures. Older versions stay in a history disclosure.
+
+Try a scenario sits under the actions on this tab, so changing the preview
+updates the actions above it. The preview is not a saved version until
+**Save draft**. Saving the same plan again returns the open draft. Accepting
+a draft marks the previous accepted plan superseded. Cardui does not pay a
+bill, pay a debt, or move money.
+
+On a phone the actions stack and the buttons wrap. Print uses the browser.
+The shell, tabs, and scenario controls stay off the printed page, and the
+supporting sections print open. There is no PDF file and no public link.
 
 ### Desktop and mobile behavior
 
@@ -150,8 +178,8 @@ up.
   content becomes two columns only when space permits.
 - Under `md`, the page is one column with 16px horizontal padding. The
   tab bar stays visible below the fixed app header and does not add a
-  second sticky panel. Below `md` it is two columns. From `md` up it is one
-  row.
+  second sticky panel. Below `md` it is two columns. From `md` up it wraps
+  on one row when the labels fit.
 - All tab and scenario controls retain 44px targets. Time ranges use two
   rows when needed. Charts use fewer axis labels, and the 30-day chart has
   a keyboard-readable values disclosure.
@@ -310,9 +338,9 @@ rest of Phase 3 item 6 follows the same pattern for cash changes.
   then pay resumes. Flexible spending replaces later full months; a smaller
   remainder this month stays. Cash to keep replaces only the floor inside
   protected savings.
-- Leaving Plan clears every field. Nothing is saved. A negative amount is
-  not sent. While a request runs or fails, the page says the visible
-  forecast is still the previous one.
+- Leaving Plan clears every temporary field. A version saved on Your plan
+  stays. A negative amount is not sent. While a request runs or fails, the
+  page says the visible forecast is still the previous one.
 
 ## Proposed future redesign
 
@@ -331,14 +359,12 @@ sections.
 
 ## Out of scope
 
-- A custom payoff order or a reclaim amount. Those remain for a later
-  scenario and for saved-plan facts in Phase 3 item 10.
-- Saving any temporary scenario. Those stay on Plan until you leave.
-  Variable-income and windfall allocation preferences are the Allocation
-  setting. Saved plans remain Phase 3 item 10.
+- A custom payoff order or a reclaim amount. A saved plan records roll
+  payments forward or free up cash.
+- Variable-income and windfall allocation preferences stay the Allocation
+  setting. They are not a plan version.
 - Opening one debt directly from an Attention item. Current source links open
   Debts.
 - Implementing the broader Planning UX proposals. Those stay unscheduled.
-  Phase 3 items 9–11 have not started. Partial balances, more than one
-  offer at a time, a rate that changes, and a promotional expiration stay
-  in Phase 7.
+  Partial balances, more than one offer at a time, a rate that changes, and
+  a promotional expiration stay in Phase 7.

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import {
   getTransactionAmountDisplay,
   isBalanceReconciliation,
+  isCardPayment,
   isTransferTransaction,
 } from "./transactionAmountDisplay";
 import { TransactionAccountField } from "./TransactionAccountField";
@@ -105,6 +106,7 @@ function TransactionDetailDrawerContent({
   });
 
   const amount = getTransactionAmountDisplay(transaction);
+  const cardPayment = isCardPayment(transaction);
   const isTransfer = isTransferTransaction(transaction);
   const isAdjustment = isBalanceReconciliation(transaction);
   const canEditEntry = canEditTransactionEntry(transaction);
@@ -121,9 +123,13 @@ function TransactionDetailDrawerContent({
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-1 text-center">
         <p className={amountClassName(amount.kind)}>{amount.label}</p>
-        {isTransfer || transaction.pending || isAdjustment ? (
+        {cardPayment || isTransfer || transaction.pending || isAdjustment ? (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
-            {isTransfer ? (
+            {cardPayment ? (
+              <span className="ledger-stamp bg-transfer-soft text-transfer">
+                Card payment
+              </span>
+            ) : isTransfer ? (
               <span className="ledger-stamp bg-transfer-soft text-transfer">
                 Transfer
               </span>

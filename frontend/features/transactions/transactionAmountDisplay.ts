@@ -1,4 +1,5 @@
 import type { TransactionDto } from "@/lib/api/types";
+import { isCardPaymentActivity } from "./cardActivity";
 
 const TRANSFERS_CATEGORY_KEY = "transfers";
 
@@ -7,6 +8,19 @@ const TRANSFERS_CATEGORY_KEY = "transfers";
  */
 export function isBalanceReconciliation(transaction: TransactionDto) {
   return transaction.provenance === "BalanceReconciliation";
+}
+
+/**
+ * True when the row settles a credit card.
+ * It is not spending and not income, even when the category is still a spending category.
+ */
+export function isCardPayment(transaction: TransactionDto) {
+  return isCardPaymentActivity({
+    accountType: transaction.account.type,
+    amount: transaction.amount,
+    merchantName: transaction.merchantName,
+    name: transaction.name,
+  });
 }
 
 /**
@@ -37,7 +51,7 @@ function formatAbsoluteCurrency(value: number) {
 
 /**
  * How one amount should look.
- * Income is a positive green amount. Spending is unsigned. Transfers are neutral.
+ * Income is a positive green amount. Spending is unsigned. Transfers and card payments are neutral.
  */
 export type TransactionAmountDisplay = {
   kind: "income" | "spend" | "transfer";
@@ -46,12 +60,13 @@ export type TransactionAmountDisplay = {
 
 /**
  * Chooses the label and color kind for one transaction.
- * Transfers and balance adjustments stay unsigned so they are not counted as spending.
+ * Transfers, card payments, and balance adjustments stay unsigned so they are not counted as spending.
  */
 export function getTransactionAmountDisplay(
   transaction: TransactionDto,
 ): TransactionAmountDisplay {
   if (
+    isCardPayment(transaction) ||
     isTransferTransaction(transaction) ||
     isBalanceReconciliation(transaction)
   ) {
@@ -75,12 +90,13 @@ export function getTransactionAmountDisplay(
 }
 
 /**
- * Sums a day's amounts after leaving out transfers and balance adjustments.
+ * Sums a day's amounts after leaving out transfers, card payments, and balance adjustments.
  */
 export function sumNonTransferAmounts(transactions: TransactionDto[]) {
   return transactions
     .filter(
       (transaction) =>
+        !isCardPayment(transaction) &&
         !isTransferTransaction(transaction) &&
         !isBalanceReconciliation(transaction),
     )

@@ -63,7 +63,7 @@ export type PlanAssumption = {
  * The rules behind the projection, one short line each, for the selected path.
  * The order and saved rules name a tried extra when one is set. Zero extra is minimums only.
  * Only the freed-payment rule changes with the switch. The currency rule names the planning currency.
- * A cash preview adds its own rows before Saved. Those rows are omitted when the preview is the saved plan.
+ * A cash preview adds its own rows before Saved. Saved says this page is a preview until a version is kept on Your plan.
  */
 export function planAssumptions(
   kind: PayoffRolloverKind,
@@ -141,8 +141,8 @@ export function planAssumptions(
     {
       term: "Saved",
       detail: previewIsActive(monthlyExtra, scenario)
-        ? "Nothing is saved. This preview stays on the page until you leave."
-        : "Nothing is saved. The same debts always give the same dates and cents.",
+        ? "A preview stays on the page until you leave. Save a version on Your plan to keep it."
+        : "Nothing on this page is a saved version. Your plan keeps one when you save it.",
     },
   ];
   if (scenario) {

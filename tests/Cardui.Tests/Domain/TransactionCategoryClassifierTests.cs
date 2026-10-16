@@ -57,6 +57,19 @@ public class TransactionCategoryClassifierTests
         Assert.Equal(expectedKey, categoryKey);
     }
 
+    [Theory]
+    [InlineData("Payment thank you")]
+    [InlineData("Chase credit crd autopay")]
+    public void GetCategoryKey_ClassifiesACardPaymentAsATransfer(string description)
+    {
+        var categoryKey = TransactionCategoryClassifier.GetCategoryKey(
+            merchantName: null,
+            description,
+            amount: 40m);
+
+        Assert.Equal(SystemCategoryKeys.Transfers, categoryKey);
+    }
+
     [Fact]
     public void GetCategoryKey_PrioritizesBankTransferOverIncomeText()
     {

@@ -123,7 +123,7 @@ public class DashboardService : IDashboardService
     /// <summary>
     /// Totals income and spending for posted, non-archived transactions
     /// in the date range that use the planning currency.
-    /// Transfers and reconciliations are excluded by the calculator.
+    /// Transfers, card payments, and reconciliations are excluded by the calculator.
     /// </summary>
     private async Task<MonthlyActivityResult> GetMonthlyActivityAsync(
         DateOnly monthStart,
@@ -145,7 +145,10 @@ public class DashboardService : IDashboardService
                 x.Category == null ? null : x.Category.Key,
                 x.Category == null ? null : x.Category.SubGroup.Group.Key,
                 x.Provenance,
-                x.IsoCurrencyCode))
+                x.IsoCurrencyCode,
+                x.Account.Type,
+                x.MerchantName,
+                x.Name))
             .ToListAsync(cancellationToken);
 
         var included = new List<TransactionActivityValue>();

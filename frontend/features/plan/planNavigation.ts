@@ -1,4 +1,10 @@
-export const planTabs = ["overview", "cash", "debt", "offer"] as const;
+export const planTabs = [
+  "overview",
+  "cash",
+  "debt",
+  "offer",
+  "decision",
+] as const;
 
 export type PlanTab = (typeof planTabs)[number];
 

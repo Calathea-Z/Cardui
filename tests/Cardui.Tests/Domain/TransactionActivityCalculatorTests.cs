@@ -1,3 +1,4 @@
+using Cardui.Api.Domain.Accounts;
 using Cardui.Api.Domain.Categories;
 using Cardui.Api.Domain.Transactions;
 using Cardui.Api.Models;
@@ -87,6 +88,24 @@ public class TransactionActivityCalculatorTests
     }
 
     [Fact]
+    public void Calculate_CountsACardPurchaseOnceWhenThePaymentSharesItsCategory()
+    {
+        var groceriesId = Guid.NewGuid();
+        var result = TransactionActivityCalculator.Calculate(
+        [
+            Activity(40m, "groceries", SystemGroupKeys.Expenses, groceriesId, name: "Trader Joe")
+                with { AccountType = AccountTypes.Credit },
+            Activity(-40m, "groceries", SystemGroupKeys.Expenses, groceriesId, name: "Payment thank you")
+                with { AccountType = AccountTypes.Credit },
+            Activity(40m, "groceries", SystemGroupKeys.Expenses, groceriesId, name: "Chase credit crd autopay")
+                with { AccountType = AccountTypes.Depository }
+        ]);
+
+        Assert.Equal(40m, result.Spending);
+        Assert.Equal(40m, Assert.Single(result.SpendingByCategory).Amount);
+    }
+
+    [Fact]
     public void Calculate_IgnoresBalanceReconciliationEvenWhenCategorizedAsIncome()
     {
         var result = TransactionActivityCalculator.Calculate(
@@ -108,7 +127,8 @@ public class TransactionActivityCalculatorTests
         string? groupKey,
         Guid? categoryId = null,
         bool pending = false,
-        string? categoryKey = null)
+        string? categoryKey = null,
+        string? name = null)
     {
         return new TransactionActivityValue(
             amount,
@@ -117,6 +137,7 @@ public class TransactionActivityCalculatorTests
             categoryName,
             CategoryColor: null,
             categoryKey,
-            groupKey);
+            groupKey,
+            Name: name);
     }
 }

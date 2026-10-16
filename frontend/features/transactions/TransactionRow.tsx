@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   getTransactionAmountDisplay,
   isBalanceReconciliation,
+  isCardPayment,
   isTransferTransaction,
 } from "./transactionAmountDisplay";
 import {
@@ -30,20 +31,25 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
 }
 
 /**
- * Marks a transfer, balance adjustment, or pending transaction.
- * A posted spending or income row has no mark.
+ * Marks a card payment, transfer, balance adjustment, or pending transaction.
+ * A posted spending or income row has no mark. A card payment is named so it is not read as spending.
  */
 function TransactionMarks({ transaction }: { transaction: TransactionDto }) {
+  const cardPayment = isCardPayment(transaction);
   const isTransfer = isTransferTransaction(transaction);
   const isAdjustment = isBalanceReconciliation(transaction);
 
-  if (!isTransfer && !isAdjustment && !transaction.pending) {
+  if (!cardPayment && !isTransfer && !isAdjustment && !transaction.pending) {
     return null;
   }
 
   return (
     <span className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-      {isTransfer ? (
+      {cardPayment ? (
+        <span className="ledger-stamp bg-transfer-soft text-transfer">
+          Card payment
+        </span>
+      ) : isTransfer ? (
         <span className="ledger-stamp bg-transfer-soft text-transfer">
           Transfer
         </span>

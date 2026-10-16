@@ -7,17 +7,28 @@ public static class TransactionActivityCalculator
 {
     /// <summary>
     /// True when a posted transaction counts as income or spending.
-    /// Transfers and balance reconciliations are excluded.
+    /// Transfers, card payments, and balance reconciliations are excluded.
+    /// A card payment moves cash or debt and is not a second copy of the purchase.
     /// </summary>
     public static bool AffectsIncomeOrSpending(TransactionActivityValue transaction)
     {
-        return !transaction.Pending
-            && !IsTransfer(transaction)
-            && !IsBalanceReconciliation(transaction);
+        if (transaction.Pending || IsBalanceReconciliation(transaction))
+        {
+            return false;
+        }
+
+        var kind = CardActivityRules.Classify(Input(transaction)).Kind;
+        if (kind == CardActivityKind.CardPayment)
+        {
+            return false;
+        }
+
+        return IsIncome(transaction)
+            || kind is CardActivityKind.Purchase or CardActivityKind.Refund;
     }
 
     /// <summary>
-    /// Totals income and spending. Pending transactions, transfers, and
+    /// Totals income and spending. Pending transactions, transfers, card payments, and
     /// balance reconciliations are excluded. Income is stored as a negative
     /// amount and returned as a positive total.
     /// </summary>
@@ -69,12 +80,19 @@ public static class TransactionActivityCalculator
     #region Private Methods
 
     /// <summary>
-    /// True when the category or its group is Transfers.
+    /// Copies the activity row into the card-activity input.
     /// </summary>
-    private static bool IsTransfer(TransactionActivityValue transaction)
+    private static CardActivityInput Input(TransactionActivityValue transaction)
     {
-        return HasKey(transaction.GroupKey, SystemGroupKeys.Transfers)
-            || HasKey(transaction.CategoryKey, SystemCategoryKeys.Transfers);
+        return new CardActivityInput(
+            transaction.AccountType,
+            transaction.Amount,
+            transaction.Pending,
+            transaction.Provenance,
+            transaction.CategoryKey,
+            transaction.GroupKey,
+            transaction.MerchantName,
+            transaction.Name);
     }
 
     /// <summary>

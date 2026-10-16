@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { BackButton } from "./back-button";
 
 type PageHeaderProps = {
@@ -7,6 +8,7 @@ type PageHeaderProps = {
   backFallbackHref?: string;
   showBack?: boolean;
   actions?: ReactNode;
+  className?: string;
 };
 
 /**
@@ -19,9 +21,15 @@ export function PageHeader({
   backFallbackHref = "/",
   showBack = false,
   actions,
+  className,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div
+      className={cn(
+        "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between",
+        className,
+      )}
+    >
       <div className="flex min-w-0 items-start gap-3">
         {showBack ? (
           <BackButton

@@ -119,6 +119,29 @@ export {
   restructuringOfferKinds,
 } from "./restructuring";
 export type {
+  DecisionPlanActionDto,
+  DecisionPlanActionKind,
+  DecisionPlanDebtDto,
+  DecisionPlanDetailDto,
+  DecisionPlanDetailKind,
+  DecisionPlanDto,
+  DecisionPlanFactsDto,
+  DecisionPlanGuardrailDto,
+  DecisionPlanMilestoneDto,
+  DecisionPlanMilestoneKind,
+  DecisionPlanScenarioDto,
+  DecisionPlanStepDto,
+  PlanVersionDto,
+  PlanVersionStatus,
+  SavePlanVersionDto,
+} from "./savedPlan";
+export {
+  decisionPlanActionKinds,
+  decisionPlanDetailKinds,
+  decisionPlanMilestoneKinds,
+  planVersionStatuses,
+} from "./savedPlan";
+export type {
   FinancialProfileDto,
   HouseholdContributorDto,
   HouseholdDto,

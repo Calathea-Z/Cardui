@@ -16,12 +16,9 @@ and [`reviews/README.md`](reviews/README.md).
 
 **Next**
 
-1. Start Phase 3 item 9: model credit-card purchases and card payments so
-   purchases affect category spending and payments affect cash and debt,
-   without counting spending twice. Keep building through items 10 and 11.
-   A heavy QA and UX pass for Phase 3 waits until those items are done.
-   Detail panel keyboard focus stays tracked and is not scheduled.
-   Unimplemented Planning UX proposals stay unscheduled.
+1. Run the heavy QA and UX pass for Phase 3. Detail panel keyboard focus
+   stays tracked and is not scheduled. Unimplemented Planning UX proposals
+   stay unscheduled. Do not start Phase 4.
 
 **Tracked, not scheduled**
 
@@ -41,7 +38,7 @@ and [`reviews/README.md`](reviews/README.md).
 | [`roadmap.md`](roadmap.md)                                                                       | Product direction, the phase backlog, and what each phase built                                                                                            |
 | [`decisions/`](decisions/)                                                                       | Short decision records for product and architecture choices (listed below)                                                                                 |
 | [`design/linked-manual-debts.md`](design/linked-manual-debts.md)                                 | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved                               |
-| [`design/plan-page.md`](design/plan-page.md)                                                     | Plan page design: Overview, focused Cash outlook, chart-led Debt payoff, and the temporary scenario controls. The three-view refinement is approved        |
+| [`design/plan-page.md`](design/plan-page.md)                                                     | Plan page design: Overview, Cash outlook, Debt payoff, Compare an offer, and Your plan. Your plan is approved                                               |
 | [`design/savings.md`](design/savings.md)                                                         | Savings design: cash to keep, an emergency goal, and named goals under Saving for. Monthly living spending is edited on Living                             |
 | [`design/living.md`](design/living.md)                                                           | Plan budget design at `/living`: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check                      |
 | [`design/allocation.md`](design/allocation.md)                                                   | Allocation setting: saved variable-income and windfall splits that can be reviewed and do not move money                                                    |

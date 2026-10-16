@@ -40,4 +40,7 @@ public class Household
         new List<CategoryTargetMonth>();
 
     public AllocationPreference? AllocationPreference { get; set; }
+
+    public ICollection<PlanVersion> PlanVersions { get; init; } =
+        new List<PlanVersion>();
 }

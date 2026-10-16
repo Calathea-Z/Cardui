@@ -12,6 +12,17 @@ public class RecurringSuggestionsTests
     private static readonly Guid AccountId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
     [Fact]
+    public void Find_DoesNotSuggestARepeatedCardPayment()
+    {
+        var suggestions = Find(
+            Charge(new DateOnly(2026, 8, 1), merchant: "Chase", name: "Credit crd autopay"),
+            Charge(new DateOnly(2026, 9, 1), merchant: "Chase", name: "Credit crd autopay"),
+            Charge(new DateOnly(2026, 10, 1), merchant: "Chase", name: "Credit crd autopay"));
+
+        Assert.Empty(suggestions);
+    }
+
+    [Fact]
     public void Find_SuggestsOneMonthlyPayment()
     {
         var suggestion = Assert.Single(Find(

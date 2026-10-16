@@ -99,6 +99,7 @@ public class CategoryTargetsServiceTests
         await DataSeeder.SeedAsync(dbContext, new FakeTimeProvider(Now));
         var householdId = await CreateHouseholdAsync(dbContext, "user_owner");
         var accountId = await AddAccountAsync(dbContext, householdId);
+        var cardId = await AddAccountAsync(dbContext, householdId, AccountTypes.Credit);
         var groceries = await CategoryAsync(dbContext, SystemCategoryKeys.FoodDining);
         var income = await CategoryAsync(dbContext, SystemCategoryKeys.Income);
         var transfers = await CategoryAsync(dbContext, SystemCategoryKeys.Transfers);
@@ -134,16 +135,25 @@ public class CategoryTargetsServiceTests
             currency: "EUR");
         await AddTransactionAsync(dbContext, accountId, new DateOnly(2026, 10, 2), 15m, null, "Uncategorized");
         await AddTransactionAsync(dbContext, accountId, new DateOnly(2026, 10, 3), 400m, mortgage.Id, "Mortgage");
+        await AddTransactionAsync(dbContext, cardId, new DateOnly(2026, 10, 3), 20m, groceries.Id, "Trader Joe");
+        await AddTransactionAsync(dbContext, cardId, new DateOnly(2026, 10, 4), -20m, groceries.Id, "Payment thank you");
+        await AddTransactionAsync(
+            dbContext,
+            accountId,
+            new DateOnly(2026, 10, 4),
+            200m,
+            groceries.Id,
+            "Chase credit crd autopay");
         await AddTransactionAsync(dbContext, accountId, new DateOnly(2026, 10, 6), 999m, groceries.Id, "Later groceries");
         var service = CreateService(dbContext, Bind(householdId));
 
         var october = await service.GetAsync(2026, 10);
 
         Assert.True(october.ThroughToday);
-        Assert.Equal(465m, october.Spent);
-        Assert.Equal(465m, october.OtherSpent);
+        Assert.Equal(485m, october.Spent);
+        Assert.Equal(485m, october.OtherSpent);
         Assert.Null(october.Remaining);
-        Assert.Equal(50m, Line(october, groceries.Id).Spent);
+        Assert.Equal(70m, Line(october, groceries.Id).Spent);
         Assert.Equal(400m, Line(october, mortgage.Id).Spent);
         Assert.Equal(15m, october.Categories.Single(item => item.CategoryId == null).Spent);
         Assert.DoesNotContain(october.Categories, item => item.CategoryId == income.Id);
@@ -305,7 +315,10 @@ public class CategoryTargetsServiceTests
         return household.Id;
     }
 
-    private static async Task<Guid> AddAccountAsync(CarduiDBContext dbContext, Guid householdId)
+    private static async Task<Guid> AddAccountAsync(
+        CarduiDBContext dbContext,
+        Guid householdId,
+        string type = AccountTypes.Depository)
     {
         var account = new Account
         {
@@ -313,8 +326,8 @@ public class CategoryTargetsServiceTests
             HouseholdId = householdId,
             Source = FinancialRecordSource.Manual,
             Provenance = FinancialRecordProvenance.ManualEntry,
-            Name = "Checking",
-            Type = AccountTypes.Depository,
+            Name = type == AccountTypes.Credit ? "Card" : "Checking",
+            Type = type,
             IsoCurrencyCode = "USD",
             IsActive = true,
             CurrentBalance = 0m,

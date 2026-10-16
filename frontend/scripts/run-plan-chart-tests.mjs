@@ -1054,15 +1054,15 @@ test("cash preview copy names income loss, windfall, spending, and the floor", (
   );
   assert.match(
     rules.find((rule) => rule.term === "Saved").detail,
-    /This preview stays on the page until you leave/,
+    /Save a version on Your plan to keep it/,
   );
 });
 
 test("Plan tab keys wrap and support Home and End", () => {
-  assert.equal(navigation.movePlanTab("overview", "ArrowLeft"), "offer");
-  assert.equal(navigation.movePlanTab("offer", "ArrowRight"), "overview");
+  assert.equal(navigation.movePlanTab("overview", "ArrowLeft"), "decision");
+  assert.equal(navigation.movePlanTab("decision", "ArrowRight"), "overview");
   assert.equal(navigation.movePlanTab("cash", "Home"), "overview");
-  assert.equal(navigation.movePlanTab("cash", "End"), "offer");
+  assert.equal(navigation.movePlanTab("cash", "End"), "decision");
 });
 
 test("debt milestones distinguish rolled payments from available cash", () => {

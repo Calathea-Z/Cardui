@@ -14,6 +14,7 @@ const labels: Record<PlanTab, string> = {
   cash: "Cash outlook",
   debt: "Debt payoff",
   offer: "Compare an offer",
+  decision: "Your plan",
 };
 
 /**
@@ -47,12 +48,12 @@ export function PlanTabs({ value, onChange }: PlanTabsProps) {
   return (
     <nav
       aria-label="Plan views"
-      className="sticky top-[calc(3.75rem+env(safe-area-inset-top))] z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2 backdrop-blur-sm md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none"
+      className="sticky top-[calc(3.75rem+env(safe-area-inset-top))] z-20 -mx-4 border-y border-border bg-background/95 px-4 py-2 backdrop-blur-sm print:hidden! md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none"
     >
       <div
         role="tablist"
         aria-label="Plan views"
-        className="grid w-full grid-cols-2 rounded-lg border border-border bg-muted p-0.5 md:w-fit md:grid-cols-4"
+        className="grid w-full grid-cols-2 rounded-lg border border-border bg-muted p-0.5 md:flex md:w-fit md:flex-wrap"
       >
         {planTabs.map((tab) => {
           const selected = tab === value;

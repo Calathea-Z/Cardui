@@ -13,7 +13,7 @@ public static class RecurringSuggestions
     /// Finds payment patterns that look like bills and are not bills yet.
     /// A pattern needs three payments in the last three years, amounts near one typical payment,
     /// and a gap that matches a schedule. One missed gap is not suggested.
-    /// The latest payment has to be recent for that schedule. Transfers, income, pending rows,
+    /// The latest payment has to be recent for that schedule. Transfers, card payments, income, pending rows,
     /// archived rows, reconciliations, and other currencies are ignored.
     /// A bill name, a stored suggestion key, or a dismissal hides the pattern.
     /// The amount is one payment, not a monthly total.
@@ -105,7 +105,7 @@ public static class RecurringSuggestions
 
     /// <summary>
     /// True when the charge can count toward a suggested bill.
-    /// Spending in the planning currency is kept. Income, transfers, and reconciliations are not bills.
+    /// Spending in the planning currency is kept. Income, transfers, card payments, and reconciliations are not bills.
     /// </summary>
     private static bool IsEligible(
         RecurringSuggestionCharge charge,
@@ -121,6 +121,7 @@ public static class RecurringSuggestions
             && charge.Date <= today
             && PlanningCurrencyRules.IsIncluded(charge.Currency, planningCurrency)
             && !IsTransferOrIncome(charge)
+            && !CardActivityRules.LooksLikeCardPayment(charge.MerchantName, charge.Name)
             && KeyFor(charge) is not null;
     }
 

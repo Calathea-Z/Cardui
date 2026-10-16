@@ -43,6 +43,8 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-15 — Saved plan](2026-10-15-005-saved-plan.md) — Approved 2026-10-15
+- [2026-10-15 — Card purchases and payments](2026-10-15-004-card-activity.md) — Approved 2026-10-15
 - [2026-10-15 — Spendable estimates](2026-10-15-003-spendable-estimates.md) — Approved 2026-10-15
 - [2026-10-15 — Restructuring comparisons](2026-10-15-002-restructuring-comparisons.md) — Approved 2026-10-15
 - [2026-10-15 — Allocation preferences](2026-10-15-001-allocation-preferences.md) — Approved 2026-10-15

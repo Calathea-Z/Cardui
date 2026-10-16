@@ -13,6 +13,7 @@ import { PlanAttentionSummary } from "./PlanAttentionSummary";
 import { PlanCashOutlook } from "./PlanCashOutlook";
 import { PlanCashPreview } from "./PlanCashPreview";
 import { PlanDebtPayoff } from "./PlanDebtPayoff";
+import { PlanDecision } from "./PlanDecision";
 import { PlanOfferComparison } from "./PlanOfferComparison";
 import { PlanScenarioControls } from "./PlanScenarioControls";
 import { PlanSummary } from "./PlanSummary";
@@ -200,6 +201,7 @@ export function PlanPageClient({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        className="print:hidden"
         title="Plan"
         description="See whether the current plan works, what needs attention, and how cash and debt change over time."
       />
@@ -225,19 +227,35 @@ export function PlanPageClient({
             ) : null}
 
             {activeTab !== "offer" ? (
-              <PlanScenarioControls
-                key="plan-scenario"
-                kind={selectedKind}
-                hasPayoff={hasPayoff}
-                applied={scenario}
-                storedSpending={report.livingSpendingMonthly}
-                storedFloor={report.cashFloor}
-                asOf={report.cashOutlook.asOf}
-                status={status}
-                currency={currency}
-                onKindChange={setKind}
-                onApply={applyScenario}
-              />
+              <div
+                className={
+                  activeTab === "decision" ? "order-2 print:hidden" : undefined
+                }
+              >
+                <PlanScenarioControls
+                  key="plan-scenario"
+                  kind={selectedKind}
+                  hasPayoff={hasPayoff}
+                  applied={scenario}
+                  storedSpending={report.livingSpendingMonthly}
+                  storedFloor={report.cashFloor}
+                  asOf={report.cashOutlook.asOf}
+                  status={status}
+                  currency={currency}
+                  onKindChange={setKind}
+                  onApply={applyScenario}
+                />
+              </div>
+            ) : null}
+
+            {activeTab === "decision" ? (
+              <div className="order-1">
+                <PlanDecision
+                  scenario={scenario}
+                  kind={selectedKind}
+                  currency={currency}
+                />
+              </div>
             ) : null}
 
             {activeTab === "overview" ? (

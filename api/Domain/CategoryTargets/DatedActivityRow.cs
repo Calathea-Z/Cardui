@@ -16,10 +16,14 @@ internal sealed record DatedActivityRow(
     string? CategoryKey,
     string? GroupKey,
     FinancialRecordProvenance Provenance,
-    string? CurrencyCode)
+    string? CurrencyCode,
+    string? AccountType,
+    string? MerchantName,
+    string? Name)
 {
     /// <summary>
     /// Copies the row into the value the activity calculator totals.
+    /// The account type and description let a card payment stay out of spending.
     /// </summary>
     public TransactionActivityValue ToValue()
     {
@@ -31,6 +35,9 @@ internal sealed record DatedActivityRow(
             CategoryColor,
             CategoryKey,
             GroupKey,
-            Provenance);
+            Provenance,
+            AccountType,
+            MerchantName,
+            Name);
     }
 }

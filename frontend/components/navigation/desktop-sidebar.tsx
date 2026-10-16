@@ -10,7 +10,7 @@ import { navItems } from "./nav-items";
  */
 export function DesktopSidebar() {
   return (
-    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar px-5 py-7 text-sidebar-foreground md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar px-5 py-7 text-sidebar-foreground print:hidden! md:flex">
       <BrandMark />
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto">

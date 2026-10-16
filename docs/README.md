@@ -11,17 +11,18 @@ history. They do not say what is next.
 
 **Now**
 
-[Phase 3 behavior QA](reviews/2026-10-16-007-phase-3-behavior-qa.md) was
-approved on October 16, 2026. The walked checks passed. Phase 3 items 1–11
-and the October 16 UX increments stay approved, through
-[Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md). This
-approval does not close Phase 3, and it does not start Phase 4. Detail panel
-keyboard focus stays tracked. The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+[Planning model](reviews/2026-10-16-009-planning-model.md) was approved on
+October 16, 2026. It is Phase 4 item 1. The API can call OpenAI through an
+application interface when both settings are present. No model or price is
+chosen. Items 2–9 have not started. Detail panel keyboard focus stays
+tracked. The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Zach's decision on whether to close Phase 3. Do not start Phase 4.
+1. Phase 4 item 2, persisted conversations. Do not start it in the review
+   that approved item 1. Leave the planning-model settings blank until a
+   review asks for a live call.
 
 **Tracked, not scheduled**
 
@@ -33,11 +34,16 @@ stays as written.
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
+- Which planning model to use, and what it costs. Item 1 calls the model
+  id from configuration and does not choose a price.
 
 ## Map
 
-- [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md):
-  the current sequence. Increment 1 is approved in
+- [Planning model](reviews/2026-10-16-009-planning-model.md): Phase 4 item 1,
+  approved October 16, 2026. Item 2 has not started.
+- [Phase 3 close](reviews/2026-10-16-008-phase-3-close.md): closed October 16,
+  2026. The [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md)
+  sequence is approved. Increment 1 is approved in
   [Plan next month first](reviews/2026-10-16-004-plan-next-month-first.md).
   Increment 2 is approved in
   [One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md).

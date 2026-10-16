@@ -11,14 +11,15 @@ public static class WebApplicationExtensions
     /// <summary>
     /// Configures the API pipeline: security headers, exception handling, CORS,
     /// Clerk authentication, rate limits, household scope, GET /api/health, and controllers.
-    /// It logs whether Plaid credentials are configured, then rewraps stored Plaid
-    /// tokens before serving. In development it also seeds
+    /// It logs whether Plaid credentials and the planning model are configured,
+    /// then rewraps stored Plaid tokens before serving. In development it also seeds
     /// system categories when none exist and maps OpenAPI.
     /// </summary>
     public static async Task UseCarduiApiAsync(this WebApplication app)
     {
         ProductionSecurityGuard.Ensure(app.Environment, app.Configuration);
         LogPlaidMode(app);
+        LogPlanningModelMode(app);
 
         if (!app.Environment.IsEnvironment("Testing"))
         {
@@ -77,6 +78,25 @@ public static class WebApplicationExtensions
 
         app.Logger.LogInformation(
             "Plaid credentials are not configured. Bank linking is off.");
+    }
+
+    /// <summary>
+    /// Logs whether guided conversation can call a model. The API key is not logged.
+    /// Reading the options validates them, so a partial configuration fails here.
+    /// </summary>
+    private static void LogPlanningModelMode(WebApplication app)
+    {
+        var options = app.Services.GetRequiredService<IOptions<PlanningModelOptions>>().Value;
+        if (PlanningModelConfiguration.IsConfigured(options))
+        {
+            app.Logger.LogInformation(
+                "Planning model {PlanningModel} is configured.",
+                options.Model.Trim());
+            return;
+        }
+
+        app.Logger.LogInformation(
+            "Planning model is not configured. Guided conversation is off.");
     }
 
     #endregion

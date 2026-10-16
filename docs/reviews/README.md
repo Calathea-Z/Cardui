@@ -43,8 +43,15 @@ For a new screen or substantial UI change, follow section 9 of
 - [2026-10-08 — Responsive UI/UX governance](2026-10-08-009-responsive-ui-governance.md) — Approved 2026-10-08
 - [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Approved 2026-10-08
 
+## Phase 4 — Guided conversation
+
+- [2026-10-16 — Planning model](2026-10-16-009-planning-model.md) — Approved 2026-10-16
+
 ## Phase 3 — Recovery calculations and forecasts
 
+Closed October 16, 2026. Reports stay in this folder.
+
+- [2026-10-16 — Phase 3 close](2026-10-16-008-phase-3-close.md) — Approved 2026-10-16
 - [2026-10-16 — Phase 3 behavior QA](2026-10-16-007-phase-3-behavior-qa.md) — Approved 2026-10-16
 - [2026-10-16 — Remaining Plan edges](2026-10-16-006-remaining-plan-edges.md) — Approved 2026-10-16
 - [2026-10-16 — One way to apply a change](2026-10-16-005-one-way-to-apply.md) — Approved 2026-10-16

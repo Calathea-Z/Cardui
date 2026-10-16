@@ -4,6 +4,7 @@ import type {
   PlanDebtOutcomeDto,
   PlanRecoveryDto,
   PlanRecoveryPathDto,
+  PlanScenarioQuery,
 } from "@/lib/api/types";
 
 /**
@@ -62,20 +63,20 @@ export type PlanAssumption = {
  * The rules behind the projection, one short line each, for the selected path.
  * The order and saved rules name a tried extra when one is set. Zero extra is minimums only.
  * Only the freed-payment rule changes with the switch. The currency rule names the planning currency.
+ * A cash preview adds its own rows before Saved. Saved says this page is a preview until a version is kept on Your plan.
  */
 export function planAssumptions(
   kind: PayoffRolloverKind,
   planningCurrency: string,
   monthlyExtra = 0,
   money: FormatMoney = String,
+  scenario?: PlanScenarioQuery,
+  date: FormatDate = String,
 ): PlanAssumption[] {
-  return [
+  const rows: PlanAssumption[] = [
     {
       term: "Order",
-      detail:
-        monthlyExtra > 0
-          ? `Highest interest rate first. ${money(monthlyExtra)} extra each month goes to the first debt that can take it.`
-          : "Highest interest rate first. No extra payment yet.",
+      detail: orderAssumption(monthlyExtra, money, scenario),
     },
     {
       term: "Payments",
@@ -96,20 +97,16 @@ export function planAssumptions(
       detail:
         "A due date that has passed moves ahead a month at a time to the first one on or after today.",
     },
-    kind === "Rollover"
-      ? {
-          term: "Roll payments forward",
-          detail:
-            "A freed payment goes to the next debt. It becomes breathing room once no debt can take it.",
-        }
-      : {
-          term: "Free up cash",
-          detail: "A freed payment becomes breathing room right away.",
-        },
+    freedPaymentAssumption(kind, scenario),
     {
       term: "Cash outlook",
       detail:
         "Starts with Cash on Accounts, adds shared pay, and takes out bills, living spending, and debt payments. Set-aside money stays in cash.",
+    },
+    {
+      term: "Spendable",
+      detail:
+        "The lowest cash left after set-aside money, before extra debt payments. Only steady pay counts.",
     },
     {
       term: "Low pay",
@@ -131,29 +128,168 @@ export function planAssumptions(
     },
     {
       term: "Saved",
-      detail:
-        monthlyExtra > 0
-          ? "Nothing is saved. This extra amount stays on the page until you leave."
-          : "Nothing is saved. The same debts always give the same dates and cents.",
+      detail: previewIsActive(monthlyExtra, scenario)
+        ? "A preview stays in this browser until current facts are restored. Save a version on Your plan to keep it."
+        : "Nothing on this page is a saved version. Your plan keeps one when you save it.",
     },
   ];
+  if (scenario) {
+    rows.splice(-1, 0, ...scenarioAssumptions(scenario, money, date));
+  }
+
+  return rows;
 }
 
 /**
- * The two paths the title-row switch offers, in order.
+ * Rules for a cash preview, inserted only while one is applied.
+ * These changes affect cash. They do not change which debt is paid first.
+ */
+function scenarioAssumptions(
+  scenario: PlanScenarioQuery,
+  money: FormatMoney,
+  date: FormatDate,
+): PlanAssumption[] {
+  const rows: PlanAssumption[] = [];
+  if (scenario.incomeLossMonths > 0) {
+    const months =
+      scenario.incomeLossMonths === 1
+        ? "1 month"
+        : `${scenario.incomeLossMonths} months`;
+    rows.push({
+      term: "Income loss",
+      detail: `The next ${months} leave out included pay. Later pay stays on its dates.`,
+    });
+  }
+
+  if (scenario.windfallAmount > 0 && scenario.windfallOn) {
+    rows.push({
+      term: "Windfall",
+      detail: `${money(scenario.windfallAmount)} on ${date(scenario.windfallOn)} stays in cash and does not pay a debt.`,
+    });
+  }
+
+  if (scenario.livingSpendingMonthly !== null) {
+    rows.push({
+      term: "Spending",
+      detail: `This preview uses ${money(scenario.livingSpendingMonthly)} a month for flexible spending. The saved amount is unchanged.`,
+    });
+  }
+
+  if (scenario.cashFloor !== null) {
+    rows.push({
+      term: "Cash to keep",
+      detail: `This preview protects ${money(scenario.cashFloor)}. Other set-aside money stays in cash.`,
+    });
+  }
+
+  if (rows.length > 0) {
+    rows.push({
+      term: "Payoff order",
+      detail: "These cash changes do not change which debt is paid first.",
+    });
+  }
+
+  return rows;
+}
+
+/**
+ * True when the page is showing something other than the saved plan.
+ */
+function previewIsActive(monthlyExtra: number, scenario?: PlanScenarioQuery) {
+  return (
+    monthlyExtra > 0 ||
+    (scenario?.incomeLossMonths ?? 0) > 0 ||
+    (scenario?.windfallAmount ?? 0) > 0 ||
+    scenario?.livingSpendingMonthly != null ||
+    scenario?.cashFloor != null ||
+    (scenario?.priority !== undefined && scenario.priority !== "Avalanche") ||
+    (scenario?.reclaimAmount ?? 0) > 0 ||
+    scenario?.constraintDebtId != null
+  );
+}
+
+/**
+ * The freed-cash choices, in order. None rolls the payment. Some keeps an amount. All keeps every freed dollar.
  */
 export const planPathOptions: { value: PayoffRolloverKind; label: string }[] = [
-  { value: "Rollover", label: "Roll payments forward" },
-  { value: "ReclaimAll", label: "Free up cash" },
+  { value: "Rollover", label: "Keep none" },
+  { value: "Reclaim", label: "Keep some" },
+  { value: "ReclaimAll", label: "Keep all" },
 ];
 
 /**
- * Explains where a paid-off debt's payment goes in the selected temporary scenario.
+ * Explains where a paid-off debt's payment goes.
+ * The freed payment starts the month after the modeled payment ends.
  */
 export function planPathDescription(kind: PayoffRolloverKind) {
+  if (kind === "Reclaim") {
+    return "The requested amount becomes available cash the month after that debt ends. The rest moves to the next debt.";
+  }
+
   return kind === "Rollover"
-    ? "A paid-off debt's payment moves to the next debt. It becomes available cash only when no modeled debt can take it."
-    : "A paid-off debt's payment becomes available cash after that debt ends instead of moving to the next debt.";
+    ? "A paid-off debt's payment moves to the next debt the month after it ends. It becomes available cash only when no modeled debt can take it."
+    : "A paid-off debt's payment becomes available cash the month after that debt ends instead of moving to the next debt.";
+}
+
+/**
+ * The payment-priority line. Avalanche stays the baseline when no other priority was selected.
+ * The sentence names who is paid first, not when each debt ends.
+ */
+function orderAssumption(
+  monthlyExtra: number,
+  money: FormatMoney,
+  scenario?: PlanScenarioQuery,
+) {
+  const extra =
+    monthlyExtra > 0
+      ? ` ${money(monthlyExtra)} extra each month goes to the first debt that can take it.`
+      : " No extra payment yet.";
+  const priority = scenario?.priority ?? "Avalanche";
+  if (priority === "Avalanche") {
+    return `Highest interest rate first.${extra} Who is paid first, not when each debt ends.`;
+  }
+
+  const lead =
+    priority === "MinimumRelease"
+      ? "Remove a minimum first."
+      : priority === "Utilization"
+        ? "Lower utilization first."
+        : "Pay a chosen debt first or last.";
+  return `${lead}${extra} Not the payoff date.`;
+}
+
+/**
+ * Where a freed payment goes on the selected path.
+ * It is not available in the payoff month.
+ */
+function freedPaymentAssumption(
+  kind: PayoffRolloverKind,
+  scenario?: PlanScenarioQuery,
+): PlanAssumption {
+  if (kind === "Reclaim") {
+    const amount = scenario?.reclaimAmount ?? 0;
+    return {
+      term: "Keep some",
+      detail:
+        amount > 0
+          ? `Keep the requested amount each month after the payment ends. The rest rolls.`
+          : "Keep a chosen amount each month after the payment ends. The rest rolls.",
+    };
+  }
+
+  if (kind === "ReclaimAll") {
+    return {
+      term: "Free up cash",
+      detail:
+        "A freed payment becomes breathing room the month after it ends. It is not sent to the next debt.",
+    };
+  }
+
+  return {
+    term: "Roll payments forward",
+    detail:
+      "A freed payment goes to the next debt the month after it ends. It becomes breathing room once no debt can take it.",
+  };
 }
 
 /**
@@ -302,6 +438,7 @@ export function finishPlanItems(
  * The line under the Cash outlook title: where cash starts and, when the switch is shown, what happens to a freed payment.
  * A tried extra is included in the debt payments, so the line names that amount.
  * A reserve above zero names how much is set aside and what is left after it.
+ * A cash preview adds one sentence naming the income, windfall, spending, or floor change.
  */
 export function cashOutlookDescription(
   kind: PayoffRolloverKind,
@@ -311,20 +448,142 @@ export function cashOutlookDescription(
   monthlyExtra = 0,
   startingReserve = 0,
   startingAvailable = 0,
+  scenario?: PlanScenarioQuery,
+  date: FormatDate = String,
 ) {
   const start = `Starts from ${money(startingCash)} in Cash on Accounts today.`;
   const path = !hasPayoff
     ? start
-    : kind === "Rollover"
-      ? `${start} A paid-off debt's payment moves to the next debt.`
-      : `${start} A paid-off debt's payment comes back as cash.`;
+    : kind === "Reclaim"
+      ? `${start} Part of a paid-off debt's payment comes back as cash the month after it ends.`
+      : kind === "Rollover"
+        ? `${start} A paid-off debt's payment moves to the next debt.`
+        : `${start} A paid-off debt's payment comes back as cash.`;
   const sentence =
     monthlyExtra > 0
       ? `${path} ${money(monthlyExtra)} extra each month is included in the debt payments.`
       : path;
-  return startingReserve > 0
-    ? `${sentence} ${money(startingReserve)} is protected. ${money(startingAvailable)} is available after protected savings.`
-    : sentence;
+  const reserved =
+    startingReserve > 0
+      ? `${sentence} ${money(startingReserve)} is protected. ${money(startingAvailable)} is available after protected savings.`
+      : sentence;
+  const preview = scenarioClause(scenario, money, date);
+  return preview ? `${reserved} ${preview}` : reserved;
+}
+
+/**
+ * One sentence naming the cash changes in a preview.
+ * Empty when the preview keeps saved pay, spending, and the cash floor, and adds no windfall.
+ */
+function scenarioClause(
+  scenario: PlanScenarioQuery | undefined,
+  money: FormatMoney,
+  date: FormatDate,
+) {
+  if (!scenario) {
+    return "";
+  }
+
+  const parts: string[] = [];
+  if (scenario.incomeLossMonths > 0) {
+    const months =
+      scenario.incomeLossMonths === 1
+        ? "1 month"
+        : `${scenario.incomeLossMonths} months`;
+    parts.push(`leaves out pay for ${months}`);
+  }
+
+  if (scenario.windfallAmount > 0 && scenario.windfallOn) {
+    parts.push(
+      `adds ${money(scenario.windfallAmount)} on ${date(scenario.windfallOn)}`,
+    );
+  }
+
+  if (scenario.livingSpendingMonthly !== null) {
+    parts.push(
+      `uses ${money(scenario.livingSpendingMonthly)} of flexible spending`,
+    );
+  }
+
+  if (scenario.cashFloor !== null) {
+    parts.push(`protects a ${money(scenario.cashFloor)} floor`);
+  }
+
+  return parts.length > 0 ? `This preview ${parts.join(", ")}.` : "";
+}
+
+/**
+ * The closed scenario summary: the payment strategy, the extra, and any cash preview that is applied.
+ */
+export function planScenarioSummary(
+  kind: PayoffRolloverKind,
+  hasPayoff: boolean,
+  scenario: PlanScenarioQuery,
+  money: FormatMoney,
+  date: FormatDate,
+) {
+  const strategy = !hasPayoff
+    ? "Minimums only"
+    : kind === "Reclaim"
+      ? "Keep some"
+      : kind === "Rollover"
+        ? "Roll payments forward"
+        : "Free up cash";
+  const parts = [strategy, `${money(scenario.monthlyExtra)} extra`];
+  const priority = scenario.priority ?? "Avalanche";
+  if (priority === "MinimumRelease") {
+    parts.push("remove a minimum first");
+  } else if (priority === "Utilization") {
+    parts.push("lower utilization first");
+  } else if (priority === "Constraint") {
+    parts.push("pay one debt first or last");
+  }
+  if (kind === "Reclaim" && (scenario.reclaimAmount ?? 0) > 0) {
+    parts.push(`keeps ${money(scenario.reclaimAmount ?? 0)} back`);
+  }
+  if (scenario.incomeLossMonths > 0) {
+    parts.push(
+      scenario.incomeLossMonths === 1
+        ? "1 month without pay"
+        : `${scenario.incomeLossMonths} months without pay`,
+    );
+  }
+
+  if (scenario.windfallAmount > 0 && scenario.windfallOn) {
+    parts.push(
+      `${money(scenario.windfallAmount)} on ${date(scenario.windfallOn)}`,
+    );
+  }
+
+  if (scenario.livingSpendingMonthly !== null) {
+    parts.push(`${money(scenario.livingSpendingMonthly)} spending`);
+  }
+
+  if (scenario.cashFloor !== null) {
+    parts.push(`${money(scenario.cashFloor)} protected`);
+  }
+
+  return parts.join(" · ");
+}
+
+/**
+ * The flexible-spending line under cash sources.
+ * A preview names the tried amount. Otherwise a saved amount is named, and no saved amount returns null.
+ */
+export function planSpendingLine(
+  stored: number,
+  scenarioAmount: number | null,
+  money: FormatMoney,
+) {
+  if (scenarioAmount !== null) {
+    return `This preview uses ${money(scenarioAmount)} a month for flexible spending. The saved Plan budget amount is unchanged.`;
+  }
+
+  if (stored > 0) {
+    return `Includes ${money(stored)} a month for flexible spending.`;
+  }
+
+  return null;
 }
 
 /**
@@ -332,22 +591,17 @@ export function cashOutlookDescription(
  * Blank is the minimums-only plan. The amount is kept in the page until the user leaves.
  */
 export function planExtraHelp() {
-  return "Enter 0 for minimums only. The preview updates when you leave the field or press Enter.";
+  return "Enter 0 for minimums only. Update preview applies this with the other fields.";
 }
 
 /**
- * The status shown while a tried amount is loading or has failed.
- * It names the amount still represented by the visible results so an old forecast cannot look newly applied.
+ * The status shown while a preview is loading or has failed.
+ * The visible forecast stays the previous one until the new request finishes.
  */
-export function planExtraStatus(
-  status: "updating" | "error",
-  requestedAmount: number,
-  appliedAmount: number,
-  money: FormatMoney,
-) {
+export function planScenarioStatus(status: "updating" | "error") {
   return status === "updating"
-    ? `Updating the preview for ${money(requestedAmount)} extra. Results still show ${money(appliedAmount)} extra until it finishes.`
-    : `The ${money(requestedAmount)} extra preview could not be applied. Results still show ${money(appliedAmount)} extra. Leave the field or press Enter to try again.`;
+    ? "Updating this preview. Results still show the previous forecast until it finishes."
+    : "This preview could not be applied. Results still show the previous forecast. Your edits are still here.";
 }
 
 /**

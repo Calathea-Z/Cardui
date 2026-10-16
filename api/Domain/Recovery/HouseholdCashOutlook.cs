@@ -6,7 +6,9 @@ public static class HouseholdCashOutlook
 {
     /// <summary>
     /// Forecasts cash on each payoff path, at typical pay and at low pay.
-    /// Debt payments follow the path, so rollover keeps a freed minimum in debt payments and keeping freed payments returns it to cash.
+    /// Debt payments follow the path. Rollover keeps a freed minimum in debt payments.
+    /// A partial reclaim keeps the requested amount and rolls the rest. Keeping every freed payment returns it to cash.
+    /// A freed payment starts the month after the modeled payment ends.
     /// Low pay uses each source's low amount where recorded, otherwise typical, and leaves out expected raises, which are typical amounts.
     /// A savings contribution raises the reserve and leaves cash unchanged. Available cash is cash minus the reserve.
     /// Debts are the ones the comparison was built from. A debt the comparison left out pays nothing.
@@ -30,6 +32,7 @@ public static class HouseholdCashOutlook
             input.Bills.Any(bill => Included(bill.Currency, input.PlanningCurrency)),
             rollover.Typical.ExcludedCurrencies,
             rollover,
+            ForPath(comparison.Reclaim, typical, low),
             ForPath(comparison.ReclaimAll, typical, low));
     }
 
@@ -70,7 +73,9 @@ public static class HouseholdCashOutlook
             input.Incomes.Select(income => Dated(income, basis)).ToList(),
             input.Bills,
             debts,
-            input.Savings);
+            input.Savings,
+            input.OmitIncomeBefore,
+            input.Windfall);
     }
 
     /// <summary>

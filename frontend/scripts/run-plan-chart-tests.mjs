@@ -50,16 +50,21 @@ async function writeMoneyDigits(tempDir) {
  * Points a transpiled module at the local money reader.
  */
 function linkMoneyDigits(source) {
-  return source.replaceAll(
-    'from "@/features/accounts/formatCurrency"',
-    'from "./formatCurrency.mjs"',
-  );
+  return source
+    .replaceAll(
+      'from "@/features/accounts/formatCurrency"',
+      'from "./formatCurrency.mjs"',
+    )
+    .replaceAll('from "./planReturn"', 'from "./planReturn.mjs"')
+    .replaceAll('from "./planExtra"', 'from "./planExtra.mjs"');
 }
 
+await loadModule("planReturn");
 const series = await loadModule("planChartSeries");
 const copy = await loadModule("planCopy");
 const readiness = await loadModule("planReadiness");
 const extra = await loadModule("planExtra");
+const scenario = await loadModule("planScenario");
 const cashRange = await loadModule("planCashRange");
 const navigation = await loadModule("planNavigation");
 const debtSummary = await loadModule("planDebtSummary");
@@ -262,10 +267,32 @@ function report(pathValue, overrides = {}) {
     namedSavingsGoalCount: 0,
     livingSpendingMonthly: 300,
     monthlyExtra: 0,
+    incomeLossMonths: 0,
+    windfallAmount: 0,
+    windfallOn: null,
+    scenarioLivingSpendingMonthly: null,
+    cashFloor: 0,
+    scenarioCashFloor: null,
     cashOutlook: cashOutlook(),
     ...overrides,
   };
 }
+
+test("balance chart scope names the plotted debts and leaves out the rest", () => {
+  const path = rolloverPath({
+    debts: [
+      debt("card", "Card", { stop: "PaidOff" }),
+      debt("store", "Store", { stop: "MinimumUnknown" }),
+    ],
+    steps: [step("card", "Card", "2026-04-20", "2026-05-20", 25, 75)],
+  });
+  const scope = series.balanceChartScope(path, 2);
+
+  assert.equal(scope.plotted, 1);
+  assert.equal(scope.excluded, 3);
+  assert.match(scope.note, /plotted balances/);
+  assert.doesNotMatch(scope.note, /total owed/);
+});
 
 test("a debt keeps its rollover color, and a ninth debt reuses the first", () => {
   const debts = Array.from({ length: 9 }, (_, index) =>
@@ -833,7 +860,7 @@ test("how this is calculated names the due date, cash outlook, and low pay rules
 test("the switch offers plain-language payment paths with a line for each", () => {
   assert.deepEqual(
     copy.planPathOptions.map((option) => option.label),
-    ["Roll payments forward", "Free up cash"],
+    ["Keep none", "Keep some", "Keep all"],
   );
   assert.match(copy.planPathDescription("Rollover"), /moves to the next debt/);
   assert.match(copy.planPathDescription("ReclaimAll"), /available cash/);
@@ -872,7 +899,7 @@ test("readiness preserves stale and inconsistent facts after affordability is cl
   );
 
   assert.equal(result.next.title, "Refresh debt balances");
-  assert.equal(result.next.href, "/debts");
+  assert.equal(result.next.href, "/debts?from=plan");
   assert.match(
     result.rows.find((row) => row.key === "debts").detail,
     /zero-balance payment review/,
@@ -883,7 +910,7 @@ test("readiness preserves stale and inconsistent facts after affordability is cl
   );
 });
 
-test("readiness leads to Plan budget when complete inputs still run short", () => {
+test("readiness does not send a dated shortfall to Plan budget", () => {
   const result = readiness.planReadiness(
     report(rolloverPath()),
     cashForecast(),
@@ -891,12 +918,15 @@ test("readiness leads to Plan budget when complete inputs still run short", () =
     date,
   );
 
-  assert.equal(result.next.title, "Fix the dated cash shortfall");
-  assert.equal(result.next.href, "/living");
-  assert.equal(result.next.label, "Review shortfall");
+  assert.equal(result.next, null);
+  assert.equal(result.rows.find((row) => row.key === "budget").warning, false);
+  assert.match(
+    result.rows.find((row) => row.key === "budget").detail,
+    /Typical pay first runs short on 2027-02-27/,
+  );
 });
 
-test("readiness keeps protected-cash affordability ahead of setup improvements", () => {
+test("readiness keeps a protected-cash shortfall visible without an emergency setup action", () => {
   const result = readiness.planReadiness(
     report(rolloverPath(), { hasEmergencyGoal: false }),
     affordableCashForecast({ reserveShortfallOn: "2026-10-20" }),
@@ -904,8 +934,10 @@ test("readiness keeps protected-cash affordability ahead of setup improvements",
     date,
   );
 
-  assert.equal(result.next.title, "Review protected savings");
-  assert.equal(result.next.href, "/savings");
+  assert.equal(result.next, null);
+  const savings = result.rows.find((row) => row.key === "savings");
+  assert.equal(savings.warning, true);
+  assert.match(savings.detail, /2026-10-20/);
 });
 
 test("a tried extra updates plan copy and names the applied forecast while loading", () => {
@@ -933,11 +965,11 @@ test("a tried extra updates plan copy and names the applied forecast while loadi
   const rules = copy.planAssumptions("Rollover", "USD", 200, money);
   assert.equal(
     rules.find((rule) => rule.term === "Order").detail,
-    "Highest interest rate first. $200.00 extra each month goes to the first debt that can take it.",
+    "Highest interest rate first. $200.00 extra each month goes to the first debt that can take it. Who is paid first, not when each debt ends.",
   );
   assert.match(
     rules.find((rule) => rule.term === "Saved").detail,
-    /stays on the page until you leave/,
+    /stays in this browser until current facts are restored/,
   );
   for (const rule of rules) {
     assert.ok(rule.detail.length <= 140, `${rule.term} stays short`);
@@ -949,24 +981,114 @@ test("a tried extra updates plan copy and names the applied forecast while loadi
   );
   assert.equal(
     copy.planExtraHelp(),
-    "Enter 0 for minimums only. The preview updates when you leave the field or press Enter.",
+    "Enter 0 for minimums only. Update preview applies this with the other fields.",
   );
   assert.equal(
-    copy.planExtraStatus("updating", 200, 0, money),
-    "Updating the preview for $200.00 extra. Results still show $0.00 extra until it finishes.",
+    copy.planScenarioStatus("updating"),
+    "Updating this preview. Results still show the previous forecast until it finishes.",
   );
   assert.equal(
-    copy.planExtraStatus("error", 200, 0, money),
-    "The $200.00 extra preview could not be applied. Results still show $0.00 extra. Leave the field or press Enter to try again.",
+    copy.planScenarioStatus("error"),
+    "This preview could not be applied. Results still show the previous forecast. Your edits are still here.",
   );
   assert.equal(copy.planExtraInvalid(), "Enter a zero or positive amount.");
 });
 
-test("Plan tab keys wrap and support Home and End", () => {
-  assert.equal(navigation.movePlanTab("overview", "ArrowLeft"), "debt");
-  assert.equal(navigation.movePlanTab("debt", "ArrowRight"), "overview");
-  assert.equal(navigation.movePlanTab("cash", "Home"), "overview");
-  assert.equal(navigation.movePlanTab("cash", "End"), "debt");
+test("cash preview parsers keep blank as saved and reject an incomplete windfall", () => {
+  assert.equal(scenario.parseIncomeLossMonths(""), 0);
+  assert.equal(scenario.parseIncomeLossMonths("2"), 2);
+  assert.equal(scenario.parseIncomeLossMonths("19"), null);
+  assert.deepEqual(scenario.parseScenarioAmount(""), { state: "empty" });
+  assert.deepEqual(scenario.parseScenarioAmount("100"), {
+    state: "amount",
+    amount: 100,
+  });
+  assert.deepEqual(scenario.parseScenarioAmount("-1"), { state: "invalid" });
+  assert.equal(scenario.planForecastEnd("2026-01-01"), "2027-06-30");
+  assert.deepEqual(
+    scenario.parseWindfall("250", "2026-01-10", "2026-01-01", "2027-06-30"),
+    { amount: 250, on: "2026-01-10" },
+  );
+  assert.equal(
+    scenario.parseWindfall("250", "", "2026-01-01", "2027-06-30"),
+    null,
+  );
+  assert.deepEqual(scenario.parseWindfall("", "", "2026-01-01", "2027-06-30"), {
+    amount: 0,
+    on: null,
+  });
+  assert.equal(
+    scenario.isSavedPlanScenario({
+      monthlyExtra: 0,
+      incomeLossMonths: 0,
+      windfallAmount: 0,
+      windfallOn: null,
+      livingSpendingMonthly: null,
+      cashFloor: null,
+    }),
+    true,
+  );
+});
+
+test("cash preview copy names income loss, windfall, spending, and the floor", () => {
+  const preview = {
+    monthlyExtra: 0,
+    incomeLossMonths: 2,
+    windfallAmount: 250,
+    windfallOn: "2026-01-10",
+    livingSpendingMonthly: 100,
+    cashFloor: 500,
+  };
+  assert.equal(
+    copy.planScenarioSummary("Rollover", true, preview, money, date),
+    "Roll payments forward · $0.00 extra · 2 months without pay · $250.00 on 2026-01-10 · $100.00 spending · $500.00 protected",
+  );
+  assert.match(
+    copy.cashOutlookDescription(
+      "Rollover",
+      true,
+      1000,
+      money,
+      0,
+      700,
+      300,
+      preview,
+      date,
+    ),
+    /leaves out pay for 2 months, adds \$250\.00 on 2026-01-10, uses \$100\.00 of flexible spending, protects a \$500\.00 floor/,
+  );
+  assert.equal(
+    copy.planSpendingLine(300, 100, money),
+    "This preview uses $100.00 a month for flexible spending. The saved Plan budget amount is unchanged.",
+  );
+  const rules = copy.planAssumptions(
+    "Rollover",
+    "USD",
+    0,
+    money,
+    preview,
+    date,
+  );
+  assert.equal(
+    rules.find((rule) => rule.term === "Income loss").detail,
+    "The next 2 months leave out included pay. Later pay stays on its dates.",
+  );
+  assert.equal(
+    rules.find((rule) => rule.term === "Payoff order").detail,
+    "These cash changes do not change which debt is paid first.",
+  );
+  assert.match(
+    rules.find((rule) => rule.term === "Saved").detail,
+    /Save a version on Your plan to keep it/,
+  );
+});
+
+test("Plan tab keys wrap across the three primary views", () => {
+  assert.equal(navigation.movePlanTab("overview", "ArrowLeft"), "decision");
+  assert.equal(navigation.movePlanTab("decision", "ArrowRight"), "overview");
+  assert.equal(navigation.movePlanTab("changes", "Home"), "overview");
+  assert.equal(navigation.movePlanTab("changes", "End"), "decision");
+  assert.equal(navigation.movePlanTab("overview", "ArrowRight"), "changes");
 });
 
 test("debt milestones distinguish rolled payments from available cash", () => {

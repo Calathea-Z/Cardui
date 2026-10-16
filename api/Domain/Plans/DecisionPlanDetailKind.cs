@@ -1,0 +1,58 @@
+namespace Cardui.Api.Domain.Plans;
+
+/// <summary>
+/// A fact, assumption, risk, gap, or review condition stored on a decision plan.
+/// The member name is the stored text. Which list holds the detail says whether it is an assumption, a risk, missing information, or a review condition.
+/// </summary>
+public enum DecisionPlanDetailKind
+{
+    Order,
+    Payments,
+    Interest,
+    PayoffMonth,
+    DueDates,
+    FreedPayment,
+    CashOutlook,
+    Spendable,
+    LowPay,
+    LeftOut,
+    Currency,
+    Limit,
+    IncomeLoss,
+    Windfall,
+    SpendingChange,
+    CashFloorChange,
+    ScenarioOrder,
+    CashShortfall,
+    ReserveShortfall,
+    ExtraGuardrail,
+    PayoffConditional,
+    DoesNotPayDown,
+    HorizonReached,
+    ExcludedCurrency,
+    StaleBalance,
+    IncomeLossRisk,
+    WindfallNotApplied,
+    WindfallLeftOut,
+    NoReliableIncome,
+    MissingBalance,
+    UnknownRate,
+    UnknownMinimum,
+    UnknownDueDate,
+    NoIncome,
+    NoBills,
+    NoFlexibleSpending,
+    NoCashFloor,
+    PaymentReview,
+    VariableIncomeLeftOut,
+    UncertainIncomeLeftOut,
+    IncomeLeftOut,
+    DebtLeftOut,
+    FactsChange,
+    ShortfallDate,
+    IncomeLossEnds,
+    RefreshBalances,
+    ZeroBalanceMinimum,
+    WindfallArrives,
+    EmergencyChoice
+}

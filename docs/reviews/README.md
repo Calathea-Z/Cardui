@@ -32,6 +32,8 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## UX assessments
 
+- [2026-10-16 — Phase 3 UX reassessment](2026-10-16-003-phase-3-ux-reassessment.md) — Approved 2026-10-16
+- [2026-10-15 — Phase 3 UX review](2026-10-15-006-phase-3-ux-review.md) — Awaiting review
 - [2026-10-08 — Phase 2 product and UX audit](2026-10-08-006-phase-2-ux-audit.md) — Approved 2026-10-08
 - [2026-10-08 — Planning UX review](2026-10-08-003-planning-ux-review.md) — Approved 2026-10-08. The assessment is approved. Unimplemented proposals stay unscheduled
 
@@ -43,6 +45,19 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-16 — Phase 3 behavior QA](2026-10-16-007-phase-3-behavior-qa.md) — Approved 2026-10-16
+- [2026-10-16 — Remaining Plan edges](2026-10-16-006-remaining-plan-edges.md) — Approved 2026-10-16
+- [2026-10-16 — One way to apply a change](2026-10-16-005-one-way-to-apply.md) — Approved 2026-10-16
+- [2026-10-16 — Plan next month first](2026-10-16-004-plan-next-month-first.md) — Approved 2026-10-16
+- [2026-10-16 — Payoff priority and partial reclaim](2026-10-16-002-payoff-priority-and-reclaim.md) — Approved 2026-10-16
+- [2026-10-16 — Working scenario and saved versions](2026-10-16-001-working-scenario-and-versions.md) — Approved 2026-10-16
+- [2026-10-15 — Plan navigation and cash-first Overview](2026-10-15-007-plan-navigation-and-safety.md) — Approved 2026-10-16
+- [2026-10-15 — Saved plan](2026-10-15-005-saved-plan.md) — Approved 2026-10-15
+- [2026-10-15 — Card purchases and payments](2026-10-15-004-card-activity.md) — Approved 2026-10-15
+- [2026-10-15 — Spendable estimates](2026-10-15-003-spendable-estimates.md) — Approved 2026-10-15
+- [2026-10-15 — Restructuring comparisons](2026-10-15-002-restructuring-comparisons.md) — Approved 2026-10-15
+- [2026-10-15 — Allocation preferences](2026-10-15-001-allocation-preferences.md) — Approved 2026-10-15
+- [2026-10-08 — Plan cash scenarios](2026-10-08-012-plan-cash-scenarios.md) — Approved 2026-10-08
 - [2026-10-08 — Plan page refinement](2026-10-08-008-plan-page-refinement.md) — Approved 2026-10-08
 - [2026-10-07 — Plan extra payment](2026-10-07-016-plan-extra-payment.md) — Approved 2026-10-08
 - [2026-10-07 — Plan cash outlook](2026-10-07-015-plan-cash-outlook.md) — Approved 2026-10-07

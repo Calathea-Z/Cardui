@@ -94,7 +94,7 @@ public class TransferPairingService : ITransferPairingService
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
             _logger.LogInformation(
-                "Transfer sync: paired {PairCount}, promoted {PromotedCount} bank transfer(s), repaired {RepairedCount} false positive(s) in the last {LookbackDays} days",
+                "Transfer sync: paired {PairCount}, promoted {PromotedCount} transfer(s), repaired {RepairedCount} false positive(s) in the last {LookbackDays} days",
                 pairCount,
                 promotedCount,
                 repairedCount,
@@ -135,7 +135,8 @@ public class TransferPairingService : ITransferPairingService
     }
 
     /// <summary>
-    /// Loads active cash and investment accounts in the household.
+    /// Loads active cash, investment, and credit-card accounts in the household.
+    /// Credit cards are included so a card payment can pair with the cash leg.
     /// </summary>
     private async Task<List<Guid>> LoadEligibleAccountIdsAsync(
         CancellationToken cancellationToken)
@@ -146,7 +147,9 @@ public class TransferPairingService : ITransferPairingService
             .Where(account =>
                 account.IsActive
                 && account.ArchivedAt == null
-                && (account.Type == AccountTypes.Depository || account.Type == AccountTypes.Investment))
+                && (account.Type == AccountTypes.Depository
+                    || account.Type == AccountTypes.Investment
+                    || account.Type == AccountTypes.Credit))
             .Select(account => account.Id)
             .ToListAsync(cancellationToken);
     }
@@ -244,8 +247,8 @@ public class TransferPairingService : ITransferPairingService
     }
 
     /// <summary>
-    /// Marks a single leg as a Transfer when its text is a bank-transfer phrase.
-    /// Those rows are kept even if they have no opposite leg.
+    /// Marks a single leg as a Transfer when its text is a bank transfer or a card payment.
+    /// Those rows are kept even if they have no opposite leg. A spending category the person chose is left alone.
     /// </summary>
     private static int PromoteBankTransferNamedTransactions(
         List<Transaction> candidates,
@@ -260,6 +263,9 @@ public class TransferPairingService : ITransferPairingService
         foreach (var transaction in candidates)
         {
             if (!TransferTextClassifier.LooksLikeBankTransfer(
+                    transaction.MerchantName,
+                    transaction.Name)
+                && !CardActivityRules.LooksLikeCardPayment(
                     transaction.MerchantName,
                     transaction.Name))
             {
@@ -369,12 +375,14 @@ public class TransferPairingService : ITransferPairingService
     }
 
     /// <summary>
-    /// True when either transaction's text contains a transfer or payment-rail hint.
+    /// True when either transaction's text contains a transfer, payment-rail, or card-payment hint.
     /// </summary>
     private static bool HasTransferPairSignal(Transaction left, Transaction right)
     {
         return TransferTextClassifier.LooksLikeTransferPairSignal(left.MerchantName, left.Name)
-            || TransferTextClassifier.LooksLikeTransferPairSignal(right.MerchantName, right.Name);
+            || TransferTextClassifier.LooksLikeTransferPairSignal(right.MerchantName, right.Name)
+            || CardActivityRules.LooksLikeCardPayment(left.MerchantName, left.Name)
+            || CardActivityRules.LooksLikeCardPayment(right.MerchantName, right.Name);
     }
 
     #endregion

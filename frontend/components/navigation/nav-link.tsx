@@ -12,19 +12,21 @@ type NavLinkProps = {
   activeClassName?: string;
   inactiveClassName?: string;
   showIcon?: boolean;
+  exact?: boolean;
   onNavigate?: () => void;
 };
 
 /**
  * Reports whether pathname belongs to a nav href.
- * The href `/` matches only that exact path; every other href matches the path and routes under it.
+ * The href `/` matches only that exact path. An exact item also matches only its path, so `/plan` does not claim `/plan/setup`.
+ * Every other href matches the path and routes under it.
  */
-function isActiveRoute(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === "/";
+function isActiveRoute(pathname: string, href: string, exact = false) {
+  if (href === "/" || exact) {
+    return pathname === href;
   }
 
-  return pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /**
@@ -37,10 +39,11 @@ export function NavLink({
   activeClassName,
   inactiveClassName,
   showIcon = false,
+  exact = false,
   onNavigate,
 }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = isActiveRoute(pathname, item.href);
+  const isActive = isActiveRoute(pathname, item.href, exact);
 
   return (
     <Link

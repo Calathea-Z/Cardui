@@ -1,17 +1,28 @@
 import { browserClient } from "../browser-client";
-import type { PlanRecoveryDto } from "../types";
+import type { PlanRecoveryDto, PlanScenarioQuery } from "../types";
 import { isCurrentPlanRecovery } from "../validatePlanRecovery";
 
 /**
  * GET /api/plan/recovery
- * Loads the payoff and cash outlook with a shared extra tried for this request.
- * Zero is the minimums-only plan. The amount is not saved.
+ * Loads the payoff and cash outlook for a temporary preview.
+ * Omitted spending and floor amounts keep the saved figures. Nothing is saved.
  */
 export async function getPlanRecovery(
-  monthlyExtra: number,
+  scenario: PlanScenarioQuery,
 ): Promise<PlanRecoveryDto> {
   const response = await browserClient.get<unknown>("/api/plan/recovery", {
-    params: { monthlyExtra },
+    params: {
+      monthlyExtra: scenario.monthlyExtra,
+      incomeLossMonths: scenario.incomeLossMonths,
+      windfallAmount: scenario.windfallAmount,
+      windfallOn: scenario.windfallOn ?? undefined,
+      livingSpendingMonthly: scenario.livingSpendingMonthly ?? undefined,
+      cashFloor: scenario.cashFloor ?? undefined,
+      priority: scenario.priority,
+      constraintDebtId: scenario.constraintDebtId ?? undefined,
+      constraintKind: scenario.constraintKind ?? undefined,
+      reclaimAmount: scenario.reclaimAmount,
+    },
   });
   if (!isCurrentPlanRecovery(response.data)) {
     throw new Error(

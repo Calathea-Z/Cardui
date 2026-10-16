@@ -1,3 +1,9 @@
+export type {
+  AllocationPageDto,
+  AllocationRuleDto,
+  UpsertAllocationPreferenceDto,
+  VariableIncomeReviewDto,
+} from "./allocation";
 export { MANUAL_ACCOUNT_TYPES } from "./accounts";
 export type {
   AccountBalanceHistoryPointDto,
@@ -76,6 +82,9 @@ export type {
 export { savingsGoalKinds } from "./savings";
 export type {
   DebtScheduleStop,
+  PayoffAlternativeDto,
+  PayoffConstraintKind,
+  PayoffPriorityChoice,
   PayoffRolloverKind,
   PlanBalancePointDto,
   PlanCashDayDto,
@@ -89,8 +98,56 @@ export type {
   PlanMissingBalanceDto,
   PlanRecoveryDto,
   PlanRecoveryPathDto,
+  PlanScenarioQuery,
   PlanRecoveryStepDto,
+  SpendableEstimateDto,
+  SpendableGuardrailDto,
+  SpendableReportDto,
+  SpendableUncertaintyDto,
+  SpendableUncertaintyKind,
 } from "./plan";
+export {
+  payoffConstraintKinds,
+  payoffPriorityChoices,
+  spendableUncertaintyKinds,
+} from "./plan";
+export type {
+  CompareRestructuringDto,
+  RestructuringBreakEven,
+  RestructuringCashEffectDto,
+  RestructuringComparisonDto,
+  RestructuringDebtOutcomeDto,
+  RestructuringFeeFunding,
+  RestructuringOfferKind,
+} from "./restructuring";
+export {
+  restructuringBreakEvens,
+  restructuringFeeFundings,
+  restructuringOfferKinds,
+} from "./restructuring";
+export type {
+  DecisionPlanActionDto,
+  DecisionPlanActionKind,
+  DecisionPlanDebtDto,
+  DecisionPlanDetailDto,
+  DecisionPlanDetailKind,
+  DecisionPlanDto,
+  DecisionPlanFactsDto,
+  DecisionPlanGuardrailDto,
+  DecisionPlanMilestoneDto,
+  DecisionPlanMilestoneKind,
+  DecisionPlanScenarioDto,
+  DecisionPlanStepDto,
+  PlanVersionDto,
+  PlanVersionStatus,
+  SavePlanVersionDto,
+} from "./savedPlan";
+export {
+  decisionPlanActionKinds,
+  decisionPlanDetailKinds,
+  decisionPlanMilestoneKinds,
+  planVersionStatuses,
+} from "./savedPlan";
 export type {
   FinancialProfileDto,
   HouseholdContributorDto,

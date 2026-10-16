@@ -4,6 +4,7 @@
 import "client-only";
 
 export * from "./accounts";
+export * from "./allocation";
 export * from "./categories";
 export * from "./category-targets";
 export * from "./households";
@@ -11,6 +12,8 @@ export * from "./income";
 export * from "./living";
 export * from "./obligations";
 export * from "./plan";
+export * from "./restructuring";
+export * from "./savedPlan";
 export * from "./savings";
 export * from "./debts";
 export * from "./plaid";

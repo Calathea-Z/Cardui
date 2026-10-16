@@ -35,6 +35,12 @@ function currentResponse() {
   return {
     debtFacts: [],
     livingSpendingMonthly: 0,
+    incomeLossMonths: 0,
+    windfallAmount: 0,
+    windfallOn: null,
+    scenarioLivingSpendingMonthly: null,
+    cashFloor: 0,
+    scenarioCashFloor: null,
     hasCashFloor: false,
     hasEmergencyGoal: false,
     namedSavingsGoalCount: 0,
@@ -45,12 +51,77 @@ function currentResponse() {
       startingCashOldestAsOf: null,
       startingCashUnknownDateCount: 0,
       startingCashStaleConnectedCount: 0,
+      reclaim: {},
     },
+    spendable: {
+      rollover: estimate(),
+      reclaim: estimate(),
+      reclaimAll: estimate(),
+    },
+    reclaim: {},
+    priority: "Avalanche",
+    reclaimAmount: 0,
+    priorityAlternatives: [],
+  };
+}
+
+/**
+ * Returns one empty spendable path. The amounts are zero and the guardrail is inactive.
+ */
+function estimate() {
+  return {
+    from: "2026-10-15",
+    through: "2026-11-13",
+    spendable: 0,
+    lowestAvailable: 0,
+    lowestOn: "2026-10-15",
+    reliableIncome: 0,
+    obligations: 0,
+    ordinarySpending: 0,
+    reserved: 0,
+    alreadyShort: false,
+    guardrail: {
+      active: false,
+      ordinaryExpenses: false,
+      nearTermObligations: false,
+      on: null,
+      shortfall: 0,
+      alreadyShortWithoutExtra: false,
+    },
+    uncertainties: [],
   };
 }
 
 test("accepts the current Plan trust-fact contract", () => {
   assert.equal(isCurrentPlanRecovery(currentResponse()), true);
+});
+
+test("rejects a debt fact from before the offer comparison fields", () => {
+  const oldResponse = currentResponse();
+  oldResponse.debtFacts = [
+    {
+      debtId: "card",
+      name: "Card",
+      balance: 100,
+    },
+  ];
+
+  assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("accepts a debt fact that can be named on the offer comparison", () => {
+  const response = currentResponse();
+  response.debtFacts = [
+    {
+      debtId: "card",
+      name: "Card",
+      kind: "Revolving",
+      apr: null,
+      currency: "USD",
+    },
+  ];
+
+  assert.equal(isCurrentPlanRecovery(response), true);
 });
 
 test("rejects a response from before debt facts were added", () => {
@@ -65,4 +136,32 @@ test("rejects a response without starting-cash provenance", () => {
   delete oldResponse.cashOutlook.startingCashAccountCount;
 
   assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("rejects a response from before partial reclaim and payment priority", () => {
+  const oldResponse = currentResponse();
+  delete oldResponse.reclaim;
+  delete oldResponse.priority;
+  delete oldResponse.reclaimAmount;
+  delete oldResponse.priorityAlternatives;
+  delete oldResponse.spendable.reclaim;
+  delete oldResponse.cashOutlook.reclaim;
+
+  assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("rejects a response from before spendable estimates", () => {
+  const oldResponse = currentResponse();
+  delete oldResponse.spendable;
+
+  assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("rejects a spendable uncertainty the page cannot explain", () => {
+  const response = currentResponse();
+  response.spendable.rollover.uncertainties = [
+    { kind: "MonthlySurplus", name: "" },
+  ];
+
+  assert.equal(isCurrentPlanRecovery(response), false);
 });

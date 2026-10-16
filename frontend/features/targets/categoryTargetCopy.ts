@@ -23,7 +23,7 @@ const monthNames = [
  * Spent matches posted activity. Rollover is per category and stays off until it is turned on.
  */
 export const targetSummaryNote =
-  "Spent is posted spending in the planning currency. Income, transfers, and statement adjustments are left out. A transfer, including a card payment, is not spent again. Leftover money and overspend move ahead only when rollover is on.";
+  "Spent is posted spending in the planning currency. Income, transfers, card payments, and statement adjustments are left out. A card payment is not spent again, even when its category is still a spending category. Leftover money and overspend move ahead only when rollover is on.";
 
 /**
  * One summary figure.

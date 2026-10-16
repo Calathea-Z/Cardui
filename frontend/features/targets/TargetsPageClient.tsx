@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import { PageHeader } from "@/components/navigation/page-header";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -82,6 +83,13 @@ export function TargetsPageClient({
           ) : null
         }
       />
+
+      <p className="text-sm text-muted-foreground">
+        <Link href="/categories" className="font-medium text-primary underline">
+          Categories
+        </Link>{" "}
+        names the groups these targets use.
+      </p>
 
       {month ? (
         <>

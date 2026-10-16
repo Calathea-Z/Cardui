@@ -39,4 +39,15 @@ public class PlanRecoveryPathDto
     /// Each debt's balance after every modeled payment, by due date and then in the order of Debts.
     /// </summary>
     public IReadOnlyList<PlanBalancePointDto> BalancePoints { get; set; } = [];
+
+    /// <summary>
+    /// Freed cash kept for savings or spending while a debt was still open.
+    /// It starts the month after the modeled payment ends.
+    /// </summary>
+    public decimal CashReclaimed { get; set; }
+
+    /// <summary>
+    /// Freed cash applied to a later debt after the modeled payment ends.
+    /// </summary>
+    public decimal CashRolled { get; set; }
 }

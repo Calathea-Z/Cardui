@@ -73,3 +73,23 @@ test("uses Uncategorized when the category is missing", () => {
     "Checking · Uncategorized",
   );
 });
+
+test("a card payment is labeled once and leaves out the spending category", () => {
+  assert.equal(
+    presentation.transactionClassificationLabel({
+      cardPayment: true,
+      transfer: true,
+    }),
+    "Card payment",
+  );
+  assert.equal(
+    presentation.transactionListContext(
+      {
+        account: { name: "Checking" },
+        category: { name: "Groceries" },
+      },
+      true,
+    ),
+    "Checking",
+  );
+});

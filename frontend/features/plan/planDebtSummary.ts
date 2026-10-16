@@ -35,8 +35,10 @@ export function debtMilestones(
       : "Not projected",
     breathingRoom: `${money(path.recurringRoom)} a month`,
     breathingRoomNote:
-      kind === "Rollover"
-        ? "Available only after no modeled debt can take the rolled payment."
-        : "Available for other uses as modeled payments end.",
+      kind === "Reclaim"
+        ? "The requested amount stays back. The rest rolls until no modeled debt can take it."
+        : kind === "Rollover"
+          ? "Available only after no modeled debt can take the rolled payment."
+          : "Available for other uses as modeled payments end.",
   };
 }

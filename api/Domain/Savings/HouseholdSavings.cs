@@ -17,6 +17,7 @@ public static class HouseholdSavings
         IReadOnlyList<SavingsGoalSnapshot> goals)
     {
         var reserve = 0m;
+        var floor = 0m;
         var everyday = 0m;
         var events = new List<CashFlowEvent>();
         foreach (var goal in goals
@@ -45,6 +46,7 @@ public static class HouseholdSavings
             {
                 if (PlanningCurrencyRules.IsIncluded(goal.Currency, planningCurrency) && goal.FloorAmount > 0)
                 {
+                    floor = AccountLedger.Round(floor + goal.FloorAmount);
                     reserve = AccountLedger.Round(reserve + goal.FloorAmount);
                 }
 
@@ -64,7 +66,8 @@ public static class HouseholdSavings
             everyday,
             goals.Any(goal => goal.Kind == SavingsGoalKind.Floor),
             goals.Any(goal => goal.Kind == SavingsGoalKind.Emergency),
-            goals.Count(goal => goal.Kind == SavingsGoalKind.Sinking));
+            goals.Count(goal => goal.Kind == SavingsGoalKind.Sinking),
+            floor);
     }
 
     #region Private Methods

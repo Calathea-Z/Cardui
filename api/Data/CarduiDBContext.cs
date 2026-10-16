@@ -27,6 +27,10 @@ public class CarduiDBContext : DbContext
 
     public DbSet<SavingsGoal> SavingsGoals => Set<SavingsGoal>();
 
+    public DbSet<AllocationPreference> AllocationPreferences => Set<AllocationPreference>();
+
+    public DbSet<PlanVersion> PlanVersions => Set<PlanVersion>();
+
     public DbSet<CategoryTargetMonth> CategoryTargetMonths => Set<CategoryTargetMonth>();
 
     public DbSet<CategoryTarget> CategoryTargets => Set<CategoryTarget>();

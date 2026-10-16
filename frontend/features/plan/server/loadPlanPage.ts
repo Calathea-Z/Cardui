@@ -4,6 +4,7 @@ import type {
   PlanCashForecastDto,
   PlanRecoveryDto,
   PlanRecoveryPathDto,
+  SpendableEstimateDto,
 } from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
@@ -23,12 +24,24 @@ function emptyPlanRecovery(): PlanRecoveryDto {
   return {
     planningCurrency: "USD",
     rollover: emptyPath("Rollover"),
+    reclaim: emptyPath("Reclaim"),
     reclaimAll: emptyPath("ReclaimAll"),
+    priority: "Avalanche",
+    constraintDebtId: null,
+    constraintKind: null,
+    reclaimAmount: 0,
+    priorityAlternatives: [],
     excludedCurrencies: [],
     missingBalance: [],
     hasDebts: false,
     monthlyExtra: 0,
     livingSpendingMonthly: 0,
+    incomeLossMonths: 0,
+    windfallAmount: 0,
+    windfallOn: null,
+    scenarioLivingSpendingMonthly: null,
+    cashFloor: 0,
+    scenarioCashFloor: null,
     debtFacts: [],
     hasCashFloor: false,
     hasEmergencyGoal: false,
@@ -48,8 +61,42 @@ function emptyPlanRecovery(): PlanRecoveryDto {
       hasBills: false,
       excludedCurrencies: [],
       rollover: { typical: emptyForecast(), lowPay: null },
+      reclaim: { typical: emptyForecast(), lowPay: null },
       reclaimAll: { typical: emptyForecast(), lowPay: null },
     },
+    spendable: {
+      rollover: emptySpendable(),
+      reclaim: emptySpendable(),
+      reclaimAll: emptySpendable(),
+    },
+  };
+}
+
+/**
+ * An empty spendable estimate used when the plan request fails.
+ * The failed page does not render it. The fields stay present so the type matches a successful response.
+ */
+function emptySpendable(): SpendableEstimateDto {
+  return {
+    from: "",
+    through: "",
+    spendable: 0,
+    lowestAvailable: 0,
+    lowestOn: "",
+    reliableIncome: 0,
+    obligations: 0,
+    ordinarySpending: 0,
+    reserved: 0,
+    alreadyShort: false,
+    guardrail: {
+      active: false,
+      ordinaryExpenses: false,
+      nearTermObligations: false,
+      on: null,
+      shortfall: 0,
+      alreadyShortWithoutExtra: false,
+    },
+    uncertainties: [],
   };
 }
 
@@ -89,5 +136,7 @@ function emptyPath(kind: PlanRecoveryPathDto["kind"]): PlanRecoveryPathDto {
     totalInterest: 0,
     debts: [],
     balancePoints: [],
+    cashReclaimed: 0,
+    cashRolled: 0,
   };
 }

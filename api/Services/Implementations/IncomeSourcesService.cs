@@ -58,7 +58,8 @@ public class IncomeSourcesService : IIncomeSourcesService
                     .OrderBy(raise => raise.EffectiveDate)
                     .Select(raise => new DatedIncomeRaise(raise.EffectiveDate, raise.TakeHomeAmount))
                     .ToList(),
-                source.ContributorId))
+                source.ContributorId,
+                source.Reliability))
             .ToListAsync(cancellationToken);
     }
 

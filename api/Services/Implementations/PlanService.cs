@@ -43,26 +43,67 @@ public class PlanService : IPlanService
 
     /// <inheritdoc />
     public async Task<PlanRecoveryDto> GetRecoveryAsync(
-        decimal monthlyExtra,
+        PlanScenarioQuery scenario,
         CancellationToken cancellationToken = default)
     {
-        RequireNonNegativeExtra(monthlyExtra);
         var today = FinancialDate.Today(_timeProvider, _householdScope.TimeZoneId);
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
         var loaded = await LoadCashFactsAsync(today, cancellationToken);
-        return ProjectPlan(debts, loaded, monthlyExtra);
+        var preview = RequireScenario(scenario, loaded.LivingSpendingMonthly, today);
+        RequirePayoff(scenario, debts);
+        return ProjectPlan(debts, loaded, preview, scenario);
     }
 
     #region Private Methods
 
     /// <summary>
-    /// Rejects a negative extra. Zero is the minimums-only plan.
+    /// Rejects a preview the forecast cannot run, then rounds the amounts it will use.
+    /// A nullable spending or floor amount stays null so the saved figure is kept.
     /// </summary>
-    private static void RequireNonNegativeExtra(decimal monthlyExtra)
+    private static PlanCashScenario RequireScenario(
+        PlanScenarioQuery scenario,
+        decimal storedLivingSpending,
+        DateOnly today)
     {
-        if (monthlyExtra < 0)
+        var message = PlanCashScenarioRules.Reject(
+            scenario.MonthlyExtra,
+            scenario.IncomeLossMonths,
+            scenario.WindfallAmount,
+            scenario.WindfallOn,
+            scenario.LivingSpendingMonthly,
+            scenario.CashFloor,
+            storedLivingSpending,
+            today);
+        if (message is not null)
         {
-            throw new BadRequestException("Extra each month cannot be negative.");
+            throw new BadRequestException(message);
+        }
+
+        return new PlanCashScenario(
+            AccountLedger.Round(scenario.MonthlyExtra),
+            scenario.IncomeLossMonths,
+            AccountLedger.Round(scenario.WindfallAmount),
+            scenario.WindfallAmount > 0 ? scenario.WindfallOn : null,
+            scenario.LivingSpendingMonthly is decimal spending
+                ? AccountLedger.Round(spending)
+                : null,
+            scenario.CashFloor is decimal floor ? AccountLedger.Round(floor) : null);
+    }
+
+    /// <summary>
+    /// Rejects a payment priority or reclaim amount the payoff cannot use.
+    /// </summary>
+    private static void RequirePayoff(PlanScenarioQuery scenario, IReadOnlyList<DebtDto> debts)
+    {
+        var message = PayoffChoiceRules.Reject(
+            scenario.Priority,
+            scenario.ConstraintDebtId,
+            scenario.ConstraintKind,
+            scenario.ReclaimAmount,
+            debts.Select(debt => debt.Id).ToList());
+        if (message is not null)
+        {
+            throw new BadRequestException(message);
         }
     }
 
@@ -93,38 +134,92 @@ public class PlanService : IPlanService
             AccountLedger.Round(savings.LivingSpendingMonthly),
             savings.HasCashFloor,
             savings.HasEmergencyGoal,
-            savings.NamedGoalCount);
+            savings.NamedGoalCount,
+            savings.CashFloor);
     }
 
     /// <summary>
-    /// Runs the approved rollover and recovery rules from the outlook's start date, then the cash outlook on both paths,
-    /// and shapes the result for the page. The extra is tried for this response. Reclaim stays at the baseline.
+    /// Runs the approved priority, rollover, and recovery rules from the outlook's start date,
+    /// then the cash outlook and spendable estimate on keeping none, some, or all of the freed cash.
+    /// The selected priority's order is used for every path. A freed payment starts the month after it ends.
+    /// Spendable counts steady pay only. The extra is compared with the same order and reclaim amount at minimums.
     /// </summary>
     private static PlanRecoveryDto ProjectPlan(
         IReadOnlyList<DebtDto> debts,
         PlanCashFacts facts,
-        decimal monthlyExtra)
+        PlanCashScenario scenario,
+        PlanScenarioQuery request)
     {
+        var recoveryDebts = debts.Select(ToDebt).ToList();
+        var reclaim = request.ReclaimAmount <= 0
+            ? 0
+            : AccountLedger.Round(request.ReclaimAmount);
+        var listed = HouseholdRecovery.Prepare(
+            facts.Input.PlanningCurrency,
+            facts.Input.AsOf,
+            recoveryDebts,
+            scenario.MonthlyExtra);
+        var priority = PayoffPriority.Compare(new PayoffPriorityInput(
+            facts.Input.PlanningCurrency,
+            scenario.MonthlyExtra,
+            listed.Rollover.Debts,
+            [],
+            PayoffChoiceRules.Constraints(request.ConstraintDebtId, request.ConstraintKind)));
+        var order = PayoffChoiceRules.Order(priority, request.Priority);
         var prepared = HouseholdRecovery.Prepare(
             facts.Input.PlanningCurrency,
             facts.Input.AsOf,
-            debts.Select(ToDebt).ToList(),
-            monthlyExtra);
+            recoveryDebts,
+            scenario.MonthlyExtra,
+            order,
+            reclaim);
         var comparison = PayoffRollover.Compare(prepared.Rollover);
+        var minimums = scenario.MonthlyExtra > 0
+            ? PayoffRollover.Compare(HouseholdRecovery.Prepare(
+                facts.Input.PlanningCurrency,
+                facts.Input.AsOf,
+                recoveryDebts,
+                0m,
+                order,
+                reclaim).Rollover)
+            : comparison;
         var report = CashFlowRecovery.Track(comparison);
-        var outlook = HouseholdCashOutlook.Project(facts.Input, prepared.Rollover.Debts, comparison);
+        var cash = PlanCashScenarioAdjustment.Apply(
+            facts.Input,
+            facts.LivingSpendingMonthly,
+            facts.CashFloor,
+            scenario);
+        var outlook = HouseholdCashOutlook.Project(cash, prepared.Rollover.Debts, comparison);
+        var spendable = SpendableRules.Project(
+            cash,
+            prepared.Rollover.Debts.Select(debt => debt.Terms).ToList(),
+            comparison,
+            minimums,
+            prepared.MissingBalance.Select(debt => debt.Name).ToList(),
+            facts.LivingSpendingMonthly > 0 || scenario.LivingSpendingMonthly is not null);
         var plan = PlanRecoveryDtoMapper.Map(
             comparison,
             report,
             prepared.MissingBalance,
             debts.Count > 0,
             outlook,
-            facts.CashPosition);
+            facts.CashPosition,
+            spendable,
+            request.Priority,
+            request.ConstraintDebtId is Guid id && id != Guid.Empty ? id : null,
+            request.ConstraintKind,
+            PayoffChoiceRules.Alternatives(priority));
         plan.LivingSpendingMonthly = facts.LivingSpendingMonthly;
         plan.HasCashFloor = facts.HasCashFloor;
         plan.HasEmergencyGoal = facts.HasEmergencyGoal;
         plan.NamedSavingsGoalCount = facts.NamedSavingsGoalCount;
         plan.DebtFacts = debts.Select(ToDebtFact).ToList();
+        plan.IncomeLossMonths = scenario.IncomeLossMonths;
+        plan.WindfallAmount = scenario.WindfallAmount;
+        plan.WindfallOn = scenario.WindfallOn;
+        plan.ScenarioLivingSpendingMonthly = scenario.LivingSpendingMonthly;
+        plan.CashFloor = facts.CashFloor;
+        plan.ScenarioCashFloor = scenario.CashFloor;
         return plan;
     }
 
@@ -163,7 +258,10 @@ public class PlanService : IPlanService
             BalanceSource = debt.BalanceSource,
             Freshness = debt.Freshness,
             MinimumPayment = debt.MinimumPayment,
-            NeedsPaymentReview = debt.BalanceInUse == 0 && debt.MinimumPayment > 0
+            NeedsPaymentReview = debt.BalanceInUse == 0 && debt.MinimumPayment > 0,
+            Kind = debt.Kind,
+            Apr = debt.Apr,
+            Currency = debt.Currency
         };
     }
 

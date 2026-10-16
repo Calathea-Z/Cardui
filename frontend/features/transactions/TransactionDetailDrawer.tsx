@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import {
   getTransactionAmountDisplay,
   isBalanceReconciliation,
+  isCardPayment,
   isTransferTransaction,
 } from "./transactionAmountDisplay";
 import { TransactionAccountField } from "./TransactionAccountField";
@@ -23,6 +24,8 @@ import { TransactionDateField } from "./TransactionDateField";
 import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
 import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
+import { cardPaymentExplanation } from "./cardActivity";
+import { transactionClassificationLabel } from "./transactionListPresentation";
 import { canEditTransactionEntry } from "./transactionEntry";
 import { useTransactionDetails } from "./useTransactionDetails";
 
@@ -105,7 +108,12 @@ function TransactionDetailDrawerContent({
   });
 
   const amount = getTransactionAmountDisplay(transaction);
+  const cardPayment = isCardPayment(transaction);
   const isTransfer = isTransferTransaction(transaction);
+  const classification = transactionClassificationLabel({
+    cardPayment,
+    transfer: isTransfer,
+  });
   const isAdjustment = isBalanceReconciliation(transaction);
   const canEditEntry = canEditTransactionEntry(transaction);
 
@@ -121,11 +129,11 @@ function TransactionDetailDrawerContent({
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-center gap-1 text-center">
         <p className={amountClassName(amount.kind)}>{amount.label}</p>
-        {isTransfer || transaction.pending || isAdjustment ? (
+        {cardPayment || isTransfer || transaction.pending || isAdjustment ? (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
-            {isTransfer ? (
+            {classification ? (
               <span className="ledger-stamp bg-transfer-soft text-transfer">
-                Transfer
+                {classification}
               </span>
             ) : null}
             {isAdjustment ? (
@@ -139,6 +147,11 @@ function TransactionDetailDrawerContent({
               </span>
             ) : null}
           </div>
+        ) : null}
+        {cardPayment ? (
+          <p className="max-w-sm text-sm text-muted-foreground">
+            {cardPaymentExplanation}
+          </p>
         ) : null}
       </div>
 

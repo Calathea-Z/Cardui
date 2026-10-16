@@ -81,8 +81,9 @@ public static class TransactionCategoryClassifier
     ];
 
     /// <summary>
-    /// Chooses a system category key. Bank transfers win first, then income
+    /// Chooses a system category key. Bank transfers and card payments win first, then income
     /// hints on money coming in, then merchant keywords. Anything else is Other.
+    /// A card payment is a transfer so the purchase is not categorized again as spending.
     /// </summary>
     public static string GetCategoryKey(
         string? merchantName,
@@ -91,7 +92,8 @@ public static class TransactionCategoryClassifier
     {
         var text = TransferTextClassifier.BuildText(merchantName, description);
 
-        if (TransferTextClassifier.LooksLikeBankTransfer(merchantName, description))
+        if (TransferTextClassifier.LooksLikeBankTransfer(merchantName, description)
+            || CardActivityRules.LooksLikeCardPayment(merchantName, description))
         {
             return SystemCategoryKeys.Transfers;
         }

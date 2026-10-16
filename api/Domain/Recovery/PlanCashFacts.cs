@@ -12,4 +12,5 @@ internal sealed record PlanCashFacts(
     decimal LivingSpendingMonthly,
     bool HasCashFloor,
     bool HasEmergencyGoal,
-    int NamedSavingsGoalCount);
+    int NamedSavingsGoalCount,
+    decimal CashFloor);

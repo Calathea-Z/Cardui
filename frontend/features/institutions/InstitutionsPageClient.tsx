@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/navigation/page-header";
+import { PlanReturn } from "@/components/navigation/plan-return";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -244,6 +245,7 @@ export function InstitutionsPageClient({
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
+      <PlanReturn />
       <PageHeader
         title="Connections"
         description="Manage linked banks and the accounts synced from each institution."

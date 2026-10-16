@@ -154,6 +154,39 @@ namespace Cardui.Api.Migrations
                     b.ToTable("AccountBalanceSnapshots");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.AllocationPreference", b =>
+                {
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("VariableIncomeDebtPercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("VariableIncomeSavingsPercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("WindfallDebtPercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("WindfallSavingsPercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("HouseholdId");
+
+                    b.ToTable("AllocationPreferences");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -727,6 +760,65 @@ namespace Cardui.Api.Migrations
                     b.ToTable("PlaidItems");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.PlanVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("AsOf")
+                        .HasColumnType("date");
+
+                    b.Property<string>("CalculationVersion")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PlanningCurrency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTimeOffset?>("SupersededAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "HouseholdId" }, "IX_PlanVersions_HouseholdId_Accepted")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Accepted'");
+
+                    b.HasIndex(new[] { "HouseholdId" }, "IX_PlanVersions_HouseholdId_Draft")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Draft'");
+
+                    b.ToTable("PlanVersions");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.SavingsGoal", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1030,6 +1122,17 @@ namespace Cardui.Api.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.AllocationPreference", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Household", "Household")
+                        .WithOne("AllocationPreference")
+                        .HasForeignKey("Cardui.Api.Models.AllocationPreference", "HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Category", b =>
                 {
                     b.HasOne("Cardui.Api.Models.Household", null)
@@ -1171,6 +1274,17 @@ namespace Cardui.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.PlanVersion", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Household", "Household")
+                        .WithMany("PlanVersions")
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.SavingsGoal", b =>
                 {
                     b.HasOne("Cardui.Api.Models.Account", "Account")
@@ -1269,6 +1383,8 @@ namespace Cardui.Api.Migrations
 
             modelBuilder.Entity("Cardui.Api.Models.Household", b =>
                 {
+                    b.Navigation("AllocationPreference");
+
                     b.Navigation("CategoryTargetMonths");
 
                     b.Navigation("Contributors");
@@ -1278,6 +1394,8 @@ namespace Cardui.Api.Migrations
                     b.Navigation("IncomeSources");
 
                     b.Navigation("Obligations");
+
+                    b.Navigation("PlanVersions");
 
                     b.Navigation("SavingsGoals");
                 });

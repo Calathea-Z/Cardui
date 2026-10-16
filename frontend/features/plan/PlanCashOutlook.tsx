@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { cn } from "@/lib/utils";
+import { planReturnHref } from "./planReturn";
 import { PlanCashChart } from "./PlanCashChart";
 import {
   planCashRanges,
@@ -21,7 +22,7 @@ type PlanCashOutlookProps = {
   lowPay: PlanCashRangeView | null;
   notes: PlanCashNote[];
   currency: string;
-  livingSpendingMonthly: number;
+  spendingLine: string | null;
   startingCash: number;
   startingReserve: number;
   startingAvailable: number;
@@ -94,7 +95,7 @@ function CashForecastBody({
             view.warning && "border-warning/40",
           )}
         >
-          <dt className="text-xs text-muted-foreground">Lowest cash</dt>
+          <dt className="text-xs text-muted-foreground">Lowest balance</dt>
           <dd
             className={cn(
               "mt-1 text-base font-semibold tabular-nums",
@@ -103,7 +104,10 @@ function CashForecastBody({
           >
             {view.lowest}
           </dd>
-          <p className="text-xs text-muted-foreground">On {view.lowestOn}</p>
+          <p className="text-xs text-muted-foreground">
+            On {view.lowestOn}. This is the lowest point
+            {view.warning ? ", not necessarily the first day below zero" : ""}.
+          </p>
         </div>
         <div className="rounded-md border border-border p-3">
           <dt className="text-xs text-muted-foreground">
@@ -117,8 +121,15 @@ function CashForecastBody({
       {view.chartRows.length > 0 && view.chartLabel ? (
         <div>
           <h3 className="mb-2 text-sm font-medium text-foreground">
-            {comparison ? "Low-pay daily cash" : "Daily cash"}
+            {comparison
+              ? `Low pay · ${view.label}`
+              : `Typical pay · ${view.label}`}
           </h3>
+          <p className="mb-2 text-xs text-muted-foreground">
+            {comparison
+              ? "Low pay over the selected timeframe. This is not the steady-pay Spendable figure."
+              : "Typical pay over the selected timeframe. This chart counts every included paycheck. It is not the steady-pay Spendable figure."}
+          </p>
           <PlanCashChart
             rows={view.chartRows}
             lowest={view.chartLowest}
@@ -147,7 +158,7 @@ export function PlanCashOutlook({
   lowPay,
   notes,
   currency,
-  livingSpendingMonthly,
+  spendingLine,
   startingCash,
   startingReserve,
   startingAvailable,
@@ -168,9 +179,11 @@ export function PlanCashOutlook({
               Typical pay · {typical.label}
             </h2>
             <p className="app-section-meta">
+              Typical pay
               {typical.available
-                ? `Selected timeframe through ${typical.through}.`
-                : "Selected timeframe is unavailable in the current response."}
+                ? ` through ${typical.through}.`
+                : ". Selected timeframe is unavailable in the current response."}{" "}
+              Steady-pay Spendable is the separate figure on Overview.
             </p>
           </div>
           <SegmentedControl
@@ -188,7 +201,7 @@ export function PlanCashOutlook({
           description="Add an income source and this shows how your cash holds up over the next 18 months."
           action={
             <Link
-              href="/income"
+              href={planReturnHref("/income")}
               className={cn(buttonVariants(), "min-h-11 px-4")}
             >
               Go to Income
@@ -249,10 +262,9 @@ export function PlanCashOutlook({
                   </dd>
                 </div>
               </dl>
-              {livingSpendingMonthly > 0 ? (
+              {spendingLine ? (
                 <p className="text-muted-foreground">
-                  Includes {formatCurrency(livingSpendingMonthly, currency)} a
-                  month for flexible spending.{" "}
+                  {spendingLine}{" "}
                   <Link href="/living" className="text-primary underline">
                     Review Plan budget
                   </Link>

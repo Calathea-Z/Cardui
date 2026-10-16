@@ -1,4 +1,5 @@
 import type { PlanCashForecastDto, PlanRecoveryDto } from "@/lib/api/types";
+import { planReturnHref } from "./planReturn";
 
 export type PlanReadinessRow = {
   key: string;
@@ -26,7 +27,8 @@ type FormatDate = (date: string) => string;
 
 /**
  * Builds Plan's setup and freshness status from facts already returned by the recovery endpoint.
- * A dated cash shortfall leads; reliability gaps follow before less urgent setup improvements.
+ * Missing cash, income, debt terms, bills, living costs, and cash to keep can lead.
+ * A dated shortfall stays on the cash outlook instead of sending the person to the budget editor.
  */
 export function planReadiness(
   report: PlanRecoveryDto,
@@ -53,27 +55,11 @@ export function planReadiness(
 
   const next =
     issue(
-      "budget",
-      forecast.shortfallOn !== null,
-      "Fix the dated cash shortfall",
-      `Cash first runs short on ${date(forecast.shortfallOn ?? "")}. Review available pay and flexible spending before relying on the payoff date.`,
-      "/living",
-      "Review shortfall",
-    ) ??
-    issue(
-      "savings",
-      forecast.reserveShortfallOn !== null,
-      "Review protected savings",
-      `Available cash after protected savings first runs short on ${date(forecast.reserveShortfallOn ?? "")}.`,
-      "/savings",
-      "Review Savings",
-    ) ??
-    issue(
       "cash",
       report.cashOutlook.startingCashAccountCount === 0,
       "Add starting cash",
       "Plan starts from active cash accounts in the household currency.",
-      "/accounts",
+      planReturnHref("/accounts"),
       "Review Accounts",
     ) ??
     issue(
@@ -81,7 +67,7 @@ export function planReadiness(
       !report.hasDebts,
       "Add a debt",
       "Add the cards or loans this recovery plan needs to address.",
-      "/debts",
+      planReturnHref("/debts"),
       "Review Debts",
     ) ??
     issue(
@@ -89,7 +75,7 @@ export function planReadiness(
       !report.cashOutlook.hasIncome,
       "Add take-home income",
       "Plan needs dated pay to judge whether the next bills and debt payments fit.",
-      "/income",
+      planReturnHref("/income"),
       "Review Income",
     ) ??
     issue(
@@ -97,7 +83,7 @@ export function planReadiness(
       debtAttentionCount > 0,
       "Finish the next debt",
       `${debtAttentionCount} ${debtAttentionCount === 1 ? "debt needs" : "debts need"} a term before the payoff estimate is complete.`,
-      "/debts",
+      planReturnHref("/debts"),
       "Review Debts",
     ) ??
     issue(
@@ -105,7 +91,7 @@ export function planReadiness(
       report.cashOutlook.startingCashStaleConnectedCount > 0,
       "Refresh starting cash",
       "At least one connected cash balance used by Plan is not current.",
-      "/connections",
+      planReturnHref("/connections"),
       "Review Connections",
     ) ??
     issue(
@@ -113,7 +99,7 @@ export function planReadiness(
       staleDebtCount > 0,
       "Refresh debt balances",
       `${staleDebtCount} followed ${staleDebtCount === 1 ? "balance is" : "balances are"} not current.`,
-      "/debts",
+      planReturnHref("/debts"),
       "Review Debts",
     ) ??
     issue(
@@ -121,7 +107,7 @@ export function planReadiness(
       paymentReviewCount > 0,
       "Review a zero-balance debt",
       `${paymentReviewCount} zero-balance ${paymentReviewCount === 1 ? "debt keeps" : "debts keep"} a saved minimum. The terms are retained but excluded from active payments.`,
-      "/debts",
+      planReturnHref("/debts"),
       "Review Debts",
     ) ??
     issue(
@@ -129,7 +115,7 @@ export function planReadiness(
       activeDebtCount === 0,
       "Review debt balances",
       "No saved debt has a positive balance, so there is no active payoff path.",
-      "/debts",
+      planReturnHref("/debts"),
       "Review Debts",
     ) ??
     issue(
@@ -137,31 +123,23 @@ export function planReadiness(
       !report.cashOutlook.hasBills,
       "Review recurring bills",
       "No non-debt bills are included. Add the ones the household pays, or confirm there are none.",
-      "/bills",
+      planReturnHref("/bills"),
       "Review Bills",
     ) ??
     issue(
       "budget",
       report.livingSpendingMonthly <= 0,
-      "Set a Plan budget",
-      "Choose how much household pay enters Plan and include one realistic flexible-spending amount.",
-      "/living",
-      "Review Plan budget",
+      "Set living costs",
+      "Include one realistic flexible-spending amount. Contribution shares are edited with income setup.",
+      planReturnHref("/living"),
+      "Review living costs",
     ) ??
     issue(
       "savings",
       !report.hasCashFloor,
       "Choose cash to keep",
       "Set the cash floor Plan should protect before relying on a payoff estimate.",
-      "/savings",
-      "Review Savings",
-    ) ??
-    issue(
-      "savings",
-      !report.hasEmergencyGoal,
-      "Review emergency savings",
-      "Decide whether this plan needs a dated emergency target. Cardui does not choose a universal amount.",
-      "/savings",
+      planReturnHref("/savings"),
       "Review Savings",
     );
 
@@ -193,8 +171,9 @@ function cashRow(report: PlanRecoveryDto, date: FormatDate): PlanReadinessRow {
     key: "cash",
     title: "Starting cash",
     detail: `${cash.startingCashAccountCount} active cash ${cash.startingCashAccountCount === 1 ? "account" : "accounts"}${sources.length > 0 ? ` (${sources.join(", ")})` : ""}. ${freshness}${caveat}`,
-    href:
+    href: planReturnHref(
       cash.startingCashStaleConnectedCount > 0 ? "/connections" : "/accounts",
+    ),
     linkLabel:
       cash.startingCashStaleConnectedCount > 0
         ? "Review Connections"
@@ -246,7 +225,7 @@ function debtRow(
       parts.length > 0
         ? `${parts.join(" · ")}. Zero balances do not count as active debt or payments.`
         : "No debt balance is ready for the payoff path.",
-    href: "/debts",
+    href: planReturnHref("/debts"),
     linkLabel: "Review Debts",
     warning:
       active.length === 0 || stale > 0 || attentionCount > 0 || review > 0,
@@ -263,7 +242,7 @@ function incomeRow(report: PlanRecoveryDto): PlanReadinessRow {
     detail: report.cashOutlook.hasIncome
       ? "Typical take-home pay is included on its saved dates. Plan budget applies each contributor's saved share."
       : "No take-home income is included yet.",
-    href: "/income",
+    href: planReturnHref("/income"),
     linkLabel: "Review Income",
     warning: !report.cashOutlook.hasIncome,
   };
@@ -279,7 +258,7 @@ function billsRow(report: PlanRecoveryDto): PlanReadinessRow {
     detail: report.cashOutlook.hasBills
       ? "Recurring non-debt bills are included on their saved dates."
       : "No recurring non-debt bills are included. Debt payments belong on Debts.",
-    href: "/bills",
+    href: planReturnHref("/bills"),
     linkLabel: "Review Bills",
     warning: !report.cashOutlook.hasBills,
   };
@@ -299,13 +278,13 @@ function budgetRow(
     title: "Plan budget",
     detail:
       report.livingSpendingMonthly <= 0
-        ? "No flexible monthly spending is included. This editor also controls how much of each contributor's pay enters Plan."
+        ? "No flexible monthly spending is included. Contribution shares are edited with income setup."
         : shortfall
-          ? `Household pay shares and flexible spending are included. Dated cash first runs short on ${date(shortfall)}.`
+          ? `Household pay shares and flexible spending are included. Typical pay first runs short on ${date(shortfall)}. That date is separate from steady-pay Spendable.`
           : "Household pay shares and flexible monthly spending are included in dated cash.",
-    href: "/living",
-    linkLabel: "Review Plan budget",
-    warning: report.livingSpendingMonthly <= 0 || shortfall !== null,
+    href: planReturnHref("/living"),
+    linkLabel: "Review living costs",
+    warning: report.livingSpendingMonthly <= 0,
   };
 }
 
@@ -332,12 +311,9 @@ function savingsRow(
     key: "savings",
     title: "Protected savings",
     detail: `${parts.join(" · ")}. Cash to keep is added to Emergency and named goals; these amounts stay in cash but reduce what is available.`,
-    href: "/savings",
+    href: planReturnHref("/savings"),
     linkLabel: "Review Savings",
-    warning:
-      !report.hasCashFloor ||
-      !report.hasEmergencyGoal ||
-      forecast.reserveShortfallOn !== null,
+    warning: !report.hasCashFloor || forecast.reserveShortfallOn !== null,
   };
 }
 

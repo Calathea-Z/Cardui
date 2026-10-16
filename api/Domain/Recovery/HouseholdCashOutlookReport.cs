@@ -1,7 +1,7 @@
 namespace Cardui.Api.Domain.Recovery;
 
 /// <summary>
-/// The Plan cash outlook on rollover and on keeping every freed payment.
+/// The Plan cash outlook on keeping none, some, or all of a freed payment.
 /// StartingCash is the cash the forecasts start from on AsOf.
 /// StartingReserve is the part already set aside. StartingAvailable is cash minus that reserve and can be negative.
 /// HasIncome and HasBills are true when at least one source or bill counts in the planning currency.
@@ -16,4 +16,5 @@ public sealed record HouseholdCashOutlookReport(
     bool HasBills,
     IReadOnlyList<string> ExcludedCurrencies,
     HouseholdCashOutlookPath Rollover,
+    HouseholdCashOutlookPath Reclaim,
     HouseholdCashOutlookPath ReclaimAll);

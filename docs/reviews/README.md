@@ -45,6 +45,7 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-16 — Phase 3 behavior QA](2026-10-16-007-phase-3-behavior-qa.md) — Approved 2026-10-16
 - [2026-10-16 — Remaining Plan edges](2026-10-16-006-remaining-plan-edges.md) — Approved 2026-10-16
 - [2026-10-16 — One way to apply a change](2026-10-16-005-one-way-to-apply.md) — Approved 2026-10-16
 - [2026-10-16 — Plan next month first](2026-10-16-004-plan-next-month-first.md) — Approved 2026-10-16

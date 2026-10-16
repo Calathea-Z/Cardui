@@ -11,21 +11,17 @@ history. They do not say what is next.
 
 **Now**
 
-[Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md) was
-approved on October 16, 2026. [One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md)
-was approved on October 16, 2026. [Plan next month first](reviews/2026-10-16-004-plan-next-month-first.md)
-was approved on October 16, 2026. [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md)
-was approved on October 16, 2026. [Payoff priority and partial reclaim](reviews/2026-10-16-002-payoff-priority-and-reclaim.md)
-and [Working scenario and saved versions](reviews/2026-10-16-001-working-scenario-and-versions.md)
-were approved on October 16, 2026. The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+[Phase 3 behavior QA](reviews/2026-10-16-007-phase-3-behavior-qa.md) was
+approved on October 16, 2026. The walked checks passed. Phase 3 items 1–11
+and the October 16 UX increments stay approved, through
+[Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md). This
+approval does not close Phase 3, and it does not start Phase 4. Detail panel
+keyboard focus stays tracked. The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 3 behavior QA. The prompt is in
-   [Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md).
-   Do not start Phase 4. Detail panel keyboard focus remains tracked. This
-   does not close Phase 3 until that QA is recorded.
+1. Zach's decision on whether to close Phase 3. Do not start Phase 4.
 
 **Tracked, not scheduled**
 

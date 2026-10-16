@@ -114,3 +114,21 @@ test("a card payment explains that the purchase was already spending", () => {
   assert.match(cardPaymentExplanation, /Purchases count as spending/);
   assert.match(cardPaymentExplanation, /not spending again/);
 });
+
+test("a purchase counts once and both card payments are left out of category spending", () => {
+  const rows = [
+    { accountType: "credit", amount: 40, name: "Trader Joe" },
+    { accountType: "credit", amount: -40, name: "Payment thank you" },
+    {
+      accountType: "depository",
+      amount: 40,
+      name: "Chase credit crd autopay",
+    },
+  ];
+  const spending = rows
+    .filter((row) => !isCardPaymentActivity(row))
+    .reduce((total, row) => total + row.amount, 0);
+
+  assert.equal(spending, 40);
+  assert.equal(rows.filter((row) => isCardPaymentActivity(row)).length, 2);
+});

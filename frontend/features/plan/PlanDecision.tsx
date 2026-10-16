@@ -21,6 +21,7 @@ import {
 import {
   decisionActionTarget,
   planVersionPrintLines,
+  uncalculatedPreviewMessage,
 } from "./decisionPlanView";
 import { useSavedPlan } from "./useSavedPlan";
 
@@ -33,7 +34,7 @@ type PlanDecisionProps = {
 
 /**
  * Your plan: the version on screen, then at most three actions.
- * Save keeps a draft. Accept replaces the previous accepted plan and leaves it in history. Print uses the browser.
+ * Save keeps a draft and waits until this preview is calculated. Accept replaces the previous accepted plan and leaves it in history. Print uses the browser and names this same version.
  */
 export function PlanDecision({
   saved,
@@ -70,13 +71,17 @@ export function PlanDecision({
 
   const printed = planVersionPrintLines(saved.chrome, formatCalendarDate);
   const readingStored = saved.viewedId !== null;
+  const canSave = calculationReady && saved.previewReady;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h2 className="app-section-title">Your plan</h2>
           <VersionLines printed={printed} />
+          <p className="mt-2 hidden text-sm text-foreground print:block!">
+            Cardui does not schedule a payment or change an account.
+          </p>
           {readingStored ? (
             <p className="mt-2 max-w-xl text-sm text-foreground">
               You are reading a saved version. Try changes edits the working
@@ -87,44 +92,46 @@ export function PlanDecision({
             {saved.chrome.note}
           </p>
         </div>
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-col items-start gap-2 print:hidden!">
           <div className="flex flex-wrap gap-2">
-            <DecisionActions
-              saved={saved}
-              calculationReady={calculationReady}
-            />
+            <DecisionActions saved={saved} canSave={canSave} />
           </div>
-          {saved.chrome.action === "save" && !calculationReady ? (
-            <p className="max-w-xs text-sm text-foreground">
-              This working scenario has not been calculated, so it cannot be
-              saved.
+          {saved.chrome.action === "save" && !canSave && !saved.saving ? (
+            <p id="plan-save-wait" className="max-w-xs text-sm text-foreground">
+              {calculationReady
+                ? uncalculatedPreviewMessage
+                : "This working scenario has not been calculated, so it cannot be saved."}
             </p>
           ) : null}
         </div>
       </div>
 
       {saved.message ? (
-        <p
-          className={
-            saved.messageTone === "error"
-              ? "text-sm text-destructive print:hidden"
-              : "text-sm text-foreground print:hidden"
-          }
-          role={saved.messageTone === "error" ? "alert" : "status"}
-        >
-          {saved.message}
-        </p>
+        <div className="print:hidden!">
+          <p
+            className={
+              saved.messageTone === "error"
+                ? "text-sm text-destructive"
+                : "text-sm text-foreground"
+            }
+            role={saved.messageTone === "error" ? "alert" : "status"}
+          >
+            {saved.message}
+          </p>
+          {saved.loadStatus === "error" ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-3 min-h-11 bg-card px-4"
+              onClick={() => void saved.retry()}
+            >
+              Try again
+            </Button>
+          ) : null}
+        </div>
       ) : null}
 
       <article className="plan-decision-print flex flex-col gap-6">
-        <header className="hidden print:block">
-          <p className="text-lg font-semibold text-foreground">Your plan</p>
-          <VersionLines printed={printed} />
-          <p className="mt-2 text-sm text-foreground">
-            Cardui does not schedule a payment or change an account.
-          </p>
-        </header>
-
         {plan.actions.length > 0 ? (
           <ol className="flex flex-col gap-4">
             {plan.actions.map((action) => {
@@ -163,16 +170,16 @@ export function PlanDecision({
           </p>
         )}
 
-        <div className="print:hidden">
+        <div className="print:hidden!">
           <DecisionSupport plan={plan} money={money} expanded={false} />
         </div>
-        <div className="hidden print:block">
+        <div className="hidden print:block!">
           <DecisionSupport plan={plan} money={money} expanded />
         </div>
       </article>
 
       {saved.versions.length > 0 ? (
-        <details className="group rounded-lg border border-border bg-card print:hidden">
+        <details className="group rounded-lg border border-border bg-card print:hidden!">
           <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset">
             <span>History</span>
             <ChevronRight
@@ -225,10 +232,10 @@ type SavedPlanController = ReturnType<typeof useSavedPlan>;
  */
 function DecisionActions({
   saved,
-  calculationReady,
+  canSave,
 }: {
   saved: SavedPlanController;
-  calculationReady: boolean;
+  canSave: boolean;
 }) {
   const action = saved.chrome.action;
   const saving = saved.saving;
@@ -239,7 +246,8 @@ function DecisionActions({
         <Button
           type="button"
           className="min-h-11 px-4"
-          disabled={saving || !calculationReady}
+          disabled={saving || !canSave}
+          aria-describedby={canSave ? undefined : "plan-save-wait"}
           onClick={() => void saved.save()}
         >
           {saved.chrome.replacesDraftId ? "Save a new draft" : "Save draft"}
@@ -321,7 +329,7 @@ function ActionLink({
     return (
       <Link
         href={target.href}
-        className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-primary underline print:hidden"
+        className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-primary underline print:hidden!"
       >
         {target.label}
       </Link>
@@ -331,7 +339,7 @@ function ActionLink({
   return (
     <button
       type="button"
-      className="mt-3 min-h-11 text-sm font-medium text-primary underline print:hidden"
+      className="mt-3 min-h-11 text-sm font-medium text-primary underline print:hidden!"
       onClick={target.view === "shortfall" ? onOpenShortfall : onOpenDebt}
     >
       {target.label}

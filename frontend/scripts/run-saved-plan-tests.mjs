@@ -354,4 +354,23 @@ test("an accepted match prints, and a superseded version goes back to the previe
   assert.equal(working.status, "Trying changes — not saved");
   assert.equal(working.version, "Working preview");
   assert.equal(working.recorded, null);
+  assert.notEqual(printed.version, working.version);
+  assert.notEqual(printed.status, working.status);
+});
+
+test("save waits until this preview is calculated, including after a failed refresh", () => {
+  const identity = view.decisionPreviewIdentity(
+    "Rollover",
+    '{"monthlyExtra":25}',
+  );
+  const previous = view.decisionPreviewIdentity(
+    "Rollover",
+    '{"monthlyExtra":0}',
+  );
+
+  assert.equal(view.isCalculatedDecisionPreview(null, identity), false);
+  assert.equal(view.isCalculatedDecisionPreview(previous, identity), false);
+  assert.equal(view.isCalculatedDecisionPreview(identity, identity), true);
+  assert.match(view.uncalculatedPreviewMessage, /has not been calculated/);
+  assert.match(view.uncalculatedPreviewMessage, /cannot be saved/);
 });

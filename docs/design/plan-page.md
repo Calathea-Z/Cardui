@@ -15,6 +15,8 @@ approved in
 [`2026-10-16-004-plan-next-month-first.md`](../reviews/2026-10-16-004-plan-next-month-first.md).
 Increment 2, one way to apply a change, is approved in
 [`2026-10-16-005-one-way-to-apply.md`](../reviews/2026-10-16-005-one-way-to-apply.md).
+Increment 3, the remaining Plan edges, is approved in
+[`2026-10-16-006-remaining-plan-edges.md`](../reviews/2026-10-16-006-remaining-plan-edges.md).
 Date: October 7, 2026
 Updated: 2026-10-16
 
@@ -52,7 +54,9 @@ Forward-looking charts still live on Plan. Home keeps historical results. See
   path changes with that result. The figures on screen and the save payload
   change together. Save stays unavailable while they differ. Reset restores
   current facts. A failed update keeps the entered fields and the previous result,
-  and that uncalculated draft cannot be saved. The last applied preview
+  and that uncalculated draft cannot be saved. A failed refresh of the decision
+  preview keeps the previous plan on screen, and save stays unavailable until
+  that preview has been calculated. The last applied preview
   stays in this browser session, so opening a setup editor and returning
   restores it. An offer comparison stays on the Plan page and is not part
   of that preview or of a saved version. The page does not schedule a
@@ -278,7 +282,9 @@ heading names the status, the version, and the date. The leading action is
 **Save draft**, **Accept plan** when the open draft matches the preview, or
 **Print** when the accepted plan matches the preview. A stored version that
 is not the working preview offers **Return to working preview**. Save stays
-unavailable until the working scenario has been calculated. Accepting says
+unavailable until the working scenario has been calculated and the decision
+preview for that result has loaded. A failed refresh of that preview keeps
+the previous plan on screen and still leaves save unavailable. Accepting says
 it replaces the accepted plan and keeps the older copy in history. At most
 three actions lead. Each names why it matters, the expected cash-flow
 effect, and a review link where one exists. Invalidating risks stay visible.
@@ -300,8 +306,8 @@ a draft marks the previous accepted plan superseded. Cardui does not pay a
 bill, pay a debt, or move money.
 
 On a phone the actions stack and the buttons wrap. Print uses the browser.
-The printed page names the status, version, and date of the version on
-screen, and includes its assumptions and risks. The shell, tabs, and
+The printed page uses the same status, version, and date shown on screen,
+and includes its assumptions and risks. The shell, tabs, and
 scenario controls stay off the printed page, and the supporting sections
 print open. There is no PDF file and no public link.
 

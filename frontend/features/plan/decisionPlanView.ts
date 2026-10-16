@@ -1,6 +1,7 @@
 import type {
   DecisionPlanActionKind,
   DecisionPlanDto,
+  PayoffRolloverKind,
   PlanVersionDto,
 } from "@/lib/api/types";
 
@@ -51,8 +52,37 @@ export function sameDecisionPlan(
 }
 
 /**
+ * Shown beside Save while this decision preview is missing or its refresh failed.
+ * The previous plan can stay on screen. Save stays unavailable until this preview is calculated.
+ */
+export const uncalculatedPreviewMessage =
+  "This preview has not been calculated, so it cannot be saved.";
+
+/**
+ * The identity of the decision preview requested for one path.
+ * Kind is included, so a freed-cash change waits for its own preview.
+ */
+export function decisionPreviewIdentity(
+  kind: PayoffRolloverKind,
+  scenarioKey: string,
+) {
+  return `${kind}:${scenarioKey}`;
+}
+
+/**
+ * True when that requested preview has been calculated.
+ * Null means it has not loaded, or the latest refresh failed. A previous preview does not count.
+ */
+export function isCalculatedDecisionPreview(
+  calculatedIdentity: string | null,
+  identity: string,
+) {
+  return calculatedIdentity !== null && calculatedIdentity === identity;
+}
+
+/**
  * The print heading for the version on screen.
- * Status, version, and date name that copy. A stored version also names the day it was recorded.
+ * Status, version, and date name that copy. Your plan renders these lines once, on screen and in print. A stored version also names the day it was recorded.
  */
 export type PlanVersionPrintLines = {
   status: string;

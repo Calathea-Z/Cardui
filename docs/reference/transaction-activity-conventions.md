@@ -1,7 +1,7 @@
 # Transaction activity conventions
 
 Status: Current. These rules drive Home's This month panel.
-Updated: 2026-10-15
+Updated: 2026-10-16
 
 The dashboard's monthly activity is a categorized, posted-transaction view. It
 is not a complete cash-flow statement.
@@ -37,9 +37,11 @@ for money entering an account.
 - **Credit-card payments:** A payment from cash reduces cash. The matching
   credit on the card reduces the card balance. Neither is income or spending,
   even when the category is still a spending category. The purchase is not
-  counted again. A described card payment is recognized from language such as
-  "payment thank you" or "credit crd autopay". A mortgage, a card fee, and a
-  bill autopay stay spending. A refund on the card reduces that category.
+  counted again. Activity labels that payment once, as Card payment, and does
+  not show the spending category on the row. A described card payment is
+  recognized from language such as "payment thank you" or "credit crd autopay".
+  A mortgage, a card fee, and a bill autopay stay spending. A refund on the
+  card reduces that category.
 - **Opening balances:** An opening balance is stored on the account. It sets
   the starting balance and is not a transaction, so it is not income, spending,
   or a transfer.

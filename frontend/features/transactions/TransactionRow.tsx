@@ -8,6 +8,7 @@ import {
   isTransferTransaction,
 } from "./transactionAmountDisplay";
 import {
+  transactionClassificationLabel,
   transactionListContext,
   transactionListTitle,
 } from "./transactionListPresentation";
@@ -32,7 +33,7 @@ function amountClassName(kind: "income" | "spend" | "transfer") {
 
 /**
  * Marks a card payment, transfer, balance adjustment, or pending transaction.
- * A posted spending or income row has no mark. A card payment is named so it is not read as spending.
+ * A posted spending or income row has no mark. A card payment is named once and is not also marked as a transfer.
  */
 function TransactionMarks({ transaction }: { transaction: TransactionDto }) {
   const cardPayment = isCardPayment(transaction);
@@ -43,15 +44,16 @@ function TransactionMarks({ transaction }: { transaction: TransactionDto }) {
     return null;
   }
 
+  const classification = transactionClassificationLabel({
+    cardPayment,
+    transfer: isTransfer,
+  });
+
   return (
     <span className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-      {cardPayment ? (
+      {classification ? (
         <span className="ledger-stamp bg-transfer-soft text-transfer">
-          Card payment
-        </span>
-      ) : isTransfer ? (
-        <span className="ledger-stamp bg-transfer-soft text-transfer">
-          Transfer
+          {classification}
         </span>
       ) : null}
       {isAdjustment ? (
@@ -70,27 +72,32 @@ function TransactionMarks({ transaction }: { transaction: TransactionDto }) {
 
 /**
  * Shows one transaction in the list.
- * The title prefers a merchant name, with the account and category underneath. A select handler turns the row into a button.
+ * The title prefers a merchant name, with the account and category underneath. A card payment names the account and one Card payment mark, and leaves the spending category off this row. A select handler turns the row into a button.
  */
 export function TransactionRow({ transaction, onSelect }: TransactionRowProps) {
   const amount = getTransactionAmountDisplay(transaction);
+  const cardPayment = isCardPayment(transaction);
 
   const content = (
     <>
       <div className="flex min-w-0 items-start gap-3">
-        <span
-          className="mt-1 shrink-0 text-base leading-none"
-          aria-hidden="true"
-        >
-          {getCategoryEmoji(transaction.category)}
-        </span>
+        {cardPayment ? (
+          <span className="mt-1 w-4 shrink-0" aria-hidden="true" />
+        ) : (
+          <span
+            className="mt-1 shrink-0 text-base leading-none"
+            aria-hidden="true"
+          >
+            {getCategoryEmoji(transaction.category)}
+          </span>
+        )}
         <div className="min-w-0 text-left">
           <p className="line-clamp-2 font-medium text-foreground">
             {transactionListTitle(transaction)}
           </p>
           <div className="mt-0.5 flex min-w-0 items-center gap-2">
             <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-              {transactionListContext(transaction)}
+              {transactionListContext(transaction, cardPayment)}
             </p>
             <TransactionMarks transaction={transaction} />
           </div>

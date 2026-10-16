@@ -11,7 +11,8 @@ history. They do not say what is next.
 
 **Now**
 
-[One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md)
+[Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md) was
+approved on October 16, 2026. [One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md)
 was approved on October 16, 2026. [Plan next month first](reviews/2026-10-16-004-plan-next-month-first.md)
 was approved on October 16, 2026. [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md)
 was approved on October 16, 2026. [Payoff priority and partial reclaim](reviews/2026-10-16-002-payoff-priority-and-reclaim.md)
@@ -21,11 +22,10 @@ stays as written.
 
 **Next**
 
-1. Implement increment 3 from the October 16 reassessment: the remaining
-   Plan edges, on synthetic data. The prompt is in
-   [One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md).
-   Do not start Phase 4. Phase 3 behavior QA remains pending. Detail panel
-   keyboard focus remains tracked. This does not close Phase 3.
+1. Phase 3 behavior QA. The prompt is in
+   [Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md).
+   Do not start Phase 4. Detail panel keyboard focus remains tracked. This
+   does not close Phase 3 until that QA is recorded.
 
 **Tracked, not scheduled**
 
@@ -45,6 +45,8 @@ stays as written.
   [Plan next month first](reviews/2026-10-16-004-plan-next-month-first.md).
   Increment 2 is approved in
   [One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md).
+  Increment 3 is approved in
+  [Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md).
   The [October 15 handoff](design/phase-3-ux-handoff.md)
   stays as the approved increments 1–3.
 

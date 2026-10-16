@@ -14,11 +14,15 @@ import type {
   PlanScenarioQuery,
   PlanVersionDto,
 } from "@/lib/api/types";
-import { decisionPlanChrome } from "./decisionPlanView";
+import {
+  decisionPlanChrome,
+  decisionPreviewIdentity,
+  isCalculatedDecisionPreview,
+} from "./decisionPlanView";
 
 /**
  * Loads the decision preview and saved versions for Your plan.
- * A newer request replaces an older one. Saving and accepting do not move money.
+ * A newer request replaces an older one. Save waits until this preview has been calculated, including after a failed refresh. Saving and accepting do not move money.
  */
 export function useSavedPlan(
   scenario: PlanScenarioQuery,
@@ -40,6 +44,12 @@ export function useSavedPlan(
   );
   const request = useRef(0);
   const scenarioKey = JSON.stringify(scenario);
+  const identity = decisionPreviewIdentity(kind, scenarioKey);
+  const [readyIdentity, setReadyIdentity] = useState<string | null>(null);
+  // A new scenario or path drops the previous calculation before paint, so save cannot use it.
+  if (readyIdentity !== null && readyIdentity !== identity) {
+    setReadyIdentity(null);
+  }
 
   const load = useCallback(
     async (clearError = false) => {
@@ -57,6 +67,7 @@ export function useSavedPlan(
 
         setPreview(nextPreview);
         setVersions(nextVersions);
+        setReadyIdentity(identity);
         setLoadStatus("ready");
         if (clearError) {
           setMessage(null);
@@ -67,6 +78,7 @@ export function useSavedPlan(
           return;
         }
 
+        setReadyIdentity(null);
         setLoadStatus("error");
         setMessage(
           getApiErrorMessage(error, "This plan could not be prepared."),
@@ -74,7 +86,7 @@ export function useSavedPlan(
         setMessageTone("error");
       }
     },
-    [kind, scenarioKey],
+    [identity, kind, scenarioKey],
   );
 
   useEffect(() => {
@@ -94,12 +106,14 @@ export function useSavedPlan(
     [matchesCurrentFacts, preview, versions, viewedId],
   );
 
+  const previewReady = isCalculatedDecisionPreview(readyIdentity, identity);
+
   /**
    * Stores the current preview as the open draft.
-   * A stale draft asks the person to review the plan again.
+   * A preview that has not loaded, or whose refresh failed, is not saved. A stale draft asks the person to review the plan again.
    */
   async function save() {
-    if (!allowSave) {
+    if (!allowSave || !previewReady) {
       return;
     }
 
@@ -161,6 +175,7 @@ export function useSavedPlan(
 
   return {
     chrome,
+    previewReady,
     loadStatus,
     saving,
     message,

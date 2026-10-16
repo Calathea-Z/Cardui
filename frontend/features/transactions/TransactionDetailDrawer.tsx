@@ -25,6 +25,7 @@ import { TransactionHistoryField } from "./TransactionHistoryField";
 import { TransactionNotesField } from "./TransactionNotesField";
 import { TransactionOriginalStatementField } from "./TransactionOriginalStatementField";
 import { cardPaymentExplanation } from "./cardActivity";
+import { transactionClassificationLabel } from "./transactionListPresentation";
 import { canEditTransactionEntry } from "./transactionEntry";
 import { useTransactionDetails } from "./useTransactionDetails";
 
@@ -109,6 +110,10 @@ function TransactionDetailDrawerContent({
   const amount = getTransactionAmountDisplay(transaction);
   const cardPayment = isCardPayment(transaction);
   const isTransfer = isTransferTransaction(transaction);
+  const classification = transactionClassificationLabel({
+    cardPayment,
+    transfer: isTransfer,
+  });
   const isAdjustment = isBalanceReconciliation(transaction);
   const canEditEntry = canEditTransactionEntry(transaction);
 
@@ -126,13 +131,9 @@ function TransactionDetailDrawerContent({
         <p className={amountClassName(amount.kind)}>{amount.label}</p>
         {cardPayment || isTransfer || transaction.pending || isAdjustment ? (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
-            {cardPayment ? (
+            {classification ? (
               <span className="ledger-stamp bg-transfer-soft text-transfer">
-                Card payment
-              </span>
-            ) : isTransfer ? (
-              <span className="ledger-stamp bg-transfer-soft text-transfer">
-                Transfer
+                {classification}
               </span>
             ) : null}
             {isAdjustment ? (

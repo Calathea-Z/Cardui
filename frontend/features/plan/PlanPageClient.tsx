@@ -349,7 +349,7 @@ export function PlanPageClient({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        className="print:hidden"
+        className="print:hidden!"
         title="Plan"
         status={failed ? undefined : saved.chrome.label}
         description="Check the next 30 days, try a change, and keep a plan."
@@ -389,7 +389,7 @@ export function PlanPageClient({
               <button
                 type="button"
                 onClick={closeDetail}
-                className="min-h-11 w-fit text-sm font-medium text-primary underline print:hidden"
+                className="min-h-11 w-fit text-sm font-medium text-primary underline print:hidden!"
               >
                 {view === "cash" && cashReturn === "shortfall"
                   ? "Back to shortfall"

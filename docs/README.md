@@ -11,15 +11,18 @@ history. They do not say what is next.
 
 **Now**
 
-[Payoff priority and partial reclaim](reviews/2026-10-16-002-payoff-priority-and-reclaim.md)
-was approved on October 16, 2026. [Working scenario and saved versions](reviews/2026-10-16-001-working-scenario-and-versions.md)
-was approved on October 16, 2026. The [Phase 3 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+[Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md)
+was approved on October 16, 2026. [Payoff priority and partial reclaim](reviews/2026-10-16-002-payoff-priority-and-reclaim.md)
+and [Working scenario and saved versions](reviews/2026-10-16-001-working-scenario-and-versions.md)
+were approved on October 16, 2026. The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 3 behavior QA remains pending. Do not start Phase 4. Detail panel
-   keyboard focus remains tracked. This does not close Phase 3.
+1. Implement increment 1 from the October 16 reassessment: the next-month
+   answer comes first. The prompt is in that report. Do not start increment
+   2 or Phase 4. Phase 3 behavior QA remains pending. Detail panel keyboard
+   focus remains tracked. This does not close Phase 3.
 
 **Tracked, not scheduled**
 
@@ -34,8 +37,9 @@ stays as written.
 
 ## Map
 
-- [Phase 3 UX handoff](design/phase-3-ux-handoff.md): proposed workflow,
-  three reviewable increments, and the paste-ready Cursor prompt.
+- [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md):
+  the current sequence. The [October 15 handoff](design/phase-3-ux-handoff.md)
+  stays as the approved increments 1–3.
 
 | Path                                                                                             | What it is                                                                                                                                                 |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |

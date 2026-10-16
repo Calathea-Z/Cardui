@@ -63,6 +63,10 @@ function availabilityLine(
     return "Not projected until a debt can be paid off.";
   }
 
+  if (kind === "Reclaim" && first.breathingRoom > 0) {
+    return "Part of that payment becomes available after this payoff. The rest rolls to the next debt.";
+  }
+
   if (kind === "Rollover" && first.breathingRoom <= 0) {
     return "That payment rolls to the next debt. It is not available cash yet.";
   }

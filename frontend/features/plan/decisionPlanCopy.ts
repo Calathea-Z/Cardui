@@ -107,14 +107,19 @@ export function decisionActionCopy(
     case "PayFirstDebt":
       return {
         title: action.name ? `Pay ${action.name} first` : "Pay the first debt",
-        why: "It is first in this order. The order puts the highest known interest rate first.",
+        why: "It is first in payment priority. That is who receives extra and a rolled payment, not the date the debt is paid off.",
         effect: payFirstEffect(action, money, date),
       };
     case "UseFreedPayment":
       return {
-        title: action.nextName
-          ? `Send the freed payment to ${action.nextName}`
-          : "Keep the freed payment",
+        title:
+          action.nextName &&
+          (action.extra ?? 0) > 0 &&
+          (action.extra ?? 0) < (action.amount ?? 0)
+            ? "Keep some of the freed payment"
+            : action.nextName
+              ? `Send the freed payment to ${action.nextName}`
+              : "Keep the freed payment",
         why: freedWhy(action, money),
         effect: freedEffect(action, money, date),
       };
@@ -160,11 +165,8 @@ export function decisionAssumptionCopy(
   switch (detail.kind) {
     case "Order":
       return {
-        term: "Order",
-        detail:
-          (detail.amount ?? 0) > 0
-            ? `Highest interest rate first. ${money(detail.amount ?? 0)} extra each month goes to the first debt that can take it.`
-            : "Highest interest rate first. No extra payment in this plan.",
+        term: "Payment priority",
+        detail: savedPriorityDetail(plan, money, detail.amount ?? 0),
       };
     case "Payments":
       return {
@@ -190,14 +192,7 @@ export function decisionAssumptionCopy(
           "A due date that has passed moves ahead a month at a time to the first one on or after the plan date.",
       };
     case "FreedPayment":
-      return {
-        term:
-          plan.kind === "Rollover" ? "Roll payments forward" : "Free up cash",
-        detail:
-          plan.kind === "Rollover"
-            ? "A freed payment goes to the next debt. It becomes breathing room once no debt can take it."
-            : "A freed payment becomes available right away. It is not sent to the next debt.",
-      };
+      return savedFreedPayment(plan, money);
     case "CashOutlook":
       return {
         term: "Cash outlook",
@@ -602,9 +597,12 @@ export function decisionScenarioLines(
   const scenario = plan.scenario;
   const lines: DecisionLine[] = [
     {
-      term: "Payments",
-      detail:
-        plan.kind === "Rollover" ? "Roll payments forward" : "Free up cash",
+      term: "Payment priority",
+      detail: savedPriorityDetail(plan, money, scenario.monthlyExtra),
+    },
+    {
+      term: "Freed cash",
+      detail: savedFreedPayment(plan, money).detail,
     },
     {
       term: "Extra",
@@ -722,6 +720,64 @@ function payFirstEffect(
 }
 
 /**
+ * The stored payment priority. An older plan with no priority is avalanche.
+ */
+function savedPriorityDetail(
+  plan: DecisionPlanDto,
+  money: FormatMoney,
+  extra: number,
+) {
+  const priority = plan.scenario.priority ?? "Avalanche";
+  const lead =
+    priority === "MinimumRelease"
+      ? "Remove a minimum first."
+      : priority === "Utilization"
+        ? "Lower utilization first."
+        : priority === "Constraint"
+          ? "A chosen debt is paid first or last."
+          : "Highest interest rate first.";
+  const payment =
+    extra > 0
+      ? ` ${money(extra)} extra each month goes to the first debt that can take it.`
+      : " No extra payment in this plan.";
+  return `${lead}${payment}`;
+}
+
+/**
+ * Where the stored plan sends a freed payment.
+ * The payoff month still pays the debt. The freed cash starts the month after.
+ */
+function savedFreedPayment(
+  plan: DecisionPlanDto,
+  money: FormatMoney,
+): DecisionLine {
+  if (plan.kind === "Reclaim") {
+    const amount = plan.scenario.reclaimAmount ?? 0;
+    return {
+      term: "Keep some",
+      detail:
+        amount > 0
+          ? `Keep ${money(amount)} of each freed payment the month after it ends. The rest rolls.`
+          : "Keep part of each freed payment the month after it ends. The rest rolls.",
+    };
+  }
+
+  if (plan.kind === "ReclaimAll") {
+    return {
+      term: "Free up cash",
+      detail:
+        "A freed payment becomes available the month after it ends. It is not sent to the next debt.",
+    };
+  }
+
+  return {
+    term: "Roll payments forward",
+    detail:
+      "A freed payment goes to the next debt the month after it ends. It becomes breathing room once no debt can take it.",
+  };
+}
+
+/**
  * The payment that ends, which is still paid in the payoff month.
  */
 function freedWhy(action: DecisionPlanActionDto, money: FormatMoney) {
@@ -746,6 +802,12 @@ function freedEffect(
   }
 
   const when = `Starting ${date(action.on)}, `;
+  const kept = action.extra ?? 0;
+  const minimum = action.amount ?? 0;
+  if (action.nextName && kept > 0 && kept < minimum) {
+    return `${when}keep ${money(kept)} and send the rest to ${action.nextName}.`;
+  }
+
   if (action.nextName) {
     return `${when}that payment goes to ${action.nextName}.`;
   }

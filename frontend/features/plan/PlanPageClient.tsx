@@ -62,6 +62,11 @@ import {
 import { planReadiness } from "./planReadiness";
 import { planReturnHref } from "./planReturn";
 import { spendableCopy } from "./spendableCopy";
+import {
+  recoveryOutlook,
+  recoveryPath,
+  recoverySpendable,
+} from "./planPayoffChoice";
 
 type PlanPageClientProps = {
   report: PlanRecoveryDto;
@@ -98,14 +103,9 @@ export function PlanPageClient({
   const [hoveredDebtId, setHoveredDebtId] = useState<string | null>(null);
   const [pinnedDebtId, setPinnedDebtId] = useState<string | null>(null);
   const hasPayoff = report.rollover.steps.length > 0;
-  const onRollover = kind === "Rollover" || !hasPayoff;
-  const selectedKind: PayoffRolloverKind = onRollover
-    ? "Rollover"
-    : "ReclaimAll";
-  const path = onRollover ? report.rollover : report.reclaimAll;
-  const outlook = onRollover
-    ? report.cashOutlook.rollover
-    : report.cashOutlook.reclaimAll;
+  const selectedKind: PayoffRolloverKind = kind;
+  const path = recoveryPath(report, selectedKind);
+  const outlook = recoveryOutlook(report, selectedKind);
   const currency = report.planningCurrency;
   const selectedTab = isPlanDetail(view) ? detailFrom : view;
   const matchesFacts = isCurrentFacts(scenario, selectedKind);
@@ -185,15 +185,13 @@ export function PlanPageClient({
   }
 
   const model = useMemo(() => {
-    const colors = debtColors(report.rollover.debts);
+    const colors = debtColors(path.debts);
     const money = (amount: number) => formatCurrency(amount, currency);
     const finish = finishPlanItems(report, path, money);
     const typicalChart = cashChart(outlook.typical);
     const lowPayChart = outlook.lowPay ? cashChart(outlook.lowPay) : null;
     const spendable = spendableCopy(
-      selectedKind === "Rollover"
-        ? report.spendable.rollover
-        : report.spendable.reclaimAll,
+      recoverySpendable(report, selectedKind),
       report.cashOutlook,
       report.debtFacts,
       report.hasDebts,

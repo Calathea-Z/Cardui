@@ -76,10 +76,7 @@ export function planAssumptions(
   const rows: PlanAssumption[] = [
     {
       term: "Order",
-      detail:
-        monthlyExtra > 0
-          ? `Highest interest rate first. ${money(monthlyExtra)} extra each month goes to the first debt that can take it. Who is paid first, not when each debt ends.`
-          : "Highest interest rate first. No extra payment yet. Who is paid first, not when each debt ends.",
+      detail: orderAssumption(monthlyExtra, money, scenario),
     },
     {
       term: "Payments",
@@ -100,16 +97,7 @@ export function planAssumptions(
       detail:
         "A due date that has passed moves ahead a month at a time to the first one on or after today.",
     },
-    kind === "Rollover"
-      ? {
-          term: "Roll payments forward",
-          detail:
-            "A freed payment goes to the next debt. It becomes breathing room once no debt can take it.",
-        }
-      : {
-          term: "Free up cash",
-          detail: "A freed payment becomes breathing room right away.",
-        },
+    freedPaymentAssumption(kind, scenario),
     {
       term: "Cash outlook",
       detail:
@@ -213,25 +201,95 @@ function previewIsActive(monthlyExtra: number, scenario?: PlanScenarioQuery) {
     (scenario?.incomeLossMonths ?? 0) > 0 ||
     (scenario?.windfallAmount ?? 0) > 0 ||
     scenario?.livingSpendingMonthly != null ||
-    scenario?.cashFloor != null
+    scenario?.cashFloor != null ||
+    (scenario?.priority !== undefined && scenario.priority !== "Avalanche") ||
+    (scenario?.reclaimAmount ?? 0) > 0 ||
+    scenario?.constraintDebtId != null
   );
 }
 
 /**
- * The two paths the title-row switch offers, in order.
+ * The freed-cash choices, in order. None rolls the payment. Some keeps an amount. All keeps every freed dollar.
  */
 export const planPathOptions: { value: PayoffRolloverKind; label: string }[] = [
-  { value: "Rollover", label: "Roll payments forward" },
-  { value: "ReclaimAll", label: "Free up cash" },
+  { value: "Rollover", label: "Keep none" },
+  { value: "Reclaim", label: "Keep some" },
+  { value: "ReclaimAll", label: "Keep all" },
 ];
 
 /**
- * Explains where a paid-off debt's payment goes in the selected temporary scenario.
+ * Explains where a paid-off debt's payment goes.
+ * The freed payment starts the month after the modeled payment ends.
  */
 export function planPathDescription(kind: PayoffRolloverKind) {
+  if (kind === "Reclaim") {
+    return "The requested amount becomes available cash the month after that debt ends. The rest moves to the next debt.";
+  }
+
   return kind === "Rollover"
-    ? "A paid-off debt's payment moves to the next debt. It becomes available cash only when no modeled debt can take it."
-    : "A paid-off debt's payment becomes available cash after that debt ends instead of moving to the next debt.";
+    ? "A paid-off debt's payment moves to the next debt the month after it ends. It becomes available cash only when no modeled debt can take it."
+    : "A paid-off debt's payment becomes available cash the month after that debt ends instead of moving to the next debt.";
+}
+
+/**
+ * The payment-priority line. Avalanche stays the baseline when no other priority was selected.
+ * The sentence names who is paid first, not when each debt ends.
+ */
+function orderAssumption(
+  monthlyExtra: number,
+  money: FormatMoney,
+  scenario?: PlanScenarioQuery,
+) {
+  const extra =
+    monthlyExtra > 0
+      ? ` ${money(monthlyExtra)} extra each month goes to the first debt that can take it.`
+      : " No extra payment yet.";
+  const priority = scenario?.priority ?? "Avalanche";
+  if (priority === "Avalanche") {
+    return `Highest interest rate first.${extra} Who is paid first, not when each debt ends.`;
+  }
+
+  const lead =
+    priority === "MinimumRelease"
+      ? "Remove a minimum first."
+      : priority === "Utilization"
+        ? "Lower utilization first."
+        : "Pay a chosen debt first or last.";
+  return `${lead}${extra} Not the payoff date.`;
+}
+
+/**
+ * Where a freed payment goes on the selected path.
+ * It is not available in the payoff month.
+ */
+function freedPaymentAssumption(
+  kind: PayoffRolloverKind,
+  scenario?: PlanScenarioQuery,
+): PlanAssumption {
+  if (kind === "Reclaim") {
+    const amount = scenario?.reclaimAmount ?? 0;
+    return {
+      term: "Keep some",
+      detail:
+        amount > 0
+          ? `Keep the requested amount each month after the payment ends. The rest rolls.`
+          : "Keep a chosen amount each month after the payment ends. The rest rolls.",
+    };
+  }
+
+  if (kind === "ReclaimAll") {
+    return {
+      term: "Free up cash",
+      detail:
+        "A freed payment becomes breathing room the month after it ends. It is not sent to the next debt.",
+    };
+  }
+
+  return {
+    term: "Roll payments forward",
+    detail:
+      "A freed payment goes to the next debt the month after it ends. It becomes breathing room once no debt can take it.",
+  };
 }
 
 /**
@@ -396,9 +454,11 @@ export function cashOutlookDescription(
   const start = `Starts from ${money(startingCash)} in Cash on Accounts today.`;
   const path = !hasPayoff
     ? start
-    : kind === "Rollover"
-      ? `${start} A paid-off debt's payment moves to the next debt.`
-      : `${start} A paid-off debt's payment comes back as cash.`;
+    : kind === "Reclaim"
+      ? `${start} Part of a paid-off debt's payment comes back as cash the month after it ends.`
+      : kind === "Rollover"
+        ? `${start} A paid-off debt's payment moves to the next debt.`
+        : `${start} A paid-off debt's payment comes back as cash.`;
   const sentence =
     monthlyExtra > 0
       ? `${path} ${money(monthlyExtra)} extra each month is included in the debt payments.`
@@ -464,10 +524,23 @@ export function planScenarioSummary(
 ) {
   const strategy = !hasPayoff
     ? "Minimums only"
-    : kind === "Rollover"
-      ? "Roll payments forward"
-      : "Free up cash";
+    : kind === "Reclaim"
+      ? "Keep some"
+      : kind === "Rollover"
+        ? "Roll payments forward"
+        : "Free up cash";
   const parts = [strategy, `${money(scenario.monthlyExtra)} extra`];
+  const priority = scenario.priority ?? "Avalanche";
+  if (priority === "MinimumRelease") {
+    parts.push("remove a minimum first");
+  } else if (priority === "Utilization") {
+    parts.push("lower utilization first");
+  } else if (priority === "Constraint") {
+    parts.push("pay one debt first or last");
+  }
+  if (kind === "Reclaim" && (scenario.reclaimAmount ?? 0) > 0) {
+    parts.push(`keeps ${money(scenario.reclaimAmount ?? 0)} back`);
+  }
   if (scenario.incomeLossMonths > 0) {
     parts.push(
       scenario.incomeLossMonths === 1

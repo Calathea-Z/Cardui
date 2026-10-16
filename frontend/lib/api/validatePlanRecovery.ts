@@ -36,7 +36,11 @@ export function isCurrentPlanRecovery(
     !isNullableNumber(value.scenarioCashFloor) ||
     typeof value.hasCashFloor !== "boolean" ||
     typeof value.hasEmergencyGoal !== "boolean" ||
-    typeof value.namedSavingsGoalCount !== "number"
+    typeof value.namedSavingsGoalCount !== "number" ||
+    !isPriority(value.priority) ||
+    typeof value.reclaimAmount !== "number" ||
+    !Array.isArray(value.priorityAlternatives) ||
+    !isRecord(value.reclaim)
   ) {
     return false;
   }
@@ -50,6 +54,7 @@ export function isCurrentPlanRecovery(
     isNullableString(cash.startingCashOldestAsOf) &&
     typeof cash.startingCashUnknownDateCount === "number" &&
     typeof cash.startingCashStaleConnectedCount === "number" &&
+    isRecord(cash.reclaim) &&
     isSpendableReport(value.spendable)
   );
 }
@@ -61,6 +66,7 @@ function isSpendableReport(value: unknown): boolean {
   return (
     isRecord(value) &&
     isSpendableEstimate(value.rollover) &&
+    isSpendableEstimate(value.reclaim) &&
     isSpendableEstimate(value.reclaimAll)
   );
 }
@@ -133,6 +139,18 @@ function isOfferDebtFact(value: unknown): boolean {
     (value.kind === "Revolving" || value.kind === "Installment") &&
     (typeof value.apr === "number" || value.apr === null) &&
     typeof value.currency === "string"
+  );
+}
+
+/**
+ * True when the response names one of the four payment priorities.
+ */
+function isPriority(value: unknown) {
+  return (
+    value === "Avalanche" ||
+    value === "MinimumRelease" ||
+    value === "Utilization" ||
+    value === "Constraint"
   );
 }
 

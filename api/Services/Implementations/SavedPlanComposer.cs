@@ -7,12 +7,13 @@ namespace Cardui.Api.Services.Implementations;
 
 /// <summary>
 /// Turns the household's recovery report into the decision plan that can be saved.
-/// The selected path is roll payments forward or free up cash. The report is already calculated.
+/// The selected path keeps none, some, or all of the freed cash. The report is already calculated.
 /// </summary>
 internal static class SavedPlanComposer
 {
     /// <summary>
     /// Builds the decision plan for the path the household selected.
+    /// The selected priority and freed-cash choice are the ones stored. A comparison that was not selected is left out.
     /// </summary>
     public static DecisionPlan Compose(PlanRecoveryDto report, PayoffRolloverKind kind)
     {
@@ -27,11 +28,10 @@ internal static class SavedPlanComposer
     /// </summary>
     private static DecisionPlanInput ToInput(PlanRecoveryDto report, PayoffRolloverKind kind)
     {
-        var rollover = kind == PayoffRolloverKind.Rollover;
-        var path = rollover ? report.Rollover : report.ReclaimAll;
+        var path = SelectedPath(report, kind);
         var outlook = report.CashOutlook;
-        var forecast = (rollover ? outlook.Rollover : outlook.ReclaimAll).Typical;
-        var spendable = rollover ? report.Spendable.Rollover : report.Spendable.ReclaimAll;
+        var forecast = Outlook(outlook, kind).Typical;
+        var spendable = Spendable(report.Spendable, kind);
         var factsById = report.DebtFacts.ToDictionary(debt => debt.DebtId);
 
         return new DecisionPlanInput(
@@ -45,7 +45,11 @@ internal static class SavedPlanComposer
                 report.WindfallAmount,
                 report.WindfallOn,
                 report.ScenarioLivingSpendingMonthly,
-                report.ScenarioCashFloor),
+                report.ScenarioCashFloor,
+                report.Priority,
+                report.Priority == PayoffPriorityChoice.Constraint ? report.ConstraintDebtId : null,
+                report.Priority == PayoffPriorityChoice.Constraint ? report.ConstraintKind : null,
+                kind == PayoffRolloverKind.Reclaim ? report.ReclaimAmount : 0),
             path.Debts
                 .Select(debt => new DecisionPlanDebt(
                     debt.DebtId,
@@ -70,6 +74,45 @@ internal static class SavedPlanComposer
             spendable.Uncertainties
                 .Select(item => new DecisionPlanUncertainty(item.Kind, item.Name))
                 .ToList());
+    }
+
+    /// <summary>
+    /// The payoff path for the freed-cash choice. Keeping some uses the partial path.
+    /// </summary>
+    private static PlanRecoveryPathDto SelectedPath(PlanRecoveryDto report, PayoffRolloverKind kind)
+    {
+        return kind switch
+        {
+            PayoffRolloverKind.Reclaim => report.Reclaim,
+            PayoffRolloverKind.ReclaimAll => report.ReclaimAll,
+            _ => report.Rollover
+        };
+    }
+
+    /// <summary>
+    /// The cash outlook for the freed-cash choice.
+    /// </summary>
+    private static PlanCashOutlookPathDto Outlook(PlanCashOutlookDto outlook, PayoffRolloverKind kind)
+    {
+        return kind switch
+        {
+            PayoffRolloverKind.Reclaim => outlook.Reclaim,
+            PayoffRolloverKind.ReclaimAll => outlook.ReclaimAll,
+            _ => outlook.Rollover
+        };
+    }
+
+    /// <summary>
+    /// The spendable estimate for the freed-cash choice.
+    /// </summary>
+    private static SpendableEstimateDto Spendable(SpendableReportDto spendable, PayoffRolloverKind kind)
+    {
+        return kind switch
+        {
+            PayoffRolloverKind.Reclaim => spendable.Reclaim,
+            PayoffRolloverKind.ReclaimAll => spendable.ReclaimAll,
+            _ => spendable.Rollover
+        };
     }
 
     /// <summary>

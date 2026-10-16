@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Cardui.Api.Domain.Plans;
 using Cardui.Api.Domain.Recovery;
 using Xunit;
@@ -171,6 +172,28 @@ public class DecisionPlanRulesTests
         var read = DecisionPlanJson.Deserialize(stored);
         Assert.True(DecisionPlanRules.Same(first, read));
         Assert.Equal(stored, DecisionPlanJson.Serialize(read));
+    }
+
+    [Fact]
+    public void Deserialize_KeepsAnOlderPlanThatHasNoPriorityOrReclaim()
+    {
+        var plan = DecisionPlanRules.Compose(Sample());
+        var node = JsonNode.Parse(DecisionPlanJson.Serialize(plan))!.AsObject();
+        var scenario = node["scenario"]!.AsObject();
+        scenario.Remove("priority");
+        scenario.Remove("constraintDebtId");
+        scenario.Remove("constraintKind");
+        scenario.Remove("reclaimAmount");
+
+        var read = DecisionPlanJson.Deserialize(node.ToJsonString());
+
+        Assert.Equal(PayoffPriorityChoice.Avalanche, read.Scenario.Priority);
+        Assert.Null(read.Scenario.ConstraintDebtId);
+        Assert.Null(read.Scenario.ConstraintKind);
+        Assert.Equal(0m, read.Scenario.ReclaimAmount);
+        Assert.Equal(plan.Kind, read.Kind);
+        Assert.Equal(plan.Facts.TotalInterest, read.Facts.TotalInterest);
+        Assert.Equal(plan.Debts.Select(debt => debt.Name), read.Debts.Select(debt => debt.Name));
     }
 
     [Fact]

@@ -31,6 +31,7 @@ public static class PlanCashOutlookDtoMapper
             HasBills = report.HasBills,
             ExcludedCurrencies = report.ExcludedCurrencies,
             Rollover = MapPath(report.Rollover),
+            Reclaim = MapPath(report.Reclaim),
             ReclaimAll = MapPath(report.ReclaimAll)
         };
     }

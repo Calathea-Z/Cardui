@@ -21,6 +21,7 @@ public static class SpendableRules
     {
         var reliable = ReliableInput(input, debts);
         var rollover = Forecast(reliable, minimums.Rollover.Schedules);
+        var partial = Forecast(reliable, minimums.Reclaim.Schedules);
         var reclaim = Forecast(reliable, minimums.ReclaimAll.Schedules);
         var through = HorizonEnd(input.AsOf, rollover);
         var reserved = input.StartingReserve <= 0 ? 0 : AccountLedger.Round(input.StartingReserve);
@@ -35,6 +36,12 @@ public static class SpendableRules
             Estimate(
                 rollover,
                 extra > 0 ? Forecast(reliable, withExtra.Rollover.Schedules) : rollover,
+                extra,
+                reserved,
+                uncertainties),
+            Estimate(
+                partial,
+                extra > 0 ? Forecast(reliable, withExtra.Reclaim.Schedules) : partial,
                 extra,
                 reserved,
                 uncertainties),

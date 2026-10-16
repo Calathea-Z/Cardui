@@ -1,4 +1,8 @@
-import type { PayoffRolloverKind } from "./plan";
+import type {
+  PayoffConstraintKind,
+  PayoffPriorityChoice,
+  PayoffRolloverKind,
+} from "./plan";
 
 export const planVersionStatuses = ["Draft", "Accepted", "Superseded"] as const;
 
@@ -137,6 +141,8 @@ export type DecisionPlanFactsDto = {
 /**
  * The cash preview selected for a decision plan.
  * A null spending or floor amount means the plan used the household's saved figure.
+ * `priority` is who extra and a rolled payment follow. An older saved plan is avalanche.
+ * `reclaimAmount` is how much freed cash the plan keeps each month. Zero unless it keeps some.
  */
 export type DecisionPlanScenarioDto = {
   monthlyExtra: number;
@@ -145,6 +151,10 @@ export type DecisionPlanScenarioDto = {
   windfallOn: string | null;
   livingSpendingMonthly: number | null;
   cashFloor: number | null;
+  priority: PayoffPriorityChoice;
+  constraintDebtId: string | null;
+  constraintKind: PayoffConstraintKind | null;
+  reclaimAmount: number;
 };
 
 /**
@@ -263,5 +273,9 @@ export type SavePlanVersionDto = {
   windfallOn: string | null;
   livingSpendingMonthly: number | null;
   cashFloor: number | null;
+  priority: PayoffPriorityChoice;
+  constraintDebtId: string | null;
+  constraintKind: PayoffConstraintKind | null;
+  reclaimAmount: number;
   replacesDraftId: string | null;
 };

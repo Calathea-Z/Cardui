@@ -51,11 +51,17 @@ function currentResponse() {
       startingCashOldestAsOf: null,
       startingCashUnknownDateCount: 0,
       startingCashStaleConnectedCount: 0,
+      reclaim: {},
     },
     spendable: {
       rollover: estimate(),
+      reclaim: estimate(),
       reclaimAll: estimate(),
     },
+    reclaim: {},
+    priority: "Avalanche",
+    reclaimAmount: 0,
+    priorityAlternatives: [],
   };
 }
 
@@ -128,6 +134,18 @@ test("rejects a response from before debt facts were added", () => {
 test("rejects a response without starting-cash provenance", () => {
   const oldResponse = currentResponse();
   delete oldResponse.cashOutlook.startingCashAccountCount;
+
+  assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("rejects a response from before partial reclaim and payment priority", () => {
+  const oldResponse = currentResponse();
+  delete oldResponse.reclaim;
+  delete oldResponse.priority;
+  delete oldResponse.reclaimAmount;
+  delete oldResponse.priorityAlternatives;
+  delete oldResponse.spendable.reclaim;
+  delete oldResponse.cashOutlook.reclaim;
 
   assert.equal(isCurrentPlanRecovery(oldResponse), false);
 });

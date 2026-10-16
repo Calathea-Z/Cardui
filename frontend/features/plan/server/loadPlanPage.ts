@@ -24,7 +24,13 @@ function emptyPlanRecovery(): PlanRecoveryDto {
   return {
     planningCurrency: "USD",
     rollover: emptyPath("Rollover"),
+    reclaim: emptyPath("Reclaim"),
     reclaimAll: emptyPath("ReclaimAll"),
+    priority: "Avalanche",
+    constraintDebtId: null,
+    constraintKind: null,
+    reclaimAmount: 0,
+    priorityAlternatives: [],
     excludedCurrencies: [],
     missingBalance: [],
     hasDebts: false,
@@ -55,10 +61,12 @@ function emptyPlanRecovery(): PlanRecoveryDto {
       hasBills: false,
       excludedCurrencies: [],
       rollover: { typical: emptyForecast(), lowPay: null },
+      reclaim: { typical: emptyForecast(), lowPay: null },
       reclaimAll: { typical: emptyForecast(), lowPay: null },
     },
     spendable: {
       rollover: emptySpendable(),
+      reclaim: emptySpendable(),
       reclaimAll: emptySpendable(),
     },
   };
@@ -128,5 +136,7 @@ function emptyPath(kind: PlanRecoveryPathDto["kind"]): PlanRecoveryPathDto {
     totalInterest: 0,
     debts: [],
     balancePoints: [],
+    cashReclaimed: 0,
+    cashRolled: 0,
   };
 }

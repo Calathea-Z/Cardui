@@ -6,13 +6,14 @@ namespace Cardui.Api.Mapping;
 public static class SpendableEstimateDtoMapper
 {
     /// <summary>
-    /// Copies both spendable paths into the shape the Plan page renders.
+    /// Copies the three spendable paths into the shape the Plan page renders.
     /// </summary>
     public static SpendableReportDto Map(SpendableReport report)
     {
         return new SpendableReportDto
         {
             Rollover = MapEstimate(report.Rollover),
+            Reclaim = MapEstimate(report.Reclaim),
             ReclaimAll = MapEstimate(report.ReclaimAll)
         };
     }

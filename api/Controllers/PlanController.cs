@@ -25,8 +25,8 @@ public class PlanController : ControllerBase
 
     /// <summary>
     /// GET /api/plan/recovery
-    /// Returns the payoff on rollover and on keeping every freed payment: balances over time, each minimum removed, the breathing room that follows,
-    /// and the cash outlook for 30 days and 6, 12, and 18 months on each path.
+    /// Returns the payoff when freed cash is kept none, some, or all of the way: balances over time, each minimum removed, the breathing room that follows,
+    /// the cash outlook for 30 days and 6, 12, and 18 months on each path, and the payment-priority alternatives.
     /// monthlyExtra is shared extra tried for this response. Omit it, or pass zero, for minimums only.
     /// incomeLossMonths leaves out included pay for that many months from today. Zero keeps every paycheck.
     /// windfallAmount and windfallOn add one cash inflow. livingSpendingMonthly and cashFloor replace those saved amounts when sent.
@@ -61,7 +61,7 @@ public class PlanController : ControllerBase
     /// <summary>
     /// GET /api/plan/decision
     /// Returns the plain-language decision for the current facts and the selected scenario.
-    /// Nothing is saved. kind is Rollover or ReclaimAll.
+    /// Nothing is saved. kind is Rollover, Reclaim, or ReclaimAll.
     /// </summary>
     [HttpGet("decision")]
     [ProducesResponseType<DecisionPlanDto>(StatusCodes.Status200OK)]

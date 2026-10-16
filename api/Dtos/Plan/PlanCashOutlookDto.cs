@@ -58,5 +58,7 @@ public class PlanCashOutlookDto
 
     public required PlanCashOutlookPathDto Rollover { get; set; }
 
+    public required PlanCashOutlookPathDto Reclaim { get; set; }
+
     public required PlanCashOutlookPathDto ReclaimAll { get; set; }
 }

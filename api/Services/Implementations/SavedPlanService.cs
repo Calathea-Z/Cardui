@@ -41,7 +41,7 @@ public class SavedPlanService : ISavedPlanService
         PayoffRolloverKind kind,
         CancellationToken cancellationToken = default)
     {
-        RequireKind(kind);
+        RequireChoice(scenario, kind);
         return ToDto(await ComposeAsync(scenario, kind, cancellationToken));
     }
 
@@ -65,8 +65,9 @@ public class SavedPlanService : ISavedPlanService
         SavePlanVersionDto dto,
         CancellationToken cancellationToken = default)
     {
-        RequireKind(dto.Kind);
-        var plan = await ComposeAsync(ToScenario(dto), dto.Kind, cancellationToken);
+        var scenario = ToScenario(dto);
+        RequireChoice(scenario, dto.Kind);
+        var plan = await ComposeAsync(scenario, dto.Kind, cancellationToken);
         var householdId = _householdScope.RequireHouseholdId();
         var now = _timeProvider.GetUtcNow();
 
@@ -156,13 +157,15 @@ public class SavedPlanService : ISavedPlanService
     }
 
     /// <summary>
-    /// Rejects a payoff choice this plan does not store.
+    /// Rejects a freed-cash choice this preview cannot store.
+    /// The recovery request checks the priority and the debt. This checks that keeping some names an amount.
     /// </summary>
-    private static void RequireKind(PayoffRolloverKind kind)
+    private static void RequireChoice(PlanScenarioQuery scenario, PayoffRolloverKind kind)
     {
-        if (kind is not (PayoffRolloverKind.Rollover or PayoffRolloverKind.ReclaimAll))
+        var message = PayoffChoiceRules.RejectKind(kind, scenario.ReclaimAmount);
+        if (message is not null)
         {
-            throw new BadRequestException("Choose roll payments forward or free up cash.");
+            throw new BadRequestException(message);
         }
     }
 
@@ -178,7 +181,11 @@ public class SavedPlanService : ISavedPlanService
             WindfallAmount = dto.WindfallAmount,
             WindfallOn = dto.WindfallOn,
             LivingSpendingMonthly = dto.LivingSpendingMonthly,
-            CashFloor = dto.CashFloor
+            CashFloor = dto.CashFloor,
+            Priority = dto.Priority,
+            ConstraintDebtId = dto.ConstraintDebtId,
+            ConstraintKind = dto.ConstraintKind,
+            ReclaimAmount = dto.ReclaimAmount
         };
     }
 
@@ -386,7 +393,11 @@ public class SavedPlanService : ISavedPlanService
             WindfallAmount = scenario.WindfallAmount,
             WindfallOn = scenario.WindfallOn,
             LivingSpendingMonthly = scenario.LivingSpendingMonthly,
-            CashFloor = scenario.CashFloor
+            CashFloor = scenario.CashFloor,
+            Priority = scenario.Priority,
+            ConstraintDebtId = scenario.ConstraintDebtId,
+            ConstraintKind = scenario.ConstraintKind,
+            ReclaimAmount = scenario.ReclaimAmount
         };
     }
 

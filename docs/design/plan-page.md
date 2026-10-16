@@ -8,7 +8,8 @@ cash-first Overview change is approved in
 [`2026-10-15-007-plan-navigation-and-safety.md`](../reviews/2026-10-15-007-plan-navigation-and-safety.md).
 Increment 2, the working scenario and saved-version clarity, is approved in
 [`2026-10-16-001-working-scenario-and-versions.md`](../reviews/2026-10-16-001-working-scenario-and-versions.md).
-Increment 3 of the Phase 3 UX handoff is not implemented.
+Increment 3, payoff priority and partial reclaim, is approved in
+[`2026-10-16-002-payoff-priority-and-reclaim.md`](../reviews/2026-10-16-002-payoff-priority-and-reclaim.md).
 Date: October 7, 2026
 Updated: 2026-10-16
 
@@ -112,6 +113,15 @@ applied changes stay summarized. Flexible spending and cash to keep use
 sends every valid field together. **Reset changes** restores current facts.
 While a request runs or fails, the figures on screen stay the previous
 result and the fields stay as entered. **Retry** sends them again.
+
+**Change what happens after payoff** compares four payment priorities:
+highest rate first, remove a minimum, lower utilization, and pay one debt
+first or last. The last choice names one debt. It is not a ranking of every
+debt. Freed cash is keep none, keep some, or keep all. Keep some asks for a
+monthly amount. The lines beside those choices are the last calculated
+preview. **Update preview** applies them. Priority interest is before a
+freed payment rolls. A freed payment starts the month after the modeled
+payment ends. **Reset changes** returns to highest rate first and keep none.
 
 The status is **Current facts**, **Trying changes — not saved**, **Saved
 draft**, or **Accepted plan**. A compact comparison shows near-term cash
@@ -279,10 +289,11 @@ for one band per debt.
   `--transfer` is adjusted. When built, emerald became `#00806e` and teal
   `#127c99`, because the starting emerald read close to `--success`. The
   contrast table is in `docs/reviews/2026-10-07-014-plan-recovery.md`.
-- A debt's color comes from its position in the rollover order. It does
-  not change when the switch changes. The chart, the tooltip, and the
-  payoff order use the same color. A ninth debt reuses the first color,
-  and its name still tells it apart.
+- A debt's color comes from its position in the selected payment priority.
+  Keep none, keep some, and keep all share that order, so the freed-cash
+  choice does not recolor a debt. The chart, the tooltip, and the
+  chronological payoff rows use the same color. A ninth debt reuses the
+  first color, and its name still tells it apart.
 - Bands: series color at about 90% opacity, a 1px white edge between
   bands, and a monotone curve.
 - Grid and axes: horizontal grid lines in `--border` only. The y axis
@@ -396,9 +407,10 @@ rest of Phase 3 item 6 follows the same pattern for cash changes.
   an explicit zero for the minimums-only plan. Months without pay, a
   one-time windfall with a date, flexible spending, and cash to keep are
   optional. A blank spending or floor field keeps the saved amount.
-- Extra changes the payoff path and the cash outlook. Income loss, a
-  windfall, spending, and the cash floor change cash only. Payoff order
-  stays the same. A windfall stays in cash and does not pay a debt.
+- Extra changes the payoff path and the cash outlook. Payment priority and
+  the freed-cash choice change who is paid first and how much freed cash
+  stays back. Income loss, a windfall, spending, and the cash floor change
+  cash only. A windfall stays in cash and does not pay a debt.
 - Months without pay leave out included pay from today for that many months,
   then pay resumes. Flexible spending replaces later full months; a smaller
   remainder this month stays. Cash to keep replaces only the floor inside
@@ -426,8 +438,8 @@ sections.
 
 ## Out of scope
 
-- A custom payoff order or a reclaim amount. A saved plan records roll
-  payments forward or free up cash.
+- A ranking of every debt. The supported constraint pays one debt first or
+  last. A saved version stores that choice and how much freed cash to keep.
 - Variable-income and windfall allocation preferences stay the Allocation
   setting. They are not a plan version.
 - Opening one debt directly from an Attention item. Current source links open

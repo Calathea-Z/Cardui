@@ -1,5 +1,10 @@
 import { moneyDigits } from "@/features/accounts/formatCurrency";
-import type { PayoffRolloverKind, PlanScenarioQuery } from "@/lib/api/types";
+import type {
+  PayoffConstraintKind,
+  PayoffPriorityChoice,
+  PayoffRolloverKind,
+  PlanScenarioQuery,
+} from "@/lib/api/types";
 import { parsePlanExtra } from "./planExtra";
 
 /**
@@ -14,6 +19,8 @@ export type ParsedScenarioAmount =
 /**
  * True when the preview matches the plan loaded with the page.
  * Zero extra, no income loss, no windfall, and null spending and floor keep the saved figures.
+ * Avalanche, no constraint, and no reclaim amount keep the baseline payoff.
+ * A missing priority or reclaim amount is that baseline, so an older preview still matches.
  */
 export function isSavedPlanScenario(scenario: PlanScenarioQuery) {
   return (
@@ -22,7 +29,11 @@ export function isSavedPlanScenario(scenario: PlanScenarioQuery) {
     scenario.windfallAmount <= 0 &&
     scenario.windfallOn === null &&
     scenario.livingSpendingMonthly === null &&
-    scenario.cashFloor === null
+    scenario.cashFloor === null &&
+    (scenario.priority ?? "Avalanche") === "Avalanche" &&
+    (scenario.constraintDebtId ?? null) === null &&
+    (scenario.constraintKind ?? null) === null &&
+    (scenario.reclaimAmount ?? 0) <= 0
   );
 }
 
@@ -195,6 +206,10 @@ export type ScenarioDraft = {
   livingAmount: string;
   floorChoice: ScenarioAmountChoice;
   floorAmount: string;
+  priority: PayoffPriorityChoice;
+  constraintDebtId: string;
+  constraintKind: PayoffConstraintKind | "";
+  reclaimAmount: string;
   kind: PayoffRolloverKind;
 };
 
@@ -208,6 +223,8 @@ export type ScenarioDraftErrors = {
   windfall: "windfall" | null;
   living: "living-empty" | "living-invalid" | "living-unset" | null;
   floor: "floor-empty" | "floor-invalid" | null;
+  constraint: "constraint" | null;
+  reclaim: "reclaim" | null;
 };
 
 /**
@@ -219,6 +236,8 @@ export const emptyScenarioDraftErrors: ScenarioDraftErrors = {
   windfall: null,
   living: null,
   floor: null,
+  constraint: null,
+  reclaim: null,
 };
 
 /**
@@ -233,6 +252,10 @@ export function currentFactsScenario(): PlanScenarioQuery {
     windfallOn: null,
     livingSpendingMonthly: null,
     cashFloor: null,
+    priority: "Avalanche",
+    constraintDebtId: null,
+    constraintKind: null,
+    reclaimAmount: 0,
   };
 }
 
@@ -268,6 +291,11 @@ export function draftFromApplied(
         : String(scenario.livingSpendingMonthly),
     floorChoice: scenario.cashFloor === null ? "saved" : "amount",
     floorAmount: scenario.cashFloor === null ? "" : String(scenario.cashFloor),
+    priority: scenario.priority,
+    constraintDebtId: scenario.constraintDebtId ?? "",
+    constraintKind: scenario.constraintKind ?? "",
+    reclaimAmount:
+      scenario.reclaimAmount > 0 ? String(scenario.reclaimAmount) : "0",
     kind,
   };
 }
@@ -337,12 +365,37 @@ export function readScenarioDraft(
     }
   }
 
+  const constraintDebtId = draft.constraintDebtId.trim();
+  const constraintKind = draft.constraintKind;
+  const hasConstraintDebt = constraintDebtId.length > 0;
+  const hasConstraintKind = constraintKind !== "";
+  if (
+    draft.priority === "Constraint" &&
+    (!hasConstraintDebt || !hasConstraintKind)
+  ) {
+    errors.constraint = "constraint";
+  }
+
+  let reclaimAmount = 0;
+  const reclaim = parseScenarioAmount(draft.reclaimAmount);
+  if (draft.kind === "Reclaim") {
+    if (reclaim.state !== "amount" || reclaim.amount <= 0) {
+      errors.reclaim = "reclaim";
+    } else {
+      reclaimAmount = reclaim.amount;
+    }
+  } else if (reclaim.state === "amount") {
+    reclaimAmount = reclaim.amount;
+  }
+
   if (
     errors.monthlyExtra ||
     errors.incomeLossMonths ||
     errors.windfall ||
     errors.living ||
     errors.floor ||
+    errors.constraint ||
+    errors.reclaim ||
     monthlyExtra === null ||
     incomeLossMonths === null ||
     !windfall
@@ -360,6 +413,12 @@ export function readScenarioDraft(
       windfallOn: windfall.on,
       livingSpendingMonthly,
       cashFloor,
+      priority: draft.priority,
+      constraintDebtId:
+        hasConstraintDebt && hasConstraintKind ? constraintDebtId : null,
+      constraintKind:
+        hasConstraintDebt && hasConstraintKind ? constraintKind : null,
+      reclaimAmount,
     },
   };
 }
@@ -417,8 +476,35 @@ function sameScenarioQuery(left: PlanScenarioQuery, right: PlanScenarioQuery) {
     left.windfallAmount === right.windfallAmount &&
     left.windfallOn === right.windfallOn &&
     left.livingSpendingMonthly === right.livingSpendingMonthly &&
-    left.cashFloor === right.cashFloor
+    left.cashFloor === right.cashFloor &&
+    left.priority === right.priority &&
+    left.constraintDebtId === right.constraintDebtId &&
+    left.constraintKind === right.constraintKind &&
+    left.reclaimAmount === right.reclaimAmount
   );
+}
+
+/**
+ * True when a stored priority is one of the four alternatives.
+ */
+export function isPayoffPriority(
+  value: unknown,
+): value is PayoffPriorityChoice {
+  return (
+    value === "Avalanche" ||
+    value === "MinimumRelease" ||
+    value === "Utilization" ||
+    value === "Constraint"
+  );
+}
+
+/**
+ * True when a stored constraint direction is pay first or pay last.
+ */
+export function isPayoffConstraint(
+  value: unknown,
+): value is PayoffConstraintKind {
+  return value === "PayFirst" || value === "PayLast";
 }
 
 /**

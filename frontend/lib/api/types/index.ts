@@ -82,6 +82,9 @@ export type {
 export { savingsGoalKinds } from "./savings";
 export type {
   DebtScheduleStop,
+  PayoffAlternativeDto,
+  PayoffConstraintKind,
+  PayoffPriorityChoice,
   PayoffRolloverKind,
   PlanBalancePointDto,
   PlanCashDayDto,
@@ -103,7 +106,11 @@ export type {
   SpendableUncertaintyDto,
   SpendableUncertaintyKind,
 } from "./plan";
-export { spendableUncertaintyKinds } from "./plan";
+export {
+  payoffConstraintKinds,
+  payoffPriorityChoices,
+  spendableUncertaintyKinds,
+} from "./plan";
 export type {
   CompareRestructuringDto,
   RestructuringBreakEven,

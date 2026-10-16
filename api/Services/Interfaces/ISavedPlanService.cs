@@ -7,7 +7,7 @@ public interface ISavedPlanService
 {
     /// <summary>
     /// Builds the decision plan for the current facts and the selected scenario.
-    /// Nothing is saved. Kind is roll payments forward or free up cash.
+    /// Nothing is saved. Kind is keep none, keep some, or keep all of the freed cash.
     /// </summary>
     Task<DecisionPlanDto> GetPreviewAsync(
         PlanScenarioQuery scenario,

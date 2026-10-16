@@ -115,6 +115,10 @@ export function useSavedPlan(
         windfallOn: current.windfallOn,
         livingSpendingMonthly: current.livingSpendingMonthly,
         cashFloor: current.cashFloor,
+        priority: current.priority,
+        constraintDebtId: current.constraintDebtId,
+        constraintKind: current.constraintKind,
+        reclaimAmount: current.reclaimAmount,
         replacesDraftId: chrome.replacesDraftId,
       });
       setViewedId(null);

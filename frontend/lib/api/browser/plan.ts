@@ -18,6 +18,10 @@ export async function getPlanRecovery(
       windfallOn: scenario.windfallOn ?? undefined,
       livingSpendingMonthly: scenario.livingSpendingMonthly ?? undefined,
       cashFloor: scenario.cashFloor ?? undefined,
+      priority: scenario.priority,
+      constraintDebtId: scenario.constraintDebtId ?? undefined,
+      constraintKind: scenario.constraintKind ?? undefined,
+      reclaimAmount: scenario.reclaimAmount,
     },
   });
   if (!isCurrentPlanRecovery(response.data)) {

@@ -56,6 +56,7 @@ async function writeMoneyDigits(tempDir) {
 await loadModule("planExtra");
 const scenario = await loadModule("planScenario");
 const comparison = await loadModule("planScenarioComparison");
+const payoff = await loadModule("planPayoffChoice");
 const money = (amount) => `$${amount.toFixed(2)}`;
 const date = (value) => value;
 
@@ -129,6 +130,10 @@ test("update preview reads every valid field together", () => {
     windfallOn: "2026-02-01",
     livingSpendingMonthly: 0,
     cashFloor: 500,
+    priority: "Avalanche",
+    constraintDebtId: null,
+    constraintKind: null,
+    reclaimAmount: 0,
   });
 });
 
@@ -257,4 +262,111 @@ test("missing steady pay and a household with no debts stay honest", () => {
   assert.equal(compared.rows[0].current.text, "Unknown");
   assert.equal(compared.rows[1].current.text, "No debts");
   assert.equal(compared.rows[2].current.text, "No debts");
+});
+
+test("keeping some requires an amount, and a constraint requires a debt", () => {
+  const some = {
+    ...scenario.currentFactsDraft(),
+    kind: "Reclaim",
+    reclaimAmount: "0",
+  };
+  const blocked = scenario.readScenarioDraft(some, "2026-01-01", 800);
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.errors.reclaim, "reclaim");
+
+  const kept = scenario.readScenarioDraft(
+    { ...some, reclaimAmount: "40" },
+    "2026-01-01",
+    800,
+  );
+  assert.equal(kept.ok, true);
+  assert.equal(kept.kind, "Reclaim");
+  assert.equal(kept.scenario.reclaimAmount, 40);
+  assert.equal(scenario.isCurrentFacts(kept.scenario, kept.kind), false);
+
+  const constraint = scenario.readScenarioDraft(
+    { ...scenario.currentFactsDraft(), priority: "Constraint" },
+    "2026-01-01",
+    800,
+  );
+  assert.equal(constraint.ok, false);
+  assert.equal(constraint.errors.constraint, "constraint");
+
+  const chosen = scenario.readScenarioDraft(
+    {
+      ...scenario.currentFactsDraft(),
+      priority: "Constraint",
+      constraintDebtId: "debt-1",
+      constraintKind: "PayFirst",
+    },
+    "2026-01-01",
+    800,
+  );
+  assert.equal(chosen.ok, true);
+  assert.equal(chosen.scenario.priority, "Constraint");
+  assert.equal(chosen.scenario.constraintDebtId, "debt-1");
+  assert.equal(chosen.scenario.constraintKind, "PayFirst");
+});
+
+test("priority tradeoff stays before rollover, and unknown payoff stays unknown", () => {
+  const money = (amount) => `$${amount.toFixed(2)}`;
+  const date = (value) => value;
+  const minimum = payoff.priorityTradeoff(
+    {
+      choice: "MinimumRelease",
+      applied: true,
+      changesOrder: true,
+      interestDifference: 3.89,
+      tradeoffCash: 100,
+      debtIds: ["store", "card"],
+    },
+    money,
+  );
+  assert.match(minimum, /Costs \$3\.89 more interest than avalanche/);
+  assert.match(minimum, /before a freed payment rolls/);
+  assert.match(minimum, /Net minimum cash is \$100\.00/);
+  assert.match(minimum, /recommended order/);
+
+  const same = payoff.priorityTradeoff(
+    {
+      choice: "Utilization",
+      applied: false,
+      changesOrder: false,
+      interestDifference: 0,
+      tradeoffCash: 0,
+      debtIds: ["card"],
+    },
+    money,
+  );
+  assert.match(same, /does not change who is paid first/);
+
+  const unknown = payoff.freedCashLine(
+    "Reclaim",
+    {
+      paidOffOn: null,
+      totalInterest: 10,
+      cashReclaimed: 20,
+      debts: [{ stop: "PaidOff" }],
+    },
+    true,
+    money,
+    date,
+  );
+  assert.match(unknown, /Interest unknown/);
+  assert.doesNotMatch(unknown, /Keeps/);
+
+  const kept = payoff.freedCashLine(
+    "Reclaim",
+    {
+      paidOffOn: "2027-04-01",
+      totalInterest: 40,
+      cashReclaimed: 20,
+      debts: [{ stop: "PaidOff" }],
+    },
+    true,
+    money,
+    date,
+  );
+  assert.match(kept, /Keeps \$20\.00/);
+  assert.match(kept, /Interest \$40\.00/);
 });

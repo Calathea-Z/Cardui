@@ -1,3 +1,5 @@
+using Cardui.Api.Domain.Recovery;
+
 namespace Cardui.Api.Dtos.Plan;
 
 public class PlanRecoveryDto
@@ -5,6 +7,11 @@ public class PlanRecoveryDto
     public required string PlanningCurrency { get; set; }
 
     public required PlanRecoveryPathDto Rollover { get; set; }
+
+    /// <summary>
+    /// The requested amount of each freed payment is kept. The rest rolls to the next debt.
+    /// </summary>
+    public required PlanRecoveryPathDto Reclaim { get; set; }
 
     /// <summary>
     /// Every freed payment is kept instead of paying the next debt.
@@ -40,6 +47,33 @@ public class PlanRecoveryDto
     /// Zero is minimums only. The amount is not saved.
     /// </summary>
     public decimal MonthlyExtra { get; set; }
+
+    /// <summary>
+    /// The payment priority used for every path in this response.
+    /// Avalanche is the baseline. The other choices use that alternative's order.
+    /// </summary>
+    public PayoffPriorityChoice Priority { get; set; }
+
+    /// <summary>
+    /// The debt a pay-first or pay-last constraint names. Null when this preview has no constraint.
+    /// </summary>
+    public Guid? ConstraintDebtId { get; set; }
+
+    /// <summary>
+    /// Pay first or pay last for <see cref="ConstraintDebtId"/>. Null when this preview has no constraint.
+    /// </summary>
+    public PayoffConstraintKind? ConstraintKind { get; set; }
+
+    /// <summary>
+    /// How much freed cash the partial path keeps each month. Zero keeps none, so that path matches rollover.
+    /// </summary>
+    public decimal ReclaimAmount { get; set; }
+
+    /// <summary>
+    /// Avalanche, minimum release, utilization, and the user constraint, in that order.
+    /// Interest figures are before a freed payment rolls.
+    /// </summary>
+    public IReadOnlyList<PayoffAlternativeDto> PriorityAlternatives { get; set; } = [];
 
     /// <summary>
     /// Monthly living spending in the planning currency.

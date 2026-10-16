@@ -11,18 +11,15 @@ history. They do not say what is next.
 
 **Now**
 
-[Working scenario and saved versions](reviews/2026-10-16-001-working-scenario-and-versions.md)
-was approved on October 16, 2026. [Plan navigation and cash-first Overview](reviews/2026-10-15-007-plan-navigation-and-safety.md)
+[Payoff priority and partial reclaim](reviews/2026-10-16-002-payoff-priority-and-reclaim.md)
+was approved on October 16, 2026. [Working scenario and saved versions](reviews/2026-10-16-001-working-scenario-and-versions.md)
 was approved on October 16, 2026. The [Phase 3 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 3 UX increment 3: payoff-priority alternatives and partial reclaim,
-   from the [Phase 3 UX handoff](design/phase-3-ux-handoff.md). Review schema
-   needs before implementation and ask before any migration. Behavior QA
-   remains pending. This does not close Phase 3. Detail panel keyboard focus
-   remains tracked. Do not start Phase 4.
+1. Phase 3 behavior QA remains pending. Do not start Phase 4. Detail panel
+   keyboard focus remains tracked. This does not close Phase 3.
 
 **Tracked, not scheduled**
 

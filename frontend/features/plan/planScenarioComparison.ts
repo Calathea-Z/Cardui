@@ -244,9 +244,13 @@ function interestValue(
  * The spendable estimate for the selected payoff behavior.
  */
 function spendableFor(report: PlanRecoveryDto, kind: PayoffRolloverKind) {
-  return kind === "Rollover"
-    ? report.spendable.rollover
-    : report.spendable.reclaimAll;
+  if (kind === "Reclaim") {
+    return report.spendable.reclaim;
+  }
+
+  return kind === "ReclaimAll"
+    ? report.spendable.reclaimAll
+    : report.spendable.rollover;
 }
 
 /**
@@ -256,7 +260,11 @@ function pathFor(
   report: PlanRecoveryDto,
   kind: PayoffRolloverKind,
 ): PlanRecoveryPathDto {
-  return kind === "Rollover" ? report.rollover : report.reclaimAll;
+  if (kind === "Reclaim") {
+    return report.reclaim;
+  }
+
+  return kind === "ReclaimAll" ? report.reclaimAll : report.rollover;
 }
 
 /**

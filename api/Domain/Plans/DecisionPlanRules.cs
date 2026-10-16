@@ -285,13 +285,23 @@ public static class DecisionPlanRules
     }
 
     /// <summary>
-    /// The debt that receives a rolled payment, when this plan rolls payments forward and another debt follows.
+    /// The debt that still receives rolled cash, when another debt follows and this plan does not keep the whole payment.
+    /// Keeping every freed dollar names no next debt. Keeping some names the next debt only when part of the payment still rolls.
     /// </summary>
     private static string? NextDebtName(DecisionPlanInput input, Guid debtId)
     {
-        if (input.Kind != PayoffRolloverKind.Rollover)
+        if (input.Kind == PayoffRolloverKind.ReclaimAll)
         {
             return null;
+        }
+
+        if (input.Kind == PayoffRolloverKind.Reclaim)
+        {
+            var kept = input.Steps.FirstOrDefault(step => step.DebtId == debtId);
+            if (kept is not null && kept.Minimum > 0 && kept.BreathingRoom >= kept.Minimum)
+            {
+                return null;
+            }
         }
 
         var index = -1;

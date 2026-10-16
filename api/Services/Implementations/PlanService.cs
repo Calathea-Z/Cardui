@@ -50,7 +50,8 @@ public class PlanService : IPlanService
         var debts = await _debtsService.GetDebtsAsync(cancellationToken);
         var loaded = await LoadCashFactsAsync(today, cancellationToken);
         var preview = RequireScenario(scenario, loaded.LivingSpendingMonthly, today);
-        return ProjectPlan(debts, loaded, preview);
+        RequirePayoff(scenario, debts);
+        return ProjectPlan(debts, loaded, preview, scenario);
     }
 
     #region Private Methods
@@ -90,6 +91,23 @@ public class PlanService : IPlanService
     }
 
     /// <summary>
+    /// Rejects a payment priority or reclaim amount the payoff cannot use.
+    /// </summary>
+    private static void RequirePayoff(PlanScenarioQuery scenario, IReadOnlyList<DebtDto> debts)
+    {
+        var message = PayoffChoiceRules.Reject(
+            scenario.Priority,
+            scenario.ConstraintDebtId,
+            scenario.ConstraintKind,
+            scenario.ReclaimAmount,
+            debts.Select(debt => debt.Id).ToList());
+        if (message is not null)
+        {
+            throw new BadRequestException(message);
+        }
+    }
+
+    /// <summary>
     /// Loads the starting cash, income, bills, and savings the cash outlook reads, for a forecast that starts today.
     /// The loads run one after another because they share one database context.
     /// </summary>
@@ -121,28 +139,49 @@ public class PlanService : IPlanService
     }
 
     /// <summary>
-    /// Runs the approved rollover and recovery rules from the outlook's start date, then the cash outlook and spendable estimate on both paths,
-    /// and shapes the result for the page. The preview is tried for this response. Reclaim stays at the baseline.
-    /// Spendable counts steady pay only. The extra is compared with the same path at minimums.
+    /// Runs the approved priority, rollover, and recovery rules from the outlook's start date,
+    /// then the cash outlook and spendable estimate on keeping none, some, or all of the freed cash.
+    /// The selected priority's order is used for every path. A freed payment starts the month after it ends.
+    /// Spendable counts steady pay only. The extra is compared with the same order and reclaim amount at minimums.
     /// </summary>
     private static PlanRecoveryDto ProjectPlan(
         IReadOnlyList<DebtDto> debts,
         PlanCashFacts facts,
-        PlanCashScenario scenario)
+        PlanCashScenario scenario,
+        PlanScenarioQuery request)
     {
         var recoveryDebts = debts.Select(ToDebt).ToList();
-        var prepared = HouseholdRecovery.Prepare(
+        var reclaim = request.ReclaimAmount <= 0
+            ? 0
+            : AccountLedger.Round(request.ReclaimAmount);
+        var listed = HouseholdRecovery.Prepare(
             facts.Input.PlanningCurrency,
             facts.Input.AsOf,
             recoveryDebts,
             scenario.MonthlyExtra);
+        var priority = PayoffPriority.Compare(new PayoffPriorityInput(
+            facts.Input.PlanningCurrency,
+            scenario.MonthlyExtra,
+            listed.Rollover.Debts,
+            [],
+            PayoffChoiceRules.Constraints(request.ConstraintDebtId, request.ConstraintKind)));
+        var order = PayoffChoiceRules.Order(priority, request.Priority);
+        var prepared = HouseholdRecovery.Prepare(
+            facts.Input.PlanningCurrency,
+            facts.Input.AsOf,
+            recoveryDebts,
+            scenario.MonthlyExtra,
+            order,
+            reclaim);
         var comparison = PayoffRollover.Compare(prepared.Rollover);
         var minimums = scenario.MonthlyExtra > 0
             ? PayoffRollover.Compare(HouseholdRecovery.Prepare(
                 facts.Input.PlanningCurrency,
                 facts.Input.AsOf,
                 recoveryDebts,
-                0m).Rollover)
+                0m,
+                order,
+                reclaim).Rollover)
             : comparison;
         var report = CashFlowRecovery.Track(comparison);
         var cash = PlanCashScenarioAdjustment.Apply(
@@ -165,7 +204,11 @@ public class PlanService : IPlanService
             debts.Count > 0,
             outlook,
             facts.CashPosition,
-            spendable);
+            spendable,
+            request.Priority,
+            request.ConstraintDebtId is Guid id && id != Guid.Empty ? id : null,
+            request.ConstraintKind,
+            PayoffChoiceRules.Alternatives(priority));
         plan.LivingSpendingMonthly = facts.LivingSpendingMonthly;
         plan.HasCashFloor = facts.HasCashFloor;
         plan.HasEmergencyGoal = facts.HasEmergencyGoal;

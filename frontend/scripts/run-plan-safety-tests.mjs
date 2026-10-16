@@ -182,7 +182,16 @@ test("the working preview round-trips and ignores a broken store value", () => {
   };
 
   work.writePlanWork(store, { scenario, kind: "ReclaimAll" });
-  assert.deepEqual(work.readPlanWork(store), { scenario, kind: "ReclaimAll" });
+  assert.deepEqual(work.readPlanWork(store), {
+    scenario: {
+      ...scenario,
+      priority: "Avalanche",
+      constraintDebtId: null,
+      constraintKind: null,
+      reclaimAmount: 0,
+    },
+    kind: "ReclaimAll",
+  });
   store.setItem("cardui.plan.work", "{");
   assert.equal(work.readPlanWork(store), null);
   work.clearPlanWork(store);

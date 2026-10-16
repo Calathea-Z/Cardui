@@ -43,7 +43,10 @@ export function readPlanWork(
       return null;
     }
 
-    return { scenario: parsed.scenario, kind: parsed.kind };
+    return {
+      scenario: normalizeScenario(parsed.scenario),
+      kind: parsed.kind,
+    };
   } catch {
     return null;
   }
@@ -68,10 +71,10 @@ export function clearPlanWork(store: PlanWorkStore | null) {
 }
 
 /**
- * True when the stored kind is one of the two payoff paths the page can select.
+ * True when the stored kind is keep none, keep some, or keep all.
  */
 function isKind(value: unknown): value is PayoffRolloverKind {
-  return value === "Rollover" || value === "ReclaimAll";
+  return value === "Rollover" || value === "Reclaim" || value === "ReclaimAll";
 }
 
 /**
@@ -91,6 +94,59 @@ function isScenario(value: unknown): value is PlanScenarioQuery {
     (scenario.windfallOn === null || typeof scenario.windfallOn === "string") &&
     (scenario.livingSpendingMonthly === null ||
       typeof scenario.livingSpendingMonthly === "number") &&
-    (scenario.cashFloor === null || typeof scenario.cashFloor === "number")
+    (scenario.cashFloor === null || typeof scenario.cashFloor === "number") &&
+    (scenario.priority === undefined || isPriority(scenario.priority)) &&
+    (scenario.constraintKind === undefined ||
+      scenario.constraintKind === null ||
+      isConstraint(scenario.constraintKind)) &&
+    (scenario.reclaimAmount === undefined ||
+      typeof scenario.reclaimAmount === "number")
   );
+}
+
+/**
+ * Fills payoff choices an older session did not store.
+ * A missing priority is avalanche, and a missing reclaim amount keeps none.
+ */
+function normalizeScenario(scenario: PlanScenarioQuery): PlanScenarioQuery {
+  const partial = scenario as Partial<PlanScenarioQuery>;
+  return {
+    monthlyExtra: scenario.monthlyExtra,
+    incomeLossMonths: scenario.incomeLossMonths,
+    windfallAmount: scenario.windfallAmount,
+    windfallOn: scenario.windfallOn,
+    livingSpendingMonthly: scenario.livingSpendingMonthly,
+    cashFloor: scenario.cashFloor,
+    priority: isPriority(partial.priority) ? partial.priority : "Avalanche",
+    constraintDebtId:
+      typeof partial.constraintDebtId === "string"
+        ? partial.constraintDebtId
+        : null,
+    constraintKind: isConstraint(partial.constraintKind)
+      ? partial.constraintKind
+      : null,
+    reclaimAmount:
+      typeof partial.reclaimAmount === "number" ? partial.reclaimAmount : 0,
+  };
+}
+
+/**
+ * True when the stored priority is one of the four alternatives.
+ */
+function isPriority(value: unknown): value is PlanScenarioQuery["priority"] {
+  return (
+    value === "Avalanche" ||
+    value === "MinimumRelease" ||
+    value === "Utilization" ||
+    value === "Constraint"
+  );
+}
+
+/**
+ * True when the stored constraint is pay first or pay last.
+ */
+function isConstraint(
+  value: unknown,
+): value is NonNullable<PlanScenarioQuery["constraintKind"]> {
+  return value === "PayFirst" || value === "PayLast";
 }

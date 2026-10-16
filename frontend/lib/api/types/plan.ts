@@ -2,9 +2,34 @@ import type { DebtFieldSource, DebtKind, DebtLinkFreshness } from "./debts";
 
 /**
  * Which way a path treats cash freed by a paid-off debt.
- * Rollover sends it to the next debt. ReclaimAll keeps every freed dollar.
+ * Rollover keeps none and sends it to the next debt.
+ * Reclaim keeps a chosen amount each month and rolls the rest.
+ * ReclaimAll keeps every freed dollar.
+ * A freed payment starts the month after the modeled payment ends.
  */
-export type PayoffRolloverKind = "Rollover" | "ReclaimAll";
+export type PayoffRolloverKind = "Rollover" | "Reclaim" | "ReclaimAll";
+
+/**
+ * Who extra and a rolled payment follow.
+ * Avalanche is the highest rate first. The other choices are the supported alternatives.
+ * This is payment priority, not the date each debt is paid off.
+ */
+export const payoffPriorityChoices = [
+  "Avalanche",
+  "MinimumRelease",
+  "Utilization",
+  "Constraint",
+] as const;
+
+export type PayoffPriorityChoice = (typeof payoffPriorityChoices)[number];
+
+/**
+ * How a user constraint moves one debt in the recommended order.
+ * PayFirst puts it ahead of avalanche. PayLast puts it after the other debts that can be paid.
+ */
+export const payoffConstraintKinds = ["PayFirst", "PayLast"] as const;
+
+export type PayoffConstraintKind = (typeof payoffConstraintKinds)[number];
 
 /**
  * Why the projection stopped for one debt.
@@ -63,8 +88,11 @@ export type PlanBalancePointDto = {
  * `startingObligation` is the known minimums before any payoff, and null when every minimum is unknown.
  * `remainingObligation` is the known minimums still due after the last payoff.
  * `paidOffOn` is null while any debt in the plan is still open or cannot be calculated.
- * `debts` is in the order rolled cash follows, which also fixes each debt's chart color.
+ * `debts` is payment priority: who extra and rolled cash follow. It also fixes each debt's chart color.
+ * Payoff dates are chronological and are not this list's order.
  * `balancePoints` is sorted by due date, then in the order of `debts`.
+ * `cashReclaimed` is freed cash kept while a debt was still open. `cashRolled` is freed cash sent to a later debt.
+ * Both start the month after the modeled payment ends.
  */
 export type PlanRecoveryPathDto = {
   kind: PayoffRolloverKind;
@@ -76,6 +104,22 @@ export type PlanRecoveryPathDto = {
   totalInterest: number;
   debts: PlanDebtOutcomeDto[];
   balancePoints: PlanBalancePointDto[];
+  cashReclaimed: number;
+  cashRolled: number;
+};
+
+/**
+ * One payment-priority alternative compared with avalanche.
+ * `interestDifference` and `tradeoffCash` are from the priority comparison, before a freed payment rolls.
+ * A positive interest difference costs more than avalanche. `debtIds` is who extra follows.
+ */
+export type PayoffAlternativeDto = {
+  choice: PayoffPriorityChoice;
+  applied: boolean;
+  changesOrder: boolean;
+  interestDifference: number;
+  tradeoffCash: number;
+  debtIds: string[];
 };
 
 /**
@@ -210,15 +254,16 @@ export type SpendableEstimateDto = {
 };
 
 /**
- * Spendable cash on the rollover path and on the path that keeps freed payments.
+ * Spendable cash on keeping none, some, or all of a freed payment.
  */
 export type SpendableReportDto = {
   rollover: SpendableEstimateDto;
+  reclaim: SpendableEstimateDto;
   reclaimAll: SpendableEstimateDto;
 };
 
 /**
- * The cash outlook on both payoff paths.
+ * The cash outlook on keeping none, some, or all of a freed payment.
  * `startingCash` is the Cash total on Accounts on `asOf`, before that day's payments.
  * `startingReserve` is the amount already set aside. `startingAvailable` is cash minus that reserve and can be negative.
  * `hasIncome` and `hasBills` are true when at least one counts in the planning currency.
@@ -239,6 +284,7 @@ export type PlanCashOutlookDto = {
   hasBills: boolean;
   excludedCurrencies: string[];
   rollover: PlanCashOutlookPathDto;
+  reclaim: PlanCashOutlookPathDto;
   reclaimAll: PlanCashOutlookPathDto;
 };
 
@@ -267,6 +313,7 @@ export type PlanDebtFactDto = {
  * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
  * `spendable` is the 30-day estimate from dated obligations, reserved funds, and steady income. It is not a monthly surplus.
  * `monthlyExtra` is shared extra tried for this response. Zero is minimums only, and the amount is not saved.
+ * `priority` is who extra and a rolled payment follow. `reclaimAmount` is how much freed cash the partial path keeps.
  * `livingSpendingMonthly` is the saved monthly flexible-spending amount. Zero means none is saved.
  * `incomeLossMonths` is how many months of included pay this preview leaves out. Zero keeps every paycheck.
  * `windfallOn` is null when `windfallAmount` is zero.
@@ -276,7 +323,13 @@ export type PlanDebtFactDto = {
 export type PlanRecoveryDto = {
   planningCurrency: string;
   rollover: PlanRecoveryPathDto;
+  reclaim: PlanRecoveryPathDto;
   reclaimAll: PlanRecoveryPathDto;
+  priority: PayoffPriorityChoice;
+  constraintDebtId: string | null;
+  constraintKind: PayoffConstraintKind | null;
+  reclaimAmount: number;
+  priorityAlternatives: PayoffAlternativeDto[];
   excludedCurrencies: string[];
   missingBalance: PlanMissingBalanceDto[];
   hasDebts: boolean;
@@ -300,6 +353,8 @@ export type PlanRecoveryDto = {
  * Temporary amounts sent to GET /api/plan/recovery. Nothing is saved.
  * `windfallOn` is null when there is no windfall.
  * `livingSpendingMonthly` and `cashFloor` are null when the saved amount should be kept.
+ * `constraintDebtId` and `constraintKind` are null when this preview has no constraint.
+ * `reclaimAmount` is zero when the partial path keeps nothing.
  */
 export type PlanScenarioQuery = {
   monthlyExtra: number;
@@ -308,4 +363,8 @@ export type PlanScenarioQuery = {
   windfallOn: string | null;
   livingSpendingMonthly: number | null;
   cashFloor: number | null;
+  priority: PayoffPriorityChoice;
+  constraintDebtId: string | null;
+  constraintKind: PayoffConstraintKind | null;
+  reclaimAmount: number;
 };

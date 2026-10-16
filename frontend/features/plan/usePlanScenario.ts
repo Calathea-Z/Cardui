@@ -70,5 +70,9 @@ export function scenarioFromReport(report: PlanRecoveryDto): PlanScenarioQuery {
     windfallOn: report.windfallOn,
     livingSpendingMonthly: report.scenarioLivingSpendingMonthly,
     cashFloor: report.scenarioCashFloor,
+    priority: report.priority,
+    constraintDebtId: report.constraintDebtId,
+    constraintKind: report.constraintKind,
+    reclaimAmount: report.reclaimAmount,
   };
 }

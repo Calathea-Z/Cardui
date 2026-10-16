@@ -44,6 +44,7 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 3 — Recovery calculations and forecasts
 
+- [2026-10-16 — Payoff priority and partial reclaim](2026-10-16-002-payoff-priority-and-reclaim.md) — Approved 2026-10-16
 - [2026-10-16 — Working scenario and saved versions](2026-10-16-001-working-scenario-and-versions.md) — Approved 2026-10-16
 - [2026-10-15 — Plan navigation and cash-first Overview](2026-10-15-007-plan-navigation-and-safety.md) — Approved 2026-10-16
 - [2026-10-15 — Saved plan](2026-10-15-005-saved-plan.md) — Approved 2026-10-15

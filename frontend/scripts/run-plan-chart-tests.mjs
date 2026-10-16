@@ -860,7 +860,7 @@ test("how this is calculated names the due date, cash outlook, and low pay rules
 test("the switch offers plain-language payment paths with a line for each", () => {
   assert.deepEqual(
     copy.planPathOptions.map((option) => option.label),
-    ["Roll payments forward", "Free up cash"],
+    ["Keep none", "Keep some", "Keep all"],
   );
   assert.match(copy.planPathDescription("Rollover"), /moves to the next debt/);
   assert.match(copy.planPathDescription("ReclaimAll"), /available cash/);

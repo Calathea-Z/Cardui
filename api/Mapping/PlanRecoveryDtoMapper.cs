@@ -7,12 +7,12 @@ namespace Cardui.Api.Mapping;
 public static class PlanRecoveryDtoMapper
 {
     /// <summary>
-    /// Copies the rollover and keep-all paths into the shape the Plan page renders.
+    /// Copies the keep-none, keep-some, and keep-all paths into the shape the Plan page renders.
     /// The payoff comparison supplies each debt's outcome, balance points, debt-free date, and interest.
     /// The cash-flow report supplies the steps, obligations, and breathing room.
-    /// The partial reclaim path, the written explanations, and the written assumptions are not sent; the page writes its own copy.
+    /// Priority alternatives are the payment orders compared with avalanche. Written explanations are not sent.
     /// HasDebts records whether a debt exists, including one the payoff left out.
-    /// The cash outlook follows the same two paths. Spendable cash is the 30-day estimate for those paths.
+    /// The cash outlook and spendable estimate follow the same three paths.
     /// </summary>
     public static PlanRecoveryDto Map(
         PayoffRolloverComparison comparison,
@@ -21,12 +21,17 @@ public static class PlanRecoveryDtoMapper
         bool hasDebts,
         HouseholdCashOutlookReport cashOutlook,
         CashPosition cashPosition,
-        SpendableReport spendable)
+        SpendableReport spendable,
+        PayoffPriorityChoice priority,
+        Guid? constraintDebtId,
+        PayoffConstraintKind? constraintKind,
+        IReadOnlyList<PayoffAlternative> alternatives)
     {
         return new PlanRecoveryDto
         {
             PlanningCurrency = report.PlanningCurrency,
             Rollover = MapPath(comparison.Rollover, report.Rollover),
+            Reclaim = MapPath(comparison.Reclaim, report.Reclaim),
             ReclaimAll = MapPath(comparison.ReclaimAll, report.ReclaimAll),
             ExcludedCurrencies = report.ExcludedCurrencies,
             MissingBalance = missingBalance
@@ -35,7 +40,12 @@ public static class PlanRecoveryDtoMapper
             HasDebts = hasDebts,
             CashOutlook = PlanCashOutlookDtoMapper.Map(cashOutlook, cashPosition),
             Spendable = SpendableEstimateDtoMapper.Map(spendable),
-            MonthlyExtra = comparison.MonthlyExtra
+            MonthlyExtra = comparison.MonthlyExtra,
+            Priority = priority,
+            ConstraintDebtId = constraintDebtId,
+            ConstraintKind = constraintKind,
+            ReclaimAmount = comparison.ReclaimAmount,
+            PriorityAlternatives = alternatives.Select(MapAlternative).ToList()
         };
     }
 
@@ -59,7 +69,25 @@ public static class PlanRecoveryDtoMapper
             Debts = payoff.Debts
                 .Select(debt => MapDebt(debt, lastPoints.GetValueOrDefault(debt.DebtId)))
                 .ToList(),
-            BalancePoints = payoff.BalancePoints.Select(MapPoint).ToList()
+            BalancePoints = payoff.BalancePoints.Select(MapPoint).ToList(),
+            CashReclaimed = payoff.CashReclaimed,
+            CashRolled = payoff.CashRolled
+        };
+    }
+
+    /// <summary>
+    /// Copies one priority alternative. The page writes the sentence from these fields.
+    /// </summary>
+    private static PayoffAlternativeDto MapAlternative(PayoffAlternative alternative)
+    {
+        return new PayoffAlternativeDto
+        {
+            Choice = alternative.Choice,
+            Applied = alternative.Applied,
+            ChangesOrder = alternative.ChangesOrder,
+            InterestDifference = alternative.InterestDifference,
+            TradeoffCash = alternative.TradeoffCash,
+            DebtIds = alternative.DebtIds
         };
     }
 

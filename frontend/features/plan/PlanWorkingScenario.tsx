@@ -15,11 +15,10 @@ import type { PayoffRolloverKind, PlanRecoveryDto } from "@/lib/api/types";
 import {
   planExtraHelp,
   planExtraInvalid,
-  planPathDescription,
-  planPathOptions,
   planScenarioStatus,
   planScenarioSummary,
 } from "./planCopy";
+import { PlanPayoffChoices } from "./PlanPayoffChoices";
 import {
   planScenarioComparison,
   scenarioComparisonNote,
@@ -109,6 +108,10 @@ export function PlanWorkingScenario({
     windfallOn: report.windfallOn,
     livingSpendingMonthly: report.scenarioLivingSpendingMonthly,
     cashFloor: report.scenarioCashFloor,
+    priority: report.priority,
+    constraintDebtId: report.constraintDebtId,
+    constraintKind: report.constraintKind,
+    reclaimAmount: report.reclaimAmount,
   };
   const comparison = planScenarioComparison(
     baseline,
@@ -234,29 +237,19 @@ export function PlanWorkingScenario({
             />
           ) : null}
           {task === "payoff" ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-foreground">
-                When a payment ends
+            report.hasDebts ? (
+              <PlanPayoffChoices
+                draft={draft}
+                errors={errors}
+                report={report}
+                onDraft={onDraft}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Add a debt before choosing who is paid first or what happens to
+                a freed payment.
               </p>
-              {hasPayoff ? (
-                <>
-                  <SegmentedControl
-                    label="Payment strategy"
-                    options={planPathOptions}
-                    value={draft.kind}
-                    onChange={(kind) => onDraft({ ...draft, kind })}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    {planPathDescription(draft.kind)}
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Payment strategy becomes available after at least one debt has
-                  a projected payoff.
-                </p>
-              )}
-            </div>
+            )
           ) : null}
         </div>
 

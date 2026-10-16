@@ -39,6 +39,7 @@ import { cashRangeView, type PlanCashRange } from "./planCashRange";
 import { debtMilestones } from "./planDebtSummary";
 import type { PlanTab } from "./planNavigation";
 import { planReadiness } from "./planReadiness";
+import { spendableCopy } from "./spendableCopy";
 
 type PlanPageClientProps = {
   report: PlanRecoveryDto;
@@ -78,6 +79,24 @@ export function PlanPageClient({
     const finish = finishPlanItems(report, path, money);
     const typicalChart = cashChart(outlook.typical);
     const lowPayChart = outlook.lowPay ? cashChart(outlook.lowPay) : null;
+    const spendable = spendableCopy(
+      selectedKind === "Rollover"
+        ? report.spendable.rollover
+        : report.spendable.reclaimAll,
+      report.cashOutlook,
+      report.debtFacts,
+      report.hasDebts,
+      money,
+      formatCalendarDate,
+    );
+    const summary = planSummary(
+      path,
+      outlook.typical,
+      finish.filter((item) => item.isDebt).length,
+      money,
+      formatCalendarDate,
+      report.monthlyExtra,
+    );
     return {
       cash: {
         sourceDescription: cashOutlookDescription(
@@ -125,14 +144,20 @@ export function PlanPageClient({
             : null,
         notes: cashOutlookNotes(report, path),
       },
-      summary: planSummary(
-        path,
-        outlook.typical,
-        finish.filter((item) => item.isDebt).length,
-        money,
-        formatCalendarDate,
-        report.monthlyExtra,
-      ),
+      spendable,
+      summary:
+        spendable.leadsStatus && spendable.guardrail
+          ? {
+              warning: true,
+              sentence: spendable.guardrail,
+              figureLabel: "Extra payment shortfall",
+              figure: spendable.guardrailOn ?? "Not dated",
+              details: [
+                { label: "Spendable", value: spendable.figure },
+                ...summary.details.slice(0, 1),
+              ],
+            }
+          : summary,
       readiness: planReadiness(
         report,
         outlook.typical,
@@ -216,40 +241,36 @@ export function PlanPageClient({
             ) : null}
 
             {activeTab === "overview" ? (
-              report.hasDebts ? (
-                <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.75fr)]">
+              <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.75fr)]">
+                <div className="flex flex-col gap-6">
                   <PlanCashPreview
                     view={view.cash.overview}
                     currency={currency}
                     startingReserve={report.cashOutlook.startingReserve}
+                    spendable={view.spendable}
                   />
-                  <PlanAttentionSummary
-                    readiness={view.readiness}
-                    debtItems={view.finish}
-                  />
+                  {report.hasDebts ? null : (
+                    <div className="rounded-lg border border-border bg-card">
+                      <EmptyState
+                        title="A debt is required"
+                        description="Add a card or loan. Plan will keep its payoff estimate conditional on dated cash."
+                        action={
+                          <Link
+                            href="/debts"
+                            className={cn(buttonVariants(), "min-h-11 px-4")}
+                          >
+                            Go to Debts
+                          </Link>
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="flex flex-col gap-6">
-                  <div className="rounded-lg border border-border bg-card">
-                    <EmptyState
-                      title="A debt is required"
-                      description="Add a card or loan. Plan will keep its payoff estimate conditional on dated cash."
-                      action={
-                        <Link
-                          href="/debts"
-                          className={cn(buttonVariants(), "min-h-11 px-4")}
-                        >
-                          Go to Debts
-                        </Link>
-                      }
-                    />
-                  </div>
-                  <PlanAttentionSummary
-                    readiness={view.readiness}
-                    debtItems={view.finish}
-                  />
-                </div>
-              )
+                <PlanAttentionSummary
+                  readiness={view.readiness}
+                  debtItems={view.finish}
+                />
+              </div>
             ) : null}
 
             {activeTab === "cash" ? (

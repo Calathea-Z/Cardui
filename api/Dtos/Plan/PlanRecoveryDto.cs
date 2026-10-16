@@ -30,6 +30,12 @@ public class PlanRecoveryDto
     public required PlanCashOutlookDto CashOutlook { get; set; }
 
     /// <summary>
+    /// Spendable cash over the next 30 days on each path.
+    /// It uses dated obligations, reserved funds, and steady income. It is not a monthly surplus.
+    /// </summary>
+    public required SpendableReportDto Spendable { get; set; }
+
+    /// <summary>
     /// Shared extra tried for this response, in the planning currency.
     /// Zero is minimums only. The amount is not saved.
     /// </summary>

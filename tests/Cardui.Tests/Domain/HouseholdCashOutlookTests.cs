@@ -87,7 +87,8 @@ public class HouseholdCashOutlookTests
             IncomeCadence.Monthly,
             new DateOnly(2026, 1, 5),
             [new DatedIncomeRaise(new DateOnly(2026, 3, 1), 1200m)],
-            null);
+            null,
+            IncomeReliability.Steady);
         var comparison = PayoffRollover.Compare(Rollover(Start, []));
 
         var outlook = HouseholdCashOutlook.Project(
@@ -114,7 +115,8 @@ public class HouseholdCashOutlookTests
             IncomeCadence.Monthly,
             new DateOnly(2026, 1, 5),
             [],
-            null);
+            null,
+            IncomeReliability.Steady);
 
         var outlook = HouseholdCashOutlook.Project(
             Outlook(incomes: [income]),

@@ -111,6 +111,16 @@ public class ContributionShareTests
         IncomeCadence cadence,
         Guid? contributorId)
     {
-        return new HouseholdIncome(id, name, "USD", amount, null, cadence, NextPay, [], contributorId);
+        return new HouseholdIncome(
+            id,
+            name,
+            "USD",
+            amount,
+            null,
+            cadence,
+            NextPay,
+            [],
+            contributorId,
+            IncomeReliability.Steady);
     }
 }

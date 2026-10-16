@@ -2,7 +2,8 @@
 
 Status: Current design record. The original recovery and cash views are
 approved. The implemented three-view refinement is approved. The offer
-comparison is approved. Broader redesign proposals are not approved.
+comparison is approved. Spendable estimates are approved. Broader
+redesign proposals are not approved.
 Date: October 7, 2026
 Updated: 2026-10-15
 
@@ -49,24 +50,33 @@ Cash outlook, Debt payoff, and Compare an offer are the approved layout.
 
 1. **Combined status and next action.** The dated cash result controls the
    primary answer. A first cash shortfall leads with **Review shortfall**.
-   Any payoff date is explicitly conditional while cash or available cash
-   after protected savings runs short. When the plan is affordable, payoff
-   remains the secondary result and the action opens Debt payoff.
+   An extra payment that newly leaves ordinary spending or a near-term bill
+   or debt payment short leads with that warning instead. Any payoff date is
+   explicitly conditional while cash or available cash after protected
+   savings runs short. When the plan is affordable, payoff remains the
+   secondary result and the action opens Debt payoff.
 2. **Try a scenario.** One disclosure groups **Roll payments forward**,
    **Free up cash**, the extra monthly payment, months without pay, a
    one-time windfall, flexible spending, and cash to keep. Its closed summary
    names the applied strategy and preview. Updating or failed requests say the
    visible forecast is still the previous one.
-3. **Next 30 days.** A compact cash summary and the supported daily chart
-   show ending cash and the lowest day. Cash balance is named separately
-   from available cash after protected savings.
+3. **Spendable.** The question is how much can be used through the next 30
+   days without spending money set aside. The figure is the lowest cash left
+   after dated bills, debt payments, and ordinary spending, counting only
+   steady pay. It is not a monthly surplus. The horizon dates, the balance
+   freshness, and anything left out stay visible. Steady pay, bills and debt
+   payments, ordinary spending, and the amount set aside sit under the figure
+   so the dated pieces can be read beside the lowest day. Ending cash, the
+   lowest cash balance, and the daily chart stay underneath and are named as
+   the cash outlook, which still counts every included paycheck.
 4. **Attention.** The primary issue is already in the status. A compact
    count opens to the other warning areas, healthy inputs, named debt
    blockers, freshness, exclusions, and links to the existing editors.
 
-On a wide screen, the 30-day forecast sits beside the narrower Attention
+On a wide screen, spendable and its chart sit beside the narrower Attention
 panel. On a phone, status and its action come first, then the scenario
-disclosure, chart, and collapsed attention details.
+disclosure, spendable, and collapsed attention details. A household with no
+debts still sees spendable, then the prompt to add a debt.
 
 ### Cash outlook
 
@@ -253,6 +263,15 @@ The first four items are approved.
   jewel series colors. Zach chose jewel over earth and tonal sets, and
   stacked bands over one line per debt.
 - The cash outlook uses typical pay, with low pay under a disclosure.
+- Spendable uses the next 30 days, the same daily window as the cash
+  outlook. Only steady pay counts. Variable pay, uncertain pay, and a
+  one-time windfall are left out and named. The figure is the lowest cash
+  left after money set aside, not monthly income minus monthly bills.
+- An extra payment is compared with the same path at minimums. It warns
+  when ordinary spending, or a bill or debt payment inside those 30 days,
+  would be short. A new shortfall leads the Overview status. A gap that is
+  already there without the extra stays in that status, and spendable says
+  the extra keeps it.
 
 ## Settled when item 2 started
 
@@ -320,6 +339,6 @@ sections.
 - Opening one debt directly from an Attention item. Current source links open
   Debts.
 - Implementing the broader Planning UX proposals. Those stay unscheduled.
-  Phase 3 items 8–11 have not started. Partial balances, more than one
+  Phase 3 items 9–11 have not started. Partial balances, more than one
   offer at a time, a rate that changes, and a promotional expiration stay
   in Phase 7.

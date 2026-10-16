@@ -16,11 +16,10 @@ and [`reviews/README.md`](reviews/README.md).
 
 **Next**
 
-1. Start Phase 3 item 8: spendable estimates from dated obligations,
-   reserved funds, and reliable income. Display horizon, data freshness, and
-   uncertainties. Monthly surplus alone is insufficient. Guardrails must
-   warn when an aggressive payment would leave ordinary expenses or
-   near-term obligations underfunded. Do not start Phase 3 items 9–11.
+1. Start Phase 3 item 9: model credit-card purchases and card payments so
+   purchases affect category spending and payments affect cash and debt,
+   without counting spending twice. Keep building through items 10 and 11.
+   A heavy QA and UX pass for Phase 3 waits until those items are done.
    Detail panel keyboard focus stays tracked and is not scheduled.
    Unimplemented Planning UX proposals stay unscheduled.
 

@@ -149,6 +149,74 @@ export type PlanCashOutlookPathDto = {
   lowPay: PlanCashForecastDto | null;
 };
 
+export const spendableUncertaintyKinds = [
+  "VariableIncome",
+  "UncertainIncome",
+  "NoReliableIncome",
+  "OrdinarySpendingUnset",
+  "WindfallLeftOut",
+  "IncomeLeftOut",
+  "ExcludedCurrency",
+  "DebtLeftOut",
+] as const;
+
+/**
+ * Why a spendable estimate leaves something out.
+ * `name` is empty when the reason has no income, debt, or currency.
+ */
+export type SpendableUncertaintyKind =
+  (typeof spendableUncertaintyKinds)[number];
+
+/**
+ * One reason the spendable estimate is incomplete.
+ */
+export type SpendableUncertaintyDto = {
+  kind: SpendableUncertaintyKind;
+  name: string;
+};
+
+/**
+ * Whether the tried extra payment leaves ordinary spending or near-term bills and debt payments short.
+ * `on` is null when `active` is false. `shortfall` is how far below zero that day falls.
+ * `alreadyShortWithoutExtra` means that date is already short on minimums alone.
+ */
+export type SpendableGuardrailDto = {
+  active: boolean;
+  ordinaryExpenses: boolean;
+  nearTermObligations: boolean;
+  on: string | null;
+  shortfall: number;
+  alreadyShortWithoutExtra: boolean;
+};
+
+/**
+ * Spendable cash for one payoff path over the next 30 days.
+ * `spendable` is never negative. `lowestAvailable` stays negative when the horizon is already short.
+ * The income, obligation, and spending totals are dated amounts inside the horizon, not a monthly surplus.
+ */
+export type SpendableEstimateDto = {
+  from: string;
+  through: string;
+  spendable: number;
+  lowestAvailable: number;
+  lowestOn: string;
+  reliableIncome: number;
+  obligations: number;
+  ordinarySpending: number;
+  reserved: number;
+  alreadyShort: boolean;
+  guardrail: SpendableGuardrailDto;
+  uncertainties: SpendableUncertaintyDto[];
+};
+
+/**
+ * Spendable cash on the rollover path and on the path that keeps freed payments.
+ */
+export type SpendableReportDto = {
+  rollover: SpendableEstimateDto;
+  reclaimAll: SpendableEstimateDto;
+};
+
 /**
  * The cash outlook on both payoff paths.
  * `startingCash` is the Cash total on Accounts on `asOf`, before that day's payments.
@@ -197,6 +265,7 @@ export type PlanDebtFactDto = {
  * The household's payoff on rollover and on keeping every freed payment, and the cash outlook on each.
  * `excludedCurrencies` are debt codes left out of the planning currency.
  * `hasDebts` is false when no debt is recorded. A debt with no balance still counts and is listed in `missingBalance`.
+ * `spendable` is the 30-day estimate from dated obligations, reserved funds, and steady income. It is not a monthly surplus.
  * `monthlyExtra` is shared extra tried for this response. Zero is minimums only, and the amount is not saved.
  * `livingSpendingMonthly` is the saved monthly flexible-spending amount. Zero means none is saved.
  * `incomeLossMonths` is how many months of included pay this preview leaves out. Zero keeps every paycheck.
@@ -212,6 +281,7 @@ export type PlanRecoveryDto = {
   missingBalance: PlanMissingBalanceDto[];
   hasDebts: boolean;
   cashOutlook: PlanCashOutlookDto;
+  spendable: SpendableReportDto;
   monthlyExtra: number;
   livingSpendingMonthly: number;
   incomeLossMonths: number;

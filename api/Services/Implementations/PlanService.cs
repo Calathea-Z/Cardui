@@ -121,20 +121,29 @@ public class PlanService : IPlanService
     }
 
     /// <summary>
-    /// Runs the approved rollover and recovery rules from the outlook's start date, then the cash outlook on both paths,
+    /// Runs the approved rollover and recovery rules from the outlook's start date, then the cash outlook and spendable estimate on both paths,
     /// and shapes the result for the page. The preview is tried for this response. Reclaim stays at the baseline.
+    /// Spendable counts steady pay only. The extra is compared with the same path at minimums.
     /// </summary>
     private static PlanRecoveryDto ProjectPlan(
         IReadOnlyList<DebtDto> debts,
         PlanCashFacts facts,
         PlanCashScenario scenario)
     {
+        var recoveryDebts = debts.Select(ToDebt).ToList();
         var prepared = HouseholdRecovery.Prepare(
             facts.Input.PlanningCurrency,
             facts.Input.AsOf,
-            debts.Select(ToDebt).ToList(),
+            recoveryDebts,
             scenario.MonthlyExtra);
         var comparison = PayoffRollover.Compare(prepared.Rollover);
+        var minimums = scenario.MonthlyExtra > 0
+            ? PayoffRollover.Compare(HouseholdRecovery.Prepare(
+                facts.Input.PlanningCurrency,
+                facts.Input.AsOf,
+                recoveryDebts,
+                0m).Rollover)
+            : comparison;
         var report = CashFlowRecovery.Track(comparison);
         var cash = PlanCashScenarioAdjustment.Apply(
             facts.Input,
@@ -142,13 +151,21 @@ public class PlanService : IPlanService
             facts.CashFloor,
             scenario);
         var outlook = HouseholdCashOutlook.Project(cash, prepared.Rollover.Debts, comparison);
+        var spendable = SpendableRules.Project(
+            cash,
+            prepared.Rollover.Debts.Select(debt => debt.Terms).ToList(),
+            comparison,
+            minimums,
+            prepared.MissingBalance.Select(debt => debt.Name).ToList(),
+            facts.LivingSpendingMonthly > 0 || scenario.LivingSpendingMonthly is not null);
         var plan = PlanRecoveryDtoMapper.Map(
             comparison,
             report,
             prepared.MissingBalance,
             debts.Count > 0,
             outlook,
-            facts.CashPosition);
+            facts.CashPosition,
+            spendable);
         plan.LivingSpendingMonthly = facts.LivingSpendingMonthly;
         plan.HasCashFloor = facts.HasCashFloor;
         plan.HasEmergencyGoal = facts.HasEmergencyGoal;

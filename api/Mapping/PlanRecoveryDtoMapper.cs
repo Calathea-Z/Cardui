@@ -12,7 +12,7 @@ public static class PlanRecoveryDtoMapper
     /// The cash-flow report supplies the steps, obligations, and breathing room.
     /// The partial reclaim path, the written explanations, and the written assumptions are not sent; the page writes its own copy.
     /// HasDebts records whether a debt exists, including one the payoff left out.
-    /// The cash outlook follows the same two paths.
+    /// The cash outlook follows the same two paths. Spendable cash is the 30-day estimate for those paths.
     /// </summary>
     public static PlanRecoveryDto Map(
         PayoffRolloverComparison comparison,
@@ -20,7 +20,8 @@ public static class PlanRecoveryDtoMapper
         IReadOnlyList<HouseholdRecoveryMissingBalance> missingBalance,
         bool hasDebts,
         HouseholdCashOutlookReport cashOutlook,
-        CashPosition cashPosition)
+        CashPosition cashPosition,
+        SpendableReport spendable)
     {
         return new PlanRecoveryDto
         {
@@ -33,6 +34,7 @@ public static class PlanRecoveryDtoMapper
                 .ToList(),
             HasDebts = hasDebts,
             CashOutlook = PlanCashOutlookDtoMapper.Map(cashOutlook, cashPosition),
+            Spendable = SpendableEstimateDtoMapper.Map(spendable),
             MonthlyExtra = comparison.MonthlyExtra
         };
     }

@@ -36,7 +36,8 @@ public class PlanCashScenarioTests
             IncomeCadence.Monthly,
             new DateOnly(2026, 1, 5),
             [new DatedIncomeRaise(new DateOnly(2026, 3, 1), 1200m)],
-            null);
+            null,
+            IncomeReliability.Steady);
         var scenario = PlanCashScenario.None with { IncomeLossMonths = 2 };
         var adjusted = PlanCashScenarioAdjustment.Apply(Input(incomes: [income]), 0m, 0m, scenario);
 

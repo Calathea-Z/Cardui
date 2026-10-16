@@ -97,7 +97,13 @@ export type {
   PlanRecoveryPathDto,
   PlanScenarioQuery,
   PlanRecoveryStepDto,
+  SpendableEstimateDto,
+  SpendableGuardrailDto,
+  SpendableReportDto,
+  SpendableUncertaintyDto,
+  SpendableUncertaintyKind,
 } from "./plan";
+export { spendableUncertaintyKinds } from "./plan";
 export type {
   CompareRestructuringDto,
   RestructuringBreakEven,

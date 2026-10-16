@@ -15,6 +15,8 @@ public interface IPlanService
     /// Payments start today: a stored due date that has passed is stepped to its next monthly date on or after today.
     /// The cash outlook starts from the Cash total on Accounts, adds income and bills, and pays debts as each path does,
     /// at typical pay and, when recorded, low pay. The extra is part of those debt payments.
+    /// Spendable cash is a separate 30-day estimate. It counts steady pay only, keeps reserved funds set aside,
+    /// and warns when the extra would leave ordinary spending or a near-term bill or debt payment short.
     /// Nothing is saved.
     /// </summary>
     Task<PlanRecoveryDto> GetRecoveryAsync(

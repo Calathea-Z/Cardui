@@ -4,6 +4,7 @@ import type {
   PlanCashForecastDto,
   PlanRecoveryDto,
   PlanRecoveryPathDto,
+  SpendableEstimateDto,
 } from "@/lib/api/types";
 import type { PageLoadState } from "@/lib/pageLoadState";
 
@@ -56,6 +57,38 @@ function emptyPlanRecovery(): PlanRecoveryDto {
       rollover: { typical: emptyForecast(), lowPay: null },
       reclaimAll: { typical: emptyForecast(), lowPay: null },
     },
+    spendable: {
+      rollover: emptySpendable(),
+      reclaimAll: emptySpendable(),
+    },
+  };
+}
+
+/**
+ * An empty spendable estimate used when the plan request fails.
+ * The failed page does not render it. The fields stay present so the type matches a successful response.
+ */
+function emptySpendable(): SpendableEstimateDto {
+  return {
+    from: "",
+    through: "",
+    spendable: 0,
+    lowestAvailable: 0,
+    lowestOn: "",
+    reliableIncome: 0,
+    obligations: 0,
+    ordinarySpending: 0,
+    reserved: 0,
+    alreadyShort: false,
+    guardrail: {
+      active: false,
+      ordinaryExpenses: false,
+      nearTermObligations: false,
+      on: null,
+      shortfall: 0,
+      alreadyShortWithoutExtra: false,
+    },
+    uncertainties: [],
   };
 }
 

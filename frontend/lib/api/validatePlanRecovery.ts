@@ -1,6 +1,21 @@
 import type { PlanRecoveryDto } from "./types";
 
 /**
+ * The left-out reasons a spendable estimate can name.
+ * This list matches `spendableUncertaintyKinds` in the Plan types.
+ */
+const spendableUncertaintyKinds = [
+  "VariableIncome",
+  "UncertainIncome",
+  "NoReliableIncome",
+  "OrdinarySpendingUnset",
+  "WindfallLeftOut",
+  "IncomeLeftOut",
+  "ExcludedCurrency",
+  "DebtLeftOut",
+] as const;
+
+/**
  * Confirms that a Plan response includes the trust facts required by the current page.
  * An older API response is rejected so version skew becomes a page error instead of a render crash or misleading readiness copy.
  */
@@ -34,7 +49,70 @@ export function isCurrentPlanRecovery(
     typeof cash.startingCashConnectedAccountCount === "number" &&
     isNullableString(cash.startingCashOldestAsOf) &&
     typeof cash.startingCashUnknownDateCount === "number" &&
-    typeof cash.startingCashStaleConnectedCount === "number"
+    typeof cash.startingCashStaleConnectedCount === "number" &&
+    isSpendableReport(value.spendable)
+  );
+}
+
+/**
+ * Confirms both payoff paths include a 30-day spendable estimate.
+ */
+function isSpendableReport(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isSpendableEstimate(value.rollover) &&
+    isSpendableEstimate(value.reclaimAll)
+  );
+}
+
+/**
+ * Confirms one path names its horizon, the lowest day, and why anything was left out.
+ */
+function isSpendableEstimate(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.from === "string" &&
+    typeof value.through === "string" &&
+    typeof value.spendable === "number" &&
+    typeof value.lowestAvailable === "number" &&
+    typeof value.lowestOn === "string" &&
+    typeof value.reliableIncome === "number" &&
+    typeof value.obligations === "number" &&
+    typeof value.ordinarySpending === "number" &&
+    typeof value.reserved === "number" &&
+    typeof value.alreadyShort === "boolean" &&
+    isGuardrail(value.guardrail) &&
+    Array.isArray(value.uncertainties) &&
+    value.uncertainties.every(isUncertainty)
+  );
+}
+
+/**
+ * Confirms the extra-payment warning is present, including when it is inactive.
+ */
+function isGuardrail(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.active === "boolean" &&
+    typeof value.ordinaryExpenses === "boolean" &&
+    typeof value.nearTermObligations === "boolean" &&
+    isNullableString(value.on) &&
+    typeof value.shortfall === "number" &&
+    typeof value.alreadyShortWithoutExtra === "boolean"
+  );
+}
+
+/**
+ * Confirms one left-out reason uses a known kind.
+ */
+function isUncertainty(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    typeof value.kind === "string" &&
+    spendableUncertaintyKinds.includes(
+      value.kind as (typeof spendableUncertaintyKinds)[number],
+    ) &&
+    typeof value.name === "string"
   );
 }
 

@@ -52,6 +52,37 @@ function currentResponse() {
       startingCashUnknownDateCount: 0,
       startingCashStaleConnectedCount: 0,
     },
+    spendable: {
+      rollover: estimate(),
+      reclaimAll: estimate(),
+    },
+  };
+}
+
+/**
+ * Returns one empty spendable path. The amounts are zero and the guardrail is inactive.
+ */
+function estimate() {
+  return {
+    from: "2026-10-15",
+    through: "2026-11-13",
+    spendable: 0,
+    lowestAvailable: 0,
+    lowestOn: "2026-10-15",
+    reliableIncome: 0,
+    obligations: 0,
+    ordinarySpending: 0,
+    reserved: 0,
+    alreadyShort: false,
+    guardrail: {
+      active: false,
+      ordinaryExpenses: false,
+      nearTermObligations: false,
+      on: null,
+      shortfall: 0,
+      alreadyShortWithoutExtra: false,
+    },
+    uncertainties: [],
   };
 }
 
@@ -99,4 +130,20 @@ test("rejects a response without starting-cash provenance", () => {
   delete oldResponse.cashOutlook.startingCashAccountCount;
 
   assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("rejects a response from before spendable estimates", () => {
+  const oldResponse = currentResponse();
+  delete oldResponse.spendable;
+
+  assert.equal(isCurrentPlanRecovery(oldResponse), false);
+});
+
+test("rejects a spendable uncertainty the page cannot explain", () => {
+  const response = currentResponse();
+  response.spendable.rollover.uncertainties = [
+    { kind: "MonthlySurplus", name: "" },
+  ];
+
+  assert.equal(isCurrentPlanRecovery(response), false);
 });

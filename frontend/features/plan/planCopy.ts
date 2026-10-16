@@ -116,6 +116,11 @@ export function planAssumptions(
         "Starts with Cash on Accounts, adds shared pay, and takes out bills, living spending, and debt payments. Set-aside money stays in cash.",
     },
     {
+      term: "Spendable",
+      detail:
+        "The lowest cash left after set-aside money, dated bills, debt payments, and ordinary spending. Only steady pay counts.",
+    },
+    {
       term: "Low pay",
       detail:
         "Uses each income source's low amount where one is recorded, and leaves out expected raises.",

@@ -11,21 +11,21 @@ history. They do not say what is next.
 
 **Now**
 
-[Narrow tools](reviews/2026-10-16-011-narrow-tools.md) was approved on
-October 16, 2026. It is Phase 4 item 3. The assistant can read a household
-summary, propose a fact, request a calculation, compare a supported
-scenario, and draft a plan change. Those tools call the services direct
-editing uses, and they do not save the proposal or the draft. No model or
-price is chosen. Items 4–9 have not started. Detail panel keyboard focus
-stays tracked. The
+[Useful questions](reviews/2026-10-16-012-useful-questions.md) was approved
+on October 16, 2026. It is Phase 4 item 4. The assistant chooses one or two
+questions from the household's cash, pay, bills, debts, and living spending.
+Dated cash comes first. A person can leave a detail unknown, and that note
+does not become a saved amount. No model or price is chosen. Items 5–9 have
+not started. Detail panel keyboard focus stays tracked. The
 [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 4 item 4, one or two useful questions at a time. Do not start it
-   in the review that approved item 3. Leave the planning-model settings
-   blank until a review asks for a live call.
+1. Phase 4 item 5, distinguish user statements, imported facts, estimates,
+   and unverified suggestions. Do not start it in the review that approved
+   item 4. Leave the planning-model settings blank until a review asks for
+   a live call.
 
 **Tracked, not scheduled**
 
@@ -42,6 +42,8 @@ stays as written.
 
 ## Map
 
+- [Useful questions](reviews/2026-10-16-012-useful-questions.md): Phase 4
+  item 4, approved October 16, 2026.
 - [Narrow tools](reviews/2026-10-16-011-narrow-tools.md): Phase 4 item 3,
   approved October 16, 2026.
 - [Persisted conversations](reviews/2026-10-16-010-persisted-conversations.md):

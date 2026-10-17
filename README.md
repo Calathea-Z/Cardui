@@ -6,7 +6,7 @@ Unlike traditional budgeting tools that focus primarily on tracking spending, To
 
 The application combines a Next.js frontend, an ASP.NET Core API, PostgreSQL, Clerk authentication, and optional Plaid connectivity. An AI-guided planning experience is under development.
 
-The product name is Tortoise. These internal names stay Cardui: `Cardui.sln`, the `Cardui.Api` namespace, `tests/Cardui.Tests`, the local PostgreSQL database and volume, the browser key `cardui.plan.work`, and `DataProtection:ApplicationName`. The GitHub repository remains `Calathea-Z/Cardui` until that rename is done separately.
+The product name is Tortoise. The GitHub repository is [`Calathea-Z/Tortoise`](https://github.com/Calathea-Z/Tortoise). These internal names stay Cardui: `Cardui.sln`, the `Cardui.Api` namespace, `tests/Cardui.Tests`, the local PostgreSQL database and volume, the browser key `cardui.plan.work`, and `DataProtection:ApplicationName`.
 
 ## Screenshots
 

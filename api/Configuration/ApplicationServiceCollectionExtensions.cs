@@ -41,7 +41,6 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IPlanRevisions, PlanRevisions>();
         services.AddScoped<IPlanningForecasts, PlanningForecasts>();
         services.AddScoped<IPlanningShares, PlanningShares>();
-        services.AddScoped<IPlanningCalls, PlanningCalls>();
         services.AddScoped<IRestructuringService, RestructuringService>();
         services.AddScoped<ICategoryTargetsService, CategoryTargetsService>();
         services.AddScoped<IAccountsService, AccountsService>();

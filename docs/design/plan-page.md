@@ -17,8 +17,11 @@ Increment 2, one way to apply a change, is approved in
 [`2026-10-16-005-one-way-to-apply.md`](../reviews/2026-10-16-005-one-way-to-apply.md).
 Increment 3, the remaining Plan edges, is approved in
 [`2026-10-16-006-remaining-plan-edges.md`](../reviews/2026-10-16-006-remaining-plan-edges.md).
+Phase 5 item 1, next actions, milestones, and assumptions to confirm, is
+awaiting review in
+[`2026-10-17-001-plan-follow-through.md`](../reviews/2026-10-17-001-plan-follow-through.md).
 Date: October 7, 2026
-Updated: 2026-10-16
+Updated: 2026-10-17
 
 This document records page-specific Plan choices. It is not a universal page
 template. Shared hierarchy, responsive, warning, chart, action, and
@@ -89,7 +92,9 @@ This grouping is approved in
 ### Overview
 
 The question is whether the next 30 days are covered. The answer is the
-steady-pay safety figure, then one next action, then a short debt outlook.
+steady-pay safety figure, then one next action. The remaining ranked
+actions, unset assumptions, and calculated milestones follow that action.
+The debt outlook stays under them.
 
 1. **Safety.** The figure is labeled **Spendable before extra debt
    payments** when the window is not already short. When the lowest balance
@@ -111,6 +116,28 @@ steady-pay safety figure, then one next action, then a short debt outlook.
    window with debts offers **Try a change**. Other issues stay as a count
    that opens the remaining warnings and debt blockers. Healthy checks stay
    quiet.
+   Under that action, the same column shows the working preview's remaining
+   ranked actions, then assumptions that are still unset, then milestones
+   the calculation produced. The 30-day action is not repeated. An
+   assumption already asked by that action, or by one of the listed
+   actions, is not listed again. Other issues leaves out a row this column
+   already states. A protected-savings shortfall stays in other issues.
+   Assumptions to confirm are no recurring bills, flexible spending not
+   set, and cash to keep not set. Each opens the editor that saves it and
+   returns to Plan. A household with no non-debt bills still sees that row,
+   because there is no saved "none." Variable or uncertain pay stays beside
+   the 30-day figure. An unchosen emergency target stays a review condition
+   on Your plan. Calculation rules stay in Your plan's assumptions
+   disclosure.
+   Milestones are only dates and amounts the calculation produced. When a
+   payoff date is conditional, that note sits with the ranked action that
+   states the date, or with the milestone list when no listed action does.
+   The debt outlook below still names payment priority and the first payoff.
+   While the preview is loading, the column says it is preparing those
+   three. A failed preview keeps the 30-day figure and offers **Try again**.
+   It does not show the previous scenario's actions. Opening a saved version
+   from History changes Your plan and the heading status. It does not
+   replace this column.
 3. **Debt outlook.** A short row names the next payment priority, the first
    expected payoff, and whether that payment becomes available or is
    redirected. Payment priority is who an extra or rolled payment follows.
@@ -314,9 +341,10 @@ print open. There is no PDF file and no public link.
 ### Desktop and mobile behavior
 
 - The page uses a bounded `max-w-6xl` container. From `xl` up, Overview puts
-  the safety figure in the wide column and the next action, debt outlook,
-  and issues in the smaller column. Below that width the same order is one
-  column. Plan setup uses the same page bound and one list of rows.
+  the safety figure in the wide column and the next action, follow-through,
+  debt outlook, and issues in the smaller column. Below that width the same
+  order is one column. Plan setup uses the same page bound and one list of
+  rows.
 - Under `md`, the page is one column with 16px horizontal padding. The
   view bar sits under the heading in the page flow. It does not stick, so
   it does not cover the safety heading. The three labels stay on one row

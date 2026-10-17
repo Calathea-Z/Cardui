@@ -8,19 +8,22 @@ type PlanAttentionSummaryProps = {
   readiness: PlanReadinessCopy;
   debtItems: PlanFinishItem[];
   primaryKey: string;
+  hiddenKeys?: readonly string[];
 };
 
 /**
- * Lists the setup issues that are not already the safety action.
+ * Lists the setup issues that are not already the safety action or the follow-through column.
  * Healthy checks stay out of this list. A view with no remaining issues renders nothing.
  */
 export function PlanAttentionSummary({
   readiness,
   debtItems,
   primaryKey,
+  hiddenKeys = [],
 }: PlanAttentionSummaryProps) {
   const issues = readiness.rows.filter(
-    (row) => row.warning && row.key !== primaryKey,
+    (row) =>
+      row.warning && row.key !== primaryKey && !hiddenKeys.includes(row.key),
   );
   if (issues.length === 0 && debtItems.length === 0) {
     return null;

@@ -14,9 +14,11 @@ import { PlanCashOutlook } from "./PlanCashOutlook";
 import { PlanDebtOutlookPanel } from "./PlanDebtOutlookPanel";
 import { PlanDebtPayoff } from "./PlanDebtPayoff";
 import { PlanDecision } from "./PlanDecision";
+import { PlanFollowThrough } from "./PlanFollowThrough";
 import { PlanNextAction } from "./PlanNextAction";
 import { PlanOfferComparison } from "./PlanOfferComparison";
 import { PlanSafety } from "./PlanSafety";
+import { planFollowThrough } from "./planHomeFollowThrough";
 import { planSafetyAction } from "./planSafetyAction";
 import { PlanShortfallReview } from "./PlanShortfallReview";
 import { PlanTabs } from "./PlanTabs";
@@ -346,6 +348,22 @@ export function PlanPageClient({
     setPinnedDebtId((current) => (current === debtId ? null : debtId));
   }
 
+  /**
+   * The working preview's actions, milestones, and unset assumptions.
+   * A preview that still belongs to the previous scenario is left out.
+   */
+  const followStatus = saved.previewReady
+    ? "ready"
+    : saved.loadStatus === "error"
+      ? "error"
+      : "loading";
+  const followThrough = planFollowThrough({
+    plan: saved.previewReady ? saved.preview : null,
+    safetyKey: model.action.key,
+    safetyLabel: model.action.label,
+    reserveShort: outlook.typical.reserveShortfallOn !== null,
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -410,6 +428,19 @@ export function PlanPageClient({
                       setView("changes");
                     }}
                   />
+                  <PlanFollowThrough
+                    status={followStatus}
+                    followThrough={followThrough}
+                    currency={currency}
+                    onOpenShortfall={() => openDetail("shortfall", "overview")}
+                    onOpenDebt={() => openDetail("debt", "overview")}
+                    onTryChange={() => {
+                      setCashReturn(null);
+                      setDetailFrom("changes");
+                      setView("changes");
+                    }}
+                    onRetry={() => void saved.retry()}
+                  />
                   <PlanDebtOutlookPanel
                     outlook={model.debtOutlook}
                     onReviewDebt={() => openDetail("debt", "overview")}
@@ -418,6 +449,7 @@ export function PlanPageClient({
                     readiness={model.readiness}
                     debtItems={model.finish}
                     primaryKey={model.action.key}
+                    hiddenKeys={followThrough.hiddenIssueKeys}
                   />
                   {model.action.view === "shortfall" ? null : (
                     <button

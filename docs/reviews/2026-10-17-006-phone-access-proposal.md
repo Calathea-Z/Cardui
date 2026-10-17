@@ -86,3 +86,9 @@ item 3.
 Approve this setup, and name the phone OS and browser, or ask for a
 different one. Item 5 waits for that approval. Item 3 is next only after
 this proposal is approved.
+
+## Correction
+
+October 17, 2026. Desktop guided recovery and MX connectivity now come
+before phone access. This proposal still awaits review, and it is not the
+gate for household scoping. Nothing in the proposal was installed.

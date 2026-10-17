@@ -11,33 +11,39 @@ history. They do not say what is next.
 
 **Now**
 
-The [phone-access proposal](reviews/2026-10-17-006-phone-access-proposal.md)
-awaits review. It is core journey item 2. It proposes Tailscale Serve on
-Zach's tailnet, with Funnel left off, and it does not turn access on.
+The [planning architecture](reviews/2026-10-17-008-planning-architecture.md)
+map is approved. Desktop guided recovery and MX connectivity come before
+phone access. The next increment is core journey item 3: scope the working
+plan to the signed-in household. Items 4, 6, 7, and 8 then build the guided
+path on the desktop. Item 12 proposes MX connectivity after that desktop
+path and before the phone. Its scope is not written. Phone items 2 and 5
+wait. The
+[conversational planning readiness](reviews/2026-10-17-007-conversational-planning-readiness.md)
+report stays as written. TOR-3 and TOR-4 have not started. Linear was not
+changed.
 
 The [core journey sequence](reviews/2026-10-17-004-core-journey-sequence.md)
 and its acceptance contract are approved. Scripted replies are marked
 **Scripted reply** on the message. `Scripted` is limited to Development and
-the test host. Item 3 scopes the working plan to the signed-in household.
-Item 4 adds the minimal chat view. Phase 4 items 1–9 stay approved as
-backend components, and the phase exit is not met. Phase 5 item 1 stays
-approved: Overview still answers the next 30 days first, and under that
-action the working preview lists the remaining ranked actions, the
-milestones the calculation produced, and the unset bills, flexible spending,
-and cash to keep. Calculation rules stay on Your plan. Planning calls
-register with the planning model, so the sync worker starts while those
-settings stay blank. There is no chat screen and no live OpenAI call.
-Detail panel keyboard focus stays tracked. The
+the test host. Phase 4 items 1–9 stay approved as backend components, and
+the phase exit is not met. Phase 5 item 1 stays approved: Overview still
+answers the next 30 days first, and under that action the working preview
+lists the remaining ranked actions, the milestones the calculation
+produced, and the unset bills, flexible spending, and cash to keep.
+Calculation rules stay on Your plan. Planning calls register with the
+planning model, so the sync worker starts while those settings stay blank.
+There is no chat screen and no live OpenAI call. Detail panel keyboard
+focus stays tracked. The
 [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-Review the phone-access proposal. Do not install Tailscale, change network
-settings, or start item 3 in that approval. After the proposal is approved,
-item 3 scopes the existing working plan to the signed-in household. Leave
-the planning-model API key and model blank until core journey item 9 asks
-for a live call. Ask before generating or applying a migration.
+Start core journey item 3. Scope the existing browser working plan to the
+signed-in household. Do not add chat, a planning-model provider, an MX
+connection, or phone access in that increment. Leave the planning-model
+API key and model blank until core journey item 9 asks for a live call.
+Ask before generating or applying a migration.
 
 Phase 5 items 2–5 stay paused: action states and dependencies, automatic
 recalibration, richer indicators, and behavioral supports.
@@ -50,9 +56,11 @@ recalibration, richer indicators, and behavioral supports.
 
 **Open decisions**
 
-- The phone-access proposal: approve Tailscale Serve for the tailnet, and
-  name the phone OS and browser. Nothing is installed, and no network
-  access has changed.
+- The phone-access proposal remains unapproved and is not next. Nothing is
+  installed. It waits behind MX connectivity.
+- Whether the approved architecture report covers the work Linear still
+  titles TOR-2. Linear was not changed.
+- Whether a saved allocation should remain outside the recovery calculation.
 - Which OpenAI model to use, and the spending cap for item 9. The API key
   and model stay blank. Early chat uses the scripted planning model in
   Development and the test host only.
@@ -68,9 +76,16 @@ recalibration, richer indicators, and behavioral supports.
   awaiting review, October 17, 2026. Findings 1 and 2 are incorporated into
   the core journey sequence. Their checks were not run. The other findings
   stay unscheduled.
+- [Planning architecture](reviews/2026-10-17-008-planning-architecture.md):
+  approved October 17, 2026. The recovery calculation, saved plan, and Plan
+  page are mapped. Desktop guided recovery and MX connectivity come before
+  phone access.
+- [Conversational planning readiness](reviews/2026-10-17-007-conversational-planning-readiness.md):
+  TOR-5, awaiting review, October 17, 2026. Read, preview, and save are
+  mapped. No route or screen calls them.
 - [Phone-access proposal](reviews/2026-10-17-006-phone-access-proposal.md):
-  core journey item 2, awaiting review, October 17, 2026. Tailscale Serve
-  on the tailnet. Access is not turned on.
+  core journey item 2, awaiting review, October 17, 2026. Not next. It waits
+  behind the desktop guided path and MX connectivity. Access is not turned on.
 - [Core journey sequence](reviews/2026-10-17-004-core-journey-sequence.md):
   approved October 17, 2026, including the acceptance contract. Scripted
   replies stay labeled and development-only. Item 3 is split.

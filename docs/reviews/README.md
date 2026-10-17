@@ -32,8 +32,10 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Core journey
 
+- [2026-10-17 — Planning architecture](2026-10-17-008-planning-architecture.md) — Approved 2026-10-17. Recovery path and data flow. Desktop guided recovery and MX connectivity come before phone access
+- [2026-10-17 — Conversational planning readiness](2026-10-17-007-conversational-planning-readiness.md) — Awaiting review. TOR-5 readiness. No code changed
 - [2026-10-17 — Codebase and organization review](2026-10-17-005-codebase-organization-review.md) — Awaiting review. Findings 1 and 2 are incorporated into the core journey sequence; their checks were not run
-- [2026-10-17 — Phone-access proposal](2026-10-17-006-phone-access-proposal.md) — Awaiting review
+- [2026-10-17 — Phone-access proposal](2026-10-17-006-phone-access-proposal.md) — Awaiting review. Not next. Desktop guided recovery and MX connectivity come first
 - [2026-10-17 — Core journey sequence](2026-10-17-004-core-journey-sequence.md) — Approved 2026-10-17. Scripted replies are labeled and limited to Development and the test host. Item 3 is split
 
 ## UX assessments

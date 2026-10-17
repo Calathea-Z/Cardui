@@ -104,3 +104,10 @@ It stops before any access is turned on.
 None in this report. The phone setup is the pending decision in the item 2
 proposal. Which OpenAI model to use, and the spending cap for item 9, stay
 open. Hosting and `Plaid:WebhookUrl` stay open.
+
+## Correction
+
+October 17, 2026. Zach directed that desktop guided recovery and MX
+connectivity come before phone access. Items 2 and 5 stay written here and
+are not the next increments. The current order is in `docs/roadmap.md` and
+`docs/README.md`.

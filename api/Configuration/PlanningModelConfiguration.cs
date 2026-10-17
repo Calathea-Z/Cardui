@@ -10,7 +10,8 @@ public static class PlanningModelConfiguration
     public static readonly Uri Endpoint = new("https://api.openai.com/v1/");
 
     /// <summary>
-    /// Stops a hung call. Retry and cost limits stay in Phase 4 item 9.
+    /// Stops one attempt. A transient failure can be tried again, up to the attempt limit.
+    /// The character cap and the output-token cap live with the call rules. No price is set.
     /// </summary>
     public static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
 

@@ -36,11 +36,9 @@ public sealed class OpenAiPlanningModel : IPlanningModel
     {
         RequireConfigured();
         var input = RequireInput(request);
-        RejectToken(input);
-        RejectToken(request.Instructions);
-        using var response = await SendAsync(input, request.Instructions, cancellationToken);
-        var text = await ReadTextAsync(response, cancellationToken);
-        return new PlanningModelReply(text);
+        RejectSecrets(input, request.Instructions);
+        RejectLength(input, request.Instructions);
+        return await SendWithLimitsAsync(input, request.Instructions, cancellationToken);
     }
 
     #region Private Methods
@@ -60,11 +58,24 @@ public sealed class OpenAiPlanningModel : IPlanningModel
     /// Refuses a bank access token before any request is posted.
     /// The token is not logged.
     /// </summary>
-    private static void RejectToken(string? text)
+    private static void RejectSecrets(string input, string? instructions)
     {
-        if (PlanningShareRules.ContainsToken(text))
+        var error = PlanningCallRules.RejectToken(input, instructions);
+        if (error is not null)
         {
-            throw new BadRequestException(PlanningShareRules.TokenRefusal);
+            throw new BadRequestException(error);
+        }
+    }
+
+    /// <summary>
+    /// Refuses text past the character cap before any request is posted.
+    /// </summary>
+    private static void RejectLength(string input, string? instructions)
+    {
+        var error = PlanningCallRules.RejectLength(input, instructions);
+        if (error is not null)
+        {
+            throw new BadRequestException(error);
         }
     }
 
@@ -82,28 +93,83 @@ public sealed class OpenAiPlanningModel : IPlanningModel
     }
 
     /// <summary>
-    /// Posts one Responses request. The provider is told not to store it.
+    /// Posts until the provider answers or the attempt limit is reached.
+    /// A transient failure waits, then tries again. The caller cancelling stops the call.
     /// </summary>
-    private async Task<HttpResponseMessage> SendAsync(
+    private async Task<PlanningModelReply> SendWithLimitsAsync(
         string input,
         string? instructions,
+        CancellationToken cancellationToken)
+    {
+        PlanningCallRetryException? failure = null;
+        for (var attempt = 1; attempt <= PlanningCallRules.MaxAttempts; attempt++)
+        {
+            try
+            {
+                return await SendAttemptAsync(input, instructions, attempt, cancellationToken);
+            }
+            catch (PlanningCallRetryException retry)
+            {
+                failure = retry;
+                if (!PlanningCallRules.CanRetry(attempt))
+                {
+                    break;
+                }
+
+                _logger.LogWarning(
+                    "{Detail}",
+                    PlanningCallRules.DescribeRetry(
+                        attempt,
+                        retry.StatusCode,
+                        retry.ErrorType,
+                        retry.ErrorCode,
+                        retry.ExceptionType));
+                await Task.Delay(PlanningCallRules.RetryDelay, cancellationToken);
+            }
+        }
+
+        _logger.LogError(
+            "{Detail}",
+            PlanningCallRules.DescribeFailure(
+                PlanningCallRules.MaxAttempts,
+                failure?.StatusCode,
+                failure?.ErrorType,
+                failure?.ErrorCode,
+                failure?.ExceptionType));
+        throw new PlanningModelException(
+            "The planning model could not answer. Please try again.");
+    }
+
+    /// <summary>
+    /// Posts one attempt. A transient HTTP or transport failure can be tried again.
+    /// A completed response is not posted again.
+    /// </summary>
+    private async Task<PlanningModelReply> SendAttemptAsync(
+        string input,
+        string? instructions,
+        int attempt,
         CancellationToken cancellationToken)
     {
         try
         {
             using var message = CreateMessage(input, instructions);
-            var response = await _httpClient.SendAsync(message, cancellationToken);
+            using var response = await _httpClient.SendAsync(message, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                using (response)
-                {
-                    await ThrowForStatusAsync(response, cancellationToken);
-                }
+                throw await FailStatusAsync(response, attempt, cancellationToken);
             }
 
-            return response;
+            var (text, inputTokens, outputTokens) = await ReadTextAsync(response, cancellationToken);
+            _logger.LogInformation(
+                "{Detail}",
+                PlanningCallRules.DescribeAnswer(attempt, inputTokens, outputTokens));
+            return new PlanningModelReply(text);
         }
         catch (PlanningModelException)
+        {
+            throw;
+        }
+        catch (PlanningCallRetryException)
         {
             throw;
         }
@@ -111,15 +177,35 @@ public sealed class OpenAiPlanningModel : IPlanningModel
         {
             throw;
         }
+        catch (OperationCanceledException exception)
+        {
+            throw Retry(exception);
+        }
+        catch (HttpRequestException exception)
+        {
+            throw Retry(exception);
+        }
         catch (Exception exception)
         {
             _logger.LogError(
-                "Planning model request failed. {ErrorType}",
-                exception.GetType().Name);
+                "{Detail}",
+                PlanningCallRules.DescribeFailure(
+                    attempt,
+                    null,
+                    null,
+                    null,
+                    exception.GetType().Name));
             throw new PlanningModelException(
-                "The planning model could not answer. Please try again.",
-                exception);
+                "The planning model could not answer. Please try again.");
         }
+    }
+
+    /// <summary>
+    /// Marks a transport failure as retryable. The exception text is not kept.
+    /// </summary>
+    private static PlanningCallRetryException Retry(Exception exception)
+    {
+        return new PlanningCallRetryException(null, null, null, exception.GetType().Name);
     }
 
     /// <summary>
@@ -131,7 +217,8 @@ public sealed class OpenAiPlanningModel : IPlanningModel
         {
             ["model"] = _options.Model.Trim(),
             ["input"] = input,
-            ["store"] = false
+            ["store"] = false,
+            ["max_output_tokens"] = PlanningCallRules.MaxOutputTokens
         };
 
         if (!string.IsNullOrWhiteSpace(instructions))
@@ -153,19 +240,25 @@ public sealed class OpenAiPlanningModel : IPlanningModel
     }
 
     /// <summary>
-    /// Logs the status and provider error code, then throws a message without the body.
+    /// Reads the provider error type and code.
+    /// A transient status can be tried again. Any other status fails once, without the response body.
     /// </summary>
-    private async Task ThrowForStatusAsync(
+    private async Task<Exception> FailStatusAsync(
         HttpResponseMessage response,
+        int attempt,
         CancellationToken cancellationToken)
     {
         var (type, code) = await ReadErrorCodesAsync(response, cancellationToken);
+        var status = (int)response.StatusCode;
+        if (PlanningCallRules.IsTransient(status))
+        {
+            return new PlanningCallRetryException(status, type, code, null);
+        }
+
         _logger.LogError(
-            "Planning model request failed with status {StatusCode}. {ErrorType}/{ErrorCode}",
-            (int)response.StatusCode,
-            type ?? "none",
-            code ?? "none");
-        throw new PlanningModelException(
+            "{Detail}",
+            PlanningCallRules.DescribeFailure(attempt, status, type, code, null));
+        return new PlanningModelException(
             "The planning model could not answer. Please try again.");
     }
 
@@ -198,8 +291,9 @@ public sealed class OpenAiPlanningModel : IPlanningModel
 
     /// <summary>
     /// Reads assistant text from output_text, or from message content when that field is absent.
+    /// Token counts come from usage. Any other usage field is ignored.
     /// </summary>
-    private async Task<string> ReadTextAsync(
+    private async Task<(string Text, int? InputTokens, int? OutputTokens)> ReadTextAsync(
         HttpResponseMessage response,
         CancellationToken cancellationToken)
     {
@@ -217,7 +311,10 @@ public sealed class OpenAiPlanningModel : IPlanningModel
                     "The planning model could not answer. Please try again.");
             }
 
-            return text;
+            return (
+                text,
+                ReadTokenCount(document.RootElement, "input_tokens"),
+                ReadTokenCount(document.RootElement, "output_tokens"));
         }
         catch (PlanningModelException)
         {
@@ -233,9 +330,27 @@ public sealed class OpenAiPlanningModel : IPlanningModel
                 "Planning model response could not be read. {ErrorType}",
                 exception.GetType().Name);
             throw new PlanningModelException(
-                "The planning model could not answer. Please try again.",
-                exception);
+                "The planning model could not answer. Please try again.");
         }
+    }
+
+    /// <summary>
+    /// Reads one token count from usage. A missing, fractional, or negative value is left unknown.
+    /// Other usage fields are ignored.
+    /// </summary>
+    private static int? ReadTokenCount(JsonElement root, string name)
+    {
+        if (!root.TryGetProperty("usage", out var usage)
+            || usage.ValueKind != JsonValueKind.Object
+            || !usage.TryGetProperty(name, out var value)
+            || value.ValueKind != JsonValueKind.Number
+            || !value.TryGetInt32(out var count)
+            || count < 0)
+        {
+            return null;
+        }
+
+        return count;
     }
 
     /// <summary>

@@ -82,6 +82,7 @@ public class OpenAiPlanningModelTests
         Assert.Equal("What is next?", body.RootElement.GetProperty("input").GetString());
         Assert.Equal("Stay brief.", body.RootElement.GetProperty("instructions").GetString());
         Assert.False(body.RootElement.GetProperty("store").GetBoolean());
+        Assert.Equal(PlanningCallRules.MaxOutputTokens, body.RootElement.GetProperty("max_output_tokens").GetInt32());
         Assert.False(body.RootElement.TryGetProperty("tools", out _));
         Assert.DoesNotContain(ApiKey, handler.Body, StringComparison.Ordinal);
     }
@@ -149,6 +150,7 @@ public class OpenAiPlanningModelTests
             model.ReplyAsync(new PlanningModelRequest("Hello", null), CancellationToken.None));
 
         Assert.Equal("The planning model could not answer. Please try again.", exception.Message);
+        Assert.Equal(1, handler.Calls);
         var logged = string.Join(" ", logger.Messages);
         Assert.Contains("invalid_request_error", logged, StringComparison.Ordinal);
         Assert.Contains("invalid_api_key", logged, StringComparison.Ordinal);
@@ -170,6 +172,235 @@ public class OpenAiPlanningModelTests
             model.ReplyAsync(new PlanningModelRequest("Hello", null), CancellationToken.None));
 
         Assert.Equal("The planning model could not answer. Please try again.", exception.Message);
+        Assert.Equal(1, handler.Calls);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_RetriesATransientFailureThenReadsTheText()
+    {
+        var handler = new RecordingHandler();
+        handler.Script.Add(new ScriptedCall(
+            HttpStatusCode.ServiceUnavailable,
+            """
+            {
+              "error": {
+                "message": "busy with salary 99999",
+                "type": "server_error",
+                "code": "overloaded"
+              }
+            }
+            """));
+        handler.Script.Add(new ScriptedCall(
+            HttpStatusCode.OK,
+            """{"output_text":"Keep the minimum.","usage":{"input_tokens":11,"output_tokens":4}}"""));
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+
+        var reply = await model.ReplyAsync(
+            new PlanningModelRequest("What is next?", "Stay brief."),
+            CancellationToken.None);
+
+        Assert.Equal("Keep the minimum.", reply.Text);
+        Assert.Equal(2, handler.Calls);
+        Assert.Equal(2, handler.Bodies.Count);
+        Assert.All(handler.Bodies, body =>
+        {
+            using var document = JsonDocument.Parse(body);
+            Assert.Equal(
+                PlanningCallRules.MaxOutputTokens,
+                document.RootElement.GetProperty("max_output_tokens").GetInt32());
+            Assert.False(document.RootElement.GetProperty("store").GetBoolean());
+            Assert.DoesNotContain(ApiKey, body, StringComparison.Ordinal);
+        });
+        var logged = string.Join(" ", logger.Messages);
+        Assert.Contains("will retry after attempt 1", logged, StringComparison.Ordinal);
+        Assert.Contains("503", logged, StringComparison.Ordinal);
+        Assert.Contains("server_error", logged, StringComparison.Ordinal);
+        Assert.Contains("overloaded", logged, StringComparison.Ordinal);
+        Assert.Contains("Input tokens 11", logged, StringComparison.Ordinal);
+        Assert.Contains("Output tokens 4", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("Keep the minimum.", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("99999", logged, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_StopsAfterThreeTransientFailures()
+    {
+        var handler = new RecordingHandler
+        {
+            StatusCode = HttpStatusCode.TooManyRequests,
+            ResponseBody = """
+                {
+                  "error": {
+                    "message": "slow down salary 99999",
+                    "type": "rate_limit_exceeded",
+                    "code": "rate_limit_exceeded"
+                  }
+                }
+                """
+        };
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+
+        var exception = await Assert.ThrowsAsync<PlanningModelException>(() =>
+            model.ReplyAsync(new PlanningModelRequest("Hello", null), CancellationToken.None));
+
+        Assert.Equal("The planning model could not answer. Please try again.", exception.Message);
+        Assert.Equal(PlanningCallRules.MaxAttempts, handler.Calls);
+        var logged = string.Join(" ", logger.Messages);
+        Assert.Contains("will retry after attempt 1", logged, StringComparison.Ordinal);
+        Assert.Contains("will retry after attempt 2", logged, StringComparison.Ordinal);
+        Assert.Contains("failed on attempt 3", logged, StringComparison.Ordinal);
+        Assert.Contains("429", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("99999", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("slow down", logged, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_RetriesATimeoutTheCallerDidNotCancel()
+    {
+        var handler = new RecordingHandler();
+        handler.Script.Add(new ScriptedCall(
+            HttpStatusCode.OK,
+            """{"output_text":"Keep the minimum."}""",
+            new TaskCanceledException()));
+        handler.Script.Add(new ScriptedCall(
+            HttpStatusCode.OK,
+            """{"output_text":"Keep the minimum."}"""));
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+
+        var reply = await model.ReplyAsync(
+            new PlanningModelRequest("Hello", null),
+            CancellationToken.None);
+
+        Assert.Equal("Keep the minimum.", reply.Text);
+        Assert.Equal(2, handler.Calls);
+        var logged = string.Join(" ", logger.Messages);
+        Assert.Contains(nameof(TaskCanceledException), logged, StringComparison.Ordinal);
+        Assert.Contains("Usage was not reported.", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("Keep the minimum.", logged, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_RetriesANetworkFailureThenReadsTheText()
+    {
+        var handler = new RecordingHandler();
+        handler.Script.Add(new ScriptedCall(
+            HttpStatusCode.OK,
+            """{"output_text":"Keep the minimum."}""",
+            new HttpRequestException("refused " + ApiKey)));
+        handler.Script.Add(new ScriptedCall(
+            HttpStatusCode.OK,
+            """{"output_text":"Keep the minimum."}"""));
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+
+        var reply = await model.ReplyAsync(
+            new PlanningModelRequest("Hello", null),
+            CancellationToken.None);
+
+        Assert.Equal("Keep the minimum.", reply.Text);
+        Assert.Equal(2, handler.Calls);
+        var logged = string.Join(" ", logger.Messages);
+        Assert.Contains(nameof(HttpRequestException), logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("Keep the minimum.", logged, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_DoesNotRetryAnUnexpectedFailure()
+    {
+        var handler = new RecordingHandler();
+        handler.Script.Add(new ScriptedCall(
+            HttpStatusCode.OK,
+            """{"output_text":"Keep the minimum."}""",
+            new InvalidOperationException("leaked " + ApiKey)));
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+
+        var exception = await Assert.ThrowsAsync<PlanningModelException>(() =>
+            model.ReplyAsync(new PlanningModelRequest("Hello", null), CancellationToken.None));
+
+        Assert.Equal("The planning model could not answer. Please try again.", exception.Message);
+        Assert.Equal(1, handler.Calls);
+        var logged = string.Join(" ", logger.Messages);
+        Assert.Contains(nameof(InvalidOperationException), logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, exception.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_DoesNotSendTextPastTheCharacterCap()
+    {
+        var handler = new RecordingHandler();
+        var model = CreateModel(handler, ConfiguredOptions());
+        var tooLong = new string('a', PlanningCallRules.MaxInputCharacters + 1);
+
+        var input = await Assert.ThrowsAsync<BadRequestException>(() =>
+            model.ReplyAsync(new PlanningModelRequest(tooLong, "Stay brief."), CancellationToken.None));
+        var instructions = await Assert.ThrowsAsync<BadRequestException>(() =>
+            model.ReplyAsync(
+                new PlanningModelRequest("Hello", tooLong),
+                CancellationToken.None));
+
+        Assert.Equal(PlanningCallRules.InputTooLong, input.Message);
+        Assert.Equal(PlanningCallRules.InputTooLong, instructions.Message);
+        Assert.Equal(0, handler.Calls);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_DoesNotLogAnUnreadableBody()
+    {
+        var handler = new RecordingHandler
+        {
+            ResponseBody = ApiKey + " salary 99999"
+        };
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+
+        var exception = await Assert.ThrowsAsync<PlanningModelException>(() =>
+            model.ReplyAsync(new PlanningModelRequest("Hello", null), CancellationToken.None));
+
+        Assert.Equal("The planning model could not answer. Please try again.", exception.Message);
+        Assert.Equal(1, handler.Calls);
+        var logged = string.Join(" ", logger.Messages);
+        Assert.Contains("could not be read", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("99999", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, exception.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ReplyAsync_RedactsAnUnsafeErrorCode()
+    {
+        var handler = new RecordingHandler
+        {
+            StatusCode = HttpStatusCode.BadRequest,
+            ResponseBody = $$"""
+                {
+                  "error": {
+                    "message": "rejected {{ApiKey}}",
+                    "type": "salary 99999",
+                    "code": "dp:v1:protected-token"
+                  }
+                }
+                """
+        };
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+
+        await Assert.ThrowsAsync<PlanningModelException>(() =>
+            model.ReplyAsync(new PlanningModelRequest("Hello", null), CancellationToken.None));
+
+        Assert.Equal(1, handler.Calls);
+        var logged = string.Join(" ", logger.Messages);
+        Assert.Contains("redacted/redacted", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("99999", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain("dp:v1:", logged, StringComparison.Ordinal);
+        Assert.DoesNotContain(ApiKey, logged, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -182,6 +413,7 @@ public class OpenAiPlanningModelTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             model.ReplyAsync(new PlanningModelRequest("Hello", null), cancellation.Token));
+        Assert.True(handler.Calls <= 1);
     }
 
     [Fact]
@@ -262,7 +494,13 @@ public class OpenAiPlanningModelTests
     {
         public HttpRequestMessage? Request { get; private set; }
 
-        public string Body { get; private set; } = "";
+        public int Calls { get; private set; }
+
+        public List<string> Bodies { get; } = [];
+
+        public string Body => Bodies.LastOrDefault() ?? "";
+
+        public List<ScriptedCall> Script { get; } = [];
 
         public HttpStatusCode StatusCode { get; init; } = HttpStatusCode.OK;
 
@@ -270,21 +508,45 @@ public class OpenAiPlanningModelTests
 
         /// <summary>
         /// Records the outgoing request, including its body, and returns the canned response.
+        /// A scripted call is used when one was queued for this attempt.
         /// </summary>
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            Calls++;
             Request = request;
-            Body = request.Content is null
+            Bodies.Add(request.Content is null
                 ? ""
-                : await request.Content.ReadAsStringAsync(cancellationToken);
+                : await request.Content.ReadAsStringAsync(cancellationToken));
+            if (Script.Count > 0)
+            {
+                var scripted = Script[Math.Min(Calls - 1, Script.Count - 1)];
+                if (scripted.Error is not null)
+                {
+                    throw scripted.Error;
+                }
+
+                return new HttpResponseMessage(scripted.StatusCode)
+                {
+                    Content = new StringContent(scripted.Body, Encoding.UTF8, "application/json")
+                };
+            }
+
             return new HttpResponseMessage(StatusCode)
             {
                 Content = new StringContent(ResponseBody, Encoding.UTF8, "application/json")
             };
         }
     }
+
+    /// <summary>
+    /// One canned provider result. Error is thrown instead of returning Body.
+    /// </summary>
+    private sealed record ScriptedCall(
+        HttpStatusCode StatusCode,
+        string Body,
+        Exception? Error = null);
 
     /// <summary>
     /// Keeps formatted log lines so a test can check that a secret was not written.

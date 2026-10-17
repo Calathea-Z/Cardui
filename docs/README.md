@@ -11,21 +11,23 @@ history. They do not say what is next.
 
 **Now**
 
-[Data sharing](reviews/2026-10-16-016-data-sharing.md) was approved on
-October 16, 2026. It is Phase 4 item 8. A conversation records an explicit
-yes or no before household data can be prepared for the planning model. A
-bank access token is left out. A transaction description or uploaded text
-is quoted as data. No model or price is chosen. Item 9 has not started.
-Detail panel keyboard focus stays tracked. The
+[Planning call limits](reviews/2026-10-16-017-planning-call-limits.md) was
+approved on October 16, 2026. It is Phase 4 item 9. A planning-model call
+stops after 30 seconds, retries a transient failure at most twice, and will
+not send more than 24,000 characters or ask for more than 1,024 output
+tokens. No price is set. When the call cannot be answered, the open draft
+stays and the person can continue on Plan. There is no chat screen and no
+live OpenAI call. Phase 5 has not started. Detail panel keyboard focus
+stays tracked. The
 [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 4 item 9, add timeout, retry, and cost limits, safe logging, and a
-   fallback that preserves the draft and lets the person continue manually.
-   Do not start it in the review that approved item 8. Leave the
-   planning-model settings blank until a review asks for a live call.
+1. Phase 5 item 1, add next actions, milestones, and assumptions needing
+   confirmation to Plan. Do not start it in the review that approved item 9.
+   There is still no chat screen. Leave the planning-model settings blank
+   until a review asks for a live call.
 
 **Tracked, not scheduled**
 
@@ -38,10 +40,13 @@ stays as written.
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
 - Which planning model to use, and what it costs. Item 1 calls the model
-  id from configuration and does not choose a price.
+  id from configuration. Item 9 caps the size of a call. Neither one
+  chooses a price.
 
 ## Map
 
+- [Planning call limits](reviews/2026-10-16-017-planning-call-limits.md):
+  Phase 4 item 9, approved October 16, 2026.
 - [Data sharing](reviews/2026-10-16-016-data-sharing.md): Phase 4 item 8,
   approved October 16, 2026.
 - [Calculation forecasts](reviews/2026-10-16-015-calculation-forecasts.md):

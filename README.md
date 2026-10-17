@@ -60,8 +60,11 @@ dotnet user-secrets set "Plaid:ClientName" "Cardui" --project .\api
 Guided conversation is optional. Without `PlanningModel:ApiKey` and
 `PlanningModel:Model`, the API starts and planning stays on the existing
 screens. A partial set stops startup. The model id is not chosen by the
-repository, and this setup does not set a price. Add both when a later check
-should call OpenAI:
+repository, and this setup does not set a price. A call stops after 30
+seconds, retries a transient failure at most twice, and will not send more
+than 24,000 characters or ask for more than 1,024 output tokens. When the
+call cannot be answered, the open draft is left as it was. Add both when a
+later check should call OpenAI:
 
 ```powershell
 dotnet user-secrets set "PlanningModel:ApiKey" "<OpenAI API key>" --project .\api

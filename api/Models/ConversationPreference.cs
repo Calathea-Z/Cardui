@@ -1,8 +1,9 @@
 namespace Cardui.Api.Models;
 
 /// <summary>
-/// A short note the conversation should remember, such as a preference the person stated.
-/// The same name, ignoring case, is one note. Saving a note does not change allocation, pay, bills, debts, or a saved plan.
+/// A short note the conversation should remember, or the data-sharing choice for this conversation.
+/// The same name, ignoring case, is one row. A note does not change allocation, pay, bills, debts, or a saved plan.
+/// The data-sharing name is not a note. Only the sharing methods can set it.
 /// </summary>
 public class ConversationPreference
 {

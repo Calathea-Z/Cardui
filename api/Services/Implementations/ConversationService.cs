@@ -1,5 +1,6 @@
 using Cardui.Api.Data;
 using Cardui.Api.Domain.Conversations;
+using Cardui.Api.Domain.Planning;
 using Cardui.Api.Dtos.Conversations;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Models;
@@ -235,39 +236,31 @@ public class ConversationService : IConversationService
         string value,
         CancellationToken cancellationToken = default)
     {
+        Reject(PlanningShareRules.RejectReservedNote(key));
         Reject(ConversationRules.RejectText(key, ConversationPreference.KeyMaxLength, "preference name"));
         Reject(ConversationRules.RejectText(value, ConversationPreference.ValueMaxLength, "preference value"));
         var conversation = await FindTrackedAsync(conversationId, cancellationToken);
         Reject(ConversationRules.RejectClosed(conversation.Status));
+        return await SavePreferenceAsync(
+            conversation,
+            ConversationRules.Normalize(key),
+            ConversationRules.Normalize(value),
+            cancellationToken);
+    }
 
-        var normalizedKey = ConversationRules.Normalize(key);
-        var normalizedValue = ConversationRules.Normalize(value);
-        var existing = await FindPreferenceAsync(conversation.Id, normalizedKey, cancellationToken);
-        var now = _timeProvider.GetUtcNow();
-        if (existing is null)
-        {
-            _dbContext.ConversationPreferences.Add(new ConversationPreference
-            {
-                Id = Guid.NewGuid(),
-                ConversationId = conversation.Id,
-                Key = normalizedKey,
-                Value = normalizedValue,
-                UpdatedAt = now
-            });
-        }
-        else if (existing.Value == normalizedValue)
-        {
-            return await ResumeAsync(conversation.HouseholdId, conversation.Id, cancellationToken);
-        }
-        else
-        {
-            existing.Value = normalizedValue;
-            existing.UpdatedAt = now;
-        }
-
-        conversation.UpdatedAt = now;
-        await SaveAsync(cancellationToken);
-        return await ResumeAsync(conversation.HouseholdId, conversation.Id, cancellationToken);
+    /// <inheritdoc />
+    public async Task<ConversationResumeDto> SetDataSharingAsync(
+        Guid conversationId,
+        bool allowed,
+        CancellationToken cancellationToken = default)
+    {
+        var conversation = await FindTrackedAsync(conversationId, cancellationToken);
+        Reject(ConversationRules.RejectClosed(conversation.Status));
+        return await SavePreferenceAsync(
+            conversation,
+            PlanningShareRules.ConsentKey,
+            allowed ? PlanningShareRules.AllowedValue : PlanningShareRules.DeclinedValue,
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -276,6 +269,7 @@ public class ConversationService : IConversationService
         string key,
         CancellationToken cancellationToken = default)
     {
+        Reject(PlanningShareRules.RejectReservedNote(key));
         Reject(ConversationRules.RejectText(key, ConversationPreference.KeyMaxLength, "preference name"));
         var conversation = await FindTrackedAsync(conversationId, cancellationToken);
         Reject(ConversationRules.RejectClosed(conversation.Status));
@@ -437,6 +431,44 @@ public class ConversationService : IConversationService
         return await _dbContext.ConversationQuestions
             .Where(question => question.ConversationId == conversationId && question.Id == questionId)
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Saves one conversation note. The same name, ignoring case, replaces the value and keeps the stored name.
+    /// An unchanged value does not write again.
+    /// </summary>
+    private async Task<ConversationResumeDto> SavePreferenceAsync(
+        Conversation conversation,
+        string key,
+        string value,
+        CancellationToken cancellationToken)
+    {
+        var existing = await FindPreferenceAsync(conversation.Id, key, cancellationToken);
+        var now = _timeProvider.GetUtcNow();
+        if (existing is null)
+        {
+            _dbContext.ConversationPreferences.Add(new ConversationPreference
+            {
+                Id = Guid.NewGuid(),
+                ConversationId = conversation.Id,
+                Key = key,
+                Value = value,
+                UpdatedAt = now
+            });
+        }
+        else if (existing.Value == value)
+        {
+            return await ResumeAsync(conversation.HouseholdId, conversation.Id, cancellationToken);
+        }
+        else
+        {
+            existing.Value = value;
+            existing.UpdatedAt = now;
+        }
+
+        conversation.UpdatedAt = now;
+        await SaveAsync(cancellationToken);
+        return await ResumeAsync(conversation.HouseholdId, conversation.Id, cancellationToken);
     }
 
     /// <summary>

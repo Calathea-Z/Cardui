@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Cardui.Api.Configuration;
+using Cardui.Api.Domain.Planning;
 using Cardui.Api.Dtos.Planning;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Options;
@@ -181,6 +182,43 @@ public class OpenAiPlanningModelTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             model.ReplyAsync(new PlanningModelRequest("Hello", null), cancellation.Token));
+    }
+
+    [Fact]
+    public async Task ReplyAsync_RefusesABankTokenBeforeCallingOpenAi()
+    {
+        var handler = new RecordingHandler();
+        var logger = new ListLogger();
+        var model = CreateModel(handler, ConfiguredOptions(), logger);
+        const string token = "access-sandbox-do-not-send";
+
+        var input = await Assert.ThrowsAsync<BadRequestException>(() =>
+            model.ReplyAsync(new PlanningModelRequest("See " + token, "Stay brief."), CancellationToken.None));
+        var instructions = await Assert.ThrowsAsync<BadRequestException>(() =>
+            model.ReplyAsync(
+                new PlanningModelRequest("What is next?", "dp:v1:protected-token"),
+                CancellationToken.None));
+
+        Assert.Equal(PlanningShareRules.TokenRefusal, input.Message);
+        Assert.Equal(PlanningShareRules.TokenRefusal, instructions.Message);
+        Assert.Null(handler.Request);
+        Assert.DoesNotContain(logger.Messages, message => message.Contains(token, StringComparison.Ordinal));
+        Assert.DoesNotContain(logger.Messages, message => message.Contains("dp:v1:", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ReplyAsync_SendsOrdinaryAccessWording()
+    {
+        var handler = new RecordingHandler();
+        var model = CreateModel(handler, ConfiguredOptions());
+
+        var reply = await model.ReplyAsync(
+            new PlanningModelRequest("Please access the savings account.", "Stay brief."),
+            CancellationToken.None);
+
+        Assert.Equal("Keep the minimum.", reply.Text);
+        Assert.NotNull(handler.Request);
+        Assert.Contains("Please access the savings account.", handler.Body, StringComparison.Ordinal);
     }
 
     #region Private Methods

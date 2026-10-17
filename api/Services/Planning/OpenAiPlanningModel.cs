@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Cardui.Api.Configuration;
+using Cardui.Api.Domain.Planning;
 using Cardui.Api.Dtos.Planning;
 using Cardui.Api.Exceptions;
 using Cardui.Api.Options;
@@ -35,6 +36,8 @@ public sealed class OpenAiPlanningModel : IPlanningModel
     {
         RequireConfigured();
         var input = RequireInput(request);
+        RejectToken(input);
+        RejectToken(request.Instructions);
         using var response = await SendAsync(input, request.Instructions, cancellationToken);
         var text = await ReadTextAsync(response, cancellationToken);
         return new PlanningModelReply(text);
@@ -50,6 +53,18 @@ public sealed class OpenAiPlanningModel : IPlanningModel
         if (!PlanningModelConfiguration.IsConfigured(_options))
         {
             throw new PlanningModelNotConfiguredException();
+        }
+    }
+
+    /// <summary>
+    /// Refuses a bank access token before any request is posted.
+    /// The token is not logged.
+    /// </summary>
+    private static void RejectToken(string? text)
+    {
+        if (PlanningShareRules.ContainsToken(text))
+        {
+            throw new BadRequestException(PlanningShareRules.TokenRefusal);
         }
     }
 

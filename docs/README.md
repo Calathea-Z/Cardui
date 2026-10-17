@@ -11,21 +11,21 @@ history. They do not say what is next.
 
 **Now**
 
-[Calculation forecasts](reviews/2026-10-16-015-calculation-forecasts.md) was
-approved on October 16, 2026. It is Phase 4 item 7. Every amount and date in
-the forecast is copied from the plan calculation. The assumptions stay with
-those numbers, and a tradeoff names both sides. No model or price is chosen.
-Items 8–9 have not started. Detail panel keyboard focus stays tracked. The
+[Data sharing](reviews/2026-10-16-016-data-sharing.md) was approved on
+October 16, 2026. It is Phase 4 item 8. A conversation records an explicit
+yes or no before household data can be prepared for the planning model. A
+bank access token is left out. A transaction description or uploaded text
+is quoted as data. No model or price is chosen. Item 9 has not started.
+Detail panel keyboard focus stays tracked. The
 [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 4 item 8, define data-sharing consent and minimization. Never expose
-   bank access tokens to the model. Treat transaction descriptions and
-   uploaded text as untrusted data, not instructions. Do not start it in the
-   review that approved item 7. Leave the planning-model settings blank until
-   a review asks for a live call.
+1. Phase 4 item 9, add timeout, retry, and cost limits, safe logging, and a
+   fallback that preserves the draft and lets the person continue manually.
+   Do not start it in the review that approved item 8. Leave the
+   planning-model settings blank until a review asks for a live call.
 
 **Tracked, not scheduled**
 
@@ -42,6 +42,8 @@ stays as written.
 
 ## Map
 
+- [Data sharing](reviews/2026-10-16-016-data-sharing.md): Phase 4 item 8,
+  approved October 16, 2026.
 - [Calculation forecasts](reviews/2026-10-16-015-calculation-forecasts.md):
   Phase 4 item 7, approved October 16, 2026.
 - [Plan revision review](reviews/2026-10-16-014-plan-revision-review.md):

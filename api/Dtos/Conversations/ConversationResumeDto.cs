@@ -5,7 +5,8 @@ namespace Cardui.Api.Dtos.Conversations;
 /// <summary>
 /// A conversation as it can be resumed on a later day.
 /// Summary is null until one is saved. Questions lists only those still unanswered.
-/// Preferences are notes on this conversation. They do not change pay, bills, debts, allocation, or a saved plan.
+/// Preferences are notes on this conversation, plus the data-sharing choice when one is stored.
+/// A note does not change pay, bills, debts, allocation, or a saved plan.
 /// Plan versions are links. A link does not accept or edit the plan.
 /// </summary>
 public sealed class ConversationResumeDto

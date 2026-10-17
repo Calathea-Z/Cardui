@@ -74,6 +74,7 @@ public interface IConversationService
     /// Saves a note on this conversation.
     /// The same name, ignoring case, replaces the note and keeps the name that was stored first.
     /// Pay, bills, debts, allocation, and saved plans stay as they are.
+    /// The data-sharing name is reserved and is rejected.
     /// </summary>
     Task<ConversationResumeDto> SetPreferenceAsync(
         Guid conversationId,
@@ -82,7 +83,18 @@ public interface IConversationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Records whether this conversation may include household data in a planning-model request.
+    /// True stores allowed. False stores declined. A note cannot set this choice.
+    /// Connecting a bank or importing a file does not call this. A closed conversation is rejected.
+    /// </summary>
+    Task<ConversationResumeDto> SetDataSharingAsync(
+        Guid conversationId,
+        bool allowed,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Removes one note. The name match ignores case.
+    /// The data-sharing choice is not a note, so this cannot remove it.
     /// </summary>
     Task<ConversationResumeDto> RemovePreferenceAsync(
         Guid conversationId,

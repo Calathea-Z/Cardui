@@ -23,5 +23,4 @@ order is unchanged.
 
 Plan's fourth position is intentional and is not a UX or governance defect.
 
-Source: `docs/reviews/2026-10-08-006-phase-2-ux-audit.md`,
-`.cursor/rules/ui-governance.mdc`.
+Detail: `.cursor/rules/ui-governance.mdc`.

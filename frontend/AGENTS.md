@@ -8,8 +8,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-Repository-wide notes are in the root `AGENTS.md`. Current work is in
-`docs/README.md`. The full text of each rule is in `.cursor/rules/`.
+Repository-wide notes are in the root `AGENTS.md`. Linear is the source of
+truth for current work. Durable priorities are in `docs/README.md`. The
+full text of each rule is in `.cursor/rules/`.
 
 - Security: `.cursor/rules/security.mdc`. Never put a Clerk secret, a
   Plaid token, or a session token in a `NEXT_PUBLIC_` value, a log, or

@@ -10,7 +10,7 @@ Core journey item 2. This proposes how Zach's phone reaches the local app.
 It does not install software, change bind addresses, CORS, content security
 policy, Clerk settings, or authorized origins, and it does not publish
 startup commands. The sequence and acceptance contract are approved in
-[`2026-10-17-004-core-journey-sequence.md`](2026-10-17-004-core-journey-sequence.md).
+[`docs/roadmap.md`](../roadmap.md).
 
 ## Proposed setup
 
@@ -86,3 +86,9 @@ item 3.
 Approve this setup, and name the phone OS and browser, or ask for a
 different one. Item 5 waits for that approval. Item 3 is next only after
 this proposal is approved.
+
+## Correction
+
+October 17, 2026. Desktop guided recovery and MX connectivity now come
+before phone access. This proposal still awaits review, and it is not the
+gate for household scoping. Nothing in the proposal was installed.

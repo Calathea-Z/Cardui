@@ -20,14 +20,7 @@ account's balance and credit limit. A sync still never overwrites what the perso
 
 On October 6, 2026, this note was written before a debt could follow an
 account. Follow a balance, overrides, suggested matches, credit limit, and
-reconnect are approved. The reviews are
-[`2026-10-06-002-sync-correctness.md`](../reviews/2026-10-06-002-sync-correctness.md),
-[`2026-10-07-002-follow-a-balance.md`](../reviews/2026-10-07-002-follow-a-balance.md),
-[`2026-10-07-003-balance-overrides.md`](../reviews/2026-10-07-003-balance-overrides.md),
-[`2026-10-07-005-suggested-matches.md`](../reviews/2026-10-07-005-suggested-matches.md),
-[`2026-10-07-006-credit-limit.md`](../reviews/2026-10-07-006-credit-limit.md),
-and
-[`2026-10-07-007-reconnect.md`](../reviews/2026-10-07-007-reconnect.md).
+reconnect are approved. The increment reports are in Git history.
 
 The sections below are the rules that shipped. They are not a second backlog.
 
@@ -263,11 +256,8 @@ source, synced value, and as-of date. The frontend types are in
 
 ## Dependency: sync correctness first
 
-Approved in
-[`2026-10-06-002-sync-correctness.md`](../reviews/2026-10-06-002-sync-correctness.md).
-This section records why follow waited for account sync. It is not open work.
-The Plaid transaction reconciliation tests were already done
-([`2026-10-05-008-plaid-sync-reconciliation-tests.md`](../reviews/2026-10-05-008-plaid-sync-reconciliation-tests.md)).
+Approved on October 6, 2026. This section records why follow waited for account sync. It is not open work.
+The Plaid transaction reconciliation tests were already done.
 Slice 0 covered:
 
 - `PlaidAccountSyncService` tests: balances copied, today's snapshot

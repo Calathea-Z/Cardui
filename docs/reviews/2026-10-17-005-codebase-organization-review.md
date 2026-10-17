@@ -190,8 +190,7 @@ that increment fits the approved journey work.
 ## Note (2026-10-17)
 
 Zach incorporated findings 1 and 2 into the approved core journey sequence.
-The sequence is in
-[`2026-10-17-004-core-journey-sequence.md`](2026-10-17-004-core-journey-sequence.md).
+The sequence is in [`docs/roadmap.md`](../roadmap.md).
 Those checks were not run. Finding 1 is core journey item 3. Finding 2 is
 item 8. The PostgreSQL coverage in finding 5, for the journey tests, starts
 in item 4. Findings 3 and 4, and the organization notes, stay in this report

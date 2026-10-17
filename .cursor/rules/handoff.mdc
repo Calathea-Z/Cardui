@@ -1,40 +1,46 @@
 ---
-description: After an approved increment, give a commit message and the next-chat prompt. Ask before a prompt that skips open roadmap work.
+description: Review finished work in chat. Wait for approval before a commit message, a next task, or a Linear update.
 alwaysApply: true
 ---
 
-# Review handoff
+# Task review
 
-Each review report updates the Now / Next / Open decisions block in
-`docs/README.md` in the same change. That block is the single source for
-current work. See `docs/reviews/README.md` for the report conventions.
+Linear is the source of truth for current work. The selected Linear issue
+is the task. Read that issue, `AGENTS.md`, the applicable rules,
+`docs/README.md`, relevant decisions and roadmap sections, and the code
+before changing anything. Implement or investigate only that issue. When
+no issue is selected, ask which one to work on. Do not choose a task from
+`docs/README.md` or `docs/roadmap.md`.
 
-When Zach approves an increment, or asks for the wrap-up, give both of these
-in the same reply. Do not start the next increment in that reply.
+When the work is finished, review it in the chat. Cover what changed or was
+discovered, important decisions, files affected, tests and checks run,
+checks not run, manual verification still waiting, and remaining risks or
+follow-up. Then wait. The work is approved only after an explicit approval
+in the chat.
 
-1. **Commit message.** One or two sentences that say why the change exists.
-   Do not commit unless Zach asks.
-2. **Next-chat prompt.** A paste-ready block that names `AGENTS.md`,
-   `docs/README.md`, the latest review, `docs/reviews/README.md`, and the
-   pending decision or next roadmap item. A new chat should be able to start
-   from those files alone.
+Do not commit, push, close or edit the Linear issue, or start the next task
+unless asked. After approval, suggest a one- or two-sentence commit message
+that says why the change exists. Write a next-task prompt only when asked.
+That prompt names the selected Linear issue, `AGENTS.md`, `docs/README.md`,
+and the relevant rules and docs. It does not depend on a previous review
+report.
 
-Before writing that prompt, compare the item it would name with
-`docs/roadmap.md`. The plan is out of order when that item would skip an
-earlier item in the same phase, or an earlier phase item the roadmap still
-lists as not started. An inserted section the roadmap places before that
-earlier item is in order. Skipping past it is not.
+If the selected issue conflicts with the current priorities or open
+decisions in `docs/README.md` or `docs/roadmap.md`, name the conflict and
+ask before continuing. Do not treat the next roadmap item as the next task.
 
-When it is out of order, stop before the prompt. Name the earlier items
-that are still open and the later item the prompt would start. Ask Zach
-whether he knows the plan is out of order and wants to continue with that
-later work. Ask again before every later prompt that would skip those
-items. A yes on one prompt does not cover the next handoff. Write the
-prompt only after he says to continue. If he says no, the prompt names
-the earliest open item instead.
+Update a repository document only when the information has lasting value:
+an architectural decision, a financial calculation rule or assumption, a
+security, privacy, consent, or data-integrity decision, a complex
+integration or operational procedure, or an investigation whose findings
+must be kept. Prefer the existing decision, design, reference, or roadmap
+document. A routine UI change, bug fix, refactor, or implementation summary
+stays in the chat, the Linear issue, the pull request, the tests, and Git
+history.
 
-On October 8, 2026, Phase 2 items 7 and 8 were still not started when a
-prompt said to start Phase 3. That prompt should have waited for a yes.
-
-Stay in the current chat if the increment is unfinished or the reasoning is
-not in the repository yet.
+`docs/reviews/` holds an open investigation only until it is reviewed. Do not
+add a report for a routine increment. After review, move actionable findings
+to Linear and lasting knowledge into a decision, design, reference, or the
+roadmap, then delete the note. The folder goes away when it is empty. Update
+the priorities or open decisions in `docs/README.md`, and the roadmap status,
+only when an approved task changes them.

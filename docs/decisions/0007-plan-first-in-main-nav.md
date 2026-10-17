@@ -20,5 +20,5 @@ Zach changed the order on October 8. Plan remains primary but is fourth,
 after Home, Accounts, and Activity. See
 [0009](0009-home-accounts-activity-plan-order.md).
 
-Source: `docs/reviews/2026-10-07-013-plan-nav.md`,
-`.cursor/rules/ui-governance.mdc`.
+The October 7 order is in Git history.
+`.cursor/rules/ui-governance.mdc` records the current order.

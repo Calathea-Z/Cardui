@@ -36,5 +36,5 @@ is also reached from Accounts.
 A new screen is a primary destination, a Plan setup editor, or a setting.
 The shell does not add a fifth tab. Existing editor routes stay reachable.
 
-Source: `docs/design/phase-3-ux-handoff.md`,
-`docs/reviews/2026-10-15-007-plan-navigation-and-safety.md`.
+Accepted October 15, 2026. The shell rule is in
+`.cursor/rules/ui-governance.mdc`.

@@ -22,5 +22,5 @@ The primary destinations and their order are in
 Savings joined the account menu at `/savings`. Plan budget joined the same
 day at `/living`, after Debts and before Savings.
 
-Source: `docs/design/ui-direction.md`, `.cursor/rules/ui-governance.mdc`,
-`docs/reviews/2026-10-05-018-ui-governance.md`.
+Detail: [`docs/design/ui-direction.md`](../design/ui-direction.md),
+`.cursor/rules/ui-governance.mdc`.

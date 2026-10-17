@@ -20,5 +20,4 @@ removed, breathing room, and the cash outlook. Home keeps the history.
 A forecast on Home or Accounts points to Plan instead of drawing a second
 copy. The page shape is in [`docs/design/plan-page.md`](../design/plan-page.md).
 
-Source: `docs/design/plan-page.md`,
-`docs/reviews/2026-10-07-014-plan-recovery.md`.
+Detail: [`docs/design/plan-page.md`](../design/plan-page.md).

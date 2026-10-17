@@ -21,6 +21,4 @@ facts, without partner invitations.
 Multifactor authentication, passkeys, a configurable session lifetime, and
 removing Clerk branding wait for a Pro upgrade. Partner access is Phase 7.
 
-Source: `docs/reviews/archive/phase-1/2026-10-03-007-phase-1-sign-in-decision.md`,
-`docs/reviews/archive/phase-1/2026-10-03-008-clerk-household-owner.md`,
-`docs/reviews/archive/phase-1/2026-10-03-009-household-scope.md`.
+Accepted October 3, 2026. The increment reports are in Git history.

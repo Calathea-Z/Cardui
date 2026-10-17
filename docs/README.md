@@ -5,39 +5,42 @@ Updated: 2026-10-17
 
 ## Status
 
-This block is the single source for current work. Update it in the same
-change as each review report. Reviews and phase status paragraphs record
-history. They do not say what is next.
+Linear is the source of truth for current work. The selected issue is the
+task. This block records durable priorities and open decisions. Update it
+only when an approved task changes them. It does not choose the next issue.
 
 **Now**
 
-The [phone-access proposal](reviews/2026-10-17-006-phone-access-proposal.md)
-awaits review. It is core journey item 2. It proposes Tailscale Serve on
-Zach's tailnet, with Funnel left off, and it does not turn access on.
+The [planning architecture](design/planning-architecture.md) map is approved.
+Desktop guided recovery and MX connectivity come before phone access. The
+next increment is core journey item 3 in [`roadmap.md`](roadmap.md): scope
+the working plan to the signed-in household. Items 4, 6, 7, and 8 then build
+the guided path on the desktop. Item 12 proposes MX connectivity after that
+desktop path and before the phone. Its scope is not written. Phone items 2
+and 5 wait.
 
-The [core journey sequence](reviews/2026-10-17-004-core-journey-sequence.md)
-and its acceptance contract are approved. Scripted replies are marked
-**Scripted reply** on the message. `Scripted` is limited to Development and
-the test host. Item 3 scopes the working plan to the signed-in household.
-Item 4 adds the minimal chat view. Phase 4 items 1–9 stay approved as
-backend components, and the phase exit is not met. Phase 5 item 1 stays
-approved: Overview still answers the next 30 days first, and under that
-action the working preview lists the remaining ranked actions, the
-milestones the calculation produced, and the unset bills, flexible spending,
-and cash to keep. Calculation rules stay on Your plan. Planning calls
-register with the planning model, so the sync worker starts while those
-settings stay blank. There is no chat screen and no live OpenAI call.
-Detail panel keyboard focus stays tracked. The
-[October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
-stays as written.
+The core journey sequence and its acceptance contract are approved in the
+roadmap. The scripted planning provider in that sequence is not in the
+application code. Phase 4 items 1–9 stay approved as backend components, and
+the phase exit is not met. Phase 5 item 1 stays approved: Overview still
+answers the next 30 days first, and under that action the working preview
+lists the remaining ranked actions, the milestones the calculation
+produced, and the unset bills, flexible spending, and cash to keep.
+Calculation rules are in
+[`reference/recovery-calculations.md`](reference/recovery-calculations.md).
+Conversation limits are in
+[`reference/planning-conversation.md`](reference/planning-conversation.md).
+Planning calls register with the planning model, so the sync worker starts
+while those settings stay blank. There is no chat screen and no live OpenAI
+call. Detail panel keyboard focus stays tracked.
 
 **Next**
 
-Review the phone-access proposal. Do not install Tailscale, change network
-settings, or start item 3 in that approval. After the proposal is approved,
-item 3 scopes the existing working plan to the signed-in household. Leave
-the planning-model API key and model blank until core journey item 9 asks
-for a live call. Ask before generating or applying a migration.
+Start core journey item 3. Scope the existing browser working plan to the
+signed-in household. Do not add chat, a planning-model provider, an MX
+connection, or phone access in that increment. Leave the planning-model
+API key and model blank until core journey item 9 asks for a live call.
+Ask before generating or applying a migration.
 
 Phase 5 items 2–5 stay paused: action states and dependencies, automatic
 recalibration, richer indicators, and behavioral supports.
@@ -50,76 +53,46 @@ recalibration, richer indicators, and behavioral supports.
 
 **Open decisions**
 
-- The phone-access proposal: approve Tailscale Serve for the tailnet, and
-  name the phone OS and browser. Nothing is installed, and no network
-  access has changed.
+- The phone-access proposal remains unapproved and is not next. Nothing is
+  installed. It waits behind MX connectivity. The note is in
+  [`reviews/2026-10-17-006-phone-access-proposal.md`](reviews/2026-10-17-006-phone-access-proposal.md).
+- Whether the approved architecture map covers the work Linear still titles
+  TOR-2. Linear was not changed.
+- Whether a saved allocation should remain outside the recovery calculation.
 - Which OpenAI model to use, and the spending cap for item 9. The API key
-  and model stay blank. Early chat uses the scripted planning model in
-  Development and the test host only.
+  and model stay blank. The scripted provider named in the roadmap is not
+  built.
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
 - The remaining codebase-review findings stay unscheduled: worker failure
-  isolation, history loading, and the organization notes.
+  isolation, history loading, and the organization notes. The note is in
+  [`reviews/2026-10-17-005-codebase-organization-review.md`](reviews/2026-10-17-005-codebase-organization-review.md).
+  Findings 1 and 2 are already core journey items 3 and 8. Their checks
+  were not run.
+- Conversational read, preview, and save are mapped and awaiting review in
+  [`reviews/2026-10-17-007-conversational-planning-readiness.md`](reviews/2026-10-17-007-conversational-planning-readiness.md).
+  No route or screen calls them. TOR-3 and TOR-4 have not started.
 
 ## Map
 
-- [Codebase organization review](reviews/2026-10-17-005-codebase-organization-review.md):
-  awaiting review, October 17, 2026. Findings 1 and 2 are incorporated into
-  the core journey sequence. Their checks were not run. The other findings
-  stay unscheduled.
-- [Phone-access proposal](reviews/2026-10-17-006-phone-access-proposal.md):
-  core journey item 2, awaiting review, October 17, 2026. Tailscale Serve
-  on the tailnet. Access is not turned on.
-- [Core journey sequence](reviews/2026-10-17-004-core-journey-sequence.md):
-  approved October 17, 2026, including the acceptance contract. Scripted
-  replies stay labeled and development-only. Item 3 is split.
-- [Plan follow-through](reviews/2026-10-17-001-plan-follow-through.md):
-  Phase 5 item 1, approved October 17, 2026.
-- [Planning call limits](reviews/2026-10-16-017-planning-call-limits.md):
-  Phase 4 item 9, approved October 16, 2026.
-- [Data sharing](reviews/2026-10-16-016-data-sharing.md): Phase 4 item 8,
-  approved October 16, 2026.
-- [Calculation forecasts](reviews/2026-10-16-015-calculation-forecasts.md):
-  Phase 4 item 7, approved October 16, 2026.
-- [Plan revision review](reviews/2026-10-16-014-plan-revision-review.md):
-  Phase 4 item 6, approved October 16, 2026.
-- [Fact basis](reviews/2026-10-16-013-fact-basis.md): Phase 4 item 5,
-  approved October 16, 2026.
-- [Useful questions](reviews/2026-10-16-012-useful-questions.md): Phase 4
-  item 4, approved October 16, 2026.
-- [Narrow tools](reviews/2026-10-16-011-narrow-tools.md): Phase 4 item 3,
-  approved October 16, 2026.
-- [Persisted conversations](reviews/2026-10-16-010-persisted-conversations.md):
-  Phase 4 item 2, approved October 16, 2026. `20261016190413_AddConversations`
-  is applied.
-- [Planning model](reviews/2026-10-16-009-planning-model.md): Phase 4 item 1,
-  approved October 16, 2026.
-- [Phase 3 close](reviews/2026-10-16-008-phase-3-close.md): closed October 16,
-  2026. The [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md)
-  sequence is approved. Increment 1 is approved in
-  [Plan next month first](reviews/2026-10-16-004-plan-next-month-first.md).
-  Increment 2 is approved in
-  [One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md).
-  Increment 3 is approved in
-  [Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md).
-  The [October 15 handoff](design/phase-3-ux-handoff.md)
-  stays as the approved increments 1–3.
-
-| Path                                                                                             | What it is                                                                                                                                                 |
-| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`roadmap.md`](roadmap.md)                                                                       | Product direction, the phase backlog, and what each phase built                                                                                            |
-| [`decisions/`](decisions/)                                                                       | Short decision records for product and architecture choices (listed below)                                                                                 |
-| [`design/linked-manual-debts.md`](design/linked-manual-debts.md)                                 | Linked manual debts design. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved                               |
-| [`design/plan-page.md`](design/plan-page.md)                                                     | Plan page design: Overview, Try changes, and Your plan, with cash, debt, and offer as supporting views. The next-month layout is approved                     |
-| [`design/savings.md`](design/savings.md)                                                         | Savings design: cash to keep, an emergency goal, and named goals under Saving for. Monthly living spending is edited on Living                             |
-| [`design/living.md`](design/living.md)                                                           | Plan budget design at `/living`: unequal contribution shares, one monthly flexible-spending amount, and a monthly affordability check                      |
-| [`design/allocation.md`](design/allocation.md)                                                   | Allocation setting: saved variable-income and windfall splits that can be reviewed and do not move money                                                    |
-| [`design/ui-direction.md`](design/ui-direction.md)                                               | Shared UI rationale and examples; the light shell is implemented and the enforceable rules are in `.cursor/rules/ui-governance.mdc`                        |
-| [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules                                                                                                      |
-| [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md)                 | Manual walkthrough template and the Phase 0 record                                                                                                         |
-| [`reviews/`](reviews/README.md)                                                                  | One report per increment, with an index                                                                                                                    |
-| [`archive/`](archive/)                                                                           | Superseded documents kept for reference                                                                                                                    |
+| Path | What it is |
+| --- | --- |
+| [`roadmap.md`](roadmap.md) | Product direction, the phase backlog, and what each phase built |
+| [`decisions/`](decisions/) | Short decision records for product and architecture choices |
+| [`design/planning-architecture.md`](design/planning-architecture.md) | Approved map of the recovery calculation, the saved plan, and the Plan page. Desktop guided recovery and MX connectivity come before phone access |
+| [`design/linked-manual-debts.md`](design/linked-manual-debts.md) | Linked manual debts. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved |
+| [`design/plan-page.md`](design/plan-page.md) | Plan page: Overview, Try changes, and Your plan |
+| [`design/savings.md`](design/savings.md) | Cash to keep, an emergency goal, and named goals |
+| [`design/living.md`](design/living.md) | Plan budget at `/living` |
+| [`design/allocation.md`](design/allocation.md) | Saved variable-income and windfall splits that do not move money |
+| [`design/ui-direction.md`](design/ui-direction.md) | Shared UI rationale. The enforceable rules are in `.cursor/rules/ui-governance.mdc` |
+| [`reference/recovery-calculations.md`](reference/recovery-calculations.md) | Interest, payoff, forecast, spendable cash, offers, and card activity |
+| [`reference/planning-conversation.md`](reference/planning-conversation.md) | What the planning model can and cannot do. The phase exit is not met |
+| [`reference/transaction-activity-conventions.md`](reference/transaction-activity-conventions.md) | Income, spending, refund, transfer, and pending rules |
+| [`checklists/original-mvp-acceptance.md`](checklists/original-mvp-acceptance.md) | Manual walkthrough template and the Phase 0 record |
+| [`archive/`](archive/) | Superseded documents and the October 16 behavior-QA record |
+| [`reviews/`](reviews/README.md) | Open investigations only. Closed increment reports are in Git history |
 
 Decision records:
 
@@ -148,5 +121,10 @@ root [`AGENTS.md`](../AGENTS.md) and `.cursor/rules/`.
   history. A numbered decision stays in `decisions/` so the sequence stays
   intact, and its status says what replaced it.
 - A decision record in `decisions/` is `NNNN-short-name.md`, 10–25 lines,
-  and links the review that holds the detail. Code conventions stay in
-  `.cursor/rules`, not in decision records.
+  and links the design, reference, or decision detail that holds the
+  substance. Code conventions stay in `.cursor/rules`, not in decision
+  records.
+- `reviews/` holds an open investigation only until it is reviewed. Actionable
+  findings then go to Linear. Lasting knowledge goes to a decision, design,
+  reference, or the roadmap. The folder goes away when it is empty. Do not
+  add a report for a routine increment.

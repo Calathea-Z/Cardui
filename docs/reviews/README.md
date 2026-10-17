@@ -30,8 +30,16 @@ decisions are in [`docs/README.md`](../README.md), not in these reports.
 For a new screen or substantial UI change, follow section 9 of
 [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
 
+## Core journey
+
+- [2026-10-17 — Codebase and organization review](2026-10-17-005-codebase-organization-review.md) — Awaiting review. Findings 1 and 2 are incorporated into the core journey sequence; their checks were not run
+- [2026-10-17 — Phone-access proposal](2026-10-17-006-phone-access-proposal.md) — Awaiting review
+- [2026-10-17 — Core journey sequence](2026-10-17-004-core-journey-sequence.md) — Approved 2026-10-17. Scripted replies are labeled and limited to Development and the test host. Item 3 is split
+
 ## UX assessments
 
+- [2026-10-17 — Mobile testing readiness](2026-10-17-003-mobile-testing-plan.md) — Approved 2026-10-17 for incorporation; device checks not run
+- [2026-10-17 — User journey, roadmap, and validation assessment](2026-10-17-002-user-journey-roadmap-assessment.md) — Approved 2026-10-17 for incorporation; proposed checks not run
 - [2026-10-16 — Phase 3 UX reassessment](2026-10-16-003-phase-3-ux-reassessment.md) — Approved 2026-10-16
 - [2026-10-15 — Phase 3 UX review](2026-10-15-006-phase-3-ux-review.md) — Awaiting review
 - [2026-10-08 — Phase 2 product and UX audit](2026-10-08-006-phase-2-ux-audit.md) — Approved 2026-10-08

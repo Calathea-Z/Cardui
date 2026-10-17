@@ -11,40 +11,69 @@ history. They do not say what is next.
 
 **Now**
 
-[Plan follow-through](reviews/2026-10-17-001-plan-follow-through.md) is
-approved. It is Phase 5 item 1. Overview still answers the next 30 days
-first. Under that action, the working preview lists the remaining ranked
-actions, the milestones the calculation produced, and the assumptions that
-are still unset: bills, flexible spending, and cash to keep. Calculation
-rules stay on Your plan. Planning calls register with the planning model, so
-the sync worker starts while those settings stay blank. There is no chat
-screen and no live OpenAI call. Detail panel keyboard focus stays tracked.
-The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+The [phone-access proposal](reviews/2026-10-17-006-phone-access-proposal.md)
+awaits review. It is core journey item 2. It proposes Tailscale Serve on
+Zach's tailnet, with Funnel left off, and it does not turn access on.
+
+The [core journey sequence](reviews/2026-10-17-004-core-journey-sequence.md)
+and its acceptance contract are approved. Scripted replies are marked
+**Scripted reply** on the message. `Scripted` is limited to Development and
+the test host. Item 3 scopes the working plan to the signed-in household.
+Item 4 adds the minimal chat view. Phase 4 items 1–9 stay approved as
+backend components, and the phase exit is not met. Phase 5 item 1 stays
+approved: Overview still answers the next 30 days first, and under that
+action the working preview lists the remaining ranked actions, the
+milestones the calculation produced, and the unset bills, flexible spending,
+and cash to keep. Calculation rules stay on Your plan. Planning calls
+register with the planning model, so the sync worker starts while those
+settings stay blank. There is no chat screen and no live OpenAI call.
+Detail panel keyboard focus stays tracked. The
+[October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 5 item 2, action states and dependencies. Do not start it in the
-   approval. There is still no chat screen. Leave the planning-model
-   settings blank until a review asks for a live call. Ask before generating
-   or applying a migration.
+Review the phone-access proposal. Do not install Tailscale, change network
+settings, or start item 3 in that approval. After the proposal is approved,
+item 3 scopes the existing working plan to the signed-in household. Leave
+the planning-model API key and model blank until core journey item 9 asks
+for a live call. Ask before generating or applying a migration.
+
+Phase 5 items 2–5 stay paused: action states and dependencies, automatic
+recalibration, richer indicators, and behavioral supports.
 
 **Tracked, not scheduled**
 
 - Detail panel keyboard focus. See "Tracked UI follow-ups" in
-  [`roadmap.md`](roadmap.md).
+  [`roadmap.md`](roadmap.md). Core journey item 11 includes it for the
+  panels on the primary path.
 
 **Open decisions**
 
+- The phone-access proposal: approve Tailscale Serve for the tailnet, and
+  name the phone OS and browser. Nothing is installed, and no network
+  access has changed.
+- Which OpenAI model to use, and the spending cap for item 9. The API key
+  and model stay blank. Early chat uses the scripted planning model in
+  Development and the test host only.
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
-- Which planning model to use, and what it costs. Item 1 calls the model
-  id from configuration. Item 9 caps the size of a call. Neither one
-  chooses a price.
+- The remaining codebase-review findings stay unscheduled: worker failure
+  isolation, history loading, and the organization notes.
 
 ## Map
 
+- [Codebase organization review](reviews/2026-10-17-005-codebase-organization-review.md):
+  awaiting review, October 17, 2026. Findings 1 and 2 are incorporated into
+  the core journey sequence. Their checks were not run. The other findings
+  stay unscheduled.
+- [Phone-access proposal](reviews/2026-10-17-006-phone-access-proposal.md):
+  core journey item 2, awaiting review, October 17, 2026. Tailscale Serve
+  on the tailnet. Access is not turned on.
+- [Core journey sequence](reviews/2026-10-17-004-core-journey-sequence.md):
+  approved October 17, 2026, including the acceptance contract. Scripted
+  replies stay labeled and development-only. Item 3 is split.
 - [Plan follow-through](reviews/2026-10-17-001-plan-follow-through.md):
   Phase 5 item 1, approved October 17, 2026.
 - [Planning call limits](reviews/2026-10-16-017-planning-call-limits.md):

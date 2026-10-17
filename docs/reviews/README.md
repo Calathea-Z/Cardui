@@ -43,6 +43,10 @@ For a new screen or substantial UI change, follow section 9 of
 - [2026-10-08 — Responsive UI/UX governance](2026-10-08-009-responsive-ui-governance.md) — Approved 2026-10-08
 - [2026-10-08 — Handoff roadmap order](2026-10-08-001-handoff-roadmap-order.md) — Approved 2026-10-08
 
+## Phase 5 — Follow-through
+
+- [2026-10-17 — Plan follow-through](2026-10-17-001-plan-follow-through.md) — Approved 2026-10-17
+
 ## Phase 4 — Guided conversation
 
 - [2026-10-16 — Planning call limits](2026-10-16-017-planning-call-limits.md) — Approved 2026-10-16

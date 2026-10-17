@@ -1,7 +1,7 @@
 # Cardui documentation
 
 Status: Current
-Updated: 2026-10-16
+Updated: 2026-10-17
 
 ## Status
 
@@ -11,23 +11,23 @@ history. They do not say what is next.
 
 **Now**
 
-[Planning call limits](reviews/2026-10-16-017-planning-call-limits.md) was
-approved on October 16, 2026. It is Phase 4 item 9. A planning-model call
-stops after 30 seconds, retries a transient failure at most twice, and will
-not send more than 24,000 characters or ask for more than 1,024 output
-tokens. No price is set. When the call cannot be answered, the open draft
-stays and the person can continue on Plan. There is no chat screen and no
-live OpenAI call. Phase 5 has not started. Detail panel keyboard focus
-stays tracked. The
-[October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+[Plan follow-through](reviews/2026-10-17-001-plan-follow-through.md) is
+approved. It is Phase 5 item 1. Overview still answers the next 30 days
+first. Under that action, the working preview lists the remaining ranked
+actions, the milestones the calculation produced, and the assumptions that
+are still unset: bills, flexible spending, and cash to keep. Calculation
+rules stay on Your plan. Planning calls register with the planning model, so
+the sync worker starts while those settings stay blank. There is no chat
+screen and no live OpenAI call. Detail panel keyboard focus stays tracked.
+The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 5 item 1, add next actions, milestones, and assumptions needing
-   confirmation to Plan. Do not start it in the review that approved item 9.
-   There is still no chat screen. Leave the planning-model settings blank
-   until a review asks for a live call.
+1. Phase 5 item 2, action states and dependencies. Do not start it in the
+   approval. There is still no chat screen. Leave the planning-model
+   settings blank until a review asks for a live call. Ask before generating
+   or applying a migration.
 
 **Tracked, not scheduled**
 
@@ -45,6 +45,8 @@ stays as written.
 
 ## Map
 
+- [Plan follow-through](reviews/2026-10-17-001-plan-follow-through.md):
+  Phase 5 item 1, approved October 17, 2026.
 - [Planning call limits](reviews/2026-10-16-017-planning-call-limits.md):
   Phase 4 item 9, approved October 16, 2026.
 - [Data sharing](reviews/2026-10-16-016-data-sharing.md): Phase 4 item 8,

@@ -1,7 +1,7 @@
 # Cardui roadmap
 
 Status: Approved. Direction approved October 2, 2026.
-Updated: 2026-10-16
+Updated: 2026-10-17
 
 Prepared September 25, 2026. Zach approved the direction on October 2, 2026 (`docs/reviews/archive/phase-0/2026-10-02-001-recovery-roadmap-direction.md`). It was based on the repository at that time, Zach's private planning notes in an untracked `Plan.md` (gitignored, not in the repository), the planning conversation, and the supplied capability inventory. Release boundaries below are recommendations, not approved scope cuts.
 
@@ -208,6 +208,8 @@ Design the conversation and test scripted prototypes during Phases 1–3. Produc
 7. Conduct complete alpha journeys: steady income, variable income, household contributions, missing debt terms, negative cash flow, irregular expense, windfall allocation, changed extra payment, refinance offer, and mid-plan income loss.
 
 **Exit:** users can complete the first-plan journey and first review without developer intervention, understand why the plan changed, and see useful next steps even when the numbers do not balance.
+
+**Status (October 17, 2026):** Item 1 is approved in [`docs/reviews/2026-10-17-001-plan-follow-through.md`](reviews/2026-10-17-001-plan-follow-through.md). Overview keeps the next-30-day figure and its one action. Under that action, the working preview shows the remaining ranked actions, the milestones the calculation produced, and unset bills, flexible spending, and cash to keep. The debt charts and the cash outlook are unchanged. No schema change. Items 2–7 have not started. There is no chat screen and no live OpenAI call. Detail panel keyboard focus stays tracked.
 
 ### Phase 6 — Public-beta readiness and affordability
 

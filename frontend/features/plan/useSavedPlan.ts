@@ -22,7 +22,7 @@ import {
 
 /**
  * Loads the decision preview and saved versions for Your plan.
- * A newer request replaces an older one. Save waits until this preview has been calculated, including after a failed refresh. Saving and accepting do not move money.
+ * `preview` can still be the previous scenario until `previewReady` is true. Save waits for the preview that matches this scenario, including after a failed refresh. Saving and accepting do not move money.
  */
 export function useSavedPlan(
   scenario: PlanScenarioQuery,
@@ -175,6 +175,7 @@ export function useSavedPlan(
 
   return {
     chrome,
+    preview,
     previewReady,
     loadStatus,
     saving,

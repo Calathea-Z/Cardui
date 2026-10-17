@@ -11,17 +11,23 @@ history. They do not say what is next.
 
 **Now**
 
-[Phase 3 behavior QA](reviews/2026-10-16-007-phase-3-behavior-qa.md) was
-approved on October 16, 2026. The walked checks passed. Phase 3 items 1–11
-and the October 16 UX increments stay approved, through
-[Remaining Plan edges](reviews/2026-10-16-006-remaining-plan-edges.md). This
-approval does not close Phase 3, and it does not start Phase 4. Detail panel
-keyboard focus stays tracked. The [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
+[Planning call limits](reviews/2026-10-16-017-planning-call-limits.md) was
+approved on October 16, 2026. It is Phase 4 item 9. A planning-model call
+stops after 30 seconds, retries a transient failure at most twice, and will
+not send more than 24,000 characters or ask for more than 1,024 output
+tokens. No price is set. When the call cannot be answered, the open draft
+stays and the person can continue on Plan. There is no chat screen and no
+live OpenAI call. Phase 5 has not started. Detail panel keyboard focus
+stays tracked. The
+[October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Zach's decision on whether to close Phase 3. Do not start Phase 4.
+1. Phase 5 item 1, add next actions, milestones, and assumptions needing
+   confirmation to Plan. Do not start it in the review that approved item 9.
+   There is still no chat screen. Leave the planning-model settings blank
+   until a review asks for a live call.
 
 **Tracked, not scheduled**
 
@@ -33,11 +39,34 @@ stays as written.
 - Hosting and production configuration. Until a public host exists,
   `Plaid:WebhookUrl` stays empty, so Plaid cannot report a revoked bank
   connection.
+- Which planning model to use, and what it costs. Item 1 calls the model
+  id from configuration. Item 9 caps the size of a call. Neither one
+  chooses a price.
 
 ## Map
 
-- [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md):
-  the current sequence. Increment 1 is approved in
+- [Planning call limits](reviews/2026-10-16-017-planning-call-limits.md):
+  Phase 4 item 9, approved October 16, 2026.
+- [Data sharing](reviews/2026-10-16-016-data-sharing.md): Phase 4 item 8,
+  approved October 16, 2026.
+- [Calculation forecasts](reviews/2026-10-16-015-calculation-forecasts.md):
+  Phase 4 item 7, approved October 16, 2026.
+- [Plan revision review](reviews/2026-10-16-014-plan-revision-review.md):
+  Phase 4 item 6, approved October 16, 2026.
+- [Fact basis](reviews/2026-10-16-013-fact-basis.md): Phase 4 item 5,
+  approved October 16, 2026.
+- [Useful questions](reviews/2026-10-16-012-useful-questions.md): Phase 4
+  item 4, approved October 16, 2026.
+- [Narrow tools](reviews/2026-10-16-011-narrow-tools.md): Phase 4 item 3,
+  approved October 16, 2026.
+- [Persisted conversations](reviews/2026-10-16-010-persisted-conversations.md):
+  Phase 4 item 2, approved October 16, 2026. `20261016190413_AddConversations`
+  is applied.
+- [Planning model](reviews/2026-10-16-009-planning-model.md): Phase 4 item 1,
+  approved October 16, 2026.
+- [Phase 3 close](reviews/2026-10-16-008-phase-3-close.md): closed October 16,
+  2026. The [Phase 3 UX reassessment](reviews/2026-10-16-003-phase-3-ux-reassessment.md)
+  sequence is approved. Increment 1 is approved in
   [Plan next month first](reviews/2026-10-16-004-plan-next-month-first.md).
   Increment 2 is approved in
   [One way to apply a change](reviews/2026-10-16-005-one-way-to-apply.md).

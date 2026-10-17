@@ -1,6 +1,6 @@
 # Phase 3 UX handoff for Cursor
 
-Status: Increments 1, 2, and 3 are approved. Do not start Phase 4.
+Status: Increments 1, 2, and 3 are approved. Phase 3 closed October 16, 2026. Do not start Phase 4.
 Updated: 2026-10-16
 
 Companion assessment: [Phase 3 UX review](../reviews/2026-10-15-006-phase-3-ux-review.md).

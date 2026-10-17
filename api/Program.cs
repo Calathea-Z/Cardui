@@ -9,6 +9,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddCarduiDatabase(builder.Configuration);
 builder.Services.AddCarduiPlaid(builder.Configuration);
+builder.Services.AddCarduiPlanningModel(builder.Configuration);
 builder.Services.AddCarduiApplicationServices(builder.Configuration, builder.Environment);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

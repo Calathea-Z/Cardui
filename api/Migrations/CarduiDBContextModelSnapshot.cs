@@ -322,6 +322,152 @@ namespace Cardui.Api.Migrations
                     b.ToTable("CategoryTargetMonths");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId");
+
+                    b.HasIndex(new[] { "HouseholdId" }, "IX_Conversations_HouseholdId_Open")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Open'");
+
+                    b.ToTable("Conversations");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("ConversationMessages");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationPlanLink", b =>
+                {
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlanVersionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ConversationId", "PlanVersionId");
+
+                    b.HasIndex("PlanVersionId");
+
+                    b.ToTable("ConversationPlanLinks");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("ConversationPreferences");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationQuestion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("AnsweredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "AnsweredAt");
+
+                    b.ToTable("ConversationQuestions");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Debt", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1179,6 +1325,69 @@ namespace Cardui.Api.Migrations
                     b.Navigation("Household");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.Conversation", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Household", "Household")
+                        .WithMany("Conversations")
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationMessage", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationPlanLink", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Conversation", "Conversation")
+                        .WithMany("PlanLinks")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cardui.Api.Models.PlanVersion", "PlanVersion")
+                        .WithMany()
+                        .HasForeignKey("PlanVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("PlanVersion");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationPreference", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Conversation", "Conversation")
+                        .WithMany("Preferences")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("Cardui.Api.Models.ConversationQuestion", b =>
+                {
+                    b.HasOne("Cardui.Api.Models.Conversation", "Conversation")
+                        .WithMany("Questions")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Debt", b =>
                 {
                     b.HasOne("Cardui.Api.Models.Account", "Account")
@@ -1376,6 +1585,17 @@ namespace Cardui.Api.Migrations
                     b.Navigation("Targets");
                 });
 
+            modelBuilder.Entity("Cardui.Api.Models.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("PlanLinks");
+
+                    b.Navigation("Preferences");
+
+                    b.Navigation("Questions");
+                });
+
             modelBuilder.Entity("Cardui.Api.Models.Group", b =>
                 {
                     b.Navigation("SubGroups");
@@ -1388,6 +1608,8 @@ namespace Cardui.Api.Migrations
                     b.Navigation("CategoryTargetMonths");
 
                     b.Navigation("Contributors");
+
+                    b.Navigation("Conversations");
 
                     b.Navigation("Debts");
 

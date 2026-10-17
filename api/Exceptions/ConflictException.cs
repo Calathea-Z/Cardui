@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 namespace Cardui.Api.Exceptions;
 
 /// <summary>
-/// The request names a plan version that is no longer the one it may change.
+/// The request conflicts with the saved row it is trying to change.
 /// A repeated accept of the accepted plan is not a conflict.
 /// </summary>
 public sealed class ConflictException : AppException

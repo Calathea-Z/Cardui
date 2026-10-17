@@ -31,6 +31,16 @@ public class CarduiDBContext : DbContext
 
     public DbSet<PlanVersion> PlanVersions => Set<PlanVersion>();
 
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+
+    public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
+
+    public DbSet<ConversationQuestion> ConversationQuestions => Set<ConversationQuestion>();
+
+    public DbSet<ConversationPreference> ConversationPreferences => Set<ConversationPreference>();
+
+    public DbSet<ConversationPlanLink> ConversationPlanLinks => Set<ConversationPlanLink>();
+
     public DbSet<CategoryTargetMonth> CategoryTargetMonths => Set<CategoryTargetMonth>();
 
     public DbSet<CategoryTarget> CategoryTargets => Set<CategoryTarget>();

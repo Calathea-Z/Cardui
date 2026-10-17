@@ -1,31 +1,33 @@
 # Cardui agent notes
 
-Read this file, `docs/README.md`, `docs/reviews/README.md`, and the latest
-review before starting work.
+Linear is the source of truth for current work. Read the selected Linear
+issue, this file, `docs/README.md`, and the relevant roadmap and decision
+docs before starting work. Do not start from the latest review report.
 
 ## Docs map
 
-- `docs/README.md`: the Now / Next / Open decisions block, the single
-  source for current work, and the map of every document.
+- `docs/README.md`: durable priorities, open decisions, and the map of
+  every document. It does not choose the next issue.
 - `docs/roadmap.md`: product direction, the phase backlog, and what each
   phase built.
 - `docs/decisions/`: short decision records for product and architecture
   choices.
 - `docs/design/`, `docs/reference/`, `docs/checklists/`: designs,
   standing rules for the data, and manual walkthroughs.
-- `docs/reviews/`: one report per increment, indexed in
-  `docs/reviews/README.md`. Closed phases are in `docs/reviews/archive/`.
+- `docs/reviews/`: open investigations only, listed in
+  `docs/reviews/README.md`. Closed increment reports are in Git history.
+  The folder goes away when it is empty.
 - `docs/archive/`: superseded documents kept for reference.
 
-Document conventions are in `docs/README.md`. Review-report conventions
-are in `docs/reviews/README.md`.
+Document conventions are in `docs/README.md`. The task-review rule is in
+`.cursor/rules/handoff.mdc`.
 
 ## Rules
 
 The full text of each rule is in `.cursor/rules/`. This file only points
 at them.
 
-- Review handoff: `.cursor/rules/handoff.mdc`
+- Task review: `.cursor/rules/handoff.mdc`
 - Security: `.cursor/rules/security.mdc`
 - Dead code: `.cursor/rules/dead-code.mdc`
 - Migrations: `.cursor/rules/migrations.mdc`

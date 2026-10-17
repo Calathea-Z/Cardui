@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-10-03
-Updated: 2026-10-07
+Updated: 2026-10-17
 
 ## Context
 
@@ -16,10 +16,8 @@ item without a household is skipped.
 
 ## Consequences
 
-A second sync does not start while one sync still holds the item. That
-guard is approved in
-`docs/reviews/2026-10-06-002-sync-correctness.md`. The deployed schedule
-is not verified yet.
+A second sync does not start while `PlaidItemSync.HoldsItem` still holds
+the item. The lease is 30 minutes. The deployed schedule is not verified
+yet.
 
-Source: `worker/README.md`,
-`docs/reviews/archive/phase-0/2026-10-03-006-phase-0-baseline-close.md`.
+Source: `worker/README.md`, `api/Domain/Plaid/PlaidItemSync.cs`.

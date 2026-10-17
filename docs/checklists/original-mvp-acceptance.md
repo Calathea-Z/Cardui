@@ -125,8 +125,10 @@ A failed item sets a non-zero exit code. An empty item list exits without syncin
 **Recorded result:** Pass. On October 3, 2026, Zach confirmed the local one-shot worker
 works and does what this section expects. This record does not include worker logs,
 per-item added, modified, or removed counts, or a new transaction-count check.
-Account synchronization and user edits surviving sync remain the confirmation in
-`docs/reviews/archive/phase-0/2026-10-03-002-preserve-transaction-user-edits.md`.
+Account synchronization and user edits surviving sync were confirmed on
+October 3, 2026. Edits saved before migration
+`20261003050300_PreserveTransactionUserEdits` are not marked, so a later
+sync can still replace those dates.
 
 ## 7. Review dashboard summaries
 
@@ -141,9 +143,9 @@ Account synchronization and user edits surviving sync remain the confirmation in
 
 Expected result: the API summary and the visible This month panel reconcile to
 the same controlled transactions. Home showed this panel as Monthly Activity before
-October 5, 2026. Those summaries were added on October 2, 2026 and
-confirmed in `docs/reviews/archive/phase-0/2026-10-02-003-dashboard-spending-and-financial-totals.md`
-and `docs/reviews/archive/phase-0/2026-10-02-004-transaction-activity-conventions.md`.
+October 5, 2026. Those summaries were added on October 2, 2026. Posted
+income, spending, refund, transfer, and pending rules are in
+[`docs/reference/transaction-activity-conventions.md`](../reference/transaction-activity-conventions.md).
 
 ## 8. Record the outcome
 

@@ -22,6 +22,3 @@ deferred and not planned.
 
 Follow, overrides, freshness, and reconnect are approved. Those rules are
 in [`docs/design/linked-manual-debts.md`](../design/linked-manual-debts.md).
-
-Source: `docs/reviews/2026-10-05-014-debts.md`,
-`docs/design/linked-manual-debts.md`.

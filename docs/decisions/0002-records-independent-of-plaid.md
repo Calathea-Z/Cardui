@@ -20,5 +20,4 @@ environment are all set. A partial set stops startup.
 
 Linked rows keep their Plaid ids. Sync code must leave manual rows alone.
 
-Source: `docs/reviews/archive/phase-1/2026-10-03-011-independent-financial-records.md`,
-`docs/reviews/archive/phase-1/2026-10-04-009-optional-plaid.md`.
+Accepted October 4, 2026. The increment reports are in Git history.

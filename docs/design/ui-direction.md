@@ -1,9 +1,8 @@
 # UI direction
 
 Status: Current. The light shell is approved. The October 8 governance
-clarification is approved in
-[`2026-10-08-009-responsive-ui-governance.md`](../reviews/2026-10-08-009-responsive-ui-governance.md).
-Updated: 2026-10-08
+clarification is in `.cursor/rules/ui-governance.mdc`.
+Updated: 2026-10-17
 
 The enforceable conventions for new screens and substantial UI changes are in
 [`.cursor/rules/ui-governance.mdc`](../../.cursor/rules/ui-governance.mdc).
@@ -77,8 +76,8 @@ making text or spacing smaller.
 
 The warning token has at least 5:1 contrast on its current white, canvas, and
 10% tint backgrounds. The eight jewel series are each at least 3:1 on white;
-their exact values and contrast check are recorded in
-[`2026-10-07-014-plan-recovery.md`](../reviews/2026-10-07-014-plan-recovery.md).
+their exact values are in `frontend/app/globals.css` and in
+[`plan-page.md`](plan-page.md). The earlier contrast table is in Git history.
 Green remains an accent, not a page fill. Household category colors appear
 only with their categories.
 
@@ -140,15 +139,7 @@ decision in
 Before October 5, 2026, the app used a dark journal theme, more than one
 typeface, a phone carousel, and bottom sheets at laptop widths. That shell
 is not a source for new screens. The light shell was approved on October 5,
-2026:
-
-- [`2026-10-05-002-light-shell-home.md`](../reviews/2026-10-05-002-light-shell-home.md)
-- [`2026-10-05-003-detail-surface.md`](../reviews/2026-10-05-003-detail-surface.md)
-- [`2026-10-05-004-picker-popovers.md`](../reviews/2026-10-05-004-picker-popovers.md)
-- [`2026-10-05-005-accounts-chart-header.md`](../reviews/2026-10-05-005-accounts-chart-header.md)
-- [`2026-10-05-007-signed-in-layout.md`](../reviews/2026-10-05-007-signed-in-layout.md)
-
-The current Plan page is in [`plan-page.md`](plan-page.md). Its three-view
-refinement is approved. The Planning UX assessment is approved as an
-assessment. Proposals it made that are not already built stay unscheduled.
-This direction does not approve a further Plan redesign.
+2026. The current Plan page is in [`plan-page.md`](plan-page.md). Its
+three-view refinement is approved. The October 8 planning assessment is
+approved as an assessment. Proposals it made that are not already built stay
+unscheduled. This direction does not approve a further Plan redesign.

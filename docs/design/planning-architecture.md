@@ -1,37 +1,43 @@
-Date: 2026-10-17
-Status: Approved 2026-10-17
-PR: None
-
 # Planning architecture
 
-## Increment
+Status: Approved
+Updated: 2026-10-17
 
-The architecture map requested while continuing TOR-5. The readiness report
-in [`2026-10-17-007-conversational-planning-readiness.md`](2026-10-17-007-conversational-planning-readiness.md)
-stays as written. This report inventories the recovery calculation, the
-saved plan, and the screens that call them. No code, calculation, route, or
-screen changed. TOR-3 and TOR-4 were not done. Tests were not run. Linear
-was not changed.
+Zach approved this map on October 17, 2026, including the direction that
+desktop guided recovery and MX connectivity come before phone access. The
+roadmap records that order. This document does not close Linear TOR-2,
+TOR-3, or TOR-4. Whether the map covers the work Linear still titles TOR-2
+is still open. Linear was not changed. No calculation, route, or screen
+changed with the approval.
 
-Linear still titles TOR-5 "Assess conversational planning readiness" and
-TOR-2 "Map the planning architecture and data flow." This request asked for
-the architecture deliverables here and said not to begin TOR-2. The overlap
-is a decision at the end. It is not a claim that TOR-2 is closed.
+The October 17 reading inventoried the recovery calculation, the saved
+plan, and the screens that call them. This cleanup re-checked
+`PlanService.GetRecoveryAsync`: it loads cash, outlook incomes, saved
+bills, the savings outlook, and contribution shares, and it does not load
+allocation or conversations. The file paths below existed on October 17,
+2026. The methods were not executed again. Tests were not run for the
+original map, and they were not run for this copy. Interest and
+amortization steps are in
+[`docs/reference/recovery-calculations.md`](../reference/recovery-calculations.md).
+Conversation limits are in
+[`docs/reference/planning-conversation.md`](../reference/planning-conversation.md).
+
+There are no MX types in `api/`. Plaid remains the connector in the app.
+Bank records stay independent of the connector, as in decision 0002. An MX
+connection is not a claim that Plaid is removed, and its scope is not
+written.
 
 ## How a recommendation is produced
 
-Cardui turns saved household facts into a recovery recommendation in one
-place: `PlanService.GetRecoveryAsync`. That method loads the records, runs
-the domain rules, and returns `PlanRecoveryDto`. Nothing in that response
-is stored.
+`PlanService.GetRecoveryAsync` loads the records, runs the domain rules,
+and returns `PlanRecoveryDto`. Nothing in that response is stored.
 
 The Plan page shows that response. Saving a plan calculates it again and
-stores the decision plan. A later conversational path, where one exists in
-services, calls the same two methods. It has no route and no screen.
+stores the decision plan. Conversational services, where they exist, call
+the same methods. They have no route and no screen.
 
 Allocation preferences and activity transactions are not inputs to
-`GetRecoveryAsync`. That is verified from the method's loads, not inferred
-from a missing comment.
+`GetRecoveryAsync`.
 
 ## Records
 
@@ -53,14 +59,13 @@ calculation does not.
 `ObligationsService.GetSuggestionsAsync` notices repeated activity through
 `RecurringSuggestions.Find`. Those suggestions are not in
 `GetOutlookBillsAsync`. A bill enters the forecast after it is saved on the
-bill form.
+bill form. The suggestion query was not re-opened for this copy. The bill
+load on `PlanService` was.
 
 ## Domain rules
 
-These types do not load or save rows. `PlanService.ProjectPlan` calls them
-in this order. The descriptions are the responsibilities in the source
-summaries. They are not a walk through the interest formula. That walk is
-TOR-3.
+These types do not load or save rows. `PlanService.ProjectPlan` calls them.
+The descriptions are the responsibilities in the source summaries.
 
 | Rule | File | Responsibility |
 | --- | --- | --- |
@@ -83,12 +88,13 @@ TOR-3.
 | `PlanningForecastRules.Compose` | `api/Domain/Planning/PlanningForecastRules.cs` | Words a forecast from numbers already on `PlanRecoveryDto`. It rejects a claim that adds a number. |
 | `PlanRevisionRules` | `api/Domain/Planning/PlanRevisionRules.cs` | Lists what accepting would change, and rejects a review whose conversation or plan has moved. |
 
-`HouseholdSavings.Project` (`api/Domain/Savings/HouseholdSavings.cs`) and
-`ContributionShare.Apply` run before the recovery rules. They shape the
-facts. They do not rank a payoff.
+`HouseholdSavings.Project` and `ContributionShare.Apply` run before the
+recovery rules. They shape the facts. They do not rank a payoff.
 
 `LivingGapCalculator.Measure` runs on the Living page inside
-`LivingService.Compose`. `GetRecoveryAsync` does not call it.
+`LivingService.Compose`. `GetRecoveryAsync` does not call it. That absence
+was checked from `PlanService`, which calls `GetSharedIncomesAsync` and
+does not mention the gap calculator.
 
 ## Application services
 
@@ -108,14 +114,14 @@ facts. They do not rank a payoff.
 | `PlanRevisions.ReviewAsync` | `api/Services/Implementations/PlanRevisions.cs` | Calculates the decision plan again and compares it with the conversation and the saved versions. |
 | `PlanRevisions.AcceptAsync` | same file | Calls the saved-plan draft and accept path when the review token still matches. |
 
-Fact proposals, questions, shares, and the model call are inventoried in
-the readiness report. They do not calculate a payoff. `IPlanningModel.ReplyAsync`
-sends no tools.
+Fact proposals, questions, shares, and the model call do not calculate a
+payoff. `IPlanningModel.ReplyAsync` sends no tools. The service rows other
+than `PlanService` were not re-opened method by method for this copy. Their
+files exist.
 
 ## HTTP and screens
 
-`PlanController` (`api/Controllers/PlanController.cs`) is the only
-controller on this path.
+`PlanController` is the only controller on this path.
 
 | Route | Method | Caller |
 | --- | --- | --- |
@@ -126,11 +132,10 @@ controller on this path.
 | `POST /api/plan/versions/{id}/accept` | `AcceptVersion` | `acceptPlanVersion`, from `useSavedPlan`. |
 | `POST /api/plan/restructuring` | `CompareRestructuring` | `frontend/lib/api/browser/restructuring.ts`, from `useRestructuringComparison`. |
 
-`frontend/features/plan/PlanPageClient.tsx` owns the page.
-`PlanWorkingScenario` edits the temporary scenario. `PlanDecision` saves
-and accepts. `PlanDebtPayoff` shows the payoff paths. `PlanOfferComparison`
-shows one restructuring offer. The page load does not call the decision or
-restructuring routes.
+`frontend/features/plan/PlanPageClient.tsx` owns the page. The page load
+does not call the decision or restructuring routes. The controller routes
+were confirmed from `PlanController`. The frontend caller names were not
+re-opened for this copy.
 
 The editors that write the facts, and are not the recovery calculation:
 
@@ -144,20 +149,10 @@ The editors that write the facts, and are not the recovery calculation:
 | `GET` and `POST /api/savings-goals` | `api/Controllers/SavingsGoalsController.cs` |
 | `GET` and `PUT /api/allocation` | `api/Controllers/AllocationController.cs` |
 
-No controller calls `IPlanningTools`, `IPlanningFacts`, `IPlanningQuestions`,
-`IPlanningForecasts`, `IPlanningShares`, `IPlanningCalls`, `IPlanRevisions`,
-or `IConversationService`. The frontend has no conversation client. That
-absence was checked by search.
-
 ## One household, from records to a saved plan
 
-This trace follows the methods above. Amounts are illustrative. The code
-does not special-case these figures.
-
-The household has a checking account, one paycheck, one saved rent bill,
-and one card with a balance, a rate, a minimum, and a due date. Living
-spending and cash to keep are saved on Savings. No extra payment is entered.
-The freed-cash choice on screen is to roll a freed payment forward.
+This trace follows the methods above. It uses no household's amounts. The
+code does not special-case a sample household.
 
 1. The account, paycheck, bill, debt, and savings editors write their rows
    through the controllers in the table above. Activity may show a repeated
@@ -187,14 +182,13 @@ The freed-cash choice on screen is to roll a freed payment forward.
    accepted. The accepted copy stays as stored. Later edits to pay, bills,
    or debts do not rewrite it. No money moves.
 
-A restructuring comparison is a side path. `PlanOfferComparison` posts the
-offer to `POST /api/plan/restructuring`. The offer is not saved and is not
-an input to the decision plan.
-
-### The same calculation, without a screen
+A restructuring comparison is a side path. The offer is posted to
+`POST /api/plan/restructuring`. The offer is not saved and is not an input
+to the decision plan.
 
 These calls exist and are not reachable from a page. Each one was read in
-source. None was executed for this report.
+the October 17 source pass. None was executed then, and none was executed
+for this copy.
 
 - `PlanningTools.RequestCalculationAsync` and `PlanningForecasts.DescribeAsync`
   both call `GetRecoveryAsync`. The forecast service then words the numbers.
@@ -281,8 +275,9 @@ calculation.
 
 ## Boundaries worth a decision
 
-These are overlaps and unused doors found in the source. They are not
-labeled defects.
+These are overlaps and unused doors found in the October 17 source reading.
+They are not labeled defects. This cleanup did not re-measure how many
+times each rule runs.
 
 - `GetRecoveryAsync` both loads records and runs the calculation.
   `SavedPlanService` both composes the decision plan and writes versions.
@@ -301,73 +296,9 @@ labeled defects.
   `PlanController.AcceptVersion` both end in `SavedPlanService`, with
   different guards. Only the controller is on a route.
 - Saved allocation is a Plan setup record and a planning-tool summary. It
-  is not an input to the payoff or the cash outlook.
+  is not an input to the payoff or the cash outlook. Whether it should
+  remain outside the recovery calculation is still open.
 - A conversation can link a `PlanVersion`, and a review can accept one.
   Accept does not create that link. The two associations are separate.
 - Bank balances reach the forecast only as `Account.CurrentBalance`. The
-  repository has Plaid sync and manual balances. It has no MX types. Whether
-  an MX connection would replace Plaid, or write the same account rows, is
-  not decided in this code.
-
-## Product direction
-
-Zach said desktop guided recovery and MX connectivity take priority over
-phone access. That conflicts with the current roadmap, which was not edited.
-
-`docs/roadmap.md` still places the phone-access proposal as core journey
-item 2, before household scoping and the minimal chat view. Bank
-connectivity in that document is Plaid. Plaid Liabilities is recorded there
-as deferred. MX does not appear in `docs/roadmap.md` or in the API.
-
-The readiness report's follow-ups still name that core journey order. This
-report does not replace them.
-
-## Acceptance criteria
-
-The criteria below are the ones in this request. Linear TOR-5's own text is
-the readiness list, which the earlier report covers.
-
-| Requested deliverable | Result |
-| --- | --- |
-| Inventory with file paths and methods | Recorded above for the recovery, forecast, scenario, restructuring, and plan-persistence path. Conversational services stay in the readiness report. |
-| Plain-English responsibility | One sentence each, from the method's job. Interest and amortization steps are not explained. |
-| Dependencies across records, domain, services, API, and screens | Recorded above. |
-| One trace, with the page path separate from the unrouted services | Recorded above. |
-| Mermaid diagram | Recorded above. |
-| Unclear boundaries, without calling them defects | Recorded above. |
-| Map to TOR-5 and name remaining gaps | This table. |
-
-Still open for TOR-5 as Linear writes it: review of the readiness report.
-This architecture report does not repeat that read, preview, and save list.
-
-Still open because this request left them to other issues:
-
-- TOR-3: the payoff, interest, and cash formulas, their assumptions, and
-  any calculation that should be simplified.
-- TOR-4: which of these rules have tests, and which financial cases do not.
-- A Keep, Simplify, Defer, or Investigate label for each component. TOR-1
-  asks for that. This report only names boundaries.
-
-## Verification
-
-Source was read. No test, live call, database command, or network change
-was run. No application code changed.
-
-## Approval
-
-Approved by Zach on October 17, 2026. The approval includes the direction
-that desktop guided recovery and MX connectivity come before phone access,
-and it includes updating the roadmap and the other planning documents to
-say that. TOR-3 and TOR-4 stay open. Linear was not changed. No calculation,
-route, or screen changed with this approval.
-
-## Pending decision
-
-- Whether this report covers the work Linear still titles TOR-2.
-- Whether a saved allocation should remain outside the recovery calculation.
-
-## Correction
-
-October 17, 2026. The product-direction section above described a conflict
-with the roadmap. That conflict was the state before this approval. The
-roadmap now records the directed order.
+  repository has Plaid sync and manual balances. It has no MX types.

@@ -187,9 +187,10 @@ Page-specific product decisions stay in that page's design document.
   product behavior, scope, or adds a dependency. Offer concise options and a
   recommendation. Spacing and ordinary component arrangement do not require
   approval.
-- A review for a new screen or substantial UI change briefly records what the
-  user sees and can do first, what is secondary and how it is reached, how the
-  layout adapts on mobile, and which visual or interaction checks await Zach.
+- The chat review for a new screen or substantial UI change briefly records
+  what the user sees and can do first, what is secondary and how it is
+  reached, how the layout adapts on mobile, and which visual or interaction
+  checks await Zach. Do not write a review file for that record.
 - Zach remains the manual visual, usability, and end-to-end tester. Agents run
   appropriate compilation, lint, formatting, and focused behavior checks for
   implementation changes. A passing build does not establish visual

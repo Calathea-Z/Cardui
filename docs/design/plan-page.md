@@ -1,25 +1,11 @@
 # Plan page
 
-Status: Current design record. The original recovery and cash views are
-approved. The implemented three-view refinement is approved. The offer
-comparison is approved. Spendable estimates are approved. Saved versions
-and the plain-language plan are approved. The October 15 navigation and
-cash-first Overview change is approved in
-[`2026-10-15-007-plan-navigation-and-safety.md`](../reviews/2026-10-15-007-plan-navigation-and-safety.md).
-Increment 2, the working scenario and saved-version clarity, is approved in
-[`2026-10-16-001-working-scenario-and-versions.md`](../reviews/2026-10-16-001-working-scenario-and-versions.md).
-Increment 3, payoff priority and partial reclaim, is approved in
-[`2026-10-16-002-payoff-priority-and-reclaim.md`](../reviews/2026-10-16-002-payoff-priority-and-reclaim.md).
-Increment 1 of the October 16 reassessment, the next-month answer first, is
-approved in
-[`2026-10-16-004-plan-next-month-first.md`](../reviews/2026-10-16-004-plan-next-month-first.md).
-Increment 2, one way to apply a change, is approved in
-[`2026-10-16-005-one-way-to-apply.md`](../reviews/2026-10-16-005-one-way-to-apply.md).
-Increment 3, the remaining Plan edges, is approved in
-[`2026-10-16-006-remaining-plan-edges.md`](../reviews/2026-10-16-006-remaining-plan-edges.md).
-Phase 5 item 1, next actions, milestones, and assumptions to confirm, is
-awaiting review in
-[`2026-10-17-001-plan-follow-through.md`](../reviews/2026-10-17-001-plan-follow-through.md).
+Status: Current design record. The recovery and cash views, the three-view
+layout, the offer comparison, spendable estimates, saved versions, the
+cash-first Overview, one working scenario, payoff priority and partial
+reclaim, the next-month answer, one way to apply a change, and the remaining
+Plan edges are approved. Phase 5 item 1, next actions, milestones, and
+assumptions to confirm, was approved on October 17, 2026.
 Date: October 7, 2026
 Updated: 2026-10-17
 
@@ -32,9 +18,7 @@ accessibility rules are in
 
 The first Plan page was two text cards. Zach's October 7 review replaced
 that with one long page. The October 8 refinement split the same report
-into Overview, Cash outlook, and Debt payoff. That refinement is approved
-in
-[`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
+into Overview, Cash outlook, and Debt payoff. That refinement is approved.
 
 Forward-looking charts still live on Plan. Home keeps historical results. See
 [decision 0008](../decisions/0008-forward-charts-on-plan.md).
@@ -84,10 +68,7 @@ that heading: Current facts, Trying changes — not saved, Saved draft, or
 Accepted plan. The working scenario is the Try changes view. The selected payoff
 behavior, extra payment, cash timeframe, highlighted debt, and offer form
 stay in the page-level state, so changing views or widths does not reset
-them. Only the open view renders. Your plan is approved in
-[`2026-10-15-005-saved-plan.md`](../reviews/2026-10-15-005-saved-plan.md).
-This grouping is approved in
-[`2026-10-15-007-plan-navigation-and-safety.md`](../reviews/2026-10-15-007-plan-navigation-and-safety.md).
+them. Only the open view renders. Your plan and this grouping are approved.
 
 ### Overview
 
@@ -387,7 +368,8 @@ for one band per debt.
   color that reads too close to `--success`, `--destructive`, or
   `--transfer` is adjusted. When built, emerald became `#00806e` and teal
   `#127c99`, because the starting emerald read close to `--success`. The
-  contrast table is in `docs/reviews/2026-10-07-014-plan-recovery.md`.
+  earlier contrast table is in Git history. The built colors are the ones
+  named here.
 - A debt's color comes from its position in the selected payment priority.
   Keep none, keep some, and keep all share that order, so the freed-cash
   choice does not recolor a debt. The chart, the tooltip, and the
@@ -427,8 +409,7 @@ The first four items are approved.
 
 1. **Page and debt charts.** The original summary, blocker list, balance
    chart, minimums and breathing room chart, payoff order, and assumptions
-   disclosure were approved in
-   [`2026-10-07-014-plan-recovery.md`](../reviews/2026-10-07-014-plan-recovery.md).
+   disclosure were approved on October 7, 2026.
 2. **Cash outlook.** The 30-day cash view and the 6, 12, and 18 month
    horizons, on Plan, following the switch. Starting cash is the Cash
    total on Accounts, in the household currency. Typical income, Bills,
@@ -438,13 +419,11 @@ The first four items are approved.
 3. **Three-view refinement.** Overview, Cash outlook, and Debt payoff reduce
    the initial scroll while preserving the same report, path comparison,
    extra-payment request, warnings, and source links. The extra field layout
-   is included. It is approved in
-   [`2026-10-08-008-plan-page-refinement.md`](../reviews/2026-10-08-008-plan-page-refinement.md).
+   is included. It was approved on October 8, 2026.
    No schema, route, dependency, or new financial calculation.
 4. **Temporary cash scenarios.** Income loss, a one-time windfall, flexible
    spending, and cash to keep, tried with the extra payment under Try a
-   scenario. Approved in
-   [`2026-10-08-012-plan-cash-scenarios.md`](../reviews/2026-10-08-012-plan-cash-scenarios.md).
+   scenario. Approved on October 8, 2026.
    No schema change.
 
 ## Decisions
@@ -522,11 +501,10 @@ rest of Phase 3 item 6 follows the same pattern for cash changes.
 
 ## Proposed future redesign
 
-The awaiting
-[`2026-10-08-003-planning-ux-review.md`](../reviews/2026-10-08-003-planning-ux-review.md)
-proposes broader guidance for the next payment action, affordability
-breakdowns, scenario comparisons, source links, and beginner-facing language.
-Those recommendations are an assessment, not an approved design. They are not
+The October 8, 2026 planning assessment, now in Git history, proposes broader
+guidance for the next payment action, affordability breakdowns, scenario
+comparisons, source links, and beginner-facing language. Those
+recommendations are an assessment, not an approved design. They are not
 implemented by the three-view refinement or by the shared governance update.
 
 Any later Plan redesign must reconcile that proposal with the roadmap,

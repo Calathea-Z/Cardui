@@ -19,4 +19,4 @@ left out of totals, with a notice, until conversion exists.
 Mixed-currency households see partial totals and the notice. Conversion is
 a separate later feature.
 
-Source: `docs/reviews/archive/phase-1/2026-10-03-018-financial-profile.md`.
+Accepted October 3, 2026. The increment report is in Git history.

@@ -109,7 +109,7 @@ Commands are Windows PowerShell, run from the repository root unless a step says
 | API | .NET 10, ASP.NET Core, EF Core, PostgreSQL 16 |
 | Web | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
 | Sign-in | Clerk |
-| Bank sync | Plaid, optional, through a one-shot worker |
+| Bank sync | Plaid, optional. The one-shot worker runs locally and is not deployed or scheduled |
 | Tests | xUnit in `tests/Cardui.Tests`, Node test scripts in `frontend/` |
 
 `global.json` pins the .NET SDK to 10.0.301. `frontend/package.json` pins pnpm to 10.33.0. Continuous integration uses Node.js 22.
@@ -118,7 +118,7 @@ Commands are Windows PowerShell, run from the repository root unless a step says
 
 - `api/`: HTTP API and EF Core migrations
 - `frontend/`: Next.js application
-- `worker/`: one-shot Plaid sync
+- `worker/`: one-shot Plaid sync for a local run. It is not deployed or scheduled
 - `tests/Cardui.Tests/`: .NET tests
 - `docs/`: roadmap, decisions, designs, and calculation rules. Start at [`docs/README.md`](docs/README.md)
 
@@ -197,7 +197,7 @@ Pop-Location
 
 Open `http://localhost:3000`.
 
-The worker has its own User Secrets store. It runs one sync pass and exits. Without Plaid credentials it skips bank sync. If connected items exist and those credentials are missing, it exits with code 1. Scheduling notes are in [`worker/README.md`](worker/README.md).
+The worker is implemented for a local run. It has not been deployed or scheduled. It has its own User Secrets store, runs one sync pass, and exits. Without Plaid credentials it skips bank sync. If connected items exist and those credentials are missing, it exits with code 1. Future scheduling notes are in [`worker/README.md`](worker/README.md).
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local PostgreSQL connection string>" --project .\worker

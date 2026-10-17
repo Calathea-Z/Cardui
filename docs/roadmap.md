@@ -68,7 +68,7 @@ Archived with the audit. Phases 0 and 1 below closed the gaps it found.
 
 **Exit:** dashboard and account totals agree for the same data; original Phase 1 has a documented acceptance walkthrough; repeated imports do not duplicate activity or lose user edits. Record remaining live-environment limitations explicitly.
 
-**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/checklists/original-mvp-acceptance.md`. Phase 1 followed and closed on October 4, 2026.
+**Status (October 3, 2026):** Closed for local development. Items 1–4 are covered by the October 2–3 reviews. Item 5's account sync and transaction-edit survival were confirmed on October 3, 2026, and Zach confirmed the same day that the one-shot worker works when run locally. That confirmation does not deploy it or put it on a schedule. Item 6 has CI for existing tests, lint, the worker build, and the frontend production build. A PostgreSQL integration job stays deferred because no integration-test suite exists. Retained limitations are recorded in `docs/checklists/original-mvp-acceptance.md`. Phase 1 followed and closed on October 4, 2026.
 
 ### Phase 1 — Ownership, manual data, and durable financial facts
 

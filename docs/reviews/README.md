@@ -45,6 +45,8 @@ For a new screen or substantial UI change, follow section 9 of
 
 ## Phase 4 — Guided conversation
 
+- [2026-10-16 — Calculation forecasts](2026-10-16-015-calculation-forecasts.md) — Approved 2026-10-16
+- [2026-10-16 — Plan revision review](2026-10-16-014-plan-revision-review.md) — Approved 2026-10-16
 - [2026-10-16 — Fact basis](2026-10-16-013-fact-basis.md) — Approved 2026-10-16
 - [2026-10-16 — Useful questions](2026-10-16-012-useful-questions.md) — Approved 2026-10-16
 - [2026-10-16 — Narrow tools](2026-10-16-011-narrow-tools.md) — Approved 2026-10-16

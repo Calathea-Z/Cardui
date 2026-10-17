@@ -11,22 +11,21 @@ history. They do not say what is next.
 
 **Now**
 
-[Fact basis](reviews/2026-10-16-013-fact-basis.md) was approved on October
-16, 2026. It is Phase 4 item 5. Planning inputs are labeled as a user
-statement, an imported fact, an estimate, or an unverified suggestion. An
-inferred recurring expense stays a suggestion until the person saves the
-bill. No model or price is chosen. Items 6–9 have not started. Detail panel
-keyboard focus stays tracked. The
+[Calculation forecasts](reviews/2026-10-16-015-calculation-forecasts.md) was
+approved on October 16, 2026. It is Phase 4 item 7. Every amount and date in
+the forecast is copied from the plan calculation. The assumptions stay with
+those numbers, and a tradeoff names both sides. No model or price is chosen.
+Items 8–9 have not started. Detail panel keyboard focus stays tracked. The
 [October 15 UX assessment](reviews/2026-10-15-006-phase-3-ux-review.md)
 stays as written.
 
 **Next**
 
-1. Phase 4 item 6, display proposed changes for review before accepting a
-   plan revision. Handle edits made outside chat and stale model context
-   with version checks. Do not start it in the review that approved item 5.
-   Leave the planning-model settings blank until a review asks for a live
-   call.
+1. Phase 4 item 8, define data-sharing consent and minimization. Never expose
+   bank access tokens to the model. Treat transaction descriptions and
+   uploaded text as untrusted data, not instructions. Do not start it in the
+   review that approved item 7. Leave the planning-model settings blank until
+   a review asks for a live call.
 
 **Tracked, not scheduled**
 
@@ -43,6 +42,10 @@ stays as written.
 
 ## Map
 
+- [Calculation forecasts](reviews/2026-10-16-015-calculation-forecasts.md):
+  Phase 4 item 7, approved October 16, 2026.
+- [Plan revision review](reviews/2026-10-16-014-plan-revision-review.md):
+  Phase 4 item 6, approved October 16, 2026.
 - [Fact basis](reviews/2026-10-16-013-fact-basis.md): Phase 4 item 5,
   approved October 16, 2026.
 - [Useful questions](reviews/2026-10-16-012-useful-questions.md): Phase 4

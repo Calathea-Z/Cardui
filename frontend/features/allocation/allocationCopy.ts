@@ -17,7 +17,7 @@ export function variableSplitSentence(
   savings: string,
   cash: string,
 ): string {
-  return `${name} is ${surplus} above typical. ${debt} would be extra debt, ${savings} would be savings, and ${cash} would stay available. Cardui does not move this money.`;
+  return `${name} is ${surplus} above typical. ${debt} would be extra debt, ${savings} would be savings, and ${cash} would stay available. Tortoise does not move this money.`;
 }
 
 /**
@@ -41,7 +41,7 @@ export function windfallSentence(
   savings: number,
   cash: number,
 ): string {
-  return `${debt} percent would be extra debt, ${savings} percent would be savings, and ${cash} percent would stay available. A windfall tried on Plan still stays in cash. Cardui does not pay a debt or change a balance.`;
+  return `${debt} percent would be extra debt, ${savings} percent would be savings, and ${cash} percent would stay available. A windfall tried on Plan still stays in cash. Tortoise does not pay a debt or change a balance.`;
 }
 
 /**
@@ -80,6 +80,6 @@ export function allocationEditSentence(
  */
 export function allocationStatusSentence(isSaved: boolean): string {
   return isSaved
-    ? "Saved. Cardui does not move money, pay a debt, or change an account balance."
+    ? "Saved. Tortoise does not move money, pay a debt, or change an account balance."
     : "No rule is saved yet. Extra variable pay and a windfall stay available until you save one.";
 }

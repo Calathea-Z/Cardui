@@ -1,10 +1,12 @@
-# Cardui
+# Tortoise
 
-Cardui is a personal finance and debt recovery application designed to help households understand their financial position and build a realistic path out of debt. The signed-in interface is titled Tortoise.
+Tortoise is a personal finance and debt recovery application designed to help households understand their financial position and build a realistic path out of debt.
 
-Unlike traditional budgeting tools that focus primarily on tracking spending, Cardui connects day-to-day cash flow with debt repayment planning. Its deterministic planning engine models payoff strategies, upcoming obligations, and available cash, allowing users to explore financial decisions before committing to a plan.
+Unlike traditional budgeting tools that focus primarily on tracking spending, Tortoise connects day-to-day cash flow with debt repayment planning. Its deterministic planning engine models payoff strategies, upcoming obligations, and available cash, allowing users to explore financial decisions before committing to a plan.
 
 The application combines a Next.js frontend, an ASP.NET Core API, PostgreSQL, Clerk authentication, and optional Plaid connectivity. An AI-guided planning experience is under development.
+
+The product name is Tortoise. These internal names stay Cardui: `Cardui.sln`, the `Cardui.Api` namespace, `tests/Cardui.Tests`, the local PostgreSQL database and volume, the browser key `cardui.plan.work`, and `DataProtection:ApplicationName`. The GitHub repository remains `Calathea-Z/Cardui` until that rename is done separately.
 
 ## Screenshots
 
@@ -151,7 +153,7 @@ Plaid and the planning model are optional. Leave them unset for manual use. For 
 dotnet user-secrets set "Plaid:ClientId" "<Plaid sandbox client ID>" --project .\api
 dotnet user-secrets set "Plaid:Secret" "<Plaid sandbox secret>" --project .\api
 dotnet user-secrets set "Plaid:Environment" "sandbox" --project .\api
-dotnet user-secrets set "Plaid:ClientName" "Cardui" --project .\api
+dotnet user-secrets set "Plaid:ClientName" "Tortoise" --project .\api
 ```
 
 ```powershell
@@ -159,7 +161,7 @@ dotnet user-secrets set "PlanningModel:ApiKey" "<OpenAI API key>" --project .\ap
 dotnet user-secrets set "PlanningModel:Model" "<model id>" --project .\api
 ```
 
-The API and worker share the gitignored `.data-protection-keys` directory. Production must set `DataProtection:KeysPath`, `DataProtection:CertificatePath`, and public `https` values for `AllowedHosts`, `Cors:AllowedOrigins`, and `Clerk:AuthorizedParties`.
+The API and worker share the gitignored `.data-protection-keys` directory. Production must set `DataProtection:KeysPath`, `DataProtection:CertificatePath`, and public `https` values for `AllowedHosts`, `Cors:AllowedOrigins`, and `Clerk:AuthorizedParties`. Leave `DataProtection:ApplicationName` set to `Cardui`. A different name cannot read tokens protected under the current name. `Plaid:ClientName` is the name Plaid Link shows. The Plaid dashboard application name is updated in Plaid, not in this repository.
 
 ```powershell
 @"

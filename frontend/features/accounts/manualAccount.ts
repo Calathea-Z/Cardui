@@ -77,7 +77,7 @@ export function openingBalanceHelp(type: ManualAccountType) {
 }
 
 /**
- * True when the account was created in Cardui and is not linked to Plaid.
+ * True when the account was created in Tortoise and is not linked to Plaid.
  */
 export function isManualAccount(account: { plaidItemId: string | null }) {
   return account.plaidItemId === null;

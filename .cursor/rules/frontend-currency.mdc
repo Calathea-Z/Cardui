@@ -1,12 +1,12 @@
 ---
-description: Format Cardui money with this repo's currency helpers
+description: Format Tortoise money with this repo's currency helpers
 globs: frontend/**/*.{ts,tsx}
 alwaysApply: false
 ---
 
 # Frontend currency
 
-This rule is for Cardui only. It names this repo's formatters. Do not
+This rule is for Tortoise only. It names this repo's formatters. Do not
 copy it to another project as a general frontend rule.
 
 When showing a money amount in the frontend, use `formatCurrency` from

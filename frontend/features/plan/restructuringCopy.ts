@@ -10,7 +10,7 @@ import type {
  * Shown with the form. The offer is not treated as approved, and no money moves.
  */
 export const offerNotApproved =
-  "These are terms you enter. Cardui does not treat them as approved, and it does not apply or move money.";
+  "These are terms you enter. Tortoise does not treat them as approved, and it does not apply or move money.";
 
 /**
  * What the comparison includes. It is not part of the working scenario or a saved plan.

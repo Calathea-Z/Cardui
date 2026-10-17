@@ -59,7 +59,7 @@ public interface IPlaidService
 
     /// <summary>
     /// Removes the bank login at Plaid and deletes the stored access token.
-    /// Accounts and transactions stay in Cardui.
+    /// Accounts and transactions stay in Tortoise.
     /// </summary>
     Task RemovePlaidItemAsync(Guid plaidItemId, CancellationToken cancellationToken = default);
 }

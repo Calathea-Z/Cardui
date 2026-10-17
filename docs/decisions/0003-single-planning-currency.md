@@ -2,11 +2,11 @@
 
 Status: Accepted
 Date: 2026-10-03
-Updated: 2026-10-07
+Updated: 2026-10-17
 
 ## Context
 
-Totals and plans need one unit, and Cardui has no currency conversion.
+Totals and plans need one unit, and Tortoise has no currency conversion.
 
 ## Decision
 

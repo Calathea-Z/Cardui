@@ -466,7 +466,7 @@ export function decisionReviewCopy(
       return {
         term: "Emergency",
         detail:
-          "Decide whether this plan needs an emergency target. Cardui does not choose an amount.",
+          "Decide whether this plan needs an emergency target. Tortoise does not choose an amount.",
       };
     default:
       return {

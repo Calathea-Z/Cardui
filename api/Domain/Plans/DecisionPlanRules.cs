@@ -4,7 +4,7 @@ namespace Cardui.Api.Domain.Plans;
 
 /// <summary>
 /// Ranks the three actions in a decision plan and records the assumptions, risks, gaps, milestones, and review conditions around them.
-/// The same input always returns the same plan for <see cref="CalculationVersion"/>. Cardui does not move money.
+/// The same input always returns the same plan for <see cref="CalculationVersion"/>. Tortoise does not move money.
 /// </summary>
 public static class DecisionPlanRules
 {

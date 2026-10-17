@@ -2,7 +2,7 @@
 
 Status: Approved. Follow a balance, balance overrides, suggested matches, credit limit, and reconnect are approved.
 Date: October 6, 2026
-Updated: 2026-10-08
+Updated: 2026-10-17
 
 Every design question is decided (see Decisions).
 
@@ -28,7 +28,7 @@ The sections below are the rules that shipped. They are not a second backlog.
 
 These points were approved before this note. The note designs them.
 
-- Linking is optional. Cardui suggests likely matches. The person confirms.
+- Linking is optional. Tortoise suggests likely matches. The person confirms.
 - Ownership is per field. Synced fields come from the connection. Other
   fields always belong to the person.
 - Editing a synced field creates a labeled override. A sync never silently
@@ -144,7 +144,7 @@ and saving would then look like an override. To avoid that:
 
 1. On a debt's detail panel, a quiet secondary action says "Follow a
    connected account". The page's primary action stays Add debt.
-2. Cardui lists up to three suggestions, each with plain reasons. A match is
+2. Tortoise lists up to three suggestions, each with plain reasons. A match is
    a pure `Domain` rule over values the service loads once:
    - Eligible accounts only (see Two kinds of link).
    - Revolving matches a credit account. Installment matches a loan.

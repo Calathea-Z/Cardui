@@ -19,7 +19,7 @@ should call them rather than add a second planning path.
 
 A person cannot use them yet. None of these services has an HTTP route, and
 the frontend has no conversation client. `IPlanningModel.ReplyAsync` asks
-for one text reply and sends no tools. Cardui does not keep that exchange.
+for one text reply and sends no tools. Tortoise does not keep that exchange.
 The scripted planning model named in the core journey is not implemented.
 The only scripted model is a test double.
 

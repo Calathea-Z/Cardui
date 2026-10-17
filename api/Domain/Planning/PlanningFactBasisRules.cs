@@ -124,7 +124,7 @@ public static class PlanningFactBasisRules
     }
 
     /// <summary>
-    /// True when the account source is one Cardui records.
+    /// True when the account source is one Tortoise records.
     /// A missing source cannot be labeled as the person's figure or as an import.
     /// </summary>
     private static bool Known(FinancialRecordSource? source)
@@ -133,7 +133,7 @@ public static class PlanningFactBasisRules
     }
 
     /// <summary>
-    /// True when the debt field source is one Cardui records.
+    /// True when the debt field source is one Tortoise records.
     /// A missing source cannot be labeled as the person's figure or as an import.
     /// </summary>
     private static bool Known(DebtFieldSource? source)

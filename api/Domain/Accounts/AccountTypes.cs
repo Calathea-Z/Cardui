@@ -8,7 +8,7 @@ public static class AccountTypes
     public const string Loan = "loan";
 
     /// <summary>
-    /// True for a depository account, which Cardui treats as cash.
+    /// True for a depository account, which Tortoise treats as cash.
     /// </summary>
     public static bool IsCash(string type) =>
         type.Equals(Depository, StringComparison.OrdinalIgnoreCase);

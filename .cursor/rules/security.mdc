@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Security
 
-When adding or changing Cardui, keep these boundaries.
+When adding or changing Tortoise, keep these boundaries.
 
 - Never log, return, or store a Plaid access token, client secret, or
   session token in plaintext. A stored Plaid token uses the data-protection
@@ -20,4 +20,4 @@ When adding or changing Cardui, keep these boundaries.
   Clerk authorized party, and data-protection keys that are not encrypted
   with the configured certificate.
 - Local database and app servers bind to loopback. A critical dependency
-  advisory that covers the version Cardui runs is upgraded in that change.
+  advisory that covers the version Tortoise runs is upgraded in that change.

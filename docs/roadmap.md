@@ -1,4 +1,4 @@
-# Cardui roadmap
+# Tortoise roadmap
 
 Status: Approved. Direction approved October 2, 2026.
 Updated: 2026-10-17
@@ -13,7 +13,7 @@ What is being worked on now, what comes next, and open decisions are in [`docs/R
 
 **Help people turn financial overwhelm into a clear, realistic path toward stability, breathing room and freedom.**
 
-Cardui helps people build, carry out, and revise a realistic financial recovery plan through guided conversation, budgeting, debt decision support and visible progress. It is not primarily another spending dashboard: budgeting explains where money went, while Cardui helps a person decide how to get out of the situation they are in.
+Tortoise helps people build, carry out, and revise a realistic financial recovery plan through guided conversation, budgeting, debt decision support and visible progress. It is not primarily another spending dashboard: budgeting explains where money went, while Tortoise helps a person decide how to get out of the situation they are in.
 
 The first complete experience: a person starts with incomplete information, builds a debt and cash-flow inventory over multiple sessions, sees which obligations are doing the most damage, and reviews a realistic recovery plan with a 30-day cash view and 6/12/18-month projections. The plan explains which debts to address, how much cash to keep, where extra money should go, when monthly breathing room improves, and what changes after a paycheck or change in circumstances. A user with a shortfall must receive an honest, useful plan rather than an invented surplus.
 
@@ -21,7 +21,7 @@ Budgeting remains a first-class feature. Chat and direct editing use the same sa
 
 ### 1.1 Product direction and decision principles
 
-Cardui's recovery experience is organized around four questions:
+Tortoise's recovery experience is organized around four questions:
 
 1. Which debt should I address next, and why?
 2. How much cash should I keep available before accelerating payoff?
@@ -36,7 +36,7 @@ The major product pillars are:
 - **Scenario decisions:** comparisons for extra payments, income loss, windfalls, consolidation, balance transfers, refinancing and—with plan-specific safeguards—retirement contribution or retirement-plan-loan tradeoffs.
 - **Actionable progress:** prioritized next actions, 6/12/18-month projections, cash-flow recovery tracking and milestones such as positive cash flow, lower utilization, a removed minimum payment, a funded reserve or improved refinance viability.
 
-Recommendations must show the assumptions, tradeoffs and reason for the ordering. Cardui should not equate recovery with eliminating all enjoyable spending, optimize only for the earliest theoretical debt-free date, or imply that a lower monthly payment is automatically a better deal.
+Recommendations must show the assumptions, tradeoffs and reason for the ordering. Tortoise should not equate recovery with eliminating all enjoyable spending, optimize only for the earliest theoretical debt-free date, or imply that a lower monthly payment is automatically a better deal.
 
 ## 2. Audit scope and verification
 

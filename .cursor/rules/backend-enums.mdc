@@ -6,7 +6,7 @@ alwaysApply: true
 # Backend enums
 
 When adding or changing C# in `api/` or `worker/`, use an enum for a closed
-set that Cardui defines and branches on. Do this in the same change as the
+set that Tortoise defines and branches on. Do this in the same change as the
 value.
 
 - Give each enum its own file. Name the file after the enum.

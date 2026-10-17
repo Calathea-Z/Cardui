@@ -124,7 +124,7 @@ public class PlaidWebhookService : IPlaidWebhookService
     }
 
     /// <summary>
-    /// Maps a connection webhook to a short message, or null when Cardui does not act on it.
+    /// Maps a connection webhook to a short message, or null when Tortoise does not act on it.
     /// </summary>
     private static string? ConnectionWarning(string? webhookCode, string? errorCode)
     {

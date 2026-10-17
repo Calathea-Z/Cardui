@@ -1,4 +1,4 @@
-# Cardui sync worker
+# Tortoise sync worker
 
 One-shot worker for scheduled Plaid account and transaction syncs.
 

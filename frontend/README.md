@@ -1,6 +1,6 @@
-# Cardui frontend
+# Tortoise frontend
 
-Next.js 16 / React 19 frontend for Cardui.
+Next.js 16 / React 19 frontend for Tortoise.
 
 Follow the repository root [`README.md`](../README.md) for prerequisites, local
 database and API setup, and the complete startup sequence.

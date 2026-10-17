@@ -136,7 +136,7 @@ export function useSavedPlan(
         replacesDraftId: chrome.replacesDraftId,
       });
       setViewedId(null);
-      setMessage("Draft saved. Cardui did not move money.");
+      setMessage("Draft saved. Tortoise did not move money.");
       setMessageTone("success");
       await load(false);
     } catch (error) {
@@ -161,7 +161,7 @@ export function useSavedPlan(
     try {
       await acceptPlanVersion(chrome.acceptId);
       setViewedId(null);
-      setMessage("Plan accepted. Cardui did not move money.");
+      setMessage("Plan accepted. Tortoise did not move money.");
       setMessageTone("success");
       await load(false);
     } catch (error) {

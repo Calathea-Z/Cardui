@@ -1,55 +1,151 @@
 # Cardui
 
-Cardui is a personal financial recovery application. The repository contains:
+Cardui is a personal finance and debt recovery application designed to help households understand their financial position and build a realistic path out of debt. The signed-in interface is titled Tortoise.
 
-- `api/`: .NET 10 HTTP API and EF Core migrations.
-- `frontend/`: Next.js 16 / React 19 web application.
-- `worker/`: one-shot scheduled Plaid synchronization worker.
-- `tests/Cardui.Tests/`: .NET unit tests.
-- `docs/`: roadmap, design notes, decision records, and reference rules.
-  Start at [`docs/README.md`](docs/README.md). Current work is the selected
-  Linear issue. Closed increment reports are in Git history.
+Unlike traditional budgeting tools that focus primarily on tracking spending, Cardui connects day-to-day cash flow with debt repayment planning. Its deterministic planning engine models payoff strategies, upcoming obligations, and available cash, allowing users to explore financial decisions before committing to a plan.
 
-The current application requires PostgreSQL to start. Plaid credentials are required
-only to link or sync a bank. Keep all database and Plaid credentials in .NET User
-Secrets or environment variables; do not add them to checked-in settings or documentation.
+The application combines a Next.js frontend, an ASP.NET Core API, PostgreSQL, Clerk authentication, and optional Plaid connectivity. An AI-guided planning experience is under development.
 
-## Prerequisites
+## Screenshots
 
-- Windows PowerShell.
-- .NET SDK 10.0.301 (pinned by `global.json`).
-- Docker Desktop with Docker Compose.
-- Node.js and pnpm 10.33.0 (pinned by `frontend/package.json`).
-- EF Core CLI available as `dotnet ef`.
-- Optional: Plaid sandbox credentials, only for bank linking and sync checks.
+These screens use a synthetic household created for this document. The names and amounts are fictional.
 
-Run commands below from the repository root unless a step says otherwise.
+![Home, with net worth, this month's spending, and recent activity](docs/images/home.png)
 
-## First-time setup
+Home shows net worth, this month's income and spending, and recent activity.
 
-### 1. Start PostgreSQL
+![Accounts, with balance history and cash, card, and loan balances](docs/images/accounts.png)
+
+Accounts shows balance history and the cash, card, and loan inventory.
+
+## Capabilities
+
+- Clerk identifies the owner. The API creates one household for that owner and scopes every financial read and write to it.
+- Accounts and transactions can be entered by hand or imported from a CSV. An opening balance is not income. Linking a bank through Plaid is optional.
+- Home, Accounts, Activity, and Plan are the primary destinations, in that order.
+- Plan setup stores income, bills, debts, the plan budget, and savings. Those are the facts the recovery calculation reads. Allocation preferences are saved on their own and are not part of that calculation.
+- Plan previews payoff order, freed payments, a cash outlook, and 30-day spendable cash. Try changes can preview an extra payment, income loss, a windfall, flexible spending, and cash to keep. Nothing is stored until the plan is saved.
+- A household can keep one draft and one accepted plan. Later edits to pay, bills, or debts do not rewrite an accepted version. Accepting a plan does not schedule a payment.
+
+## Architecture
+
+External activity and the planning calculation stay on different paths. Plaid, manual entry, and CSV import become account and transaction records. The recovery calculation does not read those rows, and it does not read allocation preferences. It reads cash, income, bills, debts, and savings.
+
+```mermaid
+flowchart TB
+  subgraph external [External financial data]
+    plaid[Plaid]
+    entry[Manual entry and CSV]
+  end
+
+  subgraph application [Application]
+    browser[Next.js]
+    api[ASP.NET Core API]
+    worker[Sync worker]
+  end
+
+  subgraph persistence [Persistence]
+    ef[EF Core]
+    db[(PostgreSQL)]
+  end
+
+  subgraph stored [Stored records]
+    activity[Accounts and activity]
+    facts[Cash, income, bills, debts, savings]
+    allocation[Allocation preferences]
+  end
+
+  subgraph engine [Deterministic planning]
+    plan[PlanService]
+    recovery[Recovery domain]
+    planning[Planning services]
+  end
+
+  entry --> api
+  plaid --> worker
+  browser -->|Clerk session| api
+  api --> ef
+  worker --> ef
+  ef --> db
+  db --> activity
+  db --> facts
+  db --> allocation
+  facts --> plan
+  plan --> recovery
+  planning --> recovery
+```
+
+`PlanService` loads the household's planning facts and calls the recovery domain. Those domain types only read values and return a result. They do not use the database, HTTP, or a clock. The Plan page shows that result. Saving a plan runs the calculation again and stores a version. The browser does not send the plan document.
+
+Planning services can describe a forecast or draft a change from the same domain rules. No page calls them, and a model request does not send tools. A repeated charge stays a suggestion until someone saves it as a bill.
+
+The calculation rules are in [`docs/reference/recovery-calculations.md`](docs/reference/recovery-calculations.md). The record and screen map is in [`docs/design/planning-architecture.md`](docs/design/planning-architecture.md).
+
+## Technical decisions
+
+- The server resolves the household from the Clerk session. The browser does not supply a household id.
+- Recovery results are reproducible from the stored facts. The same inputs produce the same numbers.
+- A financial record does not require a bank connection. A stored Plaid access token is encrypted with ASP.NET Data Protection before it is written.
+- Guided conversation, where it exists, has to call the same calculation as the Plan page. It cannot invent a balance, a date, or a surplus.
+
+## Current status
+
+The manual planning path is in the application: accounts, activity, the planning editors, and a saved plan. There is no chat screen, no conversation route, and no live model call in ordinary use. The planning-model API key and model stay blank until a later review asks for a live call.
+
+Phone access and an MX bank connection are not built. Plaid is the connector in the application.
+
+Direction and the remaining journey are in [`docs/roadmap.md`](docs/roadmap.md). Conversation limits are in [`docs/reference/planning-conversation.md`](docs/reference/planning-conversation.md).
+
+## Local development
+
+Commands are Windows PowerShell, run from the repository root unless a step says otherwise. Keep database, Clerk, and Plaid values in User Secrets or `frontend/.env.local`. Do not add them to source, documentation, or logs.
+
+### Stack
+
+| Piece | What it is |
+| --- | --- |
+| API | .NET 10, ASP.NET Core, EF Core, PostgreSQL 16 |
+| Web | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Sign-in | Clerk |
+| Bank sync | Plaid, optional, through a one-shot worker |
+| Tests | xUnit in `tests/Cardui.Tests`, Node test scripts in `frontend/` |
+
+`global.json` pins the .NET SDK to 10.0.301. `frontend/package.json` pins pnpm to 10.33.0. Continuous integration uses Node.js 22.
+
+### Repository
+
+- `api/`: HTTP API and EF Core migrations
+- `frontend/`: Next.js application
+- `worker/`: one-shot Plaid sync
+- `tests/Cardui.Tests/`: .NET tests
+- `docs/`: roadmap, decisions, designs, and calculation rules. Start at [`docs/README.md`](docs/README.md)
+
+### Prerequisites
+
+- .NET SDK 10.0.301
+- Docker Desktop with Docker Compose
+- Node.js 22 and pnpm 10.33.0
+- `dotnet ef`
+- Optional Plaid sandbox credentials, only for bank linking and sync
+
+### Setup
 
 ```powershell
 docker compose up -d postgres
-docker compose ps
 ```
 
-The Compose service stores its data in the `cardui_pgdata` volume and exposes PostgreSQL
-on `127.0.0.1:5433`. It does not listen on other network interfaces.
-
-### 2. Configure the API
-
-Set the API's local configuration without writing secrets into the repository:
+PostgreSQL is the `postgres:16` service in `docker-compose.yml`. Its data stays in the `cardui_pgdata` volume, and the port is bound to `127.0.0.1:5433`. Build the API connection string from that file. Do not paste the finished string into this repository.
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local PostgreSQL connection string>" --project .\api
-dotnet user-secrets set "Clerk:Issuer" "<Clerk Frontend API origin, such as https://your-instance.clerk.accounts.dev>" --project .\api
+dotnet user-secrets set "Clerk:Issuer" "<Clerk Frontend API origin>" --project .\api
+dotnet restore .\Cardui.sln
+dotnet ef database update --project .\api --startup-project .\api
 ```
 
-Plaid credentials are optional. Without `Plaid:ClientId`, `Plaid:Secret`, and
-`Plaid:Environment`, the API starts and manual accounts, transactions, and CSV
-import work. Bank linking and sync stay off until all three are set. A partial
-set stops startup. Add them when bank linking should work:
+`Clerk:Issuer` is the HTTPS origin the API uses to download Clerk's public signing keys. Do not put the Clerk secret key in the API configuration. Financial routes require a session. `/api/health` does not. `POST /api/plaid/webhook` is anonymous and checks the Plaid signature before it reads the body.
+
+Plaid and the planning model are optional. Leave them unset for manual use. For each one, set every value or none of them. A partial set stops startup.
 
 ```powershell
 dotnet user-secrets set "Plaid:ClientId" "<Plaid sandbox client ID>" --project .\api
@@ -58,57 +154,12 @@ dotnet user-secrets set "Plaid:Environment" "sandbox" --project .\api
 dotnet user-secrets set "Plaid:ClientName" "Cardui" --project .\api
 ```
 
-Guided conversation is optional. Without `PlanningModel:ApiKey` and
-`PlanningModel:Model`, the API starts and planning stays on the existing
-screens. A partial set stops startup. The model id is not chosen by the
-repository, and this setup does not set a price. A call stops after 30
-seconds, retries a transient failure at most twice, and will not send more
-than 24,000 characters or ask for more than 1,024 output tokens. When the
-call cannot be answered, the open draft is left as it was. Add both when a
-later check should call OpenAI:
-
 ```powershell
 dotnet user-secrets set "PlanningModel:ApiKey" "<OpenAI API key>" --project .\api
 dotnet user-secrets set "PlanningModel:Model" "<model id>" --project .\api
 ```
 
-`Clerk:Issuer` is the https origin of the Clerk Frontend API. The API uses it to
-download Clerk's public signing keys and check session tokens. Do not put the
-Clerk secret key in the API configuration. An optional `Clerk:JwtPublicKey`
-User Secret can hold Clerk's PEM public key when the API should verify tokens
-without calling Clerk. API routes other than `/api/health` require that
-session. Financial reads and writes use the household id resolved on the
-server for the signed-in owner.
-
-Plaid access tokens are encrypted with ASP.NET Data Protection before they are
-stored. Local API and worker processes share the gitignored
-`.data-protection-keys` directory. Production must set
-`DataProtection:KeysPath` and `DataProtection:CertificatePath`. Set
-`Plaid:WebhookUrl` to the public `https` URL of `POST /api/plaid/webhook`
-when Plaid should report a revoked bank connection. Production also requires
-public `https` values for `AllowedHosts`, `Cors:AllowedOrigins`, and
-`Clerk:AuthorizedParties`.
-
-Use the local database values defined by `docker-compose.yml` when constructing the
-connection string. Do not paste the resulting connection string into source files,
-documentation, screenshots, or logs.
-
-Restore packages and apply the checked-in migrations:
-
-```powershell
-dotnet restore .\Cardui.sln
-dotnet ef database update --project .\api --startup-project .\api
-```
-
-Setup applies the checked-in migrations. New migrations are generated from
-model changes after Zach approves the `dotnet ef` command.
-
-### 3. Configure the frontend
-
-Create `frontend/.env.local` with the local API URLs and the Clerk keys for this
-application. Keep the Clerk secret out of source control. The publishable key
-is public, but it still belongs in the local env file rather than the
-repository.
+The API and worker share the gitignored `.data-protection-keys` directory. Production must set `DataProtection:KeysPath`, `DataProtection:CertificatePath`, and public `https` values for `AllowedHosts`, `Cors:AllowedOrigins`, and `Clerk:AuthorizedParties`.
 
 ```powershell
 @"
@@ -119,39 +170,22 @@ CLERK_SECRET_KEY=<Clerk secret key>
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 "@ | Set-Content .\frontend\.env.local
-```
 
-This machine may already have a Clerk development application from `clerk init`.
-Those values stay in the gitignored env file. Claim that application later, if
-you want it on your Clerk account, from `frontend/` with `pnpm dlx clerk@latest auth login`.
-
-Install the locked frontend dependencies:
-
-```powershell
 Push-Location .\frontend
 pnpm install --frozen-lockfile
 Pop-Location
 ```
 
-## Run locally
+### Run
 
-Use separate PowerShell terminals for the API and frontend.
-
-API:
+Use two terminals.
 
 ```powershell
 dotnet run --project .\api --launch-profile http
-```
-
-Confirm the API is ready:
-
-```powershell
 Invoke-RestMethod http://localhost:5235/api/health
 ```
 
-Expected response: `status` is `ok`.
-
-Frontend:
+`status` is `ok` when the API is ready.
 
 ```powershell
 Push-Location .\frontend
@@ -161,30 +195,23 @@ Pop-Location
 
 Open `http://localhost:3000`.
 
-## Worker
-
-The worker has a separate User Secrets store. Configure the database before
-running it. Plaid credentials are required only when connected items should
-sync. Without them, the worker starts and skips bank sync. If connected items
-exist and credentials are missing, it exits with code 1. Configure Plaid with
-the same values as the API when sync should run:
+The worker has its own User Secrets store. It runs one sync pass and exits. Without Plaid credentials it skips bank sync. If connected items exist and those credentials are missing, it exits with code 1. Scheduling notes are in [`worker/README.md`](worker/README.md).
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local PostgreSQL connection string>" --project .\worker
-dotnet user-secrets set "Plaid:ClientId" "<Plaid sandbox client ID>" --project .\worker
-dotnet user-secrets set "Plaid:Secret" "<Plaid sandbox secret>" --project .\worker
-dotnet user-secrets set "Plaid:Environment" "sandbox" --project .\worker
-dotnet user-secrets set "Plaid:ClientName" "Cardui" --project .\worker
 dotnet run --project .\worker
 ```
 
-The worker performs one synchronization pass and exits. See `worker/README.md` for
-deployment scheduling notes.
+```powershell
+docker compose stop
+```
 
-## Verification commands
+That keeps the PostgreSQL volume. `docker compose down --volumes` deletes the local database.
+
+### Tests
 
 ```powershell
-dotnet test .\Cardui.sln --no-restore
+dotnet test .\Cardui.sln
 dotnet build .\worker\worker.csproj --configuration Release
 ```
 
@@ -197,30 +224,12 @@ pnpm build
 Pop-Location
 ```
 
-The original-MVP manual walkthrough is in
-[`docs/checklists/original-mvp-acceptance.md`](docs/checklists/original-mvp-acceptance.md).
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pull requests and on pushes to `main`. It runs the .NET tests, the worker Release build, and the frontend test, lint, format, and production build. It does not start PostgreSQL or apply migrations, and it does not deploy. The frontend build uses placeholder Clerk keys so the sign-in shell can compile.
 
-## Continuous integration
+## Further reading
 
-`.github/workflows/ci.yml` runs on pull requests and on pushes to `main`. It uses
-the .NET SDK pinned in `global.json`, Node.js 22, and the pnpm version pinned in
-`frontend/package.json`.
-
-- API tests: `dotnet test ./Cardui.sln --configuration Release`
-- Worker build: `dotnet build ./worker/worker.csproj --configuration Release`
-- Frontend: `pnpm test`, `pnpm lint`, `pnpm format:check`, and `pnpm build`
-  from `frontend/` after `pnpm install --frozen-lockfile`
-
-The frontend production build sets `API_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL`
-to `http://localhost:5235`. It also sets placeholder Clerk keys so the sign-in
-shell can compile. Those placeholders are not a Clerk application. This workflow
-does not deploy that build. It does not start PostgreSQL or apply migrations.
-
-## Stop local services
-
-```powershell
-docker compose stop
-```
-
-This preserves the PostgreSQL volume. Do not use `docker compose down --volumes` unless
-you explicitly intend to delete local database data.
+- [`docs/README.md`](docs/README.md): priorities, open decisions, and the document map
+- [`docs/roadmap.md`](docs/roadmap.md): product direction and what each phase built
+- [`docs/design/planning-architecture.md`](docs/design/planning-architecture.md): records, rules, and the Plan page
+- [`docs/reference/recovery-calculations.md`](docs/reference/recovery-calculations.md): interest, payoff, forecast, and spendable cash
+- [`docs/reference/planning-conversation.md`](docs/reference/planning-conversation.md): what the planning model can and cannot do

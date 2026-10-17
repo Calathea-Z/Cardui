@@ -268,7 +268,7 @@ The result puts APR, fee, term, monthly payment, total interest, interest
 and fees, and payoff beside the current debts. Break-even, the monthly cash
 change, and upfront cash sit with that result. A lower payment is stated
 and is not treated as the better offer. The page says the terms were
-entered, that they are not approved, and that Cardui does not apply or move
+entered, that they are not approved, and that Tortoise does not apply or move
 money.
 
 Upfront cash is a fee paid in cash plus cash applied to the new balance. A
@@ -310,7 +310,7 @@ date. That date is not the lowest-balance date.
 The actions follow the preview from Try changes. Scenario controls stay on
 Try changes. The preview is not a saved version until
 **Save draft**. Saving the same plan again returns the open draft. Accepting
-a draft marks the previous accepted plan superseded. Cardui does not pay a
+a draft marks the previous accepted plan superseded. Tortoise does not pay a
 bill, pay a debt, or move money.
 
 On a phone the actions stack and the buttons wrap. Print uses the browser.

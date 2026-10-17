@@ -182,7 +182,7 @@ function workingLabel(matchesCurrentFacts: boolean): DecisionPlanLabel {
  * The older accepted plan stays in history. Neither save nor accept moves money.
  */
 function acceptNote() {
-  return "Accepting replaces the accepted plan and keeps the older copy in history. Saving and accepting only record this decision. Cardui does not schedule a payment or change an account.";
+  return "Accepting replaces the accepted plan and keeps the older copy in history. Saving and accepting only record this decision. Tortoise does not schedule a payment or change an account.";
 }
 
 /**

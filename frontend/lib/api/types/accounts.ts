@@ -19,7 +19,7 @@ export type ManualAccountType = (typeof MANUAL_ACCOUNT_TYPES)[number];
 
 /**
  * One household account.
- * `plaidItemId` is null when the account was created in Cardui.
+ * `plaidItemId` is null when the account was created in Tortoise.
  * `countsInPlanningTotals` is false when the account's currency is left out of totals.
  * `openingBalance` is the balance already in the account when it was added. It is not a transaction.
  * `source` is Plaid, Manual, or Csv. `provenance` is how the row was created, such as PlaidSync or ManualEntry.

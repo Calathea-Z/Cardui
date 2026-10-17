@@ -65,7 +65,7 @@ export async function syncPlaidItem(
 /**
  * DELETE /api/plaid/{plaidItemId}
  * Removes the bank login at Plaid and the stored access token.
- * Accounts and transactions stay in Cardui.
+ * Accounts and transactions stay in Tortoise.
  */
 export async function disconnectPlaidItem(plaidItemId: string): Promise<void> {
   await browserClient.delete(`/api/plaid/${plaidItemId}`);

@@ -1,7 +1,7 @@
 # Original MVP acceptance checklist
 
 Status: Template. Phase 0 was closed with it on October 3, 2026; that record is at the end.
-Updated: 2026-10-08
+Updated: 2026-10-17
 
 The empty boxes are the reusable walkthrough, not open work.
 
@@ -40,7 +40,7 @@ local database.
 
 - [ ] Open **Connections** from the account menu (`/connections`) and start the Plaid
       Link flow.
-- [ ] Connect a sandbox institution and return successfully to Cardui.
+- [ ] Connect a sandbox institution and return successfully to Tortoise.
 - [ ] Confirm the institution appears once and reports a successful synchronization.
 - [ ] Refresh the page and confirm the institution remains present.
 - [ ] Confirm its accounts appear on **Accounts** with recognizable names and types.

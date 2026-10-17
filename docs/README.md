@@ -1,4 +1,4 @@
-# Cardui documentation
+# Tortoise documentation
 
 Status: Current
 Updated: 2026-10-17
@@ -30,8 +30,8 @@ Calculation rules are in
 [`reference/recovery-calculations.md`](reference/recovery-calculations.md).
 Conversation limits are in
 [`reference/planning-conversation.md`](reference/planning-conversation.md).
-Planning calls register with the planning model, so the sync worker starts
-while those settings stay blank. There is no chat screen and no live OpenAI
+Planning calls register with the planning model, so a local worker run can
+start while those settings stay blank. The worker is not deployed or scheduled. There is no chat screen and no live OpenAI
 call. Detail panel keyboard focus stays tracked.
 
 **Next**

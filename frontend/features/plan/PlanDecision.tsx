@@ -80,7 +80,7 @@ export function PlanDecision({
           <h2 className="app-section-title">Your plan</h2>
           <VersionLines printed={printed} />
           <p className="mt-2 hidden text-sm text-foreground print:block!">
-            Cardui does not schedule a payment or change an account.
+            Tortoise does not schedule a payment or change an account.
           </p>
           {readingStored ? (
             <p className="mt-2 max-w-xl text-sm text-foreground">

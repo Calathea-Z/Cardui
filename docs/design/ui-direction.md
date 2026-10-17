@@ -9,8 +9,9 @@ The enforceable conventions for new screens and substantial UI changes are in
 Where this note differs from that rule, the rule wins. Page-specific choices
 belong in page-specific design documents.
 
-The signed-in app is branded **Tortoise** in `frontend/app/layout.tsx`. The
-repository and roadmap call the product Cardui.
+The product is **Tortoise** in the signed-in app, the repository docs, and
+Plaid Link. Internal names such as `Cardui.sln`, `Cardui.Api`, and
+`DataProtection:ApplicationName` stay Cardui.
 
 ## 1. Product direction
 

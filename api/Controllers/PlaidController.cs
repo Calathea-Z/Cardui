@@ -132,7 +132,7 @@ public class PlaidController : ControllerBase
     /// <summary>
     /// DELETE /api/plaid/{plaidItemId}
     /// Removes the bank login at Plaid and deletes the stored access token.
-    /// Accounts and transactions stay in Cardui.
+    /// Accounts and transactions stay in Tortoise.
     /// </summary>
     [HttpDelete("{plaidItemId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

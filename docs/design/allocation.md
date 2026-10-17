@@ -1,11 +1,11 @@
 # Allocation
 
 Status: Current
-Updated: 2026-10-15
+Updated: 2026-10-17
 
 ## Problem
 
-The rest of Phase 3 item 6. The household can save a rule for extra variable pay and a rule for a windfall, then review what those rules would do. The rules are preferences. Cardui does not move money, pay a debt, or change an account balance.
+The rest of Phase 3 item 6. The household can save a rule for extra variable pay and a rule for a windfall, then review what those rules would do. The rules are preferences. Tortoise does not move money, pay a debt, or change an account balance.
 
 Temporary Plan cash scenarios stay temporary. A windfall tried on Plan still stays in cash.
 

@@ -2,11 +2,11 @@
 
 Status: Accepted
 Date: 2026-10-04
-Updated: 2026-10-07
+Updated: 2026-10-17
 
 ## Context
 
-A person should be able to use Cardui without connecting a bank.
+A person should be able to use Tortoise without connecting a bank.
 
 ## Decision
 

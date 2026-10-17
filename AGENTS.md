@@ -1,4 +1,4 @@
-# Cardui agent notes
+# Tortoise agent notes
 
 Linear is the source of truth for current work. Read the selected Linear
 issue, this file, `docs/README.md`, and the relevant roadmap and decision

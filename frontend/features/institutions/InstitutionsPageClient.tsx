@@ -214,7 +214,7 @@ export function InstitutionsPageClient({
     const confirmed = await confirm({
       title: `Remove ${name}?`,
       description:
-        "This removes the login at the bank. Accounts and transactions stay in Cardui.",
+        "This removes the login at the bank. Accounts and transactions stay in Tortoise.",
       confirmLabel: "Remove bank link",
     });
     if (!confirmed) {
@@ -227,7 +227,7 @@ export function InstitutionsPageClient({
       await disconnectPlaidItem(plaidItemId);
       toast.success(`Removed ${name}`, {
         id: connectionToastId,
-        description: "Accounts and transactions stay in Cardui.",
+        description: "Accounts and transactions stay in Tortoise.",
       });
       setItems((currentItems) =>
         currentItems.filter((item) => item.id !== plaidItemId),

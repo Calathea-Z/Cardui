@@ -1,10 +1,12 @@
-# Cardui
+# Tortoise
 
-Cardui is a personal finance and debt recovery application designed to help households understand their financial position and build a realistic path out of debt. The signed-in interface is titled Tortoise.
+Tortoise is a personal finance and debt recovery application designed to help households understand their financial position and build a realistic path out of debt.
 
-Unlike traditional budgeting tools that focus primarily on tracking spending, Cardui connects day-to-day cash flow with debt repayment planning. Its deterministic planning engine models payoff strategies, upcoming obligations, and available cash, allowing users to explore financial decisions before committing to a plan.
+Unlike traditional budgeting tools that focus primarily on tracking spending, Tortoise connects day-to-day cash flow with debt repayment planning. Its deterministic planning engine models payoff strategies, upcoming obligations, and available cash, allowing users to explore financial decisions before committing to a plan.
 
 The application combines a Next.js frontend, an ASP.NET Core API, PostgreSQL, Clerk authentication, and optional Plaid connectivity. An AI-guided planning experience is under development.
+
+The product name is Tortoise. The GitHub repository is [`Calathea-Z/Tortoise`](https://github.com/Calathea-Z/Tortoise). These internal names stay Cardui: `Cardui.sln`, the `Cardui.Api` namespace, `tests/Cardui.Tests`, the local PostgreSQL database and volume, the browser key `cardui.plan.work`, and `DataProtection:ApplicationName`.
 
 ## Screenshots
 
@@ -107,7 +109,7 @@ Commands are Windows PowerShell, run from the repository root unless a step says
 | API | .NET 10, ASP.NET Core, EF Core, PostgreSQL 16 |
 | Web | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
 | Sign-in | Clerk |
-| Bank sync | Plaid, optional, through a one-shot worker |
+| Bank sync | Plaid, optional. The one-shot worker runs locally and is not deployed or scheduled |
 | Tests | xUnit in `tests/Cardui.Tests`, Node test scripts in `frontend/` |
 
 `global.json` pins the .NET SDK to 10.0.301. `frontend/package.json` pins pnpm to 10.33.0. Continuous integration uses Node.js 22.
@@ -116,7 +118,7 @@ Commands are Windows PowerShell, run from the repository root unless a step says
 
 - `api/`: HTTP API and EF Core migrations
 - `frontend/`: Next.js application
-- `worker/`: one-shot Plaid sync
+- `worker/`: one-shot Plaid sync for a local run. It is not deployed or scheduled
 - `tests/Cardui.Tests/`: .NET tests
 - `docs/`: roadmap, decisions, designs, and calculation rules. Start at [`docs/README.md`](docs/README.md)
 
@@ -151,7 +153,7 @@ Plaid and the planning model are optional. Leave them unset for manual use. For 
 dotnet user-secrets set "Plaid:ClientId" "<Plaid sandbox client ID>" --project .\api
 dotnet user-secrets set "Plaid:Secret" "<Plaid sandbox secret>" --project .\api
 dotnet user-secrets set "Plaid:Environment" "sandbox" --project .\api
-dotnet user-secrets set "Plaid:ClientName" "Cardui" --project .\api
+dotnet user-secrets set "Plaid:ClientName" "Tortoise" --project .\api
 ```
 
 ```powershell
@@ -159,7 +161,7 @@ dotnet user-secrets set "PlanningModel:ApiKey" "<OpenAI API key>" --project .\ap
 dotnet user-secrets set "PlanningModel:Model" "<model id>" --project .\api
 ```
 
-The API and worker share the gitignored `.data-protection-keys` directory. Production must set `DataProtection:KeysPath`, `DataProtection:CertificatePath`, and public `https` values for `AllowedHosts`, `Cors:AllowedOrigins`, and `Clerk:AuthorizedParties`.
+The API and worker share the gitignored `.data-protection-keys` directory. Production must set `DataProtection:KeysPath`, `DataProtection:CertificatePath`, and public `https` values for `AllowedHosts`, `Cors:AllowedOrigins`, and `Clerk:AuthorizedParties`. Leave `DataProtection:ApplicationName` set to `Cardui`. A different name cannot read tokens protected under the current name. `Plaid:ClientName` is the name Plaid Link shows. The Plaid dashboard application name is updated in Plaid, not in this repository.
 
 ```powershell
 @"
@@ -195,7 +197,7 @@ Pop-Location
 
 Open `http://localhost:3000`.
 
-The worker has its own User Secrets store. It runs one sync pass and exits. Without Plaid credentials it skips bank sync. If connected items exist and those credentials are missing, it exits with code 1. Scheduling notes are in [`worker/README.md`](worker/README.md).
+The worker is implemented for a local run. It has not been deployed or scheduled. It has its own User Secrets store, runs one sync pass, and exits. Without Plaid credentials it skips bank sync. If connected items exist and those credentials are missing, it exits with code 1. Future scheduling notes are in [`worker/README.md`](worker/README.md).
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<local PostgreSQL connection string>" --project .\worker

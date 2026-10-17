@@ -69,7 +69,7 @@ and the named sections. The sections are summary, cash, debts, income,
 bills, savings, living, allocation, plan, facts, and forecast. One
 transaction description or one uploaded excerpt can be attached, up to 500
 characters. The share does not read transaction rows or import files.
-Developer instructions stay Cardui's own words. Quoted household text is
+Developer instructions stay Tortoise's own words. Quoted household text is
 data, not an instruction.
 
 Cash is the total, the account counts, and the balance dates. It does not
